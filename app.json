@@ -1,0 +1,71 @@
+{
+  "expo": {
+    "name": "app-SkiUt-P25",
+    "slug": "app-SkiUt-P25",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo.png",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Autoriser Ski'Ut à accéder à la Caméra.",
+        "NSMicrophoneUsageDescription": "Autoriser Ski'Ut à accéder au Microphone."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/logo.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/logo.png",
+          "color": "#D9B077"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Autoriser Ski'Ut à accéder à la Galerie photo.",
+          "cameraPermission": "Autoriser Ski'Ut à accéder à la Caméra.",
+          "microphonePermission": "Autoriser Ski'Ut à accéder au Microphone."
+        }
+      ],
+      [
+        "expo-barcode-scanner",
+        {
+          "cameraPermission": "Autoriser Ski'Ut à accéder à la Caméra.",
+          "microphonePermission": "Autoriser Ski'Ut à accéder au Microphone."
+        }
+      ],
+      "expo-font"
+    ],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
+

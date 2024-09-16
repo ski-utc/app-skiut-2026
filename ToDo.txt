@@ -1,0 +1,7 @@
+Créer le main
+Créer les screens et components
+Créer les redux/
+
+react-native.config.js
+google-services.json (Pour poster sur le play store)    +Adapter app.json en fonction
+eas.json (Pour poster sur l'app store)                  +Adapter app.json en fonction

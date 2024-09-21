@@ -4,13 +4,13 @@
     "slug": "app-SkiUt-P25",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo.png",
+    "icon": "./assets/images/logo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/logo.png",
+      "image": "./assets/images/logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#aad1cd"
     },
     "ios": {
       "supportsTablet": true,
@@ -21,8 +21,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/logo.png",
+        "backgroundColor": "#aad1cd"
       },
       "permissions": [
         "android.permission.RECORD_AUDIO",
@@ -32,15 +32,15 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/logo.png"
+      "favicon": "./assets/images/logo.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-notifications",
         {
-          "icon": "./assets/logo.png",
-          "color": "#D9B077"
+          "icon": "./assets/images/logo.png",
+          "color": "#fa0019"
         }
       ],
       [

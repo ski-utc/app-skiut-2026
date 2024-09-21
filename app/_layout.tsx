@@ -1,37 +1,65 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { Tabs } from 'expo-router';
+import React from 'react';
 
+import { TabBarIcon } from '@/components/navigation/TabBarIcon';
+import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-    </ThemeProvider>
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,   //Modifier avec la CG
+        headerShown: false,
+      }}
+      >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Home',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color}/>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="planning"
+        options={{
+          title: 'Planning',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'calendar' : 'calendar-outline'} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="potins"
+        options={{
+          title: 'Potins',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'chatbox' : 'chatbox-outline'} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="defis"
+        options={{
+          title: 'Défis',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'trophy' : 'trophy-outline'} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profil"
+        options={{
+          title: 'Profil',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'person-circle' : 'person-circle-outline'} color={color} />
+          ),
+        }}
+      />
+    </Tabs>
   );
 }

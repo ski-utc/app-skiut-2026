@@ -6,7 +6,6 @@ const urls = {
 
 // Api Url Variable
 const BASE_URL = urls.dev;
-
 const API_BASE_URL = `${BASE_URL}/api`;
 
 export { API_BASE_URL, BASE_URL };

@@ -1,6 +1,6 @@
-Créer le main
-Créer les screens et components
-Créer les redux/
+Créer les screens et main dans app
+Créer les components
+Créer les redux dans constants/ ou hooks/
 
 react-native.config.js
 google-services.json (Pour poster sur le play store)    +Adapter app.json en fonction

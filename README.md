@@ -36,6 +36,8 @@
 * components/  - On y stocke des composants de page qu'on réutilise plusieurs fois (header, button, card...)
 * constants/  - On y stocke les variables globales (thème, dimensions, appels API)
   * api/  - Contient les fichiers pour config et appeler l'API
+    * apiCalls  - Contient les fonctions d'appel API Post et Get
+    * apiConfig  - Regroupe les paramètres de config API (mode dev/prod, URL du serveur...)
 * expo-env.d.ts  - On touche pas, c'est pour Expo et l'IDE
 * hooks/  - On y stocke des fonctions pour gérer des états dans des composants (genre mettre le fond en noir quand on est en Dark Theme)
 * package.json  - Permet de stocker les dépendances pour npm install

@@ -1,10 +1,10 @@
 import axios from "axios";
-import * as config from "./config";
+import * as config from "./apiConfig";
 import * as SecureStore from "expo-secure-store";
 
 const bypass_login = true;
 
-// Token Refresh
+// Rafraichir les tokens
 const refreshTokens = async () => {
   const refreshtoken = await SecureStore.getItemAsync("refreshToken");
   if (!refreshtoken) {
@@ -23,7 +23,7 @@ const refreshTokens = async () => {
   }
 };
 
-// apiGet Function with JWT authentication
+// apiGet avec JWT
 export const apiGet = async (url) => {
   let response;
   let accessToken = await SecureStore.getItemAsync("accessToken");
@@ -49,7 +49,7 @@ export const apiGet = async (url) => {
   return response.data;
 };
 
-// apiPost Function with JWT authentication and multimedia option
+// apiPost avec JWT
 export const apiPost = async (url, data, multimedia = false) => {
   let response;
   let accessToken = await SecureStore.getItemAsync("accessToken");
@@ -74,7 +74,7 @@ export const apiPost = async (url, data, multimedia = false) => {
   return response.data;
 };
 
-// Public GET request without JWT authentication
+// Public GET sans JWT
 export const apiGetPublic = async (url) => {
   const response = await axios.get(`${config.API_BASE_URL}/${url}`);
   return response.data;

@@ -2,6 +2,7 @@ import { Text, Pressable, StyleSheet } from 'react-native';
 import React, { useEffect } from 'react';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { useSharedValue, withSpring } from 'react-native-reanimated';
+import { Fonts, loadFonts } from '@/constants/GraphSettings';
 
 export default (props) => {
     const { isFocused, label, routeName, color, icon } = props;
@@ -10,7 +11,7 @@ export default (props) => {
 
     useEffect(() => {
         scale.value = withSpring(
-            isFocused ? 1 : 0,  // Simplification de la logique isFocused
+            isFocused ? 1 : 0,
             { duration: 350 }
         );
     }, [scale, isFocused]);
@@ -19,8 +20,9 @@ export default (props) => {
         <Pressable {...props} style={styles.container}>    
             <TabBarIcon name={icon} color={color} />
             <Text style={{ 
-                color: color, // Utilisation de la couleur directement
-                fontSize: 13
+                color: color,
+                fontSize: 13,
+                fontFamily: Fonts.Title.Bold,
             }}>
                 {label}
             </Text>

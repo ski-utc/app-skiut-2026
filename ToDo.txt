@@ -1,5 +1,7 @@
 Créer les screens et main dans app
 Créer les components
+    Créer un header avec une croix en haut à droite pour les pages qui se stackent
+    Ajouter un try/catch pour les appels API (erreur/JWT Erreur), ainsi qu'une page pour afficher l'erreur
 Créer les redux dans constants/ ou hooks/
 
 react-native.config.js

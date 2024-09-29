@@ -18,32 +18,44 @@ export default function Header({ text }) {
     <View
       style={{
         width: "100%",
+        height: "10%",
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        height: "10%",
-        paddingTop: 10,
         backgroundColor: Colors.darkBlue,
       }}
     >
-      <Text
+      <View
         style={{
-          fontSize: 32,
-          textAlign: "center",
-          maxWidth: "90%",
-          color: Colors.white,
-          fontFamily: Fonts.Title.Bold,
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          borderBottomLeftRadius: 50,
+          borderBottomRightRadius: 50,
+          paddingTop: 10,
+          backgroundColor: Colors.white,
+          shadowColor: 'black',
+          shadowOffset: {width: 3, height: 3},
+          shadowRadius: 10,
+          shadowOpacity: 0.2
         }}
       >
-        {text}
-      </Text>
+        <Text
+          style={{
+            fontSize: 40,
+            textAlign: "center",
+            maxWidth: "90%",
+            color: Colors.darkBlue,
+            fontFamily: Fonts.Title.Bold,
+          }}
+        >
+          {text}
+        </Text>
+      </View>
     </View>
   );
 }
-
-
-
-
-
-

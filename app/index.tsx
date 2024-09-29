@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import React, { useState, useEffect } from "react";
 import { apiGetPublic } from "../constants/api/apiCalls";
 
+// @ts-ignore
 export default function Index() {
   /* - - - - - - - - - - - - - Variables Globales - - - - - - - - - - - - - */
   const [loading, setLoading] = useState(true);  // Variable globale de chargement et son setter
@@ -23,7 +24,7 @@ export default function Index() {
       try {
         setLoading(true);  //On met la page en cours de chargement
         const response = await apiGetPublic("getTrucDuServeur");  //On balance la requête GET sans JWT à la route getTrucDuServeur
-        setArrayDeData(response.data);  // On met à jour les données de notre variable globale
+        setArrayDeData(response);  // On met à jour les données de notre variable globale
         setLoading(false);  //On quitte l'état de chargement
       } catch (err) {
         setError(err);  //Si il y a une erreur, on l'affecte à notre variable globale error qui s'affiche à l'écran
@@ -92,7 +93,7 @@ export default function Index() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: Colors.blue,
+          backgroundColor: Colors.darkBlue,
         }}
       >
         <ActivityIndicator
@@ -126,9 +127,10 @@ export default function Index() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: Colors.blue,
+          backgroundColor: Colors.darkBlue,
         }}
       >
+        <Text>{arrayDeData.message}</Text>
         <Text>Edit app/index.tsx to edit this screen.</Text>
       </View>
     </View>

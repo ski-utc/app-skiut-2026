@@ -15,6 +15,10 @@
 
 3. Lance le serveur Laravel (si j'ai fini de le setup)
 
+4. Route les requêtes de ton App vers ton serveur
+Modifie l'IP dans constants/api/apiConfig pour donner celle de ton serv Laravel
+**Attention : Il faut que ton téléphone et ton PC soit sur le même réseau (l'IP c'est propre à un réseau)**
+
 ## Une fois expo lancé, 2 possibilités
 ### 1. Lancer Expo sur son téléphone
 1. Installe Expo Go sur ton téléphone

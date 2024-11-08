@@ -34,8 +34,6 @@ export default function Header({ text }) {
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
-          borderBottomLeftRadius: 50,
-          borderBottomRightRadius: 50,
           paddingTop: 10,
           backgroundColor: Colors.white,
           shadowColor: 'black',

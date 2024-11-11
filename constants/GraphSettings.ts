@@ -1,22 +1,20 @@
 import * as Font from 'expo-font';
 
-/* Supprimer une fois les components mis à jour */
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
-
 export const Colors = {
-  blue: '#75b2ae',
-  softBlue: '#aad1cd',
-  darkBlue: '#545A95',
-  red: '#fa0019',
-  softRed: '#fe715d',
-  brown: '#550615',
-  softBrown: '#d7beb8',
-  white: '#f9fbec',
+  white: '#FFFFFF',
+  customWhite: '#F0F0F0',
+  customGray: '#EBEBEB',
+  gray: '#7F7D7D',
+  black: '#000000',
+  customBlack: '#262323',
+  orange: '#E64034',
 };
 
 export const loadFonts = async () => {
   await Font.loadAsync({
+    'Inter': require('../assets/fonts/Inter/Inter.ttf'),
+    'Inter-Italic': require('../assets/fonts/Inter/Inter-Italic.ttf'),
+    
     'DIN-Light': require('../assets/fonts/Titre/DIN-Light.ttf'),
     'DIN-Medium': require('../assets/fonts/Titre/DIN-Medium.ttf'),
     'DIN-Bold': require('../assets/fonts/Titre/DIN-Bold.ttf'),
@@ -28,6 +26,10 @@ export const loadFonts = async () => {
 };
 
 export const Fonts = {
+  Inter: {
+    Basic: 'Inter',
+    Italic: 'Inter-Italic',
+  },
   Title: {
     Light: 'DIN-Light',
     Medium: 'DIN-Medium',

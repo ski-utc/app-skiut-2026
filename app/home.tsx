@@ -1,11 +1,11 @@
 import { Text, View, ActivityIndicator } from "react-native";
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
-import Header from "../components/Header";
+import Header from "../components/header";
 import React, { useState, useEffect } from "react";
 import { apiGetPublic } from "../constants/api/apiCalls";
 
 // @ts-ignore
-export default function Index() {
+export default function Home() {
   /* - - - - - - - - - - - - - Variables Globales - - - - - - - - - - - - - */
   const [loading, setLoading] = useState(true);  // Variable globale de chargement et son setter
   const [error, setError] = useState(null);  // Variable globale d'erreur et son setter
@@ -131,7 +131,7 @@ export default function Index() {
         }}
       >
         <Text>{arrayDeData.message}</Text>
-        <Text>Edit app/index.tsx to edit this screen.</Text>
+        <Text>Edit app/home.tsx to edit this screen.</Text>
       </View>
     </View>
   );

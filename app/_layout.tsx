@@ -1,8 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import CustomTabBar from '../components/navigation/customTabBar';
+import CustomNavBar from '../components/navigation/customNavBar';
 import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react';
-
 
 import HomeScreen from './home';
 import PlanningScreen from './planning';
@@ -14,7 +13,7 @@ const Tab = createBottomTabNavigator();
 // @ts-ignore
 export default function RootLayout() {
   return (
-    <Tab.Navigator tabBar={(props) => <CustomTabBar {...props} />}>
+    <Tab.Navigator screenOptions={{headerShown: false}} tabBar={(props) => <CustomNavBar {...props} />}>
       <Tab.Screen
         name="home"
         component={HomeScreen}

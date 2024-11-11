@@ -1,19 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 
 // @ts-ignore
-export default function CustomTabBar({ state, descriptors, navigation }) {
-  const activeColor = '#E64034';
-  const unactiveColor = '#7F7D7D';
+export default function CustomNavBar({ state, descriptors, navigation }) {
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  useEffect(() => {
+    const loadAsyncFonts = async () => {
+      await loadFonts();
+      setFontsLoaded(true);
+    };
+    loadAsyncFonts();
+  }, []);
+
+  const activeColor = Colors.orange;
+  const unactiveColor = Colors.gray;
 
   return (
     <View
       style={{
         paddingVertical: 18,
         marginHorizontal: 15,
-        backgroundColor: 'white',
+        backgroundColor: Colors.white,
         borderTopWidth: 1,
-        borderTopColor: '#F0F0F0',
+        borderTopColor: Colors.customWhite,
         justifyContent: 'flex-start',
         alignItems: 'center',
         flexDirection: 'row',
@@ -76,7 +87,7 @@ export default function CustomTabBar({ state, descriptors, navigation }) {
               style={{
                 color: isFocused ? activeColor : unactiveColor,
                 fontSize: 14,
-                fontFamily: 'Inter',
+                fontFamily: Fonts.Inter.Basic,
                 fontWeight: '500',
                 textAlign: 'center',
               }}

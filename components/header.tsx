@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View } from 'react-native';
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { GanttChart, Bell } from 'lucide-react';
 
 // @ts-ignore
-export default function Header({ text }) {
+export default function Header() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
@@ -14,45 +15,79 @@ export default function Header({ text }) {
     loadAsyncFonts();
   }, []);
 
-  return (  // Il faudra créer un autre component avec une croix en haut à droite pour les pages qui se stackent
+  return (
     <View
       style={{
-        width: "100%",
-        height: "10%",
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: Colors.darkBlue,
+        position: 'absolute',
+        top: 0,
+        width: '100%',
+        paddingTop: 20,
+        paddingBottom: 36,
+        paddingLeft: 20,
+        paddingRight: 20,
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexDirection: 'row',
       }}
     >
       <View
         style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          paddingTop: 10,
-          backgroundColor: Colors.white,
-          shadowColor: 'black',
-          shadowOffset: {width: 3, height: 3},
-          shadowRadius: 10,
-          shadowOpacity: 0.2
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexDirection: 'row',
+          gap: 13,
         }}
       >
-        <Text
+        <GanttChart
+          size={24}
+          color={Colors.black}
+        />
+        <View
           style={{
-            fontSize: 40,
-            textAlign: "center",
-            maxWidth: "90%",
-            color: Colors.darkBlue,
-            fontFamily: Fonts.Title.Bold,
+            width: 85,
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            alignItems: 'flex-start',
+            gap: 4,
           }}
         >
-          {text}
-        </Text>
+          <Text
+            style={{
+              color: Colors.black,
+              fontSize: 14,
+              fontFamily: Fonts.Inter.Basic,
+              fontWeight: '600',
+            }}
+          >
+            John Doe
+          </Text>
+          <Text
+            style={{
+              color: '#9D9D9D',
+              fontSize: 12,
+              fontFamily: Fonts.Inter.Basic,
+              fontWeight: '600',
+            }}
+          >
+            Chambre 112
+          </Text>
+        </View>
+      </View>
+      <View
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: '#EAEAEA',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Bell
+          size={20}
+          color={Colors.black}
+        />
       </View>
     </View>
   );

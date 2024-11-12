@@ -1,15 +1,29 @@
 import { Text, View } from "react-native";
+import Header from "../components/header";
 
+// @ts-ignore
 export default function Defis() {
   return (
     <View
       style={{
-        flex: 1,
-        justifyContent: "center",
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
         alignItems: "center",
+        justifyContent: "center",
       }}
     >
-      <Text>Edit app/defis.tsx to edit this screen.</Text>
+      <Header/>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Text>Edit app/defis.tsx to edit this screen.</Text>
+      </View>
     </View>
   );
 }

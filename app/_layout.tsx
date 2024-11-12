@@ -6,7 +6,7 @@ import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react';
 import HomeScreen from './home';
 import PlanningScreen from './planning';
 import DefisScreen from './defis';
-import PotinsScreen from './potins';
+import AnecdotesScreen from './anecdotes';
 
 const Tab = createBottomTabNavigator();
 
@@ -30,8 +30,8 @@ export default function RootLayout() {
         options={{ tabBarLabel: 'Défi', tabBarIcon: LandPlot }}
       />
       <Tab.Screen
-        name="potins"
-        component={PotinsScreen}
+        name="anecdotes"
+        component={AnecdotesScreen}
         options={{ tabBarLabel: 'Anecdotes', tabBarIcon: MessageSquareText }}
       />
     </Tab.Navigator>

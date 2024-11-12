@@ -53,15 +53,16 @@ export default function Home() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: Colors.darkBlue,
+          backgroundColor: Colors.white,
         }}
       >
+        <Header/>
         <Text 
           style={{ 
             fontSize: 32,
             textAlign: "center",
             maxWidth: "90%",
-            color: Colors.white,
+            color: Colors.black,
             fontFamily: Fonts.Title.Bold,            
           }}>
             Erreur: 
@@ -71,7 +72,7 @@ export default function Home() {
             fontSize: 20,
             textAlign: "center",
             maxWidth: "90%",
-            color: Colors.white,
+            color: Colors.black,
             fontFamily: Fonts.Text.Medium,            
           }}>
             {error?.message || "Une erreur est survenue"}
@@ -118,7 +119,7 @@ export default function Home() {
         justifyContent: "center",
       }}
     >
-      <Header text="Home"/>
+      <Header/>
       <View
         style={{
           height: "90%",

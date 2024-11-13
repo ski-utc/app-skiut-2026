@@ -2,7 +2,7 @@ import { Text, View } from "react-native";
 import Header from "../components/header";
 
 // @ts-ignore
-export default function Planning() {
+export default function PlanningScreen() {
   return (
     <View
       style={{

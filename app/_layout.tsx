@@ -1,12 +1,12 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import CustomNavBar from '../components/navigation/customNavBar';
-import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react';
+import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react-native';
 
-import HomeScreen from './home';
-import PlanningScreen from './planning';
-import DefisScreen from './defis';
-import AnecdotesScreen from './anecdotes';
+import HomeScreen from './homeScreen';
+import PlanningScreen from './planningScreen';
+import DefisScreen from './defisScreen';
+import AnecdotesNavigator from './anecdotesNavigator';
 
 const Tab = createBottomTabNavigator();
 
@@ -15,23 +15,23 @@ export default function RootLayout() {
   return (
     <Tab.Navigator screenOptions={{headerShown: false}} tabBar={(props) => <CustomNavBar {...props} />}>
       <Tab.Screen
-        name="home"
+        name="homeScreen"
         component={HomeScreen}
         options={{ tabBarLabel: 'Home', tabBarIcon: Home }}
       />
       <Tab.Screen
-        name="planning"
+        name="planningScreen"
         component={PlanningScreen}
         options={{ tabBarLabel: 'Planning', tabBarIcon: CalendarFold }}
       />
       <Tab.Screen
-        name="defis"
+        name="defisScreen"
         component={DefisScreen}
         options={{ tabBarLabel: 'Défi', tabBarIcon: LandPlot }}
       />
       <Tab.Screen
-        name="anecdotes"
-        component={AnecdotesScreen}
+        name="anecdotesScreen"
+        component={AnecdotesNavigator} 
         options={{ tabBarLabel: 'Anecdotes', tabBarIcon: MessageSquareText }}
       />
     </Tab.Navigator>

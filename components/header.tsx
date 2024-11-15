@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View } from 'react-native';
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
-import { GanttChart, Bell } from 'lucide-react';
+import { GanttChart, Bell } from 'lucide-react-native';
 
 // @ts-ignore
 export default function Header() {
@@ -18,10 +18,9 @@ export default function Header() {
   return (
     <View
       style={{
-        position: 'absolute',
-        top: 0,
         width: '100%',
-        paddingTop: 20,
+        backgroundColor: Colors.white,
+        paddingTop: 36,
         paddingBottom: 36,
         paddingLeft: 20,
         paddingRight: 20,

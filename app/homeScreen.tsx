@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 import { apiGetPublic } from "../constants/api/apiCalls";
 
 // @ts-ignore
-export default function Home() {
+export default function HomeScreen() {
   /* - - - - - - - - - - - - - Variables Globales - - - - - - - - - - - - - */
   const [loading, setLoading] = useState(true);  // Variable globale de chargement et son setter
   const [error, setError] = useState(null);  // Variable globale d'erreur et son setter

@@ -1,8 +1,12 @@
-Créer les screens et main dans app
-Créer les components
-    Créer un header avec une croix en haut à droite pour les pages qui se stackent
-    Ajouter un try/catch pour les appels API (erreur/JWT Erreur), ainsi qu'une page pour afficher l'erreur
-Créer les redux dans constants/ ou hooks/
+Créér la page d'erreur classique
+Créér la page de quand on est pas conecté 
+
+
+Anecdote : 
+- Boutton Supprimer quand je suis le propriétaire
+- Background fullfill sur le coeur
+- TouchableOpacity sur les icones
+
 
 react-native.config.js
 google-services.json (Pour poster sur le play store)    +Adapter app.json en fonction

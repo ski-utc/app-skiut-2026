@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, FlatList } from 'react-native';
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
-import Header from "../components/header";
-import Anecdote from '../components/anecdotes/anecdote';
+import Header from "../../components/header";
+import Anecdote from '../../components/anecdotes/anecdote';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import BoutonNavigation from '@/components/divers/boutonNavigation';
 import { MessageCirclePlus } from 'lucide-react-native';

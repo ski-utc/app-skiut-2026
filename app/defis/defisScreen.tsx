@@ -1,5 +1,5 @@
 import { Text, View } from "react-native";
-import Header from "../components/header";
+import Header from "../../components/header";
 
 // @ts-ignore
 export default function DefisScreen() {

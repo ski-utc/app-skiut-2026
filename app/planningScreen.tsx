@@ -1,10 +1,67 @@
-import { Text, View } from "react-native";
+import { Text, View, SafeAreaView, FlatList } from "react-native";
+import { TouchableOpacity } from "react-native";
+import React, { useState } from "react";
 import Header from "../components/header";
 
 // @ts-ignore
 export default function PlanningScreen() {
+  const days = ["S 18", "D 19", "L 20", "Ma 21", "M 22", "J 23", "V 24", "S 25"];
+  const [selectedDate, setSelectedDate] = useState("");
+
+  const dayMap: { [key: string]: string } = {
+    "S": "Samedi",
+    "D": "Dimanche",
+    "L": "Lundi",
+    "Ma": "Mardi",
+    "M": "Mercredi",
+    "J": "Jeudi",
+    "V": "Vendredi"
+  };
+
+  const activitiesMap: { [key: string]: { activity: string, time: string }[] } = {
+    "Samedi 18 Janvier": [
+      { activity: "Ski", time: "9h - 14h" },
+      { activity: "Snowboard", time: "10h - 15h" },
+      { activity: "Ice Skating", time: "11h - 13h" }
+    ],
+    "Dimanche 19 Janvier": [
+      { activity: "Ski", time: "9h - 14h" },
+      { activity: "Snowboard", time: "10h - 15h" }
+    ],
+    "Lundi 20 Janvier": [
+      { activity: "Ski", time: "9h - 14h" },
+      { activity: "Snowboard", time: "10h - 15h" },
+      { activity: "Rando!!", time: "12h - 16h" }
+    ],
+    "Mardi 21 Janvier": [
+      { activity: "Ski", time: "9h - 14h" },
+      { activity: "Snowboard", time: "10h - 15h" },
+      { activity: "Spa", time: "14h - 18h" }
+    ],
+    "Mercredi 22 Janvier": [
+      { activity: "Ski", time: "9h - 14h" },
+      { activity: "Snowboard", time: "10h - 15h" },
+      { activity: "Spa", time: "14h - 18h" }
+    ],
+    "Jeudi 23 Janvier": [
+      { activity: "Ski", time: "9h - 14h" },
+      { activity: "Snowboard", time: "10h - 15h" },
+      { activity: "Shopping", time: "13h - 17h" }
+    ],
+    "Vendredi 24 Janvier": [
+      { activity: "Ski", time: "9h - 14h" },
+      { activity: "Snowboard", time: "10h - 15h" },
+      { activity: "Gros dîner!!", time: "18h - 21h" }
+    ],
+    "Samedi 25 Janvier": [
+      { activity: "Ski", time: "9h - 14h" },
+      { activity: "Snowboard", time: "10h - 15h" },
+      { activity: "Concert??", time: "20h - 23h" }
+    ]
+  };
+
   return (
-    <View
+    <SafeAreaView
       style={{
         height: "100%",
         width: "100%",
@@ -12,9 +69,128 @@ export default function PlanningScreen() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
+        backgroundColor: "white",
       }}
     >
-      <Header/>
+      <Header text="Planning"/>
+      
+      <Text style={{ fontSize: 16, color: "black", marginTop: 10, marginLeft: 21, fontFamily: "Inter-SemiBold", alignSelf: "flex-start" }}>Planning</Text>
+
+      <View style={{ 
+        flexDirection: "row", 
+        justifyContent: "space-around", 
+        width: "90%", 
+        marginTop: 20, 
+        height: 60, 
+        borderRadius: 12, 
+        borderWidth: 2, 
+        borderColor: "#E64034" 
+      }}>
+        {days.map((day, index) => {
+          const [letter, number] = day.split(" ");
+          const isSelected = selectedDate === `${dayMap[letter]} ${number} Janvier`;
+          return (
+            <TouchableOpacity
+              key={index}
+              style={{
+                flex: 1,
+                paddingTop: 8,
+                paddingBottom: 8,
+                backgroundColor: isSelected ? "#E64034" : "white",
+                borderRadius: 8,
+                flexDirection: "column",
+                justifyContent: "flex-start",
+                alignItems: "center",
+                gap: 10,
+              }}
+              onPress={() => setSelectedDate(`${dayMap[letter]} ${number} Janvier`)}
+            >
+              <Text style={{ 
+                color: isSelected ? "#DEDEDE" : "#ACACAC", 
+                fontSize: 12, 
+                fontFamily: "Inter", 
+                fontWeight: "500", 
+              }}>
+                {letter}
+              </Text>
+              <Text style={{ 
+                color: isSelected ? "white" : "black", 
+                fontSize: 16, 
+                fontFamily: "Inter", 
+                fontWeight: "600", 
+              }}>
+                {number}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      <Text style={{ fontSize: 16, color: "black", marginTop: 10, marginLeft: 21, fontFamily: "Inter-SemiBold", alignSelf: "flex-start" }}>
+        {selectedDate}
+      </Text>
+
+      {selectedDate && (
+        <FlatList
+          data={activitiesMap[selectedDate] || []}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <View style={{ 
+              width: '100%', 
+              paddingLeft: 10, 
+              paddingRight: 10, 
+              paddingTop: 12, 
+              paddingBottom: 12, 
+              borderBottomWidth: 1, 
+              borderBottomColor: '#EAEAEA', 
+              justifyContent: 'center', 
+              alignItems: 'flex-start', 
+              gap: 10, 
+              flexDirection: 'row' 
+            }}>
+              <View style={{ 
+                justifyContent: 'flex-start', 
+                alignItems: 'center', 
+                gap: 6, 
+                flexDirection: 'row' 
+              }}>
+                <View style={{ 
+                  width: 9, 
+                  height: 9, 
+                  backgroundColor: '#E64034', 
+                  borderRadius: 18 
+                }} />
+              </View>
+              <View style={{ 
+                flex: 1, 
+                flexDirection: 'column', 
+                justifyContent: 'flex-start', 
+                alignItems: 'flex-start', 
+                gap: 8 
+              }}>
+                <Text style={{ 
+                  color: '#171717', 
+                  fontSize: 14, 
+                  fontFamily: 'Inter', 
+                  fontWeight: '600' 
+                }}>
+                  {item.time}
+                </Text>
+                <Text style={{ 
+                  color: '#737373', 
+                  fontSize: 12, 
+                  fontFamily: 'Inter', 
+                  fontWeight: '400' 
+                }}>
+                  {item.activity}
+                </Text>
+              </View>
+            </View>
+          )}
+          style={{ width: "90%", marginTop: 10 }}
+        />
+      )}
+
       <View
         style={{
           flex: 1,
@@ -22,9 +198,7 @@ export default function PlanningScreen() {
           alignItems: "center",
         }}
       >
-        <Text>Edit app/planning.tsx to edit this screen.</Text>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
-

@@ -76,12 +76,12 @@ export default function PlanningScreen() {
     >
       <Header/>
       <View style={{
-      width: '100%',
-      flex: 1,
-      backgroundColor: Colors.white,
-      paddingHorizontal: 20,
-      paddingBottom: 16,
-    }}>
+        width: '100%',
+        flex: 1,
+        backgroundColor: Colors.white,
+        paddingHorizontal: 20,
+        paddingBottom: 16,
+        }}>
       <BoutonRetour
         previousRoute={"homeScreen"}
         title={"Planning"}

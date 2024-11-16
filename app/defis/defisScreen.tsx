@@ -3,6 +3,7 @@ import Header from "../../components/header";
 import { ChevronRight, ChevronLeft, Check, Trophy } from 'lucide-react';
 import React from 'react';
 import BoutonNavigation from "@/components/divers/boutonNavigation";
+import BoutonRetour from "@/components/divers/boutonRetour";
 
 const challenges: string[] = [
   "Prendre une photo avec un mono",
@@ -31,30 +32,20 @@ export default function Defis() {
         paddingBottom: 16,
       }}
     >
-      <Header />
-
+      <Header/>
       <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          position: 'absolute',
-          top: 100,
-          left: 0,
-          margin: 10,
+          style={{
+          width: '100%',
+          flex: 1,
+          backgroundColor: 'white',
+          paddingHorizontal: 20,
+          paddingBottom: 16,
         }}
       >
-        <ChevronLeft color="#8A8A8A" size={20} />
-        <Text
-          style={{
-            color: 'black',
-            fontSize: 16,
-            fontFamily: 'Inter',
-            fontWeight: '600',
-            marginLeft: 10,
-          }}
-        >
-          Défis de la semaine
-        </Text>
+        <BoutonRetour
+          previousRoute={"homeScreen"}
+          title={"Défis"}
+        />
       </View>
 
       <ScrollView

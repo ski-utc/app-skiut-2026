@@ -1,6 +1,6 @@
 import { Text, View, ScrollView } from "react-native";
 import Header from "../../components/header";
-import { ChevronRight, ChevronLeft, Check, Trophy } from 'lucide-react';
+import { ChevronRight, LandPlot, Check, Trophy } from 'lucide-react';
 import React from 'react';
 import BoutonNavigation from "@/components/divers/boutonNavigation";
 import BoutonRetour from "@/components/divers/boutonRetour";
@@ -29,7 +29,7 @@ export default function Defis() {
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: "white",
-        paddingBottom: 16,
+        paddingBottom: 8,
       }}
     >
       <Header/>
@@ -40,8 +40,8 @@ export default function Defis() {
           backgroundColor: 'white',
           paddingHorizontal: 20,
           paddingBottom: 16,
-        }}
-      >
+          }}
+          >
         <BoutonRetour
           previousRoute={"homeScreen"}
           title={"Défis"}
@@ -51,12 +51,12 @@ export default function Defis() {
       <ScrollView
         style={{
           width: "100%",
-          marginTop: 30,
+          marginTop: 20,
+          marginBottom: 8,
         }}
         contentContainerStyle={{
           paddingLeft: 20,
           paddingRight: 20,
-          paddingBottom: 100,
         }}
       >
         {challenges.map((defi, index) => (
@@ -108,11 +108,26 @@ export default function Defis() {
         ))}
       </ScrollView>
       
-      <BoutonNavigation
-        nextRoute={"defisClassement"}
-        title={"Classement"}
-        IconComponent={Trophy}
-      />
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%',
+        }}
+      >
+        <BoutonNavigation
+          nextRoute={"defisClassement"}
+          title={"Classement"}
+          IconComponent={Trophy}
+        />
+        <View style={{ width: 20 }} />
+        <BoutonNavigation
+          nextRoute={"mesDefis"}
+          title={"Mes défis"}
+          IconComponent={LandPlot}
+        />
+      </View>
     </View>
   );
 }

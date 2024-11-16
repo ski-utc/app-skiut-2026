@@ -26,35 +26,6 @@ export default function DefisInfos() {
         <TouchableOpacity
           style={{
             position: 'absolute',
-            bottom: 80,
-            backgroundColor: 'white',
-            padding: 15,
-            borderRadius: 8,
-            width: '80%',
-            alignItems: 'center',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            left: '10%',
-            borderWidth: 1,
-            borderColor: '#DDDDDD',
-          }}
-        >
-          <Text
-            style={{
-              color: '#343434',
-              fontSize: 14,
-              fontFamily: 'Inter',
-              fontWeight: '600',
-              marginRight: 10,
-            }}
-          >
-            Voir ses défis
-          </Text>
-          <LandPlot color="#343434" size={20} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={{
-            position: 'absolute',
             bottom: 16,
             backgroundColor: '#E64034',
             padding: 15,

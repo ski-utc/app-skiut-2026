@@ -1,6 +1,8 @@
 import { Text, View, SafeAreaView, FlatList } from "react-native";
 import { TouchableOpacity } from "react-native";
+import { Colors, Fonts } from '@/constants/GraphSettings';
 import React, { useState } from "react";
+import BoutonRetour from '@/components/divers/boutonRetour';
 import Header from "../components/header";
 
 // @ts-ignore
@@ -72,19 +74,29 @@ export default function PlanningScreen() {
         backgroundColor: "white",
       }}
     >
-      <Header text="Planning"/>
-      
-      <Text style={{ fontSize: 16, color: "black", marginTop: 10, marginLeft: 21, fontFamily: "Inter-SemiBold", alignSelf: "flex-start" }}>Planning</Text>
+      <Header/>
+      <View style={{
+      width: '100%',
+      flex: 1,
+      backgroundColor: Colors.white,
+      paddingHorizontal: 20,
+      paddingBottom: 16,
+    }}>
+      <BoutonRetour
+        previousRoute={"homeScreen"}
+        title={"Planning"}
+      />
 
       <View style={{ 
         flexDirection: "row", 
         justifyContent: "space-around", 
         width: "90%", 
-        marginTop: 20, 
+        marginTop: 5, 
         height: 60, 
         borderRadius: 12, 
         borderWidth: 2, 
-        borderColor: "#E64034" 
+        borderColor: "#E64034",
+        alignSelf: "center"
       }}>
         {days.map((day, index) => {
           const [letter, number] = day.split(" ");
@@ -126,14 +138,14 @@ export default function PlanningScreen() {
         })}
       </View>
 
-      <Text style={{ fontSize: 16, color: "black", marginTop: 10, marginLeft: 21, fontFamily: "Inter-SemiBold", alignSelf: "flex-start" }}>
+      <Text style={{ fontFamily: Fonts.Title.Light, fontSize: 16, fontWeight: "600", color: "#171717", marginTop: 20 }}>
         {selectedDate}
       </Text>
 
       {selectedDate && (
         <FlatList
           data={activitiesMap[selectedDate] || []}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={(_, index) => index.toString()}
           renderItem={({ item }) => (
             <View style={{ 
               width: '100%', 
@@ -148,19 +160,19 @@ export default function PlanningScreen() {
               gap: 10, 
               flexDirection: 'row' 
             }}>
-              <View style={{ 
-                justifyContent: 'flex-start', 
-                alignItems: 'center', 
-                gap: 6, 
-                flexDirection: 'row' 
-              }}>
                 <View style={{ 
-                  width: 9, 
-                  height: 9, 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                flexDirection: 'row', 
+                marginRight: 10,
+                }}>
+                <View style={{ 
+                  width: 5, 
+                  height: 50,
                   backgroundColor: '#E64034', 
-                  borderRadius: 18 
+                  borderRadius: 3
                 }} />
-              </View>
+                </View>
               <View style={{ 
                 flex: 1, 
                 flexDirection: 'column', 
@@ -198,6 +210,7 @@ export default function PlanningScreen() {
           alignItems: "center",
         }}
       >
+        </View>
       </View>
     </SafeAreaView>
   );

@@ -8,10 +8,8 @@ import { apiGetPublic } from "../constants/api/apiCalls";
 export default function HomeScreen() {
   /* - - - - - - - - - - - - - Variables Globales - - - - - - - - - - - - - */
   const [loading, setLoading] = useState(true);  // Variable globale de chargement et son setter
-  const [error, setError] = useState(null);  // Variable globale d'erreur et son setter
-  const [arrayDeData, setArrayDeData] = useState([]);  // Variable globale pour stocker les data d'une requête et son setter
-
-
+  const [error, setError] = useState<Error | null>(null);  // Variable globale d'erreur et son setter
+  const [arrayDeData, setArrayDeData] = useState<{ message: string } | null>(null);  // Variable globale pour stocker les data d'une requête et son setter
 
   /* - - - - - - - - - - - - - Récup les ressources - - - - - - - - - - - - - */
   useEffect(() => {
@@ -27,20 +25,18 @@ export default function HomeScreen() {
         setArrayDeData(response);  // On met à jour les données de notre variable globale
         setLoading(false);  //On quitte l'état de chargement
       } catch (err) {
-        setError(err);  //Si il y a une erreur, on l'affecte à notre variable globale error qui s'affiche à l'écran
+        setError(err as Error);  //Si il y a une erreur, on l'affecte à notre variable globale error qui s'affiche à l'écran
         setLoading(false); // On quitte l'état de chargement
       }
     };
     fetchData();  //Appel de la fonction asynchrone
   
     const intervalId = setInterval(() => {
-      fetchData().catch((err) => setError(err));  // Toutes les 5 minutes on refait la requête pour rafracihir
+      fetchData().catch((err) => setError(err));  // Toutes les 5 minutes on refait la requête pour rafraîchir
     }, 300000);
   
     return () => clearInterval(intervalId);  // On clear l'intervalle pour pas avoir des big fuites de mémoire
   }, []);
-  
-
 
   /* - - - - - - - - - - - - - Page en cas d'erreur - - - - - - - - - - - - - */
   if (error) {
@@ -56,7 +52,9 @@ export default function HomeScreen() {
           backgroundColor: Colors.white,
         }}
       >
-        <Header/>
+        <View style={{ position: "absolute", top: 0, left: 0, width: "100%" }}>
+          <Header />
+        </View>
         <Text 
           style={{ 
             fontSize: 32,
@@ -81,9 +79,7 @@ export default function HomeScreen() {
     );
   }
 
-
-
-/* - - - - - - - - - - - - - Page de chargement - - - - - - - - - - - - - */
+  /* - - - - - - - - - - - - - Page de chargement - - - - - - - - - - - - - */
   if (loading) {
     return (
       <View
@@ -94,9 +90,12 @@ export default function HomeScreen() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: Colors.darkBlue,
+          backgroundColor: Colors.customGray,
         }}
       >
+        <View style={{ position: "absolute", top: 0, left: 0, width: "100%" }}>
+          <Header />
+        </View>
         <ActivityIndicator
           size="large"
           color={Colors.white}
@@ -105,9 +104,7 @@ export default function HomeScreen() {
     );
   }
 
-
-
-/* - - - - - - - - - - - - - Page classique burger - - - - - - - - - - - - - */
+  /* - - - - - - - - - - - - - Page classique burger - - - - - - - - - - - - - */
   return (
     <View
       style={{
@@ -119,7 +116,9 @@ export default function HomeScreen() {
         justifyContent: "center",
       }}
     >
-      <Header/>
+      <View style={{ position: "absolute", top: 0, left: 0, width: "100%" }}>
+        <Header />
+      </View>
       <View
         style={{
           height: "90%",
@@ -128,10 +127,10 @@ export default function HomeScreen() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: Colors.darkBlue,
+          backgroundColor: Colors.black,
         }}
       >
-        <Text>{arrayDeData.message}</Text>
+        <Text>{arrayDeData?.message}</Text>
         <Text>Edit app/home.tsx to edit this screen.</Text>
       </View>
     </View>

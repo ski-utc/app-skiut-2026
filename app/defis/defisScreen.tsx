@@ -4,17 +4,45 @@ import { ChevronRight, LandPlot, Check, Trophy } from 'lucide-react';
 import React from 'react';
 import BoutonNavigation from "@/components/divers/boutonNavigation";
 import BoutonRetour from "@/components/divers/boutonRetour";
+import BoutonDefi from "@/components/divers/boutonDefi";
 
-const challenges: string[] = [
-  "Prendre une photo avec un mono",
-  "Faire un bonhomme de neige",
-  "Descendre une piste rouge",
-  "Faire une bataille de boules de neige",
-  "Prendre un cours de ski",
-  "Visiter un chalet",
-  "Faire du ski de fond",
-  "Construire un igloo",
-  "Descendre une piste noire",
+const challenges: { title: string; details: string }[] = [
+  {
+    title: "Prendre une photo avec un mono",
+    details: "Prenez une photo avec un moniteur de ski et partagez-la sur les réseaux sociaux.",
+  },
+  {
+    title: "Faire un bonhomme de neige",
+    details: "Construisez un bonhomme de neige et prenez une photo de votre création.",
+  },
+  {
+    title: "Descendre une piste rouge",
+    details: "Descendez une piste rouge sans tomber.",
+  },
+  {
+    title: "Faire une bataille de boules de neige",
+    details: "Participez à une bataille de boules de neige avec au moins deux autres personnes.",
+  },
+  {
+    title: "Prendre un cours de ski",
+    details: "Inscrivez-vous et participez à un cours de ski.",
+  },
+  {
+    title: "Visiter un chalet",
+    details: "Visitez un chalet de montagne et prenez une photo.",
+  },
+  {
+    title: "Faire du ski de fond",
+    details: "Faites du ski de fond sur une piste balisée.",
+  },
+  {
+    title: "Construire un igloo",
+    details: "Construisez un igloo et prenez une photo de votre construction.",
+  },
+  {
+    title: "Descendre une piste noire",
+    details: "Descendez une piste noire sans tomber.",
+  },
 ];
 
 export default function Defis() {
@@ -86,7 +114,7 @@ export default function Defis() {
                 width: '85%',
               }}
             >
-              <Check color={defi === "Faire un bonhomme de neige" ? "#05AA1F" : "#8A8A8A"} size={20} />
+              <Check color={defi.title === "Faire un bonhomme de neige" ? "#05AA1F" : "#8A8A8A"} size={20} />
               <Text
                 style={{
                   color: "#1E1E1E",
@@ -96,13 +124,15 @@ export default function Defis() {
                   marginLeft: 10,
                 }}
               >
-                {defi}
+                {defi.title}
               </Text>
             </View>
-            <BoutonNavigation
+            <BoutonDefi
               nextRoute={"defisInfos"}
               title={""}
               IconComponent={ChevronRight}
+              textToTransmit1={defi.title}
+              textToTransmit2={defi.details}
             />
           </View>
         ))}

@@ -6,6 +6,21 @@ import BoutonRetour from '@/components/divers/boutonRetour';
 import RectanglePodium from '@/components/classement/rectanglePodium';
 import RectangleReste from '@/components/classement/rectangleReste';
 
+const rooms = [
+  { num: 1, nb_likes: 34 },
+  { num: 2, nb_likes: 64 },
+  { num: 3, nb_likes: 81 },
+  { num: 4, nb_likes: 30 },
+  { num: 5, nb_likes: 39 },
+  { num: 6, nb_likes: 123 },
+  { num: 7, nb_likes: 27 },
+  { num: 8, nb_likes: 48 },
+];
+
+const sortedRooms = rooms.sort((a, b) => b.nb_likes - a.nb_likes);
+const podiumRooms = sortedRooms.slice(0, 3);
+const restRooms = sortedRooms.slice(3);
+
 export default function DefisClassement() {
   return (
     <View style={styles.container}>
@@ -20,16 +35,39 @@ export default function DefisClassement() {
         </View>
       </View>
       <View style={styles.podiumContainer}>
-        <RectanglePodium height={65} num={1} nb_likes={34} style={styles.podiumItem}/>
-        <RectanglePodium height={100} num={2} nb_likes={64} style={styles.podiumItem}/>
-        <RectanglePodium height={30} num={3} nb_likes={32} style={styles.podiumItem}/>
+        <RectanglePodium
+          key={podiumRooms[1].num}
+          height={65}
+          num={podiumRooms[1].num}
+          nb_likes={podiumRooms[1].nb_likes}
+          style={styles.podiumItem}
+        />
+        <RectanglePodium
+          key={podiumRooms[0].num}
+          height={100}
+          num={podiumRooms[0].num}
+          nb_likes={podiumRooms[0].nb_likes}
+          style={styles.podiumItem}
+        />
+        <RectanglePodium
+          key={podiumRooms[2].num}
+          height={30}
+          num={podiumRooms[2].num}
+          nb_likes={podiumRooms[2].nb_likes}
+          style={styles.podiumItem}
+        />
       </View>
       <ScrollView contentContainerStyle={styles.scrollViewContent} style={styles.scrollView}>
-        <RectangleReste bottom={134} number={4} num={4} nb_likes={30} style={styles.resteItem}/>
-        <RectangleReste bottom={84} number={5} num={5} nb_likes={29} style={styles.resteItem}/>
-        <RectangleReste bottom={34} number={6} num={6} nb_likes={28} style={styles.resteItem}/>
-        <RectangleReste bottom={-16} number={7} num={7} nb_likes={27} style={styles.resteItem}/>
-        <RectangleReste bottom={-66} number={8} num={8} nb_likes={26} style={styles.resteItem}/>
+        {restRooms.map((room, index) => (
+          <RectangleReste
+            key={room.num}
+            bottom={134 - index * 50}
+            number={index + 4}
+            num={room.num}
+            nb_likes={room.nb_likes}
+            style={styles.resteItem}
+          />
+        ))}
       </ScrollView>
     </View>
   );

@@ -14,7 +14,7 @@ export default function DefisClassement() {
       style={{
         width: '100%',
         flex: 1,
-        backgroundColor: 'white',
+        backgroundColor: Colors.white,
         paddingHorizontal: 20,
         paddingBottom: 16,
       }}>
@@ -27,7 +27,7 @@ export default function DefisClassement() {
         right: 0,
         height: 333,
         marginTop: 8,
-        backgroundColor: '#E64034',
+        backgroundColor: Colors.orange,
       }} />
       <View style={{
         position: 'absolute',
@@ -37,7 +37,7 @@ export default function DefisClassement() {
         transform: [{ translateX: -171.5 }],
         height: 31,
         borderRadius: 12,
-        backgroundColor: '#FE8076',
+        backgroundColor: Colors.lightOrange,
         justifyContent: 'center',
         alignItems: 'center',
         padding: 4,
@@ -46,7 +46,7 @@ export default function DefisClassement() {
           flex: 1,
           width: '100%',
           height: '100%',
-          backgroundColor: 'white',
+          backgroundColor: Colors.white,
           borderRadius: 8,
           justifyContent: 'center',
           alignItems: 'center',
@@ -56,7 +56,7 @@ export default function DefisClassement() {
           paddingBottom: 8,
         }}>
           <Text style={{
-            color: '#E64034',
+            color: Colors.orange,
             fontSize: 12,
             fontFamily: 'Inter',
             fontWeight: '400',

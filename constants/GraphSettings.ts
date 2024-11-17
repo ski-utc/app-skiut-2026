@@ -8,6 +8,7 @@ export const Colors = {
   black: '#000000',
   customBlack: '#262323',
   orange: '#E64034',
+  lightOrange: '#FE8076',
 };
 
 export const loadFonts = async () => {

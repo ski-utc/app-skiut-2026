@@ -37,17 +37,19 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ nextRoute, title, IconComponent
             onLongPress={onLongPress}
             style={{
                 padding: 10,
-                backgroundColor: '#E64034',
+                backgroundColor: Colors.white,
                 borderRadius: 8,
                 justifyContent: 'center',
                 alignItems: 'center',
                 flexDirection: 'row',
                 gap: 10,
+                borderWidth: 2,
+                borderColor: Colors.black,
             }}
         >
             <Text
                 style={{
-                    color: 'white',
+                    color: Colors.black,
                     fontSize: 14,
                     fontFamily: Fonts.Inter.Basic,
                     fontWeight: '600',
@@ -58,7 +60,7 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ nextRoute, title, IconComponent
             {IconComponent && (
                 <IconComponent
                     size={20}
-                    color={Colors.white}
+                    color={Colors.black}
                 />
             )}
         </TouchableOpacity>

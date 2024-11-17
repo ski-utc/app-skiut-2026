@@ -1,23 +1,17 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import AnecdotesScreen from './anecdotes/anecdotesScreen';
-import AnecdotesForm from './anecdotes/anecdotesForm';
+import HomeScreen from './home/homeScreen';
 import ProfilScreen from './profil/profilScreen';
 
 const Stack = createStackNavigator();
 
 // @ts-ignore
-export default function AnecdotesNavigator() {
+export default function HomeNavigator() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="anecdotesScreen"
-        component={AnecdotesScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="anecdotesForm"
-        component={AnecdotesForm}
+        name="homeScreen"
+        component={HomeScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen

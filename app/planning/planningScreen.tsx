@@ -3,7 +3,7 @@ import { TouchableOpacity } from "react-native";
 import { Colors, Fonts } from '@/constants/GraphSettings';
 import React, { useState } from "react";
 import BoutonRetour from '@/components/divers/boutonRetour';
-import Header from "../components/header";
+import Header from "../../components/header";
 
 // @ts-ignore
 export default function PlanningScreen() {

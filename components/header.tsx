@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import { GanttChart, Bell } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
 
 export default function Header() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const loadAsyncFonts = async () => {
@@ -15,11 +17,11 @@ export default function Header() {
   }, []);
 
   const handleGanttChartPress = () => {
-    console.log('GanttChart pressed');
+    navigation.navigate('profilScreen');
   };
 
   const handleBellPress = () => {
-    console.log('Bell pressed');
+    navigation.navigate('notificationsScreen');
   };
 
   if (!fontsLoaded) {

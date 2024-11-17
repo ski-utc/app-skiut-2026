@@ -3,8 +3,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import CustomNavBar from '../components/navigation/customNavBar';
 import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react-native';
 
-import HomeScreen from './homeScreen';
-import PlanningScreen from './planningScreen';
+import HomeNavigator from './homeNavigator';
+import PlanningNavigator from './planningNavigator';
 import DefisNavigator from './defisNavigator';
 import AnecdotesNavigator from './anecdotesNavigator';
 import { NavigationContainer } from '@react-navigation/native';
@@ -18,12 +18,12 @@ export default function RootLayout() {
       <Tab.Navigator screenOptions={{headerShown: false}} tabBar={(props) => <CustomNavBar {...props} />}>
         <Tab.Screen
           name="homeScreen"
-          component={HomeScreen}
+          component={HomeNavigator}
           options={{ tabBarLabel: 'Home', tabBarIcon: Home }}
         />
         <Tab.Screen
           name="planningScreen"
-          component={PlanningScreen}
+          component={PlanningNavigator}
           options={{ tabBarLabel: 'Planning', tabBarIcon: CalendarFold }}
         />
         <Tab.Screen

@@ -1,8 +1,8 @@
 import { Text, View, ActivityIndicator } from "react-native";
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
-import Header from "../components/header";
+import Header from "../../components/header";
 import React, { useState, useEffect } from "react";
-import { apiGetPublic } from "../constants/api/apiCalls";
+import { apiGetPublic } from "../../constants/api/apiCalls";
 
 // @ts-ignore
 export default function HomeScreen() {

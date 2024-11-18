@@ -20,6 +20,7 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ nextRoute, defi, estValide }) =
         navigation.navigate(nextRoute, {
             transmittedText1: defi.title,
             transmittedText2: defi.details,
+            estValide: estValide,
         });
     };
 

@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   }
 });
 
-const PlanningScreen: React.FC = () => {
+export default function PlanningScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Header />
@@ -78,5 +78,3 @@ const PlanningScreen: React.FC = () => {
     </SafeAreaView>
   );
 }
-
-export default PlanningScreen;

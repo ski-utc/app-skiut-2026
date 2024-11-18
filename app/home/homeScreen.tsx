@@ -1,4 +1,4 @@
-import { Text, View, ActivityIndicator } from "react-native";
+import { Text, View, ActivityIndicator, SafeAreaView } from "react-native";
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import React, { useState, useEffect } from "react";
@@ -23,9 +23,9 @@ export default function HomeScreen() {
         setLoading(true);  //On met la page en cours de chargement
         const response = await apiGetPublic("getTrucDuServeur");  //On balance la requête GET sans JWT à la route getTrucDuServeur
         setArrayDeData(response);  // On met à jour les données de notre variable globale
-        setLoading(false);  //On quitte l'état de chargement
       } catch (err) {
         setError(err as Error);  //Si il y a une erreur, on l'affecte à notre variable globale error qui s'affiche à l'écran
+      } finally {
         setLoading(false); // On quitte l'état de chargement
       }
     };
@@ -41,7 +41,7 @@ export default function HomeScreen() {
   /* - - - - - - - - - - - - - Page en cas d'erreur - - - - - - - - - - - - - */
   if (error) {
     return (
-      <View
+      <SafeAreaView
         style={{
           height: "100%",
           width: "100%",
@@ -52,30 +52,39 @@ export default function HomeScreen() {
           backgroundColor: Colors.white,
         }}
       >
-        <View style={{ position: "absolute", top: 0, left: 0, width: "100%" }}>
-          <Header />
+        <Header />
+        <View
+          style={{
+            height: "100%",
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text 
+            style={{ 
+              fontSize: 32,
+              textAlign: "center",
+              maxWidth: "90%",
+              color: Colors.black,
+              fontFamily: Fonts.Title.Bold,            
+            }}>
+              Erreur: 
+          </Text>
+          <Text 
+            style={{ 
+              fontSize: 20,
+              textAlign: "center",
+              maxWidth: "90%",
+              color: Colors.black,
+              fontFamily: Fonts.Text.Medium,            
+            }}>
+              {error?.message || "Une erreur est survenue"}
+          </Text>
         </View>
-        <Text 
-          style={{ 
-            fontSize: 32,
-            textAlign: "center",
-            maxWidth: "90%",
-            color: Colors.black,
-            fontFamily: Fonts.Title.Bold,            
-          }}>
-            Erreur: 
-        </Text>
-        <Text 
-          style={{ 
-            fontSize: 20,
-            textAlign: "center",
-            maxWidth: "90%",
-            color: Colors.black,
-            fontFamily: Fonts.Text.Medium,            
-          }}>
-            {error?.message || "Une erreur est survenue"}
-        </Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -93,13 +102,22 @@ export default function HomeScreen() {
           backgroundColor: Colors.customGray,
         }}
       >
-        <View style={{ position: "absolute", top: 0, left: 0, width: "100%" }}>
-          <Header />
+        <Header />
+        <View
+          style={{
+            height: "100%",
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ActivityIndicator
+            size="large"
+            color={Colors.white}
+          />
         </View>
-        <ActivityIndicator
-          size="large"
-          color={Colors.white}
-        />
       </View>
     );
   }
@@ -116,9 +134,7 @@ export default function HomeScreen() {
         justifyContent: "center",
       }}
     >
-      <View style={{ position: "absolute", top: 0, left: 0, width: "100%" }}>
-        <Header />
-      </View>
+      <Header />
       <View
         style={{
           height: "90%",

@@ -23,6 +23,15 @@ export default function RootLayout() {
           name="planningScreen"
           component={PlanningNavigator}
           options={{ tabBarLabel: 'Planning', tabBarIcon: CalendarFold }}
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              e.preventDefault();
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'planningScreen' }],
+              });
+            },
+          })}
         />
         <Tab.Screen
           name="defisScreen"

@@ -7,7 +7,6 @@ import ProfilScreen from './profil/profilScreen';
 
 const Stack = createStackNavigator();
 
-// @ts-ignore
 export default function DefisNavigator() {
   return (
     <Stack.Navigator>

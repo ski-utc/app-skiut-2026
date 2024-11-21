@@ -3,6 +3,9 @@ import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import React, { useState, useEffect } from "react";
 import { apiGetPublic } from "../../constants/api/apiCalls";
+import BoutonNavigation from "@/components/divers/boutonNavigation";
+import { useNavigation } from '@react-navigation/native';
+import { CheckCircle } from 'lucide-react-native';
 
 // @ts-ignore
 export default function HomeScreen() {
@@ -10,6 +13,7 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);  // Variable globale de chargement et son setter
   const [error, setError] = useState<Error | null>(null);  // Variable globale d'erreur et son setter
   const [arrayDeData, setArrayDeData] = useState<{ message: string } | null>(null);  // Variable globale pour stocker les data d'une requête et son setter
+  const navigation = useNavigation();  // Hook de navigation
 
   /* - - - - - - - - - - - - - Récup les ressources - - - - - - - - - - - - - */
   useEffect(() => {
@@ -83,6 +87,11 @@ export default function HomeScreen() {
             }}>
               {error?.message || "Une erreur est survenue"}
           </Text>
+          <BoutonNavigation
+          nextRoute={"loginScreen"}
+          title={"Login"}
+          IconComponent={CheckCircle}
+        />
         </View>
       </SafeAreaView>
     );
@@ -117,6 +126,11 @@ export default function HomeScreen() {
             size="large"
             color={Colors.white}
           />
+          <BoutonNavigation
+          nextRoute={"loginScreen"}
+          title={"Login"}
+          IconComponent={CheckCircle}
+        />
         </View>
       </View>
     );
@@ -148,6 +162,11 @@ export default function HomeScreen() {
       >
         <Text>{arrayDeData?.message}</Text>
         <Text>Edit app/home.tsx to edit this screen.</Text>
+        <BoutonNavigation
+          nextRoute={"loginScreen"}
+          title={"Login"}
+          IconComponent={CheckCircle}
+        />
       </View>
     </View>
   );

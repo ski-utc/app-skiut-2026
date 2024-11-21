@@ -5,6 +5,7 @@ import React from 'react';
 import BoutonNavigation from "@/components/divers/boutonNavigation";
 import BoutonRetour from "@/components/divers/boutonRetour";
 import BoutonDefi from "@/components/defis/boutonDefi";
+import { Colors } from "@/constants/GraphSettings"
 
 const challenges: { title: string; details: string; estValide: boolean }[] = [
   {
@@ -73,7 +74,6 @@ export default function Defis() {
         contentContainerStyle={styles.listContentContainer}
         style={styles.list}
       />
-
       <View style={styles.navigationContainer}>
         <BoutonNavigation nextRoute={"defisClassement"} title={"Classement"} IconComponent={Trophy} />
       </View>
@@ -89,13 +89,13 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "white",
+    backgroundColor: Colors.white,
     paddingBottom: 8,
   },
   headerContainer: {
     width: '100%',
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Colors.white,
     paddingHorizontal: 20,
     paddingBottom: 16,
   },

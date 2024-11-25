@@ -6,8 +6,9 @@ import BoutonNavigation from "@/components/divers/boutonNavigation"
 export default function LoginScreen() {
     return (
         <SafeAreaView style={styles.container}>
-            <Text style={styles.titre}>Donne nous tes plus beaux identifiants</Text>
+            <Text style={styles.titre}>Connecte toi avec ton CAS UTC</Text>
             <Text style={styles.soustitre}>Si tu as un problème de connexion contact les resp informatique.</Text>
+            <View style={styles.flexGrow} />
             <View style={styles.boutonContainer}>
                 <BoutonNavigation
                     nextRoute={"homeScreen"}
@@ -45,9 +46,13 @@ const styles = StyleSheet.create({
         marginLeft: 32,
         marginRight: 34,
     },
+    flexGrow: {
+        flex: 1,
+    },
     boutonContainer: {
-        marginLeft: 32,
-        marginRight: 32,
+        paddingLeft: 20,
+        paddingRight: 20,
         alignItems: 'center',
+        paddingBottom: 16,
     }
 });

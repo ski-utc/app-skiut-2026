@@ -56,7 +56,9 @@ export default function HomeScreen() {
           backgroundColor: Colors.white,
         }}
       >
-        <Header />
+        <View style={{ position: "absolute", top: 0, left: 0, width: "100%" }}>
+          <Header />
+        </View>
         <View
           style={{
             height: "100%",
@@ -111,7 +113,9 @@ export default function HomeScreen() {
           backgroundColor: Colors.customGray,
         }}
       >
-        <Header />
+        <View style={{ position: "absolute", top: 0, left: 0, width: "100%" }}>
+          <Header />
+        </View>
         <View
           style={{
             height: "100%",
@@ -148,7 +152,9 @@ export default function HomeScreen() {
         justifyContent: "center",
       }}
     >
-      <Header />
+      <View style={{ position: "absolute", top: 0, left: 0, width: "100%" }}>
+          <Header />
+        </View>
       <View
         style={{
           height: "90%",

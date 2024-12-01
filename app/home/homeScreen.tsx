@@ -89,11 +89,6 @@ export default function HomeScreen() {
             }}>
               {error?.message || "Une erreur est survenue"}
           </Text>
-          <BoutonNavigation
-          nextRoute={"loginScreen"}
-          title={"Login"}
-          IconComponent={CheckCircle}
-        />
         </View>
       </SafeAreaView>
     );
@@ -130,11 +125,6 @@ export default function HomeScreen() {
             size="large"
             color={Colors.white}
           />
-          <BoutonNavigation
-          nextRoute={"loginScreen"}
-          title={"Login"}
-          IconComponent={CheckCircle}
-        />
         </View>
       </View>
     );
@@ -168,11 +158,6 @@ export default function HomeScreen() {
       >
         <Text>{arrayDeData?.message}</Text>
         <Text>Edit app/home.tsx to edit this screen.</Text>
-        <BoutonNavigation
-          nextRoute={"loginScreen"}
-          title={"Login"}
-          IconComponent={CheckCircle}
-        />
       </View>
     </View>
   );

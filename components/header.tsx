@@ -3,6 +3,7 @@ import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import { GanttChart, Bell } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
+import ProfilNavigator from '../app/profilNavigator';
 
 export default function Header() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
@@ -17,11 +18,15 @@ export default function Header() {
   }, []);
 
   const handleGanttChartPress = () => {
-    navigation.navigate('profilScreen');
+    navigation.navigate('ProfilNavigator', {
+      screen: 'ProfilScreen',
+    });
   };
-
+  
   const handleBellPress = () => {
-    navigation.navigate('notificationsScreen');
+    navigation.navigate('ProfilNavigator', {
+      screen: 'ProfilScreen',
+    });
   };
 
   if (!fontsLoaded) {

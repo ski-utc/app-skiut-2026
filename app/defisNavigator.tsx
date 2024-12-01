@@ -3,7 +3,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import DefisScreen from './defis/defisScreen';
 import DefisClassement from './defis/defisClassement';
 import DefisInfos from './defis/defisInfos';
-import ProfilScreen from './profil/profilScreen';
 
 const Stack = createStackNavigator();
 
@@ -23,11 +22,6 @@ export default function DefisNavigator() {
       <Stack.Screen
         name="defisInfos"
         component={DefisInfos}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="profilScreen"
-        component={ProfilScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

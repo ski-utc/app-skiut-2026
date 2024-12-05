@@ -5,6 +5,7 @@ import Contact from './profil/contactScreen';
 import StopVss from './profil/stopVssScreen';
 import Login from './login/loginScreen';
 import PlanDesPistes from './profil/planDesPistesScreen';
+import PlanStation from './profil/planStationScreen';
 
 const Stack = createStackNavigator();
 
@@ -16,6 +17,7 @@ export default function ProfilNavigator() {
       <Stack.Screen name="StopVssScreen" component={StopVss} />
       <Stack.Screen name="LoginScreen" component={Login} />
       <Stack.Screen name="PlanDesPistesScreen" component={PlanDesPistes} />
+      <Stack.Screen name="PlanStationScreen" component={PlanStation} />
     </Stack.Navigator>
   );
 }

@@ -36,7 +36,7 @@ export default function Profil() {
 
             <View style={styles.navigationContainer}>
                 <BoutonProfil 
-                    nextRoute={"PisteScreen"} 
+                    nextRoute={"PlanDesPistesScreen"} 
                     profil={{
                         title:"Plan des pistes",
                         iconName:"map",

@@ -45,20 +45,16 @@ export default function HomeScreen() {
   /* - - - - - - - - - - - - - Page en cas d'erreur - - - - - - - - - - - - - */
   if (error) {
     return (
-      <SafeAreaView
+      <View
         style={{
-          height: "100%",
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
+          width: '100%',
+          flex: 1,
           backgroundColor: Colors.white,
+          paddingHorizontal: 20,
+          paddingBottom: 16,
         }}
       >
-        <View style={{ position: "absolute", top: 0, left: 0, width: "100%" }}>
-          <Header />
-        </View>
+        <Header />
         <View
           style={{
             height: "100%",
@@ -90,7 +86,7 @@ export default function HomeScreen() {
               {error?.message || "Une erreur est survenue"}
           </Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -105,25 +101,21 @@ export default function HomeScreen() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: Colors.customGray,
         }}
       >
-        <View style={{ position: "absolute", top: 0, left: 0, width: "100%" }}>
-          <Header />
-        </View>
+        <Header />
         <View
           style={{
-            height: "100%",
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
+            width: '100%',
+            flex: 1,
+            backgroundColor: Colors.white,
+            paddingHorizontal: 20,
+            paddingBottom: 16,
           }}
         >
           <ActivityIndicator
             size="large"
-            color={Colors.white}
+            color={Colors.black}
           />
         </View>
       </View>
@@ -142,18 +134,14 @@ export default function HomeScreen() {
         justifyContent: "center",
       }}
     >
-      <View style={{ position: "absolute", top: 0, left: 0, width: "100%" }}>
-          <Header />
-        </View>
+      <Header />
       <View
         style={{
-          height: "90%",
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: Colors.black,
+          width: '100%',
+          flex: 1,
+          backgroundColor: Colors.white,
+          paddingHorizontal: 20,
+          paddingBottom: 16,
         }}
       >
         <Text>{arrayDeData?.message}</Text>

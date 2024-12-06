@@ -3,7 +3,10 @@ import Header from "../../components/header";
 import React from 'react';
 import BoutonRetour from "../../components/divers/boutonRetour";
 import { Colors } from '@/constants/GraphSettings';
+import { Gauge, Trophy } from 'lucide-react';
 import StatWidget from "../../components/vitesseDeGlisse/statWidget";
+import BoutonLancer from "../../components/vitesseDeGlisse/boutonLancer";
+import BoutonNavigation from "@/components/divers/boutonNavigation";
 
 export default function VitesseDeGlisseScreen() {
     return (
@@ -43,11 +46,34 @@ export default function VitesseDeGlisseScreen() {
                         bottomTextPosition={{ top: 36, left: 26 }}
                     />
                     <StatWidget
-                        topText="Vitesse"
+                        topText="Distance"
                         bottomText="-- km"
                         topTextPosition={{ top: 16, left: 235 }}
                         bottomTextPosition={{ top: 36, left: 225 }}
                     />
+                    <View
+                        style={{
+                            top: 130,
+                            width: 80,
+                            height: 80,
+                            borderRadius: 40,
+                            backgroundColor: Colors.white,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            alignSelf: 'center',
+                            marginTop: 16,
+                        }}
+                    >
+                        <Gauge color={Colors.orange} size={40} />
+                    </View>
+                    <View style={{ top: 210, flexDirection: 'column', justifyContent: 'space-between', width: '100%' }}>
+                        <View style={{ marginBottom: 8 }}>
+                            <BoutonLancer title="Lancer"/>
+                        </View>
+                        <View style={{ marginBottom: 8 }}>
+                            <BoutonNavigation nextRoute={"ProfilScreen"} title="Performances" IconComponent={Trophy}/>
+                        </View>
+                    </View>
                 </View>
             </View>
         </View>

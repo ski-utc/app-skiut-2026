@@ -6,6 +6,7 @@ import StopVss from './profil/stopVssScreen';
 import Login from './login/loginScreen';
 import PlanDesPistes from './profil/planDesPistesScreen';
 import PlanStation from './profil/planStationScreen';
+import VitesseDeGlisseScreen from './profil/vitesseDeGlisseScreen';
 import NavettesScreen from './profil/navettesScreen';
 
 const Stack = createStackNavigator();
@@ -19,6 +20,7 @@ export default function ProfilNavigator() {
       <Stack.Screen name="LoginScreen" component={Login} />
       <Stack.Screen name="PlanDesPistesScreen" component={PlanDesPistes} />
       <Stack.Screen name="PlanStationScreen" component={PlanStation} />
+      <Stack.Screen name="VitesseDeGlisseScreen" component={VitesseDeGlisseScreen} />
       <Stack.Screen name="NavettesScreen" component={NavettesScreen} />
     </Stack.Navigator>
   );

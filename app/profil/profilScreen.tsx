@@ -58,7 +58,7 @@ export default function Profil() {
 
             <View style={styles.navigationContainer}>
                 <BoutonProfil 
-                    nextRoute={"VitesseScreen"} 
+                    nextRoute={"VitesseDeGlisseScreen"} 
                     profil={{
                         title:"Vitesse de glisse",
                         iconName:"vector",

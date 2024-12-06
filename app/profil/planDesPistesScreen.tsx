@@ -1,5 +1,4 @@
 import { View, ScrollView } from "react-native";
-import { Text } from "react-native";
 import { Colors } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import React from 'react';

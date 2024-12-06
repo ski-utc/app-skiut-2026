@@ -4,7 +4,7 @@ import React from 'react';
 import * as Linking from 'expo-linking';
 import { Colors, Fonts } from '@/constants/GraphSettings';
 import BoutonRetour from "../../components/divers/boutonRetour";
-import { FontAwesome } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 
 
 
@@ -12,7 +12,7 @@ import { FontAwesome } from '@expo/vector-icons';
 const contacts = [
 { name: "Juliette - Présidente", phone: "06 33 95 68 48" },
 { name: "Nicolas - Président", phone: "06 33 95 68 48" },
-{ name: "Astrid - Resp anim", phone: "06 33 85 68 48" },
+{ name: "Sécurité station", phone: "00 00 00 00 00" },
 ];
 
 export default function Contact() {
@@ -25,7 +25,7 @@ export default function Contact() {
     const renderItem = ({ item }) => (
         <TouchableOpacity style={styles.phoneContainer} onPress={() => makeCall(item.phone)}>
         <View style={styles.icon}>
-            <FontAwesome name="phone" size={20} color={Colors.gray} />
+            <Feather name="phone-call" size={20} color={Colors.gray} />
         </View>        
         <View style={styles.phoneDetails}>
             <Text style={styles.phoneName}>{item.name}</Text>
@@ -35,18 +35,9 @@ export default function Contact() {
     );
 
     return (
-        <View
-            style={{
-                height: "100%",
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-            }}
-        >
+        <View style={styles.container}>
             <Header />
-            <View style={styles.container}>
+            <View style={styles.screencontainer}>
                 <BoutonRetour previousRoute={"ProfilScreen"} title={"Contact"} />
                 <FlatList
                     data={contacts}
@@ -61,14 +52,22 @@ export default function Contact() {
 
 const styles = StyleSheet.create({
     container: {
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",      
+    },
+    screencontainer: {
         width: '100%',
         flex: 1,
         backgroundColor: Colors.white,
-        paddingHorizontal: 20,
+        paddingHorizontal: 8,
         paddingBottom: 16,
     },
     icon: {
-        marginRight: 12, // Espacement entre l'icône et les détails
+        marginRight: 20, // Espacement entre l'icône et les détails
         justifyContent: "center",
         alignItems: "center",
       },

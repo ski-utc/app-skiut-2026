@@ -50,8 +50,8 @@ export default function Profil() {
                     nextRoute={"PlanStationScreen"} 
                     profil={{
                         title:"Plan de la station",
-                        iconName:"map-pinned",
-                        iconLibrary:"MaterialCommunityIcons"
+                        iconName:"map-pin",
+                        iconLibrary:"Feather"
                      }}
                 />
             </View>
@@ -61,8 +61,8 @@ export default function Profil() {
                     nextRoute={"VitesseScreen"} 
                     profil={{
                         title:"Vitesse de glisse",
-                        iconName:"vector",
-                        iconLibrary:"MaterialCommunityIcons"
+                        iconName:"zap",
+                        iconLibrary:"Feather"
                      }}
                 />
             </View>

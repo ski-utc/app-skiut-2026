@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
         width: '100%',
         flex: 1,
         backgroundColor: Colors.white,
-        paddingHorizontal: 8,
+        paddingHorizontal: 20,
         paddingBottom: 16,
     },
     icon: {

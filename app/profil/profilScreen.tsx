@@ -69,9 +69,9 @@ export default function Profil() {
 
             <View style={styles.navigationContainer}>
                 <BoutonProfil 
-                    nextRoute={"NavetteScreen"} 
+                    nextRoute={"NavettesScreen"} 
                     profil={{
-                        title:"Navette",
+                        title:"Navettes",
                         iconName:"bus",
                         iconLibrary:"FontAwesome"
                      }}

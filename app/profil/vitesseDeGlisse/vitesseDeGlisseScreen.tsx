@@ -70,7 +70,7 @@ export default function VitesseDeGlisseScreen() {
                         <View style={{ marginBottom: 8 }}>
                             <BoutonLancer title="Lancer"/>
                         </View>
-                        <View style={{ marginBottom: 8 }}>
+                        <View style={{ marginBottom: 8, borderWidth: 2, borderColor: Colors.white, borderRadius: 8 }}>
                             <BoutonNavigation nextRoute={"PerformancesScreen"} title="Performances" IconComponent={Trophy}/>
                         </View>
                     </View>

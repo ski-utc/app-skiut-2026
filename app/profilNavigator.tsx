@@ -6,7 +6,7 @@ import StopVss from './profil/stopVssScreen';
 import Login from './login/loginScreen';
 import PlanDesPistes from './profil/planDesPistesScreen';
 import PlanStation from './profil/planStationScreen';
-import VitesseDeGlisseScreen from './profil/vitesseDeGlisseScreen';
+import VitesseDeGlisseScreen from './profil/vitesseDeGlisse/vitesseDeGlisseScreen';
 import NavettesScreen from './profil/navettesScreen';
 
 const Stack = createStackNavigator();

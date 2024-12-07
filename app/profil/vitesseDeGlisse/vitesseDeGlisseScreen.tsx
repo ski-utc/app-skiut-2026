@@ -1,11 +1,11 @@
 import { View } from "react-native";
-import Header from "../../components/header";
+import Header from "../../../components/header";
 import React from 'react';
-import BoutonRetour from "../../components/divers/boutonRetour";
+import BoutonRetour from "../../../components/divers/boutonRetour";
 import { Colors } from '@/constants/GraphSettings';
 import { Gauge, Trophy } from 'lucide-react';
-import StatWidget from "../../components/vitesseDeGlisse/statWidget";
-import BoutonLancer from "../../components/vitesseDeGlisse/boutonLancer";
+import StatWidget from "../../../components/vitesseDeGlisse/statWidget";
+import BoutonLancer from "../../../components/vitesseDeGlisse/boutonLancer";
 import BoutonNavigation from "@/components/divers/boutonNavigation";
 
 export default function VitesseDeGlisseScreen() {
@@ -32,7 +32,7 @@ export default function VitesseDeGlisseScreen() {
                 <View
                     style={{
                         width: 350,
-                        height: 420,
+                        height: '95%',
                         marginBottom: 16,
                         alignSelf: 'center',
                         backgroundColor: Colors.orange,
@@ -66,7 +66,7 @@ export default function VitesseDeGlisseScreen() {
                     >
                         <Gauge color={Colors.orange} size={40} />
                     </View>
-                    <View style={{ top: 210, flexDirection: 'column', justifyContent: 'space-between', width: '100%' }}>
+                    <View style={{ position: 'absolute', bottom: 15, flexDirection: 'column', justifyContent: 'space-between', width: '90%', alignSelf: 'center' }}>
                         <View style={{ marginBottom: 8 }}>
                             <BoutonLancer title="Lancer"/>
                         </View>

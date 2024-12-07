@@ -6,7 +6,7 @@ import Header from '../../components/header';
 
 
 const adminControls = [
-  { title: 'Valider les défis', nextRoute: 'GestionDefisScreen' },
+  { title: 'Gestion des défis', nextRoute: 'GestionDefisScreen' },
   { title: 'Gestion des anecdotes', nextRoute: 'GestionAnecdotesScreen' },
   { title: 'Gestion des notifications', nextRoute: 'GestionNotificationsScreen' },
 ];

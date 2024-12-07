@@ -7,6 +7,9 @@ import Login from './login/loginScreen';
 import PlanDesPistes from './profil/planDesPistesScreen';
 import PlanStation from './profil/planStationScreen';
 import Admin from './admin/adminScreen';
+import GestionAnecdotesScreen from './admin/gestionAnecdotesScreen';
+import GestionDefisScreen from './admin/gestionDefisScreen';
+import GestionNotificationsScreen from './admin/gestionNotificationsScreen';
 
 const Stack = createStackNavigator();
 
@@ -20,6 +23,9 @@ export default function ProfilNavigator() {
       <Stack.Screen name="PlanDesPistesScreen" component={PlanDesPistes} />
       <Stack.Screen name="PlanStationScreen" component={PlanStation} />
       <Stack.Screen name="AdminScreen" component={Admin} />
+      <Stack.Screen name="GestionAnecdotesScreen" component={GestionAnecdotesScreen} />
+      <Stack.Screen name="GestionDefisScreen" component={GestionDefisScreen} />
+      <Stack.Screen name="GestionNotificationsScreen" component={GestionNotificationsScreen} />
     </Stack.Navigator>
   );
 }

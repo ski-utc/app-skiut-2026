@@ -1,41 +1,93 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet, FlatList } from 'react-native';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import Header from '../../components/header';
+import BoutonMenu from '@/components/admins/boutonMenu';
+import BoutonGestion from '@/components/admins/boutonGestion';
+import { useNavigation } from '@react-navigation/native';
+
+const defiControls = [
+    { title: 'Défi n°13', subtitle: 'Chambre Projet X', nextRoute: 'ValideDefisScreen' },
+    { title: 'Défi n°6', subtitle: 'Chambre Les skieuses', nextRoute: 'ValideDefisScreen' },
+    { title: 'Défi n°16', subtitle: 'Chambre Marmotte', nextRoute: 'ValideDefisScreen' },
+    // Add more defiControls as needed
+];
+
+const handleFirstClick = () => {
+    console.log('Filter data: En attente');
+    // Add filtering logic for "En attente"
+};
+
+const handleSecondClick = () => {
+    console.log('Filter data: Signalés');
+    // Add filtering logic for "Signalés"
+};
+
+const handleThirdClick = () => {
+    console.log('Filter data: Tous les défis');
+    // Add filtering logic for "Tous les défis"
+};
 
 const GestionDefisScreen = () => {
+    const navigation = useNavigation();
+
     return (
         <View style={styles.container}>
-          <Header />
-          <View style={styles.headerContainer}>
-            <BoutonRetour previousRoute="AdminScreen" title="Gestion des défis" />
-          </View>
-          
-          
+            <Header />
+            <View style={styles.headerContainer}>
+                <BoutonRetour previousRoute="AdminScreen" title="Gestion des défis" />
+            </View>
+
+            {/* Filter Buttons */}
+            <View>
+                <BoutonMenu 
+                    first="En attente" 
+                    second="Signalés" 
+                    third="Tous les défis" 
+                    onFirstClick={handleFirstClick} 
+                    onSecondClick={handleSecondClick} 
+                    onThirdClick={handleThirdClick} 
+                />
+            </View>
+
+            {/* Dynamic List of BoutonGestion */}
+            <View style={styles.list}>
+                <FlatList
+                    data={defiControls}
+                    renderItem={({ item }) => (
+                        <BoutonGestion 
+                            title={item.title} 
+                            subtitle={item.subtitle} 
+                            nextRoute={item.nextRoute}  
+                        />
+                    )}
+                    keyExtractor={(item) => item.title} // Or use another unique identifier if needed
+                />
+            </View>
         </View>
-      );
-    }
-    
-    const styles = StyleSheet.create({
-      container: {
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
         height: '100%',
         width: '100%',
         flex: 1,
         backgroundColor: 'white',
         paddingBottom: 8,
-      },
-      headerContainer: {
+    },
+    headerContainer: {
         width: '100%',
         paddingHorizontal: 20,
         paddingBottom: 16,
-      },
-      list: {
+    },
+    list: {
         width: '100%',
         marginTop: 20,
-      },
-      listContentContainer: {
+    },
+    listContentContainer: {
         paddingHorizontal: 20,
-      },
-    });
+    },
+});
 
 export default GestionDefisScreen;

@@ -10,7 +10,6 @@ const defiControls = [
     { title: 'Défi n°13', subtitle: 'Chambre Projet X', nextRoute: 'ValideDefisScreen' },
     { title: 'Défi n°6', subtitle: 'Chambre Les skieuses', nextRoute: 'ValideDefisScreen' },
     { title: 'Défi n°16', subtitle: 'Chambre Marmotte', nextRoute: 'ValideDefisScreen' },
-    // Add more defiControls as needed
 ];
 
 const handleFirstClick = () => {
@@ -38,7 +37,6 @@ const GestionDefisScreen = () => {
                 <BoutonRetour previousRoute="AdminScreen" title="Gestion des défis" />
             </View>
 
-            {/* Filter Buttons */}
             <View>
                 <BoutonMenu 
                     first="En attente" 
@@ -50,7 +48,7 @@ const GestionDefisScreen = () => {
                 />
             </View>
 
-            {/* Dynamic List of BoutonGestion */}
+            
             <View style={styles.list}>
                 <FlatList
                     data={defiControls}
@@ -61,7 +59,7 @@ const GestionDefisScreen = () => {
                             nextRoute={item.nextRoute}  
                         />
                     )}
-                    keyExtractor={(item) => item.title} // Or use another unique identifier if needed
+                    keyExtractor={(item) => item.title} 
                 />
             </View>
         </View>

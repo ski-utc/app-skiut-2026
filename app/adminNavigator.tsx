@@ -5,6 +5,7 @@ import GestionAnecdotesScreen from './admin/gestionAnecdotesScreen';
 import GestionNotificationsScreen from './admin/gestionNotificationsScreen';
 import Admin from './admin/adminScreen';
 import ValideDefis from './admin/valideDefisScreen';
+import ValideAnecdotes from './admin/valideAnecdotesScreen';
 
 
 const Stack = createStackNavigator();
@@ -37,6 +38,12 @@ export default function AdminNavigator() {
         component={ValideDefis}
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="valideAnedocteScreen"
+        component={ValideAnecdotes}
+        options={{ headerShown: false }}
+      />
+
     </Stack.Navigator>
   );
 }

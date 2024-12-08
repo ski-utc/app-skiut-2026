@@ -1,7 +1,7 @@
 import React from 'react';
-import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, View, StyleSheet } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { LandPlot, Check } from 'lucide-react';
+import { X, Check } from 'lucide-react';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors } from '@/constants/GraphSettings'; 
@@ -19,14 +19,25 @@ export default function ValideDefis() {
         <BoutonRetour previousRoute="GestionDefisScreen" title={"Gérer " + title} />
         <Text style={styles.title}>Détails du défi :</Text>
         <View style={styles.textBox}>
-          <Text style={styles.text}>{subtitle}</Text>
+          <Text style={styles.text}>Status : xxxx</Text>
+          <Text style={styles.text}>Date : xxxx</Text>
+          <Text style={styles.text}>Auteur : {subtitle}</Text>
         </View>
       </View>
 
-      {/* The button container is placed outside of the content area */}
       <View style={styles.buttonContainer}>
-        <BoutonActiver title="Valider le défi" IconComponent={Check} />
-      </View>
+        <View style={styles.buttonSpacing}>
+            <BoutonActiver
+            title="Désactiver le défi"
+            IconComponent={X}
+            disabled={true} // Désactive le bouton (dépend du status actuel de la notification)
+            />
+        </View>
+        <BoutonActiver
+            title="Valider la défi"
+            IconComponent={Check}
+        />
+        </View>
     </View>
   );
 }
@@ -42,6 +53,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     paddingHorizontal: 20,
     paddingBottom: 16,
+    alignSelf: 'stretch',
   },
   title: {
     marginTop: 20,
@@ -57,6 +69,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     backgroundColor: Colors.white,
+    alignSelf: 'stretch',
   },
   text: {
     fontSize: 14,
@@ -70,6 +83,10 @@ const styles = StyleSheet.create({
     bottom: 20, // Adjust the distance from the bottom as needed
     width: '100%',
     paddingHorizontal: 20,
+    alignSelf: 'stretch',
+  },
+  buttonSpacing: {
+    marginBottom: 16, // Ajout d'un espace entre les boutons
   },
   button: {
     backgroundColor: '#E64034',
@@ -86,5 +103,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontWeight: '600',
     marginRight: 10,
+    alignSelf: 'stretch',
   },
 });

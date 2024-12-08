@@ -31,13 +31,13 @@ export default function ValideAnecdotes() {
       <View style={styles.buttonContainer}>
         <View style={styles.buttonSpacing}>
             <BoutonActiver
-            title="Désactiver la notification"
+            title="Désactiver l'anecdote"
             IconComponent={X}
             disabled={true} // Désactive le bouton (dépend du status actuel de la notification)
             />
         </View>
         <BoutonActiver
-            title="Valider la notification"
+            title="Valider l'anecdote"
             IconComponent={Check}
         />
         </View>

@@ -4,7 +4,7 @@ import { Colors, Fonts } from '@/constants/GraphSettings';
 
 // @ts-ignore
 export default function BoutonActiver({ 
-    title, 
+    title: string, 
     IconComponent, 
     onPress = () => {}, 
     disabled = false, 
@@ -12,7 +12,7 @@ export default function BoutonActiver({
 }) {
     return (
         <TouchableOpacity
-            onPress={disabled ? null : onPress} // Désactive l'action si `disabled`
+            onPress={disabled ? () => {} : onPress} // Désactive l'action si `disabled`
             style={[
                 {
                     padding: 10,

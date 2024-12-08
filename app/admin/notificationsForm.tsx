@@ -50,7 +50,7 @@ export default function NotificationsForm() {
               justifyContent: 'flex-start',
               alignItems: 'flex-start',
               gap: 8,
-              display: 'inline-flex',
+              display: 'flex',
               color: Colors.black,
               fontFamily: Fonts.Inter.Basic,
               fontWeight: 500,

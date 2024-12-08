@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { LandPlot, Check } from 'lucide-react';
+import { X, Check } from 'lucide-react';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, Fonts } from '@/constants/GraphSettings'; 
@@ -16,10 +16,12 @@ export default function ValideAnecdotes() {
     <View style={styles.container}>
       <Header />
       <View style={styles.content}>
-        <BoutonRetour previousRoute="GestionAnecdotesScreen" title={"Valider " + title} />
+        <BoutonRetour previousRoute="GestionAnecdotesScreen" title={"Gérer " + title} />
         <Text style={styles.title}>Détail de l'anecdote :</Text>
-        <View style={styles.textBox}>
-          <Text style={styles.text}>{subtitle}</Text>
+        <View style={styles.textBox}> 
+          <Text style={styles.text}>Status : En attente de validation</Text> 
+          <Text style={styles.text}>Date : xxx</Text>
+          <Text style={styles.text}>Auteur : {subtitle}</Text>
         </View>
         <View style={styles.anecdoteBox}>
           <Text style={styles.text}>{"---Anecdote complète---"}</Text>
@@ -27,8 +29,18 @@ export default function ValideAnecdotes() {
       </View>
 
       <View style={styles.buttonContainer}>
-        <BoutonActiver title="Valider l'anecdote" IconComponent={Check} />
-      </View>
+        <View style={styles.buttonSpacing}>
+            <BoutonActiver
+            title="Désactiver la notification"
+            IconComponent={X}
+            disabled={true} // Désactive le bouton (dépend du status actuel de la notification)
+            />
+        </View>
+        <BoutonActiver
+            title="Valider la notification"
+            IconComponent={Check}
+        />
+        </View>
     </View>
   );
 }
@@ -77,6 +89,9 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.Inter.Basic,
     fontWeight: 500,
     fontSize: 14
+  },
+  buttonSpacing: {
+    marginBottom: 16, // Ajout d'un espace entre les boutons
   },
   text: {
     fontSize: 14,

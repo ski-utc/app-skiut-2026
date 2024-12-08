@@ -12,6 +12,8 @@ import GestionDefisScreen from './admin/gestionDefisScreen';
 import GestionNotificationsScreen from './admin/gestionNotificationsScreen';
 import ValideDefis from './admin/valideDefisScreen';
 import ValideAnecdotes from './admin/valideAnecdotesScreen';
+import ValideNotifications from './admin/valideNotificationsScreen';
+import NotificationsForm from './admin/notificationsForm';
 
 const Stack = createStackNavigator();
 
@@ -30,6 +32,8 @@ export default function ProfilNavigator() {
       <Stack.Screen name="GestionNotificationsScreen" component={GestionNotificationsScreen} />
       <Stack.Screen name="ValideDefisScreen" component={ValideDefis} />
       <Stack.Screen name="ValideAnecdotesScreen" component={ValideAnecdotes} />
+      <Stack.Screen name="ValideNotificationsScreen" component={ValideNotifications} />
+      <Stack.Screen name="NotificationsForm" component={NotificationsForm} />
     </Stack.Navigator>
   );
 }

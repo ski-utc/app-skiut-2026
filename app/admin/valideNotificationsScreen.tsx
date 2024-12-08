@@ -1,32 +1,47 @@
 import React from 'react';
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { LandPlot, Check } from 'lucide-react';
+import { X, Check } from 'lucide-react';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors } from '@/constants/GraphSettings'; 
+import { Colors, Fonts } from '@/constants/GraphSettings'; 
 import BoutonActiver from '@/components/divers/boutonActiver';
 
-export default function ValideDefis() {
+export default function ValideNotifications() {
   const route = useRoute();
   console.log('Route Params:', route.params);
-  const { title, subtitle } = route.params as { title: string, subtitle: string };
+  const { title, subtitle } = route.params as { title: string, subtitle: string }; // title = ID de la notif, subtitle = date
 
   return (
     <View style={styles.container}>
       <Header />
       <View style={styles.content}>
-        <BoutonRetour previousRoute="GestionDefisScreen" title={"Gérer " + title} />
-        <Text style={styles.title}>Détails du défi :</Text>
+        <BoutonRetour previousRoute="GestionNotificationsScreen" title={"Gérer " + title} />
+        <Text style={styles.title}>Détail de la notification :</Text>
         <View style={styles.textBox}>
-          <Text style={styles.text}>{subtitle}</Text>
+          <Text style={styles.text}>Status : xxx</Text>
+          <Text style={styles.text}>Date : xxx</Text>
+          <Text style={styles.text}>Auteur : xxx</Text>
+        </View>
+        <View style={styles.anecdoteBox}>
+          <Text style={styles.text}>{"---Notification complète---"}</Text>
         </View>
       </View>
+     
 
-      {/* The button container is placed outside of the content area */}
       <View style={styles.buttonContainer}>
-        <BoutonActiver title="Valider le défi" IconComponent={Check} />
-      </View>
+        <View style={styles.buttonSpacing}>
+            <BoutonActiver
+            title="Désactiver la notification"
+            IconComponent={X}
+            disabled={true} // Désactive le bouton (dépend du status actuel de la notification)
+            />
+        </View>
+        <BoutonActiver
+            title="Valider la notification"
+            IconComponent={Check}
+        />
+        </View>
     </View>
   );
 }
@@ -49,14 +64,36 @@ const styles = StyleSheet.create({
     color: Colors.black,
     fontFamily: 'Inter',
     fontWeight: '600',
+    alignSelf: 'stretch',
   },
   textBox: {
     marginTop: 8,
+    marginBottom: 16, 
     borderWidth: 1,
     borderColor: Colors.gray,
     borderRadius: 8,
     padding: 10,
     backgroundColor: Colors.white,
+    width: '100%',
+  },
+  anecdoteBox: {
+    padding: 14,
+    minHeight: 200,
+    marginTop: 8,
+    marginBottom: 8,
+    backgroundColor: '#F8F8F8',
+    borderRadius: 12, 
+    borderWidth: 1,
+    borderColor: '#EAEAEA',
+    flexDirection: 'column', 
+    justifyContent: 'flex-start', 
+    alignItems: 'flex-start', 
+    gap: 8, 
+    width: '100%',
+    color: Colors.black,
+    fontFamily: Fonts.Inter.Basic,
+    fontWeight: 500,
+    fontSize: 14,
   },
   text: {
     fontSize: 14,
@@ -70,6 +107,9 @@ const styles = StyleSheet.create({
     bottom: 20, // Adjust the distance from the bottom as needed
     width: '100%',
     paddingHorizontal: 20,
+  },
+  buttonSpacing: {
+    marginBottom: 16, // Ajout d'un espace entre les boutons
   },
   button: {
     backgroundColor: '#E64034',

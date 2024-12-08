@@ -4,7 +4,7 @@ import { Colors, Fonts } from '@/constants/GraphSettings';
 
 // @ts-ignore
 export default function BoutonActiver({ 
-    title: string, 
+    title, 
     IconComponent, 
     onPress = () => {}, 
     disabled = false, 

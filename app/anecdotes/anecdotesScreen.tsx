@@ -1,6 +1,7 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, FlatList } from 'react-native';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import React, {useState, useEffect} from 'react';
+import { apiGetPublic } from '@/constants/api/apiCalls';
+import { View, FlatList, Text, ActivityIndicator } from 'react-native';
+import { Colors, Fonts } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import Anecdote from '../../components/anecdotes/anecdote';
 import BoutonRetour from '@/components/divers/boutonRetour';
@@ -9,11 +10,114 @@ import { MessageCirclePlus } from 'lucide-react-native';
 
 // @ts-ignore
 export default function AnecdotesScreen() {
-  const anecdotes = [
-    { id: 1, text: "Je suis tombé dans mon pipi aujourd’hui pendant la pose casse croute", room: "101", like: 0, nbLikes:0, warn: 0 },
-    { id: 2, text: "J’ai vu le zob d’un mono de ski", room: "102", like: 1,nbLikes:10, warn: 0 },
-    { id: 3, text: "Les gars l’appli elle bug de fou on dirait pas que vous payez 24 balles !", room: "103", like: 0, nbLikes:120, warn: 1 }
-  ];
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
+    const [anecdotes, setAnecdotes] = useState<{ message: string } | null>(null);
+  
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          setLoading(true);
+          const response = await apiGetPublic("getAnecdotes");
+          setAnecdotes(response);
+        } catch (err) {
+          setError(err as Error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchData();
+    
+      const interval = setInterval(() => {
+        fetchData().catch((err) => setError(err));
+      }, 300000);
+    
+      return () => clearInterval(interval);
+    }, []);
+    
+    console.log(anecdotes);
+
+  /* - - - - - - - - - - - - - Page en cas d'erreur - - - - - - - - - - - - - */
+  if (error) {
+    return (
+      <View
+        style={{
+          width: '100%',
+          flex: 1,
+          backgroundColor: Colors.white,
+          paddingHorizontal: 20,
+          paddingBottom: 16,
+        }}
+      >
+        <Header />
+        <View
+          style={{
+            height: "100%",
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text 
+            style={{ 
+              fontSize: 32,
+              textAlign: "center",
+              maxWidth: "90%",
+              color: Colors.black,
+              fontFamily: Fonts.Title.Bold,            
+            }}>
+              Erreur: 
+          </Text>
+          <Text 
+            style={{ 
+              fontSize: 20,
+              textAlign: "center",
+              maxWidth: "90%",
+              color: Colors.black,
+              fontFamily: Fonts.Text.Medium,            
+            }}>
+              {error?.message || "Une erreur est survenue"}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  /* - - - - - - - - - - - - - Page de chargement - - - - - - - - - - - - - */
+  if (loading) {
+    return (
+      <View
+        style={{
+          height: "100%",
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Header />
+        <View
+          style={{
+            width: '100%',
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: Colors.white,
+            paddingHorizontal: 20,
+            paddingBottom: 16,
+          }}
+        >
+          <ActivityIndicator
+            size="large"
+            color={Colors.black}
+          />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View
@@ -52,6 +156,7 @@ export default function AnecdotesScreen() {
         )}
         keyExtractor={item => item.id.toString()}
         ItemSeparatorComponent={() => <View style={{ height: 36 }} />}
+        style={{marginBottom: 8}}
       />
 
       <BoutonNavigation

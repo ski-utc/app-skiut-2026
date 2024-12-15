@@ -74,9 +74,17 @@ export default function Defis() {
         contentContainerStyle={styles.listContentContainer}
         style={styles.list}
       />
-      <View style={styles.navigationContainer}>
-        <BoutonNavigation nextRoute={"defisClassement"} title={"Classement"} IconComponent={Trophy} />
-      </View>
+      <View
+      style={{
+        width: '100%',
+        backgroundColor: Colors.white,
+        paddingHorizontal: 20,
+        paddingBottom: 16,
+      }}
+    >
+      <BoutonNavigation nextRoute={"defisClassement"} title={"Classement"} IconComponent={Trophy} />
+    </View>
+
     </View>
   );
 }
@@ -107,11 +115,5 @@ const styles = StyleSheet.create({
   listContentContainer: {
     paddingLeft: 20,
     paddingRight: 20,
-  },
-  navigationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
   },
 });

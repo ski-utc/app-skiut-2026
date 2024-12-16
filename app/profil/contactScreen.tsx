@@ -6,23 +6,28 @@ import { Colors, Fonts } from '@/constants/GraphSettings';
 import BoutonRetour from "../../components/divers/boutonRetour";
 import { Feather } from '@expo/vector-icons';
 
-
+interface Contact{
+    name: string;
+    phone: string;
+}
 
 // structure de données avec les nums  
-const contacts = [
+const contacts: Contact[] = [
 { name: "Juliette - Présidente", phone: "06 33 95 68 48" },
 { name: "Nicolas - Président", phone: "06 33 95 68 48" },
-{ name: "Sécurité station", phone: "00 00 00 00 00" },
+{ name: "Secours des deux Alpes", phone: "04 76 79 75 01"},
+{ name: "Pompiers", phone: "18"},
+{ name: "Gendarmes", phone: "17"},
 ];
 
 export default function Contact() {
     // Fonction pour appeler un numéro
-    const makeCall = (phoneNumber) => {
+    const makeCall = (phoneNumber: string) => {
         Linking.openURL(`tel:${phoneNumber}`);
     };
 
     // Rendu d'un contact
-    const renderItem = ({ item }) => (
+    const renderItem = ({ item }: {item: Contact}) => (
         <TouchableOpacity style={styles.phoneContainer} onPress={() => makeCall(item.phone)}>
         <View style={styles.icon}>
             <Feather name="phone-call" size={20} color={Colors.gray} />

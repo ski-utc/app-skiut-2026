@@ -7,20 +7,25 @@ import BoutonRetour from "../../components/divers/boutonRetour";
 import { Feather } from '@expo/vector-icons';
 
 
+// pour définir les types de contact
+interface Contact{
+    name: string;
+    phone: string;
+}
 
 // structure de données avec les nums  
-const contacts = [
+const contacts: Contact[] = [
 { name: "Téléphone VSS", phone: "00 00 00 00 00" },
 ];
 
 export default function Contact() {
     // Fonction pour appeler un numéro
-    const makeCall = (phoneNumber) => {
+    const makeCall = (phoneNumber: string) => {
         Linking.openURL(`tel:${phoneNumber}`);
     };
 
     // Rendu d'un contact
-    const renderItem = ({ item }) => (
+    const renderItem = ({ item }: {item: Contact}) => (
         <TouchableOpacity style={styles.phoneContainer} onPress={() => makeCall(item.phone)}>
         <View style={styles.icon}>
             <Feather name="phone-call" size={20} color={Colors.gray} />

@@ -3,10 +3,11 @@ import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import { GanttChart, Bell } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
-import ProfilNavigator from '../app/profilNavigator';
+import NotificationPopup from '@/app/notificationPopUp';
 
 export default function Header() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -18,12 +19,6 @@ export default function Header() {
   }, []);
 
   const handleGanttChartPress = () => {
-    navigation.navigate('ProfilNavigator', {
-      screen: 'ProfilScreen',
-    });
-  };
-  
-  const handleBellPress = () => {
     navigation.navigate('ProfilNavigator', {
       screen: 'ProfilScreen',
     });
@@ -44,9 +39,10 @@ export default function Header() {
           <Text style={styles.roomText}>Chambre 112</Text>
         </View>
       </View>
-      <TouchableOpacity style={styles.bellButton} onPress={handleBellPress}>
+      <TouchableOpacity style={styles.bellButton} onPress={() => setIsPopupVisible(true)}>
         <Bell size={20} color={Colors.black} />
       </TouchableOpacity>
+      <NotificationPopup visible={isPopupVisible} onClose={() => setIsPopupVisible(false)}/>
     </View>
   );
 }

@@ -4,6 +4,7 @@ import Header from "../../components/header";
 import React from 'react';
 import BoutonProfil from "../../components/profil/boutonProfil";
 import { Fonts, Colors } from "@/constants/GraphSettings";
+import { Phone, PhoneCall, Map, MapPin, Gauge, Bus, UserRoundCheck } from 'lucide-react-native';
 
 
 export default function Profil() {
@@ -32,10 +33,8 @@ export default function Profil() {
                     gap: 25
                 }}
             >
-                <Image source={require("../../assets/images/OursCabine.png")} style={{height: '164px', width: '164px'}} />
-                <View style={{
-
-                    }}
+                <Image source={require("../../assets/images/OursCabine.png")} style={{height: 164, width: 164}} />
+                <View
                 >
                     <Text
                         style={{
@@ -61,76 +60,68 @@ export default function Profil() {
             <View style={styles.navigationContainer}>
                 <BoutonProfil 
                     nextRoute={"ContactScreen"} 
-                    profil={{
-                        title:"Contact",
-                        iconName:"phone",
-                        iconLibrary:"FontAwesome"
-                     }}
+                    options={{
+                        title: 'Contact',
+                        icon: Phone,
+                    }}
                 />
             </View>
             <View style={styles.navigationContainer}>
                 <BoutonProfil 
                     nextRoute={"StopVssScreen"} 
-                    profil={{
-                        title:"Stop VSS",
-                        iconName:"phone-call",
-                        iconLibrary:"Feather"
-                     }}
+                    options={{
+                        title: 'Stop VSS',
+                        icon: PhoneCall,
+                    }}
                 />
             </View>
 
             <View style={styles.navigationContainer}>
                 <BoutonProfil 
                     nextRoute={"PlanDesPistesScreen"} 
-                    profil={{
-                        title:"Plan des pistes",
-                        iconName:"map",
-                        iconLibrary:"FontAwesome"
-                     }}
+                    options={{
+                        title: 'Plan des pistes',
+                        icon: Map,
+                    }}
                 />
             </View>
 
             <View style={styles.navigationContainer}>
                 <BoutonProfil 
                     nextRoute={"PlanStationScreen"} 
-                    profil={{
-                        title:"Plan de la station",
-                        iconName:"map-pin",
-                        iconLibrary:"Feather"
-                     }}
+                    options={{
+                        title: 'Plan de la station',
+                        icon: MapPin,
+                    }}
                 />
             </View>
-
             <View style={styles.navigationContainer}>
                 <BoutonProfil 
                     nextRoute={"VitesseDeGlisseScreen"} 
-                    profil={{
-                        title:"Vitesse de glisse",
-                        iconName:"zap",
-                        iconLibrary:"Feather"
-                     }}
+                    options={{
+                        title: 'Vitesse de glisse',
+                        icon: Gauge,
+                    }}
                 />
             </View>
 
             <View style={styles.navigationContainer}>
                 <BoutonProfil 
                     nextRoute={"NavettesScreen"} 
-                    profil={{
-                        title:"Navettes",
-                        iconName:"bus",
-                        iconLibrary:"FontAwesome"
-                     }}
+                    options={{
+                        title: 'Navettes',
+                        icon: Bus,
+                    }}
                 />
             </View>
 
             <View style={styles.navigationContainer}>
                 <BoutonProfil 
-                    nextRoute={"AdminScreen"} 
-                    profil={{
-                        title:"Contrôle admin",
-                        iconName:"check-circle",
-                        iconLibrary:"Feather"
-                     }}
+                    nextRoute={"AdminNavigator"} 
+                    options={{
+                        title: 'Contrôle Admin',
+                        icon: UserRoundCheck,
+                    }}
                 />
             </View>
 

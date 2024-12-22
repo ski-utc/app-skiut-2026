@@ -8,9 +8,9 @@ import BoutonNavigation from '@/components/divers/boutonNavigation';
 import { MessageCirclePlus } from 'lucide-react-native';
 
 const notifControls = [
-    { title: 'Notification 1', subtitle: 'Date notif 1', nextRoute: 'ValideNotificationsScreen' },
-    { title: 'Notification 2', subtitle: 'Date notif 2', nextRoute: 'ValideNotificationsScreen' },
-    { title: 'Notification 3', subtitle: 'Date notif 3', nextRoute: 'ValideNotificationsScreen' },
+    { title: 'Notification 1', subtitle: 'Date notif 1', nextRoute: 'valideNotificationsScreen' },
+    { title: 'Notification 2', subtitle: 'Date notif 2', nextRoute: 'valideNotificationsScreen' },
+    { title: 'Notification 3', subtitle: 'Date notif 3', nextRoute: 'valideNotificationsScreen' },
 ];
 
 const GestionNotificationsScreen = () => {
@@ -20,7 +20,7 @@ const GestionNotificationsScreen = () => {
         <View style={styles.container}>
             <Header />
             <View style={styles.headerContainer}>
-                <BoutonRetour previousRoute="AdminScreen" title="Gestion des notifications" />
+                <BoutonRetour previousRoute="adminScreen" title="Gestion des notifications" />
             </View>
             
             <View style={styles.list}>

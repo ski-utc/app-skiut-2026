@@ -1,6 +1,6 @@
 import { View, FlatList, StyleSheet } from "react-native";
 import Header from "../../components/header";
-import { Trophy } from 'lucide-react';
+import { Trophy } from 'lucide-react-native';
 import React from 'react';
 import BoutonNavigation from "@/components/divers/boutonNavigation";
 import BoutonRetour from "@/components/divers/boutonRetour";
@@ -60,7 +60,7 @@ export default function Defis() {
     <View style={styles.container}>
       <Header />
       <View style={styles.headerContainer}>
-        <BoutonRetour previousRoute={"homeScreen"} title={"Défis"} />
+        <BoutonRetour previousRoute={"homeNavigator"} title={"Défis"} />
       </View>
 
       <FlatList
@@ -103,10 +103,6 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: 20,
     marginBottom: 8,
-  },
-  listContentContainer: {
-    paddingLeft: 20,
-    paddingRight: 20,
   },
   navigationContainer: {
     flexDirection: 'row',

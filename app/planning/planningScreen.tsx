@@ -72,7 +72,7 @@ export default function PlanningScreen() {
     <SafeAreaView style={styles.container}>
       <Header />
       <View style={styles.content}>
-        <BoutonRetour previousRoute={"homeScreen"} title={"Planning"} />
+        <BoutonRetour previousRoute={"homeNavigator"} title={"Planning"} />
         <PlanningTab activitiesMap={activitiesMap} />  {/* affiche le planning en utilisant les données dans activitiesMap */}
       </View>
     </SafeAreaView>

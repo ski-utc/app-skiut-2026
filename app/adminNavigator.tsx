@@ -40,7 +40,7 @@ export default function AdminNavigator() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="valideAnedocteScreen"
+        name="valideAnecdotesScreen"
         component={ValideAnecdotes}
         options={{ headerShown: false }}
       />

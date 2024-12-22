@@ -1,11 +1,4 @@
-Créér la page d'erreur classique
-Créér la page de quand on est pas conecté 
 
-
-Anecdote : 
-- Boutton Supprimer quand je suis le propriétaire
-- Background fullfill sur le coeur
-- TouchableOpacity sur les icones
 
 
 react-native.config.js

@@ -19,7 +19,7 @@ export default function Header() {
   }, []);
 
   const handleGanttChartPress = () => {
-    navigation.navigate('ProfilNavigator', {
+    navigation.navigate('profilNavigator', {
       screen: 'ProfilScreen',
     });
   };

@@ -4,7 +4,7 @@ import React from 'react';
 import * as Linking from 'expo-linking';
 import { Colors, Fonts } from '@/constants/GraphSettings';
 import BoutonRetour from "../../components/divers/boutonRetour";
-import { Feather } from '@expo/vector-icons';
+import { Phone } from "lucide-react-native";
 
 interface Contact{
     name: string;
@@ -30,7 +30,7 @@ export default function Contact() {
     const renderItem = ({ item }: {item: Contact}) => (
         <TouchableOpacity style={styles.phoneContainer} onPress={() => makeCall(item.phone)}>
         <View style={styles.icon}>
-            <Feather name="phone-call" size={20} color={Colors.gray} />
+            <Phone size={20} color={Colors.gray}/>
         </View>        
         <View style={styles.phoneDetails}>
             <Text style={styles.phoneName}>{item.name}</Text>

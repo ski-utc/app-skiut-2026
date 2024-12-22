@@ -6,9 +6,9 @@ import Header from '../../components/header';
 
 
 const adminControls = [
-  { title: 'Gestion des défis', nextRoute: 'GestionDefisScreen' },
-  { title: 'Gestion des anecdotes', nextRoute: 'GestionAnecdotesScreen' },
-  { title: 'Gestion des notifications', nextRoute: 'GestionNotificationsScreen' },
+  { title: 'Gestion des défis', nextRoute: 'gestionDefisScreen' },
+  { title: 'Gestion des anecdotes', nextRoute: 'gestionAnecdotesScreen' },
+  { title: 'Gestion des notifications', nextRoute: 'gestionNotificationsScreen' },
 ];
 
 export default function Admin() {
@@ -16,7 +16,7 @@ export default function Admin() {
     <View style={styles.container}>
       <Header />
       <View style={styles.headerContainer}>
-        <BoutonRetour previousRoute="ProfilScreen" title="Contrôle Admin" />
+        <BoutonRetour previousRoute="profilNavigator" title="Contrôle Admin" />
       </View>
       
       {/* Using BoutonAdmin for navigation */}

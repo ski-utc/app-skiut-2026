@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { LandPlot, Check } from 'lucide-react';
+import { LandPlot, Check } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors } from '@/constants/GraphSettings';

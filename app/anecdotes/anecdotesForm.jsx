@@ -33,40 +33,47 @@ export default function AnecdotesForm() {
         previousRoute={"anecdotesScreen"}
         title={"Raconte nous ta meilleure anecdotes !"}
       />
-      <TextInput
+      <View
         style={{
           padding: 14,
           marginBottom: 8,
-          background: '#F8F8F8',
+          height: 268,
+          backgroundColor: '#F8F8F8',
           borderRadius: 12, 
-          border: '1px #EAEAEA solid', 
+          borderWidth: 1,
+          borderColor: '#EAEAEA',
           flexDirection: 'column', 
           justifyContent: 'flex-start', 
           alignItems: 'flex-start', 
           gap: 8, 
-          display: 'inline-flex',
-          color: Colors.black,
-          fontFamily: Fonts.Inter.Basic,
-          fontWeight: 500,
-          fontSize: 14
         }}
-        placeholder="Aujourd'hui..."
-        placeholderTextColor={'#969696'}
-        multiline={true}
-        numberOfLines={15}
-        onChangeText={(value) => setText(value)}
-        value={text}
-      />
+      >
+        <TextInput
+          style={{
+            color: Colors.black,
+            fontFamily: Fonts.Inter.Basic,
+            fontWeight: '500',
+            width: '100%',
+            fontSize: 14
+          }}
+          placeholder="Aujourd'hui..."
+          placeholderTextColor={'#969696'}
+          multiline={true}
+          numberOfLines={15}
+          onChangeText={(value) => setText(String(value))}  // Convertir la valeur en chaîne
+          value={text}  // Vérifiez que "text" est toujours une chaîne
+        />
+      </View>
       <View style={{
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'flex-start', 
         alignItems: 'center', 
         gap: 11, 
-        display: 'inline-flex'
+        display: 'row'
       }}>
         <Checkbox
-          size={24}
+          style={{ width: 24, height: 24 }}
           value={isChecked}
           onValueChange={setChecked}
           color={isChecked ? Colors.orange : undefined}
@@ -80,7 +87,8 @@ export default function AnecdotesForm() {
           En postant ce potin, je certifie qu’il respecte les autres participant.e.s du voyage
         </Text>
       </View>
-      <View
+    </View>
+    <View
         style={{
           width:'100%',
           position: 'absolute',
@@ -118,7 +126,6 @@ export default function AnecdotesForm() {
           />
         </TouchableOpacity>
       </View>
-    </View>
   </View>
   );
 };

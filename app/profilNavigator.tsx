@@ -9,14 +9,7 @@ import PlanStation from './profil/planStationScreen';
 import VitesseDeGlisseScreen from './profil/vitesseDeGlisse/vitesseDeGlisseScreen';
 import PerformancesScreen from './profil/vitesseDeGlisse/performancesScreen';
 import NavettesScreen from './profil/navettesScreen';
-import Admin from './admin/adminScreen';
-import GestionAnecdotesScreen from './admin/gestionAnecdotesScreen';
-import GestionDefisScreen from './admin/gestionDefisScreen';
-import GestionNotificationsScreen from './admin/gestionNotificationsScreen';
-import ValideDefis from './admin/valideDefisScreen';
-import ValideAnecdotes from './admin/valideAnecdotesScreen';
-import ValideNotifications from './admin/valideNotificationsScreen';
-import NotificationsForm from './admin/notificationsForm';
+import AdminNavigator from './adminNavigator';
 
 const Stack = createStackNavigator();
 
@@ -32,14 +25,7 @@ export default function ProfilNavigator() {
       <Stack.Screen name="VitesseDeGlisseScreen" component={VitesseDeGlisseScreen} />
       <Stack.Screen name='PerformancesScreen' component={PerformancesScreen} />
       <Stack.Screen name="NavettesScreen" component={NavettesScreen} />
-      <Stack.Screen name="AdminScreen" component={Admin} />
-      <Stack.Screen name="GestionAnecdotesScreen" component={GestionAnecdotesScreen} />
-      <Stack.Screen name="GestionDefisScreen" component={GestionDefisScreen} />
-      <Stack.Screen name="GestionNotificationsScreen" component={GestionNotificationsScreen} />
-      <Stack.Screen name="ValideDefisScreen" component={ValideDefis} />
-      <Stack.Screen name="ValideAnecdotesScreen" component={ValideAnecdotes} />
-      <Stack.Screen name="ValideNotificationsScreen" component={ValideNotifications} />
-      <Stack.Screen name="NotificationsForm" component={NotificationsForm} />
+      <Stack.Screen name="AdminNavigator" component={AdminNavigator} />
     </Stack.Navigator>
   );
 }

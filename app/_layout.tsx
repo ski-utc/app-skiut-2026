@@ -1,7 +1,6 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
 import HomeNavigator from './homeNavigator';
 import PlanningNavigator from './planningNavigator';
 import AnecdotesNavigator from './anecdotesNavigator';
@@ -20,12 +19,12 @@ export default function RootLayout() {
         tabBar={(props) => <CustomNavBar {...props} />}
       >
         <Tab.Screen
-          name="homeScreen"
+          name="homeNavigator"
           component={HomeNavigator}
           options={{ tabBarLabel: 'Home', tabBarIcon: Home, display:1 }}
         />
         <Tab.Screen
-          name="planningScreen"
+          name="planningNavigator"
           component={PlanningNavigator}
           options={{
             tabBarLabel: 'Planning',
@@ -37,13 +36,13 @@ export default function RootLayout() {
               e.preventDefault();
               navigation.reset({
                 index: 0,
-                routes: [{ name: 'planningScreen' }],
+                routes: [{ name: 'planningNavigator' }],
               });
             },
           })}
         />
         <Tab.Screen
-          name="defisScreen"
+          name="defisNavigator"
           component={DefisNavigator}
           options={{
             tabBarLabel: 'Défi',
@@ -55,13 +54,13 @@ export default function RootLayout() {
               e.preventDefault();
               navigation.reset({
                 index: 0,
-                routes: [{ name: 'defisScreen' }],
+                routes: [{ name: 'defisNavigator' }],
               });
             },
           })}
         />
         <Tab.Screen
-          name="anecdotesScreen"
+          name="anecdotesNavigator"
           component={AnecdotesNavigator}
           options={{ tabBarLabel: 'Anecdotes', tabBarIcon: MessageSquareText, display:1 }}
           listeners={({ navigation }) => ({
@@ -69,13 +68,13 @@ export default function RootLayout() {
               e.preventDefault();
               navigation.reset({
                 index: 0,
-                routes: [{ name: 'anecdotesScreen' }],
+                routes: [{ name: 'anecdotesNavigator' }],
               });
             },
           })}
         />
         <Tab.Screen
-          name="ProfilNavigator"
+          name="profilNavigator"
           component={ProfilNavigator}
           options={{ tabBarLabel: 'Profil', tabBarIcon: MessageSquareText, display:0 }}
           listeners={({ navigation }) => ({

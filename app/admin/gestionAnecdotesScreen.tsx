@@ -7,9 +7,9 @@ import BoutonGestion from '@/components/admins/boutonGestion';
 import { useNavigation } from '@react-navigation/native';
 
 const anecdoteControls = [
-    { title: 'Anecdote 1', subtitle: 'Louise Caignaert', nextRoute: 'ValideAnecdotesScreen' },
-    { title: 'Anecdote 2', subtitle: 'Jean Patrick', nextRoute: 'ValideAnecdotesScreen' },
-    { title: 'Anecdote 3', subtitle: 'Marion Bidule', nextRoute: 'ValideAnecdotesScreen' },
+    { title: 'Anecdote 1', subtitle: 'Louise Caignaert', nextRoute: 'valideAnecdotesScreen' },
+    { title: 'Anecdote 2', subtitle: 'Jean Patrick', nextRoute: 'valideAnecdotesScreen' },
+    { title: 'Anecdote 3', subtitle: 'Marion Bidule', nextRoute: 'valideAnecdotesScreen' },
 ];
 
 const handleFirstClick = () => {
@@ -34,7 +34,7 @@ const GestionAnecdotesScreen = () => {
         <View style={styles.container}>
             <Header />
             <View style={styles.headerContainer}>
-                <BoutonRetour previousRoute="AdminScreen" title="Gestion des anecdotes" />
+                <BoutonRetour previousRoute="adminScreen" title="Gestion des anecdotes" />
             </View>
 
             <View>

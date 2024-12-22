@@ -2,7 +2,7 @@ import React from 'react';
 import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Colors, Fonts } from '@/constants/GraphSettings';
 import { useNavigation } from '@react-navigation/native';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react-native';
 
 interface BoutonGestionProps {
     title: string;

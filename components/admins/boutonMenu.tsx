@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { View } from 'lucide-react-native';
 
 interface ButtonProps {
     first: string;
@@ -53,26 +54,26 @@ const BoutonMenu: React.FC<ButtonProps> = ({
     };
 
     return (
-        <div style={styles.container}>
-            <div
+        <View style={styles.container}>
+            <View
                 style={styles.button(activeButton === 'first')}
                 onClick={() => handleButtonClick('first', onFirstClick)}
             >
-                <div style={styles.text}>{first}</div>
-            </div>
-            <div
+                <View style={styles.text}>{first}</View>
+            </View>
+            <View
                 style={styles.button(activeButton === 'second')}
                 onClick={() => handleButtonClick('second', onSecondClick)}
             >
-                <div style={styles.text}>{second}</div>
-            </div>
-            <div
+                <View style={styles.text}>{second}</View>
+            </View>
+            <View
                 style={styles.button(activeButton === 'third')}
                 onClick={() => handleButtonClick('third', onThirdClick)}
             >
-                <div style={styles.text}>{third}</div>
-            </div>
-        </div>
+                <View style={styles.text}>{third}</View>
+            </View>
+        </View>
     );
 };
 

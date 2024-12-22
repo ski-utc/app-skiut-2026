@@ -7,9 +7,9 @@ import BoutonGestion from '@/components/admins/boutonGestion';
 import { useNavigation } from '@react-navigation/native';
 
 const defiControls = [
-    { title: 'Défi n°13', subtitle: 'Chambre Projet X', nextRoute: 'ValideDefisScreen' },
-    { title: 'Défi n°6', subtitle: 'Chambre Les skieuses', nextRoute: 'ValideDefisScreen' },
-    { title: 'Défi n°16', subtitle: 'Chambre Marmotte', nextRoute: 'ValideDefisScreen' },
+    { title: 'Défi n°13', subtitle: 'Chambre Projet X', nextRoute: 'valideDefisScreen' },
+    { title: 'Défi n°6', subtitle: 'Chambre Les skieuses', nextRoute: 'valideDefisScreen' },
+    { title: 'Défi n°16', subtitle: 'Chambre Marmotte', nextRoute: 'valideDefisScreen' },
 ];
 
 const handleFirstClick = () => {
@@ -34,7 +34,7 @@ const GestionDefisScreen = () => {
         <View style={styles.container}>
             <Header />
             <View style={styles.headerContainer}>
-                <BoutonRetour previousRoute="AdminScreen" title="Gestion des défis" />
+                <BoutonRetour previousRoute="adminScreen" title="Gestion des défis" />
             </View>
 
             <View>

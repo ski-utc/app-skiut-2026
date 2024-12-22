@@ -3,7 +3,7 @@ import Header from "../../../components/header";
 import React from 'react';
 import BoutonRetour from "../../../components/divers/boutonRetour";
 import { Colors } from '@/constants/GraphSettings';
-import { Gauge, Trophy } from 'lucide-react';
+import { Gauge, Trophy } from 'lucide-react-native';
 import StatWidget from "../../../components/vitesseDeGlisse/statWidget";
 import BoutonLancer from "../../../components/vitesseDeGlisse/boutonLancer";
 import BoutonNavigation from "@/components/divers/boutonNavigation";

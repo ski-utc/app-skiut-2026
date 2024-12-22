@@ -35,7 +35,7 @@ export default function NotificationsForm() {
           }}
         >
           <BoutonRetour
-            previousRoute={"GestionNotificationsScreen"}
+            previousRoute={"gestionNotificationsScreen"}
             title={"Rédige une notification"}
           />
           <TextInput

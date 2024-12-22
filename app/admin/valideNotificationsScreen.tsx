@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { X, Check } from 'lucide-react';
+import { X, Check } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, Fonts } from '@/constants/GraphSettings'; 
@@ -16,7 +16,7 @@ export default function ValideNotifications() {
     <View style={styles.container}>
       <Header />
       <View style={styles.content}>
-        <BoutonRetour previousRoute="GestionNotificationsScreen" title={"Gérer " + title} />
+        <BoutonRetour previousRoute="gestionNotificationsScreen" title={"Gérer " + title} />
         <Text style={styles.title}>Détail de la notification :</Text>
         <View style={styles.textBox}>
           <Text style={styles.text}>Status : xxx</Text>

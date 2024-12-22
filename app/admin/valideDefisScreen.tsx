@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { X, Check } from 'lucide-react';
+import { X, Check } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors } from '@/constants/GraphSettings'; 
@@ -16,7 +16,7 @@ export default function ValideDefis() {
     <View style={styles.container}>
       <Header />
       <View style={styles.content}>
-        <BoutonRetour previousRoute="GestionDefisScreen" title={"Gérer " + title} />
+        <BoutonRetour previousRoute="gestionDefisScreen" title={"Gérer " + title} />
         <Text style={styles.title}>Détails du défi :</Text>
         <View style={styles.textBox}>
           <Text style={styles.text}>Status : xxxx</Text>

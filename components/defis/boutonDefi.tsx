@@ -2,7 +2,7 @@ import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { Colors, Fonts } from '@/constants/GraphSettings';
 import { useNavigation } from '@react-navigation/native';
-import { ChevronRight, Check } from 'lucide-react';
+import { ChevronRight, Check } from 'lucide-react-native';
 
 interface BoutonDefiProps {
     nextRoute: string;

@@ -82,36 +82,44 @@ export default function NotificationsForm() {
               paddingHorizontal: 20,
             }}
           >
-            <TouchableOpacity
-              style={{
-                padding: 10,
-                backgroundColor: '#E64034',
-                borderRadius: 8,
-                justifyContent: 'center',
-                alignItems: 'center',
-                flexDirection: 'row',
-                gap: 10,
-                opacity: isButtonDisabled ? 0.5 : 1, // Changer l'opacité
-              }}
-              disabled={isButtonDisabled} // Désactiver l'interaction si aucun texte
-            >
-              <Text
-                style={{
-                  color: 'white',
-                  fontSize: 14,
-                  fontFamily: Fonts.Inter.Basic,
-                  fontWeight: '600',
-                }}
-              >
-                Publier la notification
-              </Text>
-  
-              <Send
-                size={20}
-                color={Colors.white}
-              />
-            </TouchableOpacity>
           </View>
+        </View>
+        <View
+          style={{
+            width:'100%',
+            position: 'absolute',
+            right: 0,
+            bottom: 16,
+            paddingHorizontal: 20,
+          }}>
+          <TouchableOpacity
+            style={{
+              padding: 10,
+              backgroundColor: '#E64034',
+              opacity: isButtonDisabled ? 0.5 : 1, // Changer l'opacité
+              borderRadius: 8,
+              justifyContent: 'center',
+              alignItems: 'center',
+              flexDirection: 'row',
+              gap: 10,
+            }}
+            disabled={isButtonDisabled} // Désactiver l'interaction si aucun texte
+            >
+            <Text
+              style={{
+                color: 'white',
+                fontSize: 14,
+                fontFamily: Fonts.Inter.Basic,
+                fontWeight: '600',
+              }}
+            >
+              Publier la notification
+            </Text>
+            <Send
+              size={20}
+              color={Colors.white}
+            />
+          </TouchableOpacity>
         </View>
       </View>
     );

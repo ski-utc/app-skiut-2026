@@ -43,7 +43,12 @@ export default function Contact() {
         <View style={styles.container}>
             <Header />
             <View style={styles.screencontainer}>
-                <BoutonRetour previousRoute={"ProfilScreen"} title={"Contact"} />
+            <View style={{paddingHorizontal: 20}}>
+                <BoutonRetour
+                    previousRoute={"ProfilScreen"}
+                    title={"Contact"}
+                />
+            </View>
                 <FlatList
                     data={contacts}
                     keyExtractor={(item, index) => index.toString()}
@@ -68,7 +73,6 @@ const styles = StyleSheet.create({
         width: '100%',
         flex: 1,
         backgroundColor: Colors.white,
-        paddingHorizontal: 20,
         paddingBottom: 16,
     },
     icon: {

@@ -19,7 +19,8 @@ export default function DefisInfos() {
         <View style={styles.textBox}>
           <Text style={styles.text}>{transmittedText2}</Text>
         </View>
-        {estValide ? (
+      </View>
+      {estValide ? (
           <View style={styles.validTextContainer}>
             <Text style={styles.validText}>Défi validé</Text>
             <Check color="white" size={20} />
@@ -33,7 +34,6 @@ export default function DefisInfos() {
             <LandPlot color="white" size={20} />
           </TouchableOpacity>
         )}
-      </View>
     </View>
   );
 }
@@ -42,6 +42,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.white,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
     width: '100%',
@@ -75,14 +77,14 @@ const styles = StyleSheet.create({
   validTextContainer: {
     position: 'absolute',
     bottom: 16,
+    width: '90%',
+    padding: 10,
     backgroundColor: 'green',
-    padding: 15,
     borderRadius: 8,
-    width: '80%',
+    justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'center',
-    left: '10%',
+    gap: 10,
   },
   validText: {
     color: 'white',
@@ -94,14 +96,14 @@ const styles = StyleSheet.create({
   button: {
     position: 'absolute',
     bottom: 16,
-    backgroundColor: '#E64034',
-    padding: 15,
+    width: '90%',
+    padding: 10,
+    backgroundColor: Colors.orange,
     borderRadius: 8,
-    width: '80%',
+    justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'center',
-    left: '10%',
+    gap: 10,
   },
   buttonText: {
     color: 'white',

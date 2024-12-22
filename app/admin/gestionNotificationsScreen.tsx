@@ -38,7 +38,7 @@ const GestionNotificationsScreen = () => {
             </View>
             <View style={styles.bottomButtonContainer}>
             <BoutonNavigation
-                nextRoute={"NotificationsForm"}
+                nextRoute={"notificationsForm"}
                 title={"Rédiger une notification"}
                 IconComponent={MessageCirclePlus}
             />
@@ -62,7 +62,6 @@ const styles = StyleSheet.create({
     },
     list: {
         width: '100%',
-        marginTop: 20,
     },
     listContentContainer: {
         paddingHorizontal: 20,

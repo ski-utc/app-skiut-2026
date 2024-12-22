@@ -70,7 +70,7 @@ export default function AnecdotesForm() {
         justifyContent: 'flex-start', 
         alignItems: 'center', 
         gap: 11, 
-        display: 'row'
+        display: 'row',
       }}>
         <Checkbox
           style={{ width: 24, height: 24 }}
@@ -83,6 +83,7 @@ export default function AnecdotesForm() {
           fontSize: 12,
           fontFamily: Fonts.Inter.Basic,
           fontWeight: '500',
+          paddingRight: 20,
         }}>
           En postant ce potin, je certifie qu’il respecte les autres participant.e.s du voyage
         </Text>

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Text, View, TouchableOpacity, FlatList, StyleSheet, ScrollView } from 'react-native';
+import { Text, View, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
 import { Colors, Fonts } from '@/constants/GraphSettings';
 
 interface Activity {
@@ -29,64 +29,57 @@ const PlanningTab: React.FC<PlanningTabProps> = ({ activitiesMap }) => {
         setSelectedDate(`${dayMap[day]} ${number} Janvier`);
     }, [dayMap]);
 
+    const selectedActivities = activitiesMap[selectedDate] || [];
+
     return (
         <View style={styles.container}>
-            <View style={styles.innerContainer}>
-                <View style={styles.daysContainer}>
-                    {days.map((day, index) => {
-                        const [letter, number] = day.split(" ") as [keyof typeof dayMap, string];
-                        const isSelected = selectedDate === `${dayMap[letter]} ${number} Janvier`;
-                        return (
-                            <TouchableOpacity
-                                key={index}
-                                style={[
-                                    styles.dayButton,
-                                    { backgroundColor: isSelected ? "#E64034" : "white" }
-                                ]}
-                                onPress={() => handlePress(letter, number)}
-                            >
-                                <Text style={[
-                                    styles.dayLetter,
-                                    { color: isSelected ? "#DEDEDE" : "#ACACAC" }
-                                ]}>
-                                    {letter}
-                                </Text>
-                                <Text style={[
-                                    styles.dayNumber,
-                                    { color: isSelected ? "white" : "black" }
-                                ]}>
-                                    {number}
-                                </Text>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
-                <Text style={styles.selectedDateText}>
-                    {selectedDate}
-                </Text>
-                {selectedDate && (
-                    <View style={styles.activitiesContainer}>
-                        <FlatList
-                            data={activitiesMap[selectedDate] || []}
-                            keyExtractor={(_, index) => index.toString()}
-                            renderItem={({ item }) => (
-                                <View style={styles.activityContainer}>
-                                    <View style={styles.activityIndicator} />
-                                    <View style={styles.activityDetails}>
-                                        <Text style={styles.activityTime}>
-                                            {item.time}
-                                        </Text>
-                                        <Text style={styles.activityText}>
-                                            {item.activity}
-                                        </Text>
-                                    </View>
-                                </View>
-                            )}
-                            style={styles.activitiesList}
-                        />
-                    </View>
-                )}
+            <View style={styles.daysContainer}>
+                {days.map((day, index) => {
+                    const [letter, number] = day.split(" ");
+                    const isSelected = selectedDate === `${dayMap[letter]} ${number} Janvier`;
+
+                    return (
+                        <TouchableOpacity
+                            key={index}
+                            style={[
+                                styles.dayButton,
+                                { backgroundColor: isSelected ? Colors.orange : Colors.white }
+                            ]}
+                            onPress={() => handlePress(letter as keyof typeof dayMap, number)}
+                        >
+                            <Text style={[styles.dayLetter, { color: isSelected ? Colors.white : Colors.gray }]}>
+                                {letter}
+                            </Text>
+                            <Text style={[styles.dayNumber, { color: isSelected ? Colors.white : Colors.black }]}>
+                                {number}
+                            </Text>
+                        </TouchableOpacity>
+                    );
+                })}
             </View>
+            <Text style={styles.selectedDateText}>
+                {selectedDate || "Sélectionnez une date"}
+            </Text>
+            {selectedActivities.length > 0 ? (
+                <FlatList
+                    data={selectedActivities}
+                    keyExtractor={(item, index) => `${item.activity}-${index}`}
+                    renderItem={({ item }) => (
+                        <View style={styles.activityContainer}>
+                            <View style={styles.activityIndicator} />
+                            <View style={styles.activityDetails}>
+                                <Text style={styles.activityTime}>{item.time}</Text>
+                                <Text style={styles.activityText}>{item.activity}</Text>
+                            </View>
+                        </View>
+                    )}
+                    style={styles.activitiesList}
+                />
+            ) : (
+                <Text style={styles.noActivitiesText}>
+                    Aucune activité disponible pour cette date.
+                </Text>
+            )}
         </View>
     );
 };
@@ -98,14 +91,13 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.white
     },
     innerContainer: {
-        paddingHorizontal: 5,
         paddingBottom: 16,
         flex: 1
     },
     daysContainer: {
         flexDirection: "row",
         justifyContent: "space-around",
-        width: "90%",
+        width: "95%",
         marginTop: 5,
         height: 60,
         borderRadius: 12,
@@ -120,7 +112,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         flexDirection: "column",
         justifyContent: "flex-start",
-        alignItems: "center"
+        alignItems: "center",
     },
     dayLetter: {
         fontSize: 12,
@@ -141,7 +133,7 @@ const styles = StyleSheet.create({
     },
     activitiesContainer: {
         flex: 1,
-        width: "90%",
+        width: "100%",
         alignSelf: "center",
         marginTop: 10
     },
@@ -184,6 +176,12 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontFamily: 'Inter',
         fontWeight: '400'
+    },
+    noActivitiesText: {
+        fontSize: 16,
+        color: Colors.gray,
+        textAlign: "center",
+        marginTop: 10,
     }
 });
 

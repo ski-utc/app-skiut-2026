@@ -47,22 +47,22 @@ export default function HomeScreen() {
     return (
       <View
         style={{
-          width: '100%',
-          flex: 1,
-          backgroundColor: Colors.white,
-          paddingHorizontal: 20,
-          paddingBottom: 16,
+          height: "100%",
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         <Header />
         <View
           style={{
-            height: "100%",
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
+            width: '100%',
+            flex: 1,
+            backgroundColor: Colors.white,
+            paddingHorizontal: 20,
+            paddingBottom: 16,
           }}
         >
           <Text 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View } from 'lucide-react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 interface ButtonProps {
     first: string;
@@ -10,43 +10,15 @@ interface ButtonProps {
     onThirdClick: () => void;
 }
 
-const BoutonMenu: React.FC<ButtonProps> = ({ 
-    first, 
-    second, 
-    third, 
-    onFirstClick, 
-    onSecondClick, 
-    onThirdClick 
+const BoutonMenu: React.FC<ButtonProps> = ({
+    first,
+    second,
+    third,
+    onFirstClick,
+    onSecondClick,
+    onThirdClick,
 }) => {
     const [activeButton, setActiveButton] = useState<string>('first');
-
-    const styles = {
-        container: {
-            width: '100%',
-            height: '100%',
-            borderBottom: '2px #EAEAEA solid',
-            display: 'flex',
-        },
-        button: (isActive: boolean) => ({
-            flexGrow: 1,
-            height: 41,
-            padding: '12px 10px',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderBottom: isActive ? '1px #E64034 solid' : 'none',
-            cursor: 'pointer',
-            backgroundColor: isActive ? '#F9F9F9' : 'transparent',
-        }),
-        text: {
-            color: 'black',
-            fontSize: 14,
-            fontFamily: 'Inter',
-            fontWeight: 500,
-            wordWrap: 'break-word',
-            textAlign: 'center',
-        },
-    };
 
     const handleButtonClick = (button: string, onClick: () => void) => {
         setActiveButton(button);
@@ -55,26 +27,64 @@ const BoutonMenu: React.FC<ButtonProps> = ({
 
     return (
         <View style={styles.container}>
-            <View
-                style={styles.button(activeButton === 'first')}
-                onClick={() => handleButtonClick('first', onFirstClick)}
+            <TouchableOpacity
+                style={[
+                    styles.button,
+                    activeButton === 'first' && styles.activeButton,
+                ]}
+                onPress={() => handleButtonClick('first', onFirstClick)}
             >
-                <View style={styles.text}>{first}</View>
-            </View>
-            <View
-                style={styles.button(activeButton === 'second')}
-                onClick={() => handleButtonClick('second', onSecondClick)}
+                <Text style={styles.text}>{first}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+                style={[
+                    styles.button,
+                    activeButton === 'second' && styles.activeButton,
+                ]}
+                onPress={() => handleButtonClick('second', onSecondClick)}
             >
-                <View style={styles.text}>{second}</View>
-            </View>
-            <View
-                style={styles.button(activeButton === 'third')}
-                onClick={() => handleButtonClick('third', onThirdClick)}
+                <Text style={styles.text}>{second}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+                style={[
+                    styles.button,
+                    activeButton === 'third' && styles.activeButton,
+                ]}
+                onPress={() => handleButtonClick('third', onThirdClick)}
             >
-                <View style={styles.text}>{third}</View>
-            </View>
+                <Text style={styles.text}>{third}</Text>
+            </TouchableOpacity>
         </View>
     );
 };
+
+const styles = StyleSheet.create({
+    container: {
+        flexDirection: 'row',
+        width: '100%',
+        borderBottomWidth: 2,
+        borderBottomColor: '#EAEAEA',
+        backgroundColor: '#FFFFFF',
+    },
+    button: {
+        flex: 1,
+        paddingVertical: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+    },
+    activeButton: {
+        borderBottomWidth: 2,
+        borderBottomColor: '#E64034',
+        backgroundColor: '#F9F9F9',
+    },
+    text: {
+        color: 'black',
+        fontSize: 14,
+        fontFamily: 'Inter',
+        fontWeight: '500',
+        textAlign: 'center',
+    },
+});
 
 export default BoutonMenu;

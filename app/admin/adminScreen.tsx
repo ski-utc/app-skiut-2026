@@ -18,6 +18,7 @@ export default function Admin() {
       <View style={styles.headerContainer}>
         <BoutonRetour previousRoute="profilNavigator" title="Contrôle Admin" />
       </View>
+
       
       {/* Using BoutonAdmin for navigation */}
       <FlatList
@@ -28,7 +29,6 @@ export default function Admin() {
             <BoutonAdmin nextRoute={item.nextRoute} title= {item.title} />
           </View>
         )}
-        contentContainerStyle={styles.listContentContainer}
         style={styles.list}
       />
     </View>
@@ -50,9 +50,5 @@ const styles = StyleSheet.create({
   },
   list: {
     width: '100%',
-    marginTop: 20,
-  },
-  listContentContainer: {
-    paddingHorizontal: 20,
   },
 });

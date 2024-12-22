@@ -51,10 +51,15 @@ export default function NavettesScreen() {
                 width: '100%',
                 flex: 1,
                 backgroundColor: Colors.white,
-                paddingHorizontal: 20,
                 paddingBottom: 16,
             }}>
-                <BoutonRetour previousRoute={"ProfilScreen"} title={"Navettes"} />
+                <View
+                    style={{
+                        paddingHorizontal: 20,
+                    }}
+                >
+                    <BoutonRetour previousRoute={"ProfilScreen"} title={"Navettes"} />
+                </View>
                 <NavettesTab navettesMap={navettes} />
             </View>
         </View>

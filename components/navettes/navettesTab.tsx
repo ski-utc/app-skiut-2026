@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     buttonsContainer: {
         flexDirection: "row",
         justifyContent: "space-around",
-        width: "90%",
+        width: "95%",
         marginTop: 5,
         height: 60,
         borderRadius: 12,
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     },
     navettesContainer: {
         flex: 1,
-        width: "90%",
+        width: "100%",
         alignSelf: "center",
         marginTop: 10
     },
@@ -146,19 +146,19 @@ const styles = StyleSheet.create({
     },
     navetteTime: {
         color: Colors.black,
-        fontSize: 14,
+        fontSize: 16,
         fontFamily: 'Inter',
         fontWeight: '600'
     },
     navetteText: {
         color: Colors.gray,
-        fontSize: 12,
+        fontSize: 14,
         fontFamily: 'Inter',
         fontWeight: '400'
     },
     navetteCouleurText: {
         color: Colors.gray,
-        fontSize: 12,
+        fontSize: 14,
         fontFamily: 'Inter',
         fontWeight: '400'
     }

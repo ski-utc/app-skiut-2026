@@ -1,10 +1,11 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Modal, FlatList } from "react-native";
+import { View, Text, TouchableOpacity, Dimensions, Modal, FlatList, StatusBar } from "react-native";
 import { Fonts, Colors } from "@/constants/GraphSettings";
 import { BlurView } from "expo-blur";
-import { CircleX } from 'lucide-react';
+import { CircleX } from 'lucide-react-native';
 
-const NotificationPopup = ({ visible, onClose }) => {
+//@ts-ignore
+export default function NotificationPopup ({ visible, onClose }) {
   const { height } = Dimensions.get("window");
   const notifications = [
     { id: 1, title: "Titre", text: "C'est page notification a été construire sur le template de la page Notif de Pokémon TCG"},
@@ -23,9 +24,20 @@ const NotificationPopup = ({ visible, onClose }) => {
       transparent={true}
       visible={visible}
       animationType="fade"
-      onRequestClose={onClose} // Android back button
+      onRequestClose={onClose}
     >
-        <BlurView intensity={10} tint="dark" style={styles.overlay}>
+        <StatusBar style="light" translucent={true} backgroundColor="rgba(0,0,0,0.1)" />
+        <BlurView 
+            intensity={10} 
+            tint="dark" 
+            style={{
+                flex: 1,
+                backgroundColor: "rgba(0, 0, 0, 0.1)",
+                justifyContent: "center",
+                alignItems: "center",
+            }} 
+            experimentalBlurMethod="blur"
+        >
             <View style={{ 
                     backgroundColor: "white",
                     width: '80%',
@@ -33,10 +45,7 @@ const NotificationPopup = ({ visible, onClose }) => {
                     padding:0,
                     borderRadius: 40,
                     alignItems: "center",
-                    shadowColor: "#000",
-                    shadowOffset: { width: 10 , height: 10 },
-                    shadowOpacity: 0.4,
-                    shadowRadius: 50,
+                    boxShadow: "10px 10px 50px rgba(0, 0, 0, 0.4)",
                     elevation: 5,
                 }}
             >
@@ -96,10 +105,7 @@ const NotificationPopup = ({ visible, onClose }) => {
                         style={{
                             justifyContent: 'center',
                             alignItems: 'center',
-                            shadowColor: "#000",
-                            shadowOffset: { width: 10 , height: 10 },
-                            shadowOpacity: 0.4,
-                            shadowRadius: 25,
+                            boxShadow: "10px 10px 25px rgba(0, 0, 0, 0.4)",
                             borderRadius: 100,
                         }}
                     >
@@ -111,26 +117,3 @@ const NotificationPopup = ({ visible, onClose }) => {
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.1)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  popup: {
-    backgroundColor: "white",
-    width: '80%',
-    borderRadius: 40,
-    padding: 20,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 10 , height: 10 },
-    shadowOpacity: 0.4,
-    shadowRadius: 50,
-    elevation: 5,
-  },
-});
-
-export default NotificationPopup;

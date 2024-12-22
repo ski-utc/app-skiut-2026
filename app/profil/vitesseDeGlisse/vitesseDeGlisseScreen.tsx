@@ -31,7 +31,7 @@ export default function VitesseDeGlisseScreen() {
                 <BoutonRetour previousRoute={"ProfilScreen"} title={"Vitesse de glisse"} />
                 <View
                     style={{
-                        width: 350,
+                        width: '100%',
                         height: '95%',
                         marginBottom: 16,
                         alignSelf: 'center',

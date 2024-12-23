@@ -1,21 +1,12 @@
 import { SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { Colors, Fonts } from "@/constants/GraphSettings"
 import React from "react";
-import BoutonNavigation from "@/components/divers/boutonNavigation"
+import OAuthScreen from "./OAuthScreen";
 
 export default function LoginScreen() {
     return (
         <SafeAreaView style={styles.container}>
-            <Text style={styles.titre}>Connecte toi avec ton CAS UTC</Text>
-            <Text style={styles.soustitre}>Si tu as un problème de connexion contact les resp informatique.</Text>
-            <View style={styles.flexGrow} />
-            <View style={styles.boutonContainer}>
-                <BoutonNavigation
-                    nextRoute={"homeScreen"}
-                    title={"Se connecter"}
-                    IconComponent={""}
-                />
-            </View>
+          <OAuthScreen/>
         </SafeAreaView>
     );
 }

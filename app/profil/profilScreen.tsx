@@ -1,13 +1,61 @@
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Text, Image } from "react-native";
 import Header from "../../components/header";
 import React from 'react';
 import BoutonProfil from "../../components/profil/boutonProfil";
 import { Fonts, Colors } from "@/constants/GraphSettings";
 import { Phone, PhoneCall, Map, MapPin, Gauge, Bus, UserRoundCheck } from 'lucide-react-native';
+import { useUser } from "@/contexts/UserContext";
 
+const LogoutButton: React.FC = () => {
+  const { logout } = useUser();
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Déconnexion',
+      'Êtes-vous sûr de vouloir vous déconnecter ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Déconnexion',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+          },
+        },
+      ]
+    );
+  };
+
+  return (
+    <TouchableOpacity 
+        style={{
+            backgroundColor: Colors.orange,
+            paddingVertical: 12,
+            paddingHorizontal: 16,
+            borderRadius: 8,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 20,
+        }} 
+        onPress={handleLogout}>
+      <Text 
+        style={{
+            color: Colors.white,
+            fontSize: 16,
+            fontFamily: Fonts.Inter.Basic,
+            fontWeight: '600',
+            }}
+        >
+            Déconnexion
+        </Text>
+    </TouchableOpacity>
+  );
+};
 
 export default function Profil() {
+    const { user } = useUser();
+
     return (
         <View 
             style={{
@@ -38,22 +86,22 @@ export default function Profil() {
                 >
                     <Text
                         style={{
-                            fontSize: 32,
+                            fontSize: 24,
                             fontFamily: Fonts.Inter.Basic,
                             fontWeight: '600',
                         }}
                     >
-                        John Doe
+                        {user?.name} {user?.lastName}
                     </Text>
                     <Text
                         style={{
-                            fontSize: 20,
+                            fontSize: 18,
                             fontFamily: Fonts.Inter.Basic,
                             fontWeight: '400',
                             color: Colors.gray,
                         }}
                     >
-                        Chambre 112
+                        Chambre {user?.room}
                     </Text>
                 </View>
             </View>
@@ -115,7 +163,12 @@ export default function Profil() {
                 />
             </View>
 
-            <View style={styles.navigationContainer}>
+            <View   
+                style={[
+                    styles.navigationContainer,
+                    { display: user?.admin==1 ? 'flex' : 'none' }
+                ]}
+            >
                 <BoutonProfil 
                     nextRoute={"AdminNavigator"} 
                     options={{
@@ -124,7 +177,7 @@ export default function Profil() {
                     }}
                 />
             </View>
-
+            <LogoutButton/>
         </View>
     );
 }

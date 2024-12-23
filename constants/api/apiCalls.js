@@ -2,7 +2,7 @@ import axios from "axios";
 import * as config from "./apiConfig";
 import * as SecureStore from "expo-secure-store";
 
-const bypass_login = true;
+const bypass_login = false;
 
 // Rafraichir les tokens
 const refreshTokens = async () => {

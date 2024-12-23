@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react-native';
 
 // @ts-ignore
-export default function CustomNavBar({ state, descriptors, navigation }) {
+export default function CustomNavBar({ state, navigation }) {
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
@@ -17,12 +18,31 @@ export default function CustomNavBar({ state, descriptors, navigation }) {
   const activeColor = Colors.orange;
   const unactiveColor = Colors.gray;
 
+  const tabs = [
+    { name: 'homeNavigator', label: 'Home', Icon: Home },
+    { name: 'planningNavigator', label: 'Planning', Icon: CalendarFold },
+    { name: 'defisNavigator', label: 'Défi', Icon: LandPlot },
+    { name: 'anecdotesNavigator', label: 'Anecdotes', Icon: MessageSquareText },
+  ];
+
+  if (!fontsLoaded) {
+    return (
+      <View
+        style={{
+          width: '100%',
+          height: 70,
+          backgroundColor: Colors.white,
+        }}
+      />
+    );
+  }
+
   return (
     <View
-    style={{
-      width: '100%',
-      backgroundColor: Colors.white,
-    }}
+      style={{
+        width: '100%',
+        backgroundColor: Colors.white,
+      }}
     >
       <View
         style={{
@@ -37,62 +57,45 @@ export default function CustomNavBar({ state, descriptors, navigation }) {
           gap: 24,
         }}
       >
-        {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key];
-          const IconComponent = options.tabBarIcon;
-          const display = options.display;
-          const label =
-            options.tabBarLabel !== undefined
-              ? options.tabBarLabel
-              : options.title !== undefined
-              ? options.title
-              : route.name;
-
-          if (['_sitemap', '+not-found'].includes(route.name)) return null;
-
+        {tabs.map((tab, index) => {
           const isFocused = state.index === index;
 
           const onPress = () => {
             const event = navigation.emit({
               type: 'tabPress',
-              target: route.key,
+              target: tab.name,
               canPreventDefault: true,
             });
 
             if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name, route.params);
+              navigation.navigate(tab.name);
             }
           };
 
           const onLongPress = () => {
             navigation.emit({
               type: 'tabLongPress',
-              target: route.key,
+              target: tab.name,
             });
           };
 
           return (
             <TouchableOpacity
-              key={route.key}
+              key={tab.name}
               onPress={onPress}
               onLongPress={onLongPress}
-              style={[
-                {
-                  flex: 1,
-                  flexDirection: 'column',
-                  justifyContent: 'flex-start',
-                  alignItems: 'center',
-                  gap: 12,
-                },
-                display ? { display: 'flex' } : { display: 'none' }, // Condition pour afficher ou cacher
-              ]}
+              style={{
+                flex: 1,
+                flexDirection: 'column',
+                justifyContent: 'flex-start',
+                alignItems: 'center',
+                gap: 12,
+              }}
             >
-              {IconComponent && (
-                <IconComponent
-                  size={24}
-                  color={isFocused ? activeColor : unactiveColor}
-                />
-              )}
+              <tab.Icon
+                size={24}
+                color={isFocused ? activeColor : unactiveColor}
+              />
               <Text
                 style={{
                   color: isFocused ? activeColor : unactiveColor,
@@ -102,7 +105,7 @@ export default function CustomNavBar({ state, descriptors, navigation }) {
                   textAlign: 'center',
                 }}
               >
-                {label}
+                {tab.label}
               </Text>
             </TouchableOpacity>
           );

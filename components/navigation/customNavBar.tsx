@@ -8,11 +8,21 @@ export default function CustomNavBar({ state, navigation }) {
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
+    // Load fonts asynchronously
     const loadAsyncFonts = async () => {
       await loadFonts();
       setFontsLoaded(true);
     };
     loadAsyncFonts();
+
+    // Ajout wheel event listener car cause un warning 
+    const handleWheelEvent = (event) => {
+      console.log('Wheel event detected', event);
+    };
+    document.addEventListener('wheel', handleWheelEvent, { passive: true });
+    return () => {
+      document.removeEventListener('wheel', handleWheelEvent);
+    };
   }, []);
 
   const activeColor = Colors.orange;
@@ -39,6 +49,10 @@ export default function CustomNavBar({ state, navigation }) {
 
   return (
     <View
+      style={{
+        width: '100%',
+        backgroundColor: Colors.white,
+      }}
       style={{
         width: '100%',
         backgroundColor: Colors.white,
@@ -104,6 +118,9 @@ export default function CustomNavBar({ state, navigation }) {
                   fontWeight: '500',
                   textAlign: 'center',
                 }}
+                numberOfLines={1} // Ensure the text stays on one line
+                adjustsFontSizeToFit // Automatically reduce font size if the text overflows
+                minimumFontScale={0.8}
               >
                 {tab.label}
               </Text>
@@ -114,3 +131,4 @@ export default function CustomNavBar({ state, navigation }) {
     </View>
   );
 }
+

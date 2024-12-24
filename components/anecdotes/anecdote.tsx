@@ -73,12 +73,6 @@ export default function Anecdote ({ text, room, like, nbLikes, warn }) {
                 paddingBottom: 8,
                 backgroundColor: 'white',
                 boxShadow: '0px 3px 5px rgba(0, 0, 0, 0.1)',
-                /*
-                shadowOffset: { width: 0, height: 3 },
-                shadowRadius: 5,
-                shadowColor: '#000',
-                shadowOpacity: 0.1,
-                */
                 borderRadius: 8,
                 flexDirection: 'row',
                 justifyContent: 'center',

@@ -1,62 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
-import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react-native';
 
 // @ts-ignore
-export default function CustomNavBar({ state, navigation }) {
+export default function CustomNavBar({ state, descriptors, navigation }) {
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
-    // Load fonts asynchronously
     const loadAsyncFonts = async () => {
       await loadFonts();
       setFontsLoaded(true);
     };
     loadAsyncFonts();
-
-    // Ajout wheel event listener car cause un warning 
-    const handleWheelEvent = (event) => {
-      console.log('Wheel event detected', event);
-    };
-    document.addEventListener('wheel', handleWheelEvent, { passive: true });
-    return () => {
-      document.removeEventListener('wheel', handleWheelEvent);
-    };
   }, []);
 
   const activeColor = Colors.orange;
   const unactiveColor = Colors.gray;
 
-  const tabs = [
-    { name: 'homeNavigator', label: 'Home', Icon: Home },
-    { name: 'planningNavigator', label: 'Planning', Icon: CalendarFold },
-    { name: 'defisNavigator', label: 'Défi', Icon: LandPlot },
-    { name: 'anecdotesNavigator', label: 'Anecdotes', Icon: MessageSquareText },
-  ];
-
-  if (!fontsLoaded) {
-    return (
-      <View
-        style={{
-          width: '100%',
-          height: 70,
-          backgroundColor: Colors.white,
-        }}
-      />
-    );
-  }
-
   return (
     <View
-      style={{
-        width: '100%',
-        backgroundColor: Colors.white,
-      }}
-      style={{
-        width: '100%',
-        backgroundColor: Colors.white,
-      }}
+    style={{
+      width: '100%',
+      backgroundColor: Colors.white,
+    }}
     >
       <View
         style={{
@@ -71,45 +37,62 @@ export default function CustomNavBar({ state, navigation }) {
           gap: 24,
         }}
       >
-        {tabs.map((tab, index) => {
+        {state.routes.map((route, index) => {
+          const { options } = descriptors[route.key];
+          const IconComponent = options.tabBarIcon;
+          const display = options.display;
+          const label =
+            options.tabBarLabel !== undefined
+              ? options.tabBarLabel
+              : options.title !== undefined
+              ? options.title
+              : route.name;
+
+          if (['_sitemap', '+not-found'].includes(route.name)) return null;
+
           const isFocused = state.index === index;
 
           const onPress = () => {
             const event = navigation.emit({
               type: 'tabPress',
-              target: tab.name,
+              target: route.key,
               canPreventDefault: true,
             });
 
             if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(tab.name);
+              navigation.navigate(route.name, route.params);
             }
           };
 
           const onLongPress = () => {
             navigation.emit({
               type: 'tabLongPress',
-              target: tab.name,
+              target: route.key,
             });
           };
 
           return (
             <TouchableOpacity
-              key={tab.name}
+              key={route.key}
               onPress={onPress}
               onLongPress={onLongPress}
-              style={{
-                flex: 1,
-                flexDirection: 'column',
-                justifyContent: 'flex-start',
-                alignItems: 'center',
-                gap: 12,
-              }}
+              style={[
+                {
+                  flex: 1,
+                  flexDirection: 'column',
+                  justifyContent: 'flex-start',
+                  alignItems: 'center',
+                  gap: 12,
+                },
+                display ? { display: 'flex' } : { display: 'none' }, // Condition pour afficher ou cacher
+              ]}
             >
-              <tab.Icon
-                size={24}
-                color={isFocused ? activeColor : unactiveColor}
-              />
+              {IconComponent && (
+                <IconComponent
+                  size={24}
+                  color={isFocused ? activeColor : unactiveColor}
+                />
+              )}
               <Text
                 style={{
                   color: isFocused ? activeColor : unactiveColor,
@@ -118,11 +101,8 @@ export default function CustomNavBar({ state, navigation }) {
                   fontWeight: '500',
                   textAlign: 'center',
                 }}
-                numberOfLines={1} // Ensure the text stays on one line
-                adjustsFontSizeToFit // Automatically reduce font size if the text overflows
-                minimumFontScale={0.8}
               >
-                {tab.label}
+                {label}
               </Text>
             </TouchableOpacity>
           );
@@ -131,4 +111,3 @@ export default function CustomNavBar({ state, navigation }) {
     </View>
   );
 }
-

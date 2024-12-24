@@ -7,11 +7,26 @@ export default function CustomNavBar({ state, descriptors, navigation }) {
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
+    // Load fonts asynchronously
     const loadAsyncFonts = async () => {
       await loadFonts();
       setFontsLoaded(true);
     };
     loadAsyncFonts();
+
+    // Add wheel event listener for web (React Native Web)
+    const handleWheelEvent = (event) => {
+      console.log('Wheel event detected', event);
+      // You can add any specific logic for wheel events here
+    };
+
+    // Adding the event listener for 'wheel' event with passive flag
+    document.addEventListener('wheel', handleWheelEvent, { passive: true });
+
+    // Cleanup the event listener when the component unmounts
+    return () => {
+      document.removeEventListener('wheel', handleWheelEvent);
+    };
   }, []);
 
   const activeColor = Colors.orange;
@@ -19,10 +34,10 @@ export default function CustomNavBar({ state, descriptors, navigation }) {
 
   return (
     <View
-    style={{
-      width: '100%',
-      backgroundColor: Colors.white,
-    }}
+      style={{
+        width: '100%',
+        backgroundColor: Colors.white,
+      }}
     >
       <View
         style={{
@@ -84,7 +99,7 @@ export default function CustomNavBar({ state, descriptors, navigation }) {
                   alignItems: 'center',
                   gap: 12,
                 },
-                display ? { display: 'flex' } : { display: 'none' }, // Condition pour afficher ou cacher
+                display ? { display: 'flex' } : { display: 'none' }, // Condition to show or hide
               ]}
             >
               {IconComponent && (
@@ -101,6 +116,9 @@ export default function CustomNavBar({ state, descriptors, navigation }) {
                   fontWeight: '500',
                   textAlign: 'center',
                 }}
+                numberOfLines={1} // Ensure the text stays on one line
+                adjustsFontSizeToFit // Automatically reduce font size if the text overflows
+                minimumFontScale={0.8}
               >
                 {label}
               </Text>

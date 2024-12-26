@@ -101,6 +101,9 @@ export default function CustomNavBar({ state, descriptors, navigation }) {
                   fontWeight: '500',
                   textAlign: 'center',
                 }}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
               >
                 {label}
               </Text>

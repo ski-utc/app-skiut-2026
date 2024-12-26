@@ -4,7 +4,6 @@ import { BYPASS_LOGIN } from "@/constants/api/apiConfig";
 import { useUser } from "@/contexts/UserContext";
 import { Colors, Fonts } from "@/constants/GraphSettings"
 import React from "react";
-import BoutonNavigation from "@/components/divers/boutonNavigation";
 import OAuthScreen from "./OAuthScreen";
 
 export default function LoginScreen() {

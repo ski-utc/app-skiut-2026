@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserProvider, useUser } from '../contexts/UserContext'; // Importez le UserProvider et le hook useUser
+import { UserProvider, useUser } from '../contexts/UserContext';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeNavigator from './homeNavigator';

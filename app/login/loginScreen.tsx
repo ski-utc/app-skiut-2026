@@ -1,9 +1,26 @@
 import { SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { useEffect } from "react";
+import { BYPASS_LOGIN } from "@/constants/api/apiConfig";
+import { useUser } from "@/contexts/UserContext";
 import { Colors, Fonts } from "@/constants/GraphSettings"
 import React from "react";
 import OAuthScreen from "./OAuthScreen";
 
 export default function LoginScreen() {
+    const { setUser } = useUser();
+
+    useEffect(() => {
+        if (BYPASS_LOGIN) {
+            setUser({
+                id: 1,
+                name: 'Prénom',
+                lastName: 'Nom',
+                room: 333,
+                admin: true,
+            });
+        }
+    }, [setUser]);
+
     return (
         <SafeAreaView style={styles.container}>
           <OAuthScreen/>

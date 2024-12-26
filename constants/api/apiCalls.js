@@ -2,8 +2,6 @@ import axios from "axios";
 import * as config from "./apiConfig";
 import * as SecureStore from "expo-secure-store";
 
-const bypass_login = false;
-
 // Rafraichir les tokens
 const refreshTokens = async () => {
   const refreshtoken = await SecureStore.getItemAsync("refreshToken");
@@ -12,12 +10,10 @@ const refreshTokens = async () => {
   }
   const apiConfig = { headers: { Authorization: `Bearer ${refreshtoken}` } };
   try {
-    const res = await axios.get(`${config.API_BASE_URL}/auth/refresh`, apiConfig);
-    await SecureStore.setItemAsync("accessToken", res.data.data.access_token);
-    await SecureStore.setItemAsync("refreshToken", res.data.data.refresh_token);
+    const res = await axios.get(`${config.API_BASE_URL}/auth/refresh`, apiConfig);      
+    await SecureStore.setItemAsync("accessToken", res.data.access_token);
     return true;
   } catch (e) {
-    await SecureStore.setItemAsync("refreshToken", "");
     await SecureStore.setItemAsync("accessToken", "");
     throw new Error("JWT expired");
   }
@@ -28,9 +24,8 @@ export const apiGet = async (url) => {
   let response;
   let accessToken = await SecureStore.getItemAsync("accessToken");
   let apiConfig = { headers: { Authorization: `Bearer ${accessToken}` } };
-
   try {
-    if (bypass_login) {
+    if (config.BYPASS_LOGIN) {
       console.log(`Bypassing login on ${config.API_BASE_URL}/${url}`);
       response = await axios.get(`${config.API_BASE_URL}/${url}`, { headers: {} });
     } else {
@@ -60,7 +55,12 @@ export const apiPost = async (url, data, multimedia = false) => {
   };
 
   try {
-    response = await axios.post(`${config.API_BASE_URL}/${url}`, data, apiConfig);
+    if (config.BYPASS_LOGIN) {
+      console.log(`Bypassing login on ${config.API_BASE_URL}/${url}`);
+      response = await axios.get(`${config.API_BASE_URL}/${url}`, data, { headers: {} });
+    } else {
+      response = await axios.post(`${config.API_BASE_URL}/${url}`, data, apiConfig);
+    }
   } catch (error) {
     if (error.response?.data?.JWT_ERROR) {
       console.error("JWT expired, attempting to refresh tokens...");

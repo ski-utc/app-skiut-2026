@@ -64,15 +64,14 @@ export default function OAuthScreen() {
           await SecureStore.setItemAsync("refreshToken", refreshToken);
 
           const userData = await apiGet("getUserData");
-          console.log(userData);
-
-          // Met à jour le contexte utilisateur
+          
+          // Mets à jour le contexte utilisateur
           setUser({
             id: userData.id,
             name: userData.name,
             lastName: userData.lastName,
-            room: userData.room[0],
-            admin: userData.admin,
+            room: userData.room,
+            admin: userData.admin
           });
 
           // Redirection après authentification réussie

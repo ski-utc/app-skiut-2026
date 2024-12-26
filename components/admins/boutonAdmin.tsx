@@ -2,26 +2,18 @@ import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { Colors, Fonts } from '@/constants/GraphSettings';
 import { useNavigation } from '@react-navigation/native';
-import { ChevronRight, Check } from 'lucide-react-native';
+import { ChevronRight } from 'lucide-react-native';
 
-interface BoutonDefiProps {
+interface BoutonAdminProps {
     nextRoute: string;
-    defi: {
-        title: string;
-        details: string;
-    };
-    estValide: boolean;
+    title: string;
 }
 
-const BoutonDefi: React.FC<BoutonDefiProps> = ({ nextRoute, defi, estValide }) => {
+const BoutonAdmin: React.FC<BoutonAdminProps> = ({ nextRoute, title }) => {
     const navigation = useNavigation();
 
     const onPress = () => {
-        navigation.navigate(nextRoute, {
-            transmittedText1: defi.title,
-            transmittedText2: defi.details,
-            estValide: estValide,
-        });
+        navigation.navigate(nextRoute);
     };
 
     return (
@@ -52,10 +44,7 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ nextRoute, defi, estValide }) =
                     width: '85%',
                 }}
             >
-                <Check
-                    color={estValide ? "#05AA1F" : "#8A8A8A"}
-                    size={20}
-                />
+                
                 <Text
                     style={{
                         color: "#1E1E1E",
@@ -65,7 +54,7 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ nextRoute, defi, estValide }) =
                         marginLeft: 10,
                     }}
                 >
-                    {defi.title}
+                    {title}
                 </Text>
             </View>
 
@@ -75,4 +64,4 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ nextRoute, defi, estValide }) =
     );
 };
 
-export default BoutonDefi;
+export default BoutonAdmin;

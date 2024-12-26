@@ -29,7 +29,7 @@ export default function BoutonNavigation({ nextRoute, title, IconComponent }) {
             onLongPress={onLongPress}
             style={{
             padding: 10,
-            backgroundColor: '#E64034',
+            backgroundColor: Colors.orange,
             borderRadius: 8,
             justifyContent: 'center',
             alignItems: 'center',

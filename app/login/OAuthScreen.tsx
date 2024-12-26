@@ -6,10 +6,12 @@ import * as SecureStore from "expo-secure-store";
 import { useUser } from "@/contexts/UserContext";
 import * as config from "../../constants/api/apiConfig";
 import { apiGet } from "@/constants/api/apiCalls";
+import { useNavigation } from "expo-router";
 
 export default function OAuthScreen() {
   const { setUser } = useUser();
   const [canEnter, setCanEnter] = useState(true);
+  const navigation = useNavigation();
 
   const handleNavigationStateChange = async (state: any) => {
     const url = state.url;
@@ -27,11 +29,14 @@ export default function OAuthScreen() {
           await SecureStore.setItemAsync("refreshToken", refreshToken);
 
           const userData = await apiGet("getUserData");
-
+          
           // Mets à jour le contexte utilisateur
           setUser({
             id: userData.id,
             name: userData.name,
+            lastName: userData.lastName,
+            room: userData.room,
+            admin: userData.admin
           });
 
         } catch (error) {

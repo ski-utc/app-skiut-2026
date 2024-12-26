@@ -139,7 +139,7 @@ export default function AnecdotesScreen() {
       paddingBottom: 16,
     }}>
       <BoutonRetour
-        previousRoute={"homeScreen"}
+        previousRoute={"homeNavigator"}
         title={"Anecdotes"}
       />
 

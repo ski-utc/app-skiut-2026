@@ -1,6 +1,6 @@
 import { View, FlatList, StyleSheet } from "react-native";
 import Header from "../../components/header";
-import { Trophy } from 'lucide-react';
+import { Trophy } from 'lucide-react-native';
 import React from 'react';
 import BoutonNavigation from "@/components/divers/boutonNavigation";
 import BoutonRetour from "@/components/divers/boutonRetour";
@@ -55,14 +55,32 @@ const challenges: { title: string; details: string; estValide: boolean }[] = [
   },
 ];
 
+// @ts-ignore
 export default function Defis() {
   return (
-    <View style={styles.container}>
-      <Header />
-      <View style={styles.headerContainer}>
-        <BoutonRetour previousRoute={"homeScreen"} title={"Défis"} />
+    <View
+    style={{
+      height: "100%",
+      width: "100%",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    <Header/>
+    <View style={{
+      width: '100%',
+      flex: 1,
+      backgroundColor: Colors.white,
+      paddingBottom: 16,
+    }}>
+      <View style={{paddingHorizontal: 20}}>
+        <BoutonRetour
+          previousRoute={"homeNavigator"}
+          title={"Défis"}
+        />
       </View>
-
       <FlatList
         data={challenges}
         keyExtractor={(item, index) => index.toString()}
@@ -71,13 +89,21 @@ export default function Defis() {
             <BoutonDefi nextRoute={"defisInfos"} defi={item} estValide={item.estValide} />
           </View>
         )}
-        contentContainerStyle={styles.listContentContainer}
-        style={styles.list}
+        style={{}}
       />
-      <View style={styles.navigationContainer}>
-        <BoutonNavigation nextRoute={"defisClassement"} title={"Classement"} IconComponent={Trophy} />
-      </View>
+      <View
+      style={{
+        width: '100%',
+        backgroundColor: Colors.white,
+        paddingHorizontal: 20,
+        paddingBottom: 16,
+      }}
+    >
+      <BoutonNavigation nextRoute={"defisClassement"} title={"Classement"} IconComponent={Trophy} />
     </View>
+
+    </View>
+  </View>
   );
 }
 
@@ -107,11 +133,5 @@ const styles = StyleSheet.create({
   listContentContainer: {
     paddingLeft: 20,
     paddingRight: 20,
-  },
-  navigationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
   },
 });

@@ -3,10 +3,13 @@ import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import { GanttChart, Bell } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
-import ProfilNavigator from '../app/profilNavigator';
+import NotificationPopup from '@/app/notificationPopUp';
+import { useUser } from '@/contexts/UserContext';
 
 export default function Header() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const { user } = useUser();
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -18,13 +21,7 @@ export default function Header() {
   }, []);
 
   const handleGanttChartPress = () => {
-    navigation.navigate('ProfilNavigator', {
-      screen: 'ProfilScreen',
-    });
-  };
-  
-  const handleBellPress = () => {
-    navigation.navigate('ProfilNavigator', {
+    navigation.navigate('profilNavigator', {
       screen: 'ProfilScreen',
     });
   };
@@ -40,13 +37,16 @@ export default function Header() {
           <GanttChart size={24} color={Colors.black} />
         </TouchableOpacity>
         <View style={styles.textContainer}>
-          <Text style={styles.nameText}>John Doe</Text>
-          <Text style={styles.roomText}>Chambre 112</Text>
+          <Text style={styles.nameText} numberOfLines={1}>
+            {user?.name} {user?.lastName}
+          </Text>
+          <Text style={styles.roomText}>Chambre {user?.room}</Text>
         </View>
       </View>
-      <TouchableOpacity style={styles.bellButton} onPress={handleBellPress}>
+      <TouchableOpacity style={styles.bellButton} onPress={() => setIsPopupVisible(true)}>
         <Bell size={20} color={Colors.black} />
       </TouchableOpacity>
+      <NotificationPopup visible={isPopupVisible} onClose={() => setIsPopupVisible(false)}/>
     </View>
   );
 }
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     gap: 13,
   },
   textContainer: {
-    width: 85,
+    width: 150,
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',

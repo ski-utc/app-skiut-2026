@@ -2,20 +2,12 @@ import React from 'react';
 import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Colors, Fonts } from '@/constants/GraphSettings';
 import { useNavigation } from '@react-navigation/native';
-import { ChevronRight } from 'lucide-react';
-import DynamicIcon from './dynamicIcon'; // Importer le composant d'icône dynamique
+import { ChevronRight } from 'lucide-react-native';
 
-interface BoutonProfilprops {
-    nextRoute: string;
-    profil: {
-        title: string;
-        iconName: string;
-        iconLibrary: 'Feather' | 'FontAwesome' | 'MaterialCommunityIcons'; // Ajoutez d'autres bibliothèques si nécessaire
-    };
-}
-
-const BoutonProfil: React.FC<BoutonProfilprops> = ({ nextRoute, profil }) => {
+// @ts-ignore
+export default function BoutonProfil ({ nextRoute, options }) {
     const navigation = useNavigation();
+    const IconComponent = options.icon;
 
     const onPress = () => {
         navigation.navigate(nextRoute);
@@ -25,14 +17,14 @@ const BoutonProfil: React.FC<BoutonProfilprops> = ({ nextRoute, profil }) => {
         <TouchableOpacity onPress={onPress} style={styles.container}>
             <View style={styles.leftSection}>
                 <View style={styles.icon}>
-                    <DynamicIcon 
-                        library={profil.iconLibrary} 
-                        name={profil.iconName} 
-                        size={20} 
-                        color={Colors.gray} 
-                    />
+                    {IconComponent && (
+                        <IconComponent
+                            size={20}
+                            color={Colors.gray}
+                        />
+                    )}
                 </View>
-                <Text style={styles.title}>{profil.title}</Text>
+                <Text style={styles.title}>{options.title}</Text>
             </View>
             <ChevronRight size={20} color={Colors.black} />
         </TouchableOpacity>
@@ -69,5 +61,3 @@ const styles = StyleSheet.create({
         alignItems: "center"
     }
 });
-
-export default BoutonProfil;

@@ -1,12 +1,13 @@
-import { Text, View, ActivityIndicator, SafeAreaView } from "react-native";
+import { Text, View, ActivityIndicator, Image, Dimensions, StyleSheet } from "react-native";
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import React, { useState, useEffect } from "react";
 import { apiGetPublic } from "../../constants/api/apiCalls";
-import BoutonNavigation from "@/components/divers/boutonNavigation";
 import { useNavigation } from '@react-navigation/native';
-import { CheckCircle } from 'lucide-react-native';
+import oursSki from "../../assets/images/oursSki.png";
 
+const screenWidth = Dimensions.get("window").width; // Get screen width
+console.log("On est dans HomeScreen");
 // @ts-ignore
 export default function HomeScreen() {
   /* - - - - - - - - - - - - - Variables Globales - - - - - - - - - - - - - */
@@ -34,58 +35,27 @@ export default function HomeScreen() {
       }
     };
     fetchData();  //Appel de la fonction asynchrone
-  
+    
     const intervalId = setInterval(() => {
       fetchData().catch((err) => setError(err));  // Toutes les 5 minutes on refait la requête pour rafraîchir
     }, 300000);
-  
+    
     return () => clearInterval(intervalId);  // On clear l'intervalle pour pas avoir des big fuites de mémoire
   }, []);
 
   /* - - - - - - - - - - - - - Page en cas d'erreur - - - - - - - - - - - - - */
   if (error) {
     return (
-      <View
-        style={{
-          width: '100%',
-          flex: 1,
-          backgroundColor: Colors.white,
-          paddingHorizontal: 20,
-          paddingBottom: 16,
-        }}
-      >
+      <View style={styles.container}>
         <Header />
-        <View
-          style={{
-            height: "100%",
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Text 
-            style={{ 
-              fontSize: 32,
-              textAlign: "center",
-              maxWidth: "90%",
-              color: Colors.black,
-              fontFamily: Fonts.Title.Bold,            
-            }}>
-              Erreur: 
-          </Text>
-          <Text 
-            style={{ 
-              fontSize: 20,
-              textAlign: "center",
-              maxWidth: "90%",
-              color: Colors.black,
-              fontFamily: Fonts.Text.Medium,            
-            }}>
-              {error?.message || "Une erreur est survenue"}
-          </Text>
+        <View style={styles.errorContainer}>
+          <Text style={styles.title}>Erreur:</Text>
+          <Text style={styles.errorMessage}>{error?.message || "Une erreur est survenue"}</Text>
         </View>
+        <Image
+          source={require("../../assets/images/oursSki.png")}
+          style={styles.image}
+        />
       </View>
     );
   }
@@ -93,30 +63,10 @@ export default function HomeScreen() {
   /* - - - - - - - - - - - - - Page de chargement - - - - - - - - - - - - - */
   if (loading) {
     return (
-      <View
-        style={{
-          height: "100%",
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
+      <View style={styles.container}>
         <Header />
-        <View
-          style={{
-            width: '100%',
-            flex: 1,
-            backgroundColor: Colors.white,
-            paddingHorizontal: 20,
-            paddingBottom: 16,
-          }}
-        >
-          <ActivityIndicator
-            size="large"
-            color={Colors.black}
-          />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.black} />
         </View>
       </View>
     );
@@ -124,29 +74,69 @@ export default function HomeScreen() {
 
   /* - - - - - - - - - - - - - Page classique burger - - - - - - - - - - - - - */
   return (
-    <View
-      style={{
-        height: "100%",
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
+    <View style={styles.container}>
       <Header />
-      <View
-        style={{
-          width: '100%',
-          flex: 1,
-          backgroundColor: Colors.white,
-          paddingHorizontal: 20,
-          paddingBottom: 16,
-        }}
-      >
-        <Text>{arrayDeData?.message}</Text>
-        <Text>Edit app/home.tsx to edit this screen.</Text>
+      <View style={styles.contentContainer}>
+        <Text style={styles.title}>Bienvenue sur l'appli Ski'UTC</Text>
       </View>
+      <Image
+          source={require("../../assets/images/oursSki.png")}
+          style={styles.image}
+      />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    height: "100%",
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  errorContainer: {
+    width: '100%',
+    flex: 1,
+    backgroundColor: "#b2cecb", 
+    paddingBottom: 16,
+  },
+  image: {
+    width: 390, 
+    height: 390,
+    resizeMode: 'cover',
+    position: 'absolute', 
+    bottom: 0, // Adjust this value to position the image just above customNavBar
+  },  
+  loadingContainer: {
+    width: '100%',
+    flex: 1,
+    backgroundColor: "#b2cecb",
+    justifyContent: "center",
+  },
+  contentContainer: {
+    backgroundColor: "#b2cecb", 
+    width: '100%',
+    flex: 1,
+    paddingBottom: 16,
+  },
+  title: {
+    paddingTop: 40,
+    paddingBottom: 15,
+    paddingLeft: 21, 
+    fontSize: 40,
+    textAlign: "left",
+    maxWidth: "90%",
+    color: Colors.white,
+    fontFamily: Fonts.Text.Bold,
+  },
+  errorMessage: {
+    paddingLeft: 21, 
+    fontSize: 25,
+    textAlign: "left",
+    maxWidth: "90%",
+    color: Colors.white,
+    fontFamily: Fonts.Text.Medium,
+  },
+});

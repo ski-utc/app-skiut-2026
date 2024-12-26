@@ -1,13 +1,13 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
 interface User {
-  id: string;
+  id: number;
   name: string;
   lastName: string;
-  room: string;
-  location: string;
-  admin: string;
+  room: number;
+  admin: boolean;
 }
 
 interface UserContextProps {
@@ -42,6 +42,8 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     await saveUser(null);
+    await SecureStore.deleteItemAsync('accessToken');
+    await SecureStore.deleteItemAsync('refreshToken');
   };
 
   return (

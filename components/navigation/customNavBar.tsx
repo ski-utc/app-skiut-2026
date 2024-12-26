@@ -104,6 +104,7 @@ export default function CustomNavBar({ state, navigation }) {
                   fontFamily: Fonts.Inter.Basic,
                   fontWeight: '500',
                   textAlign: 'center',
+                  marginBottom: 2, // monte un peu le texte
                 }}
                 numberOfLines={1}
                 adjustsFontSizeToFit

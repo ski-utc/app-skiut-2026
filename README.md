@@ -13,7 +13,7 @@
     npx expo start
    ```
 
-3. Lance le serveur Laravel (avec la commande php artisan serve --host=<TonIP> --port=8000)
+3. Lance le serveur Laravel (si j'ai fini de le setup)
 
 4. Route les requêtes de ton App vers ton serveur
 Modifie l'IP dans constants/api/apiConfig pour donner celle de ton serv Laravel

@@ -1,8 +1,20 @@
-Créer les screens et main dans app
-Créer les components
-    Créer un header avec une croix en haut à droite pour les pages qui se stackent
-    Ajouter un try/catch pour les appels API (erreur/JWT Erreur), ainsi qu'une page pour afficher l'erreur
-Créer les redux dans constants/ ou hooks/
+Global : vérifier les fonts et les shadow
+
+defisInfos : Mettre l'image du défis
+defisClassement : Renvoir le rendu, c'est pas mal buggé
+
+pefromancesScreen : Renvoir le rendu, c'est pas mal buggé
+
+page Notification design à refaire
+
+planningTab : Faire la logique de coloration en fonction de si l'évent est actif, ou déjà passé
+
+page Home à implémenter
+
+stopVssScreen et contactScreen : largeur des items à revoir (ou paddingHorizontal plutot)
+
+
+
 
 react-native.config.js
 google-services.json (Pour poster sur le play store)    +Adapter app.json en fonction

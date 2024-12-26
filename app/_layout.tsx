@@ -1,51 +1,109 @@
-import React from 'react'
-import { Tabs } from 'expo-router'
-import TabBar from '../components/navigation/TabBar'
+import React from 'react';
+import { UserProvider, useUser } from '../contexts/UserContext';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import HomeNavigator from './homeNavigator';
+import PlanningNavigator from './planningNavigator';
+import AnecdotesNavigator from './anecdotesNavigator';
+import DefisNavigator from './defisNavigator';
+import ProfilNavigator from './profilNavigator';
+import LoginScreen from './login/loginScreen';
+import CustomNavBar from '../components/navigation/customNavBar';
+import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react-native';
 
-// @ts-ignore
+const Tab = createBottomTabNavigator();
+
 export default function RootLayout() {
   return (
-    <Tabs
-        screenOptions={{
-          headerShown: false,
-        }}
-        tabBar={props=> <TabBar {...props} />}
-    >
-        <Tabs.Screen
-            name="index"
+    <UserProvider>
+      <NavigationContainer>
+        <Content />
+      </NavigationContainer>
+    </UserProvider>
+  );
+}
+
+function Content() {
+  const { user } = useUser();
+  
+  return (
+    <>
+      {user ? (
+        <Tab.Navigator
+          screenOptions={{ headerShown: false }}
+          tabBar={(props) => <CustomNavBar {...props} />}
+        >
+          <Tab.Screen
+            name="homeNavigator"
+            component={HomeNavigator}
+            options={{ tabBarLabel: 'Home', tabBarIcon: Home }}
+          />
+          <Tab.Screen
+            name="planningNavigator"
+            component={PlanningNavigator}
             options={{
-                title: "Home",
-                icon: "home"
+              tabBarLabel: 'Planning',
+              tabBarIcon: CalendarFold,
             }}
-        />
-        <Tabs.Screen
-            name="planning"
+            listeners={({ navigation }) => ({
+              tabPress: (e) => {
+                e.preventDefault();
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'planningNavigator' }],
+                });
+              },
+            })}
+          />
+          <Tab.Screen
+            name="defisNavigator"
+            component={DefisNavigator}
             options={{
-                title: "Planning",
-                icon: "calendar"
+              tabBarLabel: 'Défi',
+              tabBarIcon: LandPlot,
             }}
-        />
-        <Tabs.Screen
-            name="potins"
-            options={{
-                title: "Potins",
-                icon: "chatbox"
-            }}
-        />
-        <Tabs.Screen
-            name="defis"
-            options={{
-                title: "Défis",
-                icon: "trophy"
-            }}
-        />
-        <Tabs.Screen
-            name="profil"
-            options={{
-                title: "Profil",
-                icon: "person-circle"
-            }}
-        />
-    </Tabs>
+            listeners={({ navigation }) => ({
+              tabPress: (e) => {
+                e.preventDefault();
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'defisNavigator' }],
+                });
+              },
+            })}
+          />
+          <Tab.Screen
+            name="anecdotesNavigator"
+            component={AnecdotesNavigator}
+            options={{ tabBarLabel: 'Anecdotes', tabBarIcon: MessageSquareText }}
+            listeners={({ navigation }) => ({
+              tabPress: (e) => {
+                e.preventDefault();
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'anecdotesNavigator' }],
+                });
+              },
+            })}
+          />
+          <Tab.Screen
+            name="profilNavigator"
+            component={ProfilNavigator}
+            options={{ tabBarLabel: 'Profil', tabBarIcon: MessageSquareText }}
+            listeners={({ navigation }) => ({
+              tabPress: (e) => {
+                e.preventDefault();
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'profilNavigator' }],
+                });
+              },
+            })}
+          />
+        </Tab.Navigator>
+      ) : (
+        <LoginScreen />
+      )}
+    </>
   );
 }

@@ -55,8 +55,8 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     backgroundColor: Colors.white,
-    paddingTop: 36,
-    paddingBottom: 36,
+    paddingTop: 40, // Reduced to move the header higher
+    paddingBottom: 20, 
     paddingLeft: 20,
     paddingRight: 20,
     justifyContent: 'space-between',
@@ -68,6 +68,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: 13,
+    marginTop: 2, // Adjusted to slightly raise the group
   },
   textContainer: {
     width: 150,
@@ -75,6 +76,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
     gap: 4,
+    marginTop: 0, // Reset to ensure text stays aligned
   },
   nameText: {
     color: Colors.black,
@@ -90,7 +92,7 @@ const styles = StyleSheet.create({
   },
   bellButton: {
     position: 'absolute',
-    top: 36,
+    top: 40, // Reduced to move the bell icon higher
     right: 20,
     width: 40,
     height: 40,

@@ -1,4 +1,4 @@
-import { SafeAreaView, View, StyleSheet } from "react-native";
+import { SafeAreaView, View, StyleSheet, Text } from "react-native";
 import { Colors } from '@/constants/GraphSettings';
 import React from "react";
 import PlanningTab from "../../components/planning/planningTab";
@@ -48,6 +48,31 @@ const activitiesMap: { [key: string]: { activity: string, time: string }[] } = {
   ]
 };
 
+{Object.entries(activitiesMap).map(([day, activities]) => (
+  <View key={day}>
+    <Text>{day}</Text> {/* Wrap day in <Text> */}
+    {activities.map(({ activity, time }, index) => (
+      <View key={index}>
+        <Text>{activity}</Text> {/* Wrap activity in <Text> */}
+        <Text>{time}</Text>   {/* Wrap time in <Text> */}
+      </View>
+    ))}
+  </View>
+))}
+
+export default function PlanningScreen() {
+  return (
+    <SafeAreaView style={styles.container}>
+      <Header />
+      <View style={styles.content}>
+        
+        <BoutonRetour previousRoute={"homeNavigator"} title={"Planning"} />     
+        <PlanningTab activitiesMap={activitiesMap} />  {/* affiche le planning en utilisant les données dans activitiesMap */}
+      </View>
+    </SafeAreaView>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     height: "100%",
@@ -66,15 +91,3 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   }
 });
-
-export default function PlanningScreen() {
-  return (
-    <SafeAreaView style={styles.container}>
-      <Header />
-      <View style={styles.content}>
-        <BoutonRetour previousRoute={"homeNavigator"} title={"Planning"} />
-        <PlanningTab activitiesMap={activitiesMap} />  {/* affiche le planning en utilisant les données dans activitiesMap */}
-      </View>
-    </SafeAreaView>
-  );
-}

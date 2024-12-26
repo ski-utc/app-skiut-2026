@@ -31,7 +31,7 @@ export default function AnecdotesForm() {
     }}>
       <BoutonRetour
         previousRoute={"anecdotesScreen"}
-        title={"Raconte nous ta meilleure anecdotes !"}
+        title={"Raconte nous ta meilleure anecdote !"}
       />
       <View
         style={{

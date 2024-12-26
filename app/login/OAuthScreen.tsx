@@ -1,62 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Alert } from "react-native";
 import { WebView } from "react-native-webview";
+import * as Linking from "expo-linking";
 import * as SecureStore from "expo-secure-store";
 import { useUser } from "@/contexts/UserContext";
 import * as config from "../../constants/api/apiConfig";
 import { apiGet } from "@/constants/api/apiCalls";
-import { useNavigation, useRouter } from "expo-router";
+import { useNavigation } from "expo-router";
 
 export default function OAuthScreen() {
-  console.log("OAuthScreen");
   const { setUser } = useUser();
   const [canEnter, setCanEnter] = useState(true);
   const navigation = useNavigation();
-  const router = useRouter();
-
-  // Ajout d'un mode bypass pour un utilisateur fictif
-  useEffect(() => {
-    const bypassAuth = async () => {
-      if (config.APP_NO_LOGIN) { // Vérifie si le contournement est activé
-        console.log("Bypass authentication activated.");
-        try {
-          // Utilisateur fictif
-          const fakeUser = {
-            id: "12345",
-            name: "John",
-            lastName: "Doe",
-            room: 1,
-            admin: 0,
-          };
-
-          // Stocker des jetons fictifs
-          await SecureStore.setItemAsync("accessToken", "fakeAccessToken");
-          await SecureStore.setItemAsync("refreshToken", "fakeRefreshToken");
-
-          // Mettre à jour le contexte utilisateur avec l'utilisateur fictif
-          setUser(fakeUser);
-
-          // Redirection après authentification réussie
-          router.push("/HomeScreen")
-          } catch (error) {
-          console.error("Error during bypass authentication:", error);
-          Alert.alert("Erreur", "Impossible de configurer l'utilisateur fictif.");
-        }
-      }
-    };
-
-    bypassAuth();
-  }, []);
 
   const handleNavigationStateChange = async (state: any) => {
     const url = state.url;
+    const { hostname, path, queryParams } = Linking.parse(url);
 
-    if (canEnter && url.includes(`${config.BASE_URL}/api/connected`)) {
-      setCanEnter(false);
+    if (canEnter && hostname == config.DOMAIN && path == "skiutc/api/connected") {
+      setCanEnter(false); 
 
-      // Récupère les tokens de la redirection OAuth
-      const accessToken = new URL(url).searchParams.get("access_token");
-      const refreshToken = new URL(url).searchParams.get("refresh_token");
+      const accessToken = queryParams?.access_token;
+      const refreshToken = queryParams?.refresh_token;
 
       if (accessToken && refreshToken) {
         try {
@@ -74,12 +39,10 @@ export default function OAuthScreen() {
             admin: userData.admin
           });
 
-          // Redirection après authentification réussie
-          navigation.replace("HomeScreen");
         } catch (error) {
           console.error("Error during authentication:", error);
           Alert.alert("Erreur", "Impossible de récupérer les données utilisateur.");
-          setCanEnter(true);
+          setCanEnter(true); 
         }
       } else {
         Alert.alert("Erreur", "Access token ou refresh token manquant.");
@@ -90,14 +53,12 @@ export default function OAuthScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      {!config.APP_NO_LOGIN && (
-        <WebView
-          source={{ uri: `${config.BASE_URL}/auth/login` }}
-          originWhitelist={["*"]}
-          style={{ flex: 1, marginTop: 20 }}
-          onNavigationStateChange={handleNavigationStateChange}
-        />
-      )}
+      <WebView
+        source={{ uri: `${config.BASE_URL}/auth/login` }}
+        originWhitelist={["*"]}
+        style={{ flex: 1, marginTop: 20 }}
+        onNavigationStateChange={handleNavigationStateChange}
+      />
     </View>
   );
 }

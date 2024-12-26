@@ -1,14 +1,13 @@
-import { Text, View, ActivityIndicator, SafeAreaView, Image, Dimensions, StyleSheet } from "react-native";
+import { Text, View, ActivityIndicator, Image, Dimensions, StyleSheet } from "react-native";
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import React, { useState, useEffect } from "react";
 import { apiGetPublic } from "../../constants/api/apiCalls";
-import BoutonNavigation from "@/components/divers/boutonNavigation";
 import { useNavigation } from '@react-navigation/native';
-import { CheckCircle } from 'lucide-react-native';
+import oursSki from "../../assets/images/oursSki.png";
 
 const screenWidth = Dimensions.get("window").width; // Get screen width
-
+console.log("On est dans HomeScreen");
 // @ts-ignore
 export default function HomeScreen() {
   /* - - - - - - - - - - - - - Variables Globales - - - - - - - - - - - - - */

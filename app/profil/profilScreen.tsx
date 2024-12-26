@@ -2,59 +2,78 @@ import { View, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Text, Image } from "react-native";
 import Header from "../../components/header";
 import React from 'react';
+import { useState } from "react";
 import BoutonProfil from "../../components/profil/boutonProfil";
 import { Fonts, Colors } from "@/constants/GraphSettings";
 import { Phone, PhoneCall, Map, MapPin, Gauge, Bus, UserRoundCheck } from 'lucide-react-native';
 import { useUser } from "@/contexts/UserContext";
+import * as config from '../../constants/api/apiConfig';
+import WebView from "react-native-webview";
 
-const LogoutButton: React.FC = () => {
-  const { logout } = useUser();
-
-  const handleLogout = () => {
-    Alert.alert(
-      'Déconnexion',
-      'Êtes-vous sûr de vouloir vous déconnecter ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Déconnexion',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
+const LogoutButton: React.FC<{ setShowLogoutWebView: React.Dispatch<React.SetStateAction<boolean>> }> = ({ setShowLogoutWebView }) => {
+    const { logout } = useUser();
+  
+    const handleLogout = () => {
+      Alert.alert(
+        'Déconnexion',
+        'Êtes-vous sûr de vouloir vous déconnecter ?',
+        [
+          { text: 'Annuler', style: 'cancel' },
+          {
+            text: 'Déconnexion',
+            style: 'destructive',
+            onPress: async () => {
+              setShowLogoutWebView(true);
+              await logout();
+            },
           },
-        },
-      ]
-    );
-  };
-
-  return (
-    <TouchableOpacity 
+        ]
+      );
+    };
+  
+    return (
+      <TouchableOpacity
         style={{
-            backgroundColor: Colors.orange,
-            paddingVertical: 12,
-            paddingHorizontal: 16,
-            borderRadius: 8,
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginTop: 20,
-        }} 
-        onPress={handleLogout}>
-      <Text 
-        style={{
+          backgroundColor: Colors.orange,
+          paddingVertical: 12,
+          paddingHorizontal: 16,
+          borderRadius: 8,
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginTop: 20,
+        }}
+        onPress={handleLogout}
+      >
+        <Text
+          style={{
             color: Colors.white,
             fontSize: 16,
             fontFamily: Fonts.Inter.Basic,
             fontWeight: '600',
-            }}
+          }}
         >
-            Déconnexion
+          Déconnexion
         </Text>
-    </TouchableOpacity>
-  );
-};
+      </TouchableOpacity>
+    );
+  };
+  
 
 export default function Profil() {
     const { user } = useUser();
+    const [showLogoutWebview, setShowLogoutWebView] = useState(false);
+
+    if(showLogoutWebview){
+        return(
+            <View style={{ flex: 1 }}>
+                <WebView
+                source={{ uri: `${config.API_BASE_URL}/auth/logout` }}
+                originWhitelist={["*"]}
+                style={{ flex: 1, marginTop: 20 }}
+                />
+            </View>
+        )
+    }
 
     return (
         <View 
@@ -177,7 +196,7 @@ export default function Profil() {
                     }}
                 />
             </View>
-            <LogoutButton/>
+            <LogoutButton setShowLogoutWebView={setShowLogoutWebView} />
         </View>
     );
 }

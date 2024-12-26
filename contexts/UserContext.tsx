@@ -3,11 +3,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 
 interface User {
-  id: string;
+  id: number;
   name: string;
   lastName: string;
   room: number;
-  admin: number;
+  admin: boolean;
 }
 
 interface UserContextProps {

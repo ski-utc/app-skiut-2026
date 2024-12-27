@@ -46,40 +46,6 @@ export default function AnecdotesScreen() {
     fetchAnecdotes();
   }, []);
 
-  const handleLike = async (anecdoteId) => {
-    try {
-      const response = await apiPost('likeAnecdote', { anecdoteId });
-      if (response.success) {
-        setAnecdotes((prevAnecdotes) =>
-          prevAnecdotes.map((anecdote) =>
-            anecdote.id === anecdoteId
-              ? { ...anecdote, nbLikes: anecdote.nbLikes + 1 } 
-              : anecdote
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Erreur lors du like de l’anecdote', error);
-    }
-  };
-
-  const handleWarning = async (anecdoteId) => {
-    try {
-      const response = await apiPost('warnAnecdote', { anecdoteId });
-      if (response.success) {
-        setAnecdotes((prevAnecdotes) =>
-          prevAnecdotes.map((anecdote) =>
-            anecdote.id === anecdoteId
-              ? { ...anecdote, warn: anecdote.warn + 1 }
-              : anecdote
-          )
-        );
-      }
-    } catch (error) {
-      console.error('Erreur lors du warning de l’anecdote', error);
-    }
-  };
-
   if(error!='') {
     return(
       <View
@@ -189,16 +155,15 @@ export default function AnecdotesScreen() {
         data={anecdotes} 
         renderItem={({ item }) => (
           <Anecdote
+            id={item.id}
             text={item.text}
             room={item.room}
             nbLikes={item.nbLikes}
             liked={item.liked}
             warned={item.warned}
-            onLike={() => handleLike(item.id)}
-            onWarning={() => handleWarning(item.id)}
           />
         )}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={item => item.id}
         ItemSeparatorComponent={() => <View style={{ height: 36 }} />}
       />
       <BoutonNavigation

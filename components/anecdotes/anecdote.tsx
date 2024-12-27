@@ -4,7 +4,7 @@ import { Colors, Fonts } from '@/constants/GraphSettings';
 import { Heart, TriangleAlert } from 'lucide-react-native';
 
 // @ts-ignore
-export default function Anecdote({ text, room, nbLikes, warn, onLike, onWarning }) {
+export default function Anecdote({ text, room, nbLikes, liked, warned, onLike, onWarning }) {
       return (
         <View
           style={{
@@ -83,8 +83,8 @@ export default function Anecdote({ text, room, nbLikes, warn, onLike, onWarning 
             >
                 <Heart
                 size={18}
-                color={like ? '#FF1D7C' : '#000000'}
-                fill={like ? '#FF1D7C' : 'white'}
+                color={liked ? '#FF1D7C' : '#000000'}
+                fill={liked ? '#FF1D7C' : 'white'}
                 />
                 <Text
                   style={{
@@ -115,7 +115,7 @@ export default function Anecdote({ text, room, nbLikes, warn, onLike, onWarning 
             >
                 <TriangleAlert
                 size={18}
-                color={warn ? '#E3A300' : '#000000'}
+                color={warned ? '#E3A300' : '#000000'}
                 />
             </TouchableOpacity>
 

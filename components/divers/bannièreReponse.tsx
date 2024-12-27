@@ -1,7 +1,9 @@
 import { Animated, Text } from 'react-native';
 import React, { useEffect, useRef } from 'react';
+import {Colors, Fonts} from '../../constants/GraphSettings';
 
-export default function Banner({ message, show }) {
+//@ts-ignore
+export default function Banner({ message, success, show }) {
   const translateY = useRef(new Animated.Value(-100)).current;
 
   useEffect(() => {
@@ -29,13 +31,23 @@ export default function Banner({ message, show }) {
         top: 0,
         left: 0,
         right: 0,
-        backgroundColor: 'green',
-        padding: 16,
+        backgroundColor: success ? 'green' : 'red',
+        padding: 32,
+        paddingBottom:16,
         transform: [{ translateY }],
         zIndex: 1,
       }}
     >
-      <Text style={{ color: 'white', textAlign: 'center' }}>{message}</Text>
+      <Text style={{
+        color: Colors.black,
+        fontSize: 20,
+        fontFamily: Fonts.Inter.Basic,
+        fontWeight: '600',
+        padding: 10,
+        textAlign: 'center',
+      }}>
+        {message}
+      </Text>
     </Animated.View>
   );
 }

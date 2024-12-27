@@ -11,13 +11,6 @@ import { useEffect, useState } from 'react';
 
 // @ts-ignore
 export default function AnecdotesScreen() {
-  /*
-  const anecdotes = [
-    { id: 1, text: "Je suis tombé dans mon pipi aujourd’hui pendant la pose casse croute", room: "101", like: 0, nbLikes:0, warn: 0 },
-    { id: 2, text: "J’ai vu le zob d’un mono de ski", room: "102", like: 1,nbLikes:10, warn: 0 },
-    { id: 3, text: "Les gars l’appli elle bug de fou on dirait pas que vous payez 24 balles !", room: "103", like: 0, nbLikes:120, warn: 1 }
-  ];
-  */
   const [anecdotes, setAnecdotes] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -96,7 +89,6 @@ export default function AnecdotesScreen() {
         previousRoute={"homeNavigator"}
         title={"Anecdotes"}
       />
-
       <FlatList 
         data={anecdotes} 
         renderItem={({ item }) => (
@@ -104,7 +96,8 @@ export default function AnecdotesScreen() {
             text={item.text}
             room={item.room}
             nbLikes={item.nbLikes}
-            warn={item.warn}
+            liked={item.liked}
+            warned={item.warned}
             onLike={() => handleLike(item.id)}
             onWarning={() => handleWarning(item.id)}
           />
@@ -112,7 +105,6 @@ export default function AnecdotesScreen() {
         keyExtractor={item => item.id.toString()}
         ItemSeparatorComponent={() => <View style={{ height: 36 }} />}
       />
-
       <BoutonNavigation
         nextRoute={"anecdotesForm"}
         title={"Rédiger un potin"}

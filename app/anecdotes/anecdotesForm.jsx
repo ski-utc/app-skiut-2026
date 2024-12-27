@@ -12,17 +12,18 @@ import Banner from '@/components/divers/bannièreReponse';
 
 // @ts-ignore
 export default function AnecdotesForm() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [text, setText] = useState('');
   const [isChecked, setChecked] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [responseMessage, setResponseMessage] = useState('');
+  const [responseSuccess, setResponseSuccess] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
 
   const navigation = useNavigation();
   const { setUser } = useUser();
 
-  const sendAnecdotes = async () => {
+  const handleSendAnecdote = async () => {
     setLoading(true);
     try {
       let response = await apiPost("sendAnecdote", {
@@ -30,14 +31,18 @@ export default function AnecdotesForm() {
       });
       if (response.success === true) {
         setResponseMessage(response.message);
-        setShowBanner(true);
-        setTimeout(() => setShowBanner(false), 5000);
-        navigation.navigate("anecdotesScreen");
-      } else {
+        setResponseSuccess(true);
         setLoading(false);
-        setResponseMessage(response.message);
         setShowBanner(true);
         setTimeout(() => setShowBanner(false), 5000);
+        setTimeout(() => navigation.navigate("anecdotesScreen"), 2000);
+      } else {
+        setResponseMessage(response.message);
+        setResponseSuccess(false);
+        setLoading(false);
+        setShowBanner(true);
+        setTimeout(() => setShowBanner(false), 5000);
+        setTimeout(() => navigation.navigate("anecdotesScreen"), 2000);
       }
     } catch (err) {
       if (err.name === "JWTError") {
@@ -50,17 +55,82 @@ export default function AnecdotesForm() {
 
   if(error!='') {
     return(
-      <View>
-        <Text>Erreur:</Text>
-        <Text>{error}</Text>
+      <View
+      style={{
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+      >
+        <Header/>
+        <View style={{
+          width: '100%',
+          flex: 1,
+          backgroundColor: Colors.white,
+          justifyContent: "center",
+          alignItems: "center"
+        }}>
+          <Text style={{
+            color: Colors.black,
+            fontSize: 32,
+            fontFamily: Fonts.Inter.Basic,
+            fontWeight: '800',
+            padding: 10,
+            textAlign: 'center',
+          }}>
+            Une erreur est survenue...
+          </Text>
+          <Text style={{
+            color: Colors.black,
+            fontSize: 20,
+            fontFamily: Fonts.Inter.Basic,
+            fontWeight: '400',
+            padding: 10,
+            paddingBottom:32,
+            textAlign: 'center'
+          }}>
+            {error}
+          </Text>
+          <Text style={{
+            color: Colors.black,
+            fontSize: 16,
+            fontFamily: Fonts.Inter.Italic,
+            fontWeight: '400',
+            padding: 16,
+            textAlign: 'center'
+          }}>
+            Merci de contacter Louise Caignaert ou Mathis Delmaere
+          </Text>
+        </View>
       </View>
     )
   }
 
   if(loading) {
     return(
-      <View>
-        <ActivityIndicator size="large"/>
+      <View
+      style={{
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+      >
+        <Header/>
+        <View style={{
+          width: '100%',
+          flex: 1,
+          backgroundColor: Colors.white,
+          justifyContent: "center",
+          alignItems: "center"
+        }}>
+          <ActivityIndicator size="large" color={Colors.gray}/>
+        </View>
       </View>
     )
   }
@@ -76,7 +146,7 @@ export default function AnecdotesForm() {
       justifyContent: "center",
     }}
   >
-    <Banner message={responseMessage} show={showBanner}/>
+    <Banner message={responseMessage} success={responseSuccess} show={showBanner}/>
     <Header/>
     <View style={{
       width: '100%',
@@ -157,7 +227,7 @@ export default function AnecdotesForm() {
           style={{
             padding: 10,
             backgroundColor: '#E64034',
-            opacity: isChecked && (text.trim().length > 10) !== '' ? 1 : 0.5,
+            opacity: isChecked && (text.trim().length > 10) ? 1 : 0.5,
             borderRadius: 8,
             justifyContent: 'center',
             alignItems: 'center',
@@ -165,7 +235,7 @@ export default function AnecdotesForm() {
             gap: 10,
           }}
           disabled={!isChecked || loading || !(text.trim().length > 10)}
-          onPress={()=>sendAnecdotes()}
+          onPress={()=>handleSendAnecdote()}
         >
           <Text
             style={{

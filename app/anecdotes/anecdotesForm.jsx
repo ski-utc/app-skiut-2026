@@ -26,10 +26,10 @@ export default function AnecdotesForm() {
   const handleSendAnecdote = async () => {
     setLoading(true);
     try {
-      let response = await apiPost("sendAnecdote", {
+      const response = await apiPost("sendAnecdote", {
         texte: text
       });
-      if (response.success === true) {
+      if (response.success) {
         setResponseMessage(response.message);
         setResponseSuccess(true);
         setLoading(false);
@@ -44,11 +44,11 @@ export default function AnecdotesForm() {
         setTimeout(() => setShowBanner(false), 5000);
         setTimeout(() => navigation.navigate("anecdotesScreen"), 2000);
       }
-    } catch (err) {
-      if (err.name === "JWTError") {
+    } catch (error) {
+      if (error.name === "JWTError") {
         setUser(null);
       } else {
-        setError(err.message);
+        setError(error.message);
       }
     }
   };

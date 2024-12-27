@@ -33,17 +33,17 @@ export default function Banner({ message, success, show }) {
         right: 0,
         backgroundColor: success ? 'green' : 'red',
         padding: 32,
-        paddingBottom:16,
+        paddingBottom:0,
         transform: [{ translateY }],
         zIndex: 1,
       }}
     >
       <Text style={{
         color: Colors.black,
-        fontSize: 20,
+        fontSize: 16,
         fontFamily: Fonts.Inter.Basic,
         fontWeight: '600',
-        padding: 10,
+        padding: 12,
         textAlign: 'center',
       }}>
         {message}

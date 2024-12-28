@@ -44,10 +44,6 @@ export default function CustomNavBar({ state, navigation }) {
         width: '100%',
         backgroundColor: Colors.white,
       }}
-      style={{
-        width: '100%',
-        backgroundColor: Colors.white,
-      }}
     >
       <View
         style={{
@@ -109,8 +105,8 @@ export default function CustomNavBar({ state, navigation }) {
                   fontWeight: '500',
                   textAlign: 'center',
                 }}
-                numberOfLines={1} // Ensure the text stays on one line
-                adjustsFontSizeToFit // Automatically reduce font size if the text overflows
+                numberOfLines={1}
+                adjustsFontSizeToFit
                 minimumFontScale={0.8}
               >
                 {tab.label}
@@ -122,4 +118,3 @@ export default function CustomNavBar({ state, navigation }) {
     </View>
   );
 }
-

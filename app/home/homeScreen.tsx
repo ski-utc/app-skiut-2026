@@ -1,13 +1,13 @@
-import { Text, View, ActivityIndicator, SafeAreaView, Image, Dimensions, StyleSheet } from "react-native";
+import { Text, View, ActivityIndicator, Image, Dimensions, StyleSheet } from "react-native";
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import React, { useState, useEffect } from "react";
 import { apiGetPublic } from "../../constants/api/apiCalls";
-import BoutonNavigation from "@/components/divers/boutonNavigation";
 import { useNavigation } from '@react-navigation/native';
-import { CheckCircle } from 'lucide-react-native';
+import oursSki from "../../assets/images/oursSki.png";
 
 const screenWidth = Dimensions.get("window").width; // Get screen width
+console.log("On est dans HomeScreen");
 
 // @ts-ignore
 export default function HomeScreen() {
@@ -36,11 +36,11 @@ export default function HomeScreen() {
       }
     };
     fetchData();  //Appel de la fonction asynchrone
-  
+    
     const intervalId = setInterval(() => {
       fetchData().catch((err) => setError(err));  // Toutes les 5 minutes on refait la requête pour rafraîchir
     }, 300000);
-  
+    
     return () => clearInterval(intervalId);  // On clear l'intervalle pour pas avoir des big fuites de mémoire
   }, []);
 
@@ -54,9 +54,9 @@ export default function HomeScreen() {
           <Text style={styles.errorMessage}>{error?.message || "Une erreur est survenue"}</Text>
         </View>
         <Image
-            source={require("../../assets/images/oursSki.png")}
-            style={styles.image}
-          />
+          source={require("../../assets/images/oursSki.png")}
+          style={styles.image}
+        />
       </View>
     );
   }
@@ -78,12 +78,12 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <Header />
       <View style={styles.contentContainer}>
-      <Text style={styles.title}>Bienvenue sur l'appli Ski'UTC</Text>
+        <Text style={styles.title}>Bienvenue sur l'appli Ski'UTC</Text>
       </View>
       <Image
-            source={require("../../assets/images/oursSki.png")}
-            style={styles.image}
-          />
+          source={require("../../assets/images/oursSki.png")}
+          style={styles.image}
+      />
     </View>
   );
 }
@@ -104,11 +104,11 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   image: {
-    width: screenWidth, 
-    height: undefined, 
-    resizeMode: 'contain',
+    width: 390, 
+    height: 390,
+    resizeMode: 'cover',
     position: 'absolute', 
-    top: 60,          
+    bottom: 0, // Adjust this value to position the image just above customNavBar
   },  
   loadingContainer: {
     width: '100%',
@@ -123,17 +123,18 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   title: {
-    paddingTop: 79,
-    paddingLeft: 21,
-    fontSize: 32,
+    paddingTop: 40,
+    paddingBottom: 15,
+    paddingLeft: 21, 
+    fontSize: 40,
     textAlign: "left",
     maxWidth: "90%",
     color: Colors.white,
-    fontFamily: Fonts.Title.Bold,
+    fontFamily: Fonts.Text.Bold,
   },
   errorMessage: {
     paddingLeft: 21, 
-    fontSize: 20,
+    fontSize: 25,
     textAlign: "left",
     maxWidth: "90%",
     color: Colors.white,

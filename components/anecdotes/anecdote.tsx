@@ -1,17 +1,17 @@
 import React, {useState} from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { Colors, Fonts } from '@/constants/GraphSettings';
 import { Heart, TriangleAlert } from 'lucide-react-native';
 import { apiPost } from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
 
 // @ts-ignore
-export default function Anecdote({ id, text, room, nbLikes, liked, warned, setError, setResponseMessage, setResponseSuccess, setShowBanner }) {
+export default function Anecdote({ id, text, room, nbLikes, liked, warned, authorId, refresh, setError, setResponseMessage, setResponseSuccess, setShowBanner }) {
   const [isLiked, setIsLiked] = useState(liked);
   const [dynamicNbLikes, setDynamicNbLikes] = useState(nbLikes);
   const [isWarned, setIsWarned] =useState(warned);
 
-  const { setUser } = useUser();
+  const { setUser, user } = useUser();
 
   const handleLike = async () => {
     try {
@@ -53,6 +53,45 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, setEr
       }
     }
   };  
+
+  const handleDelete = async () => {
+    Alert.alert(
+      'Confirmation',
+      'Êtes-vous sûr de vouloir supprimer cette anecdote ?',
+      [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+        },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await apiPost('deleteAnecdote', { anecdoteId: id });
+              if (response.success) {
+                setResponseMessage('Anecdote supprimée avec succès !');
+                setResponseSuccess(true);
+                refresh();
+              } else {
+                setResponseMessage(response.message);
+                setResponseSuccess(false);
+              }
+              setShowBanner(true);
+              setTimeout(() => setShowBanner(false), 5000);
+            } catch (error) {
+              if (error.name === 'JWTError') {
+                setUser(null);
+              } else {
+                setError(error.message);
+              }
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
 
   return (
     <View
@@ -167,23 +206,30 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, setEr
             color={isWarned ? '#E3A300' : '#000000'}
             />
         </TouchableOpacity>
-
-
-
-
-
-
-
-
-    {/* Rajouter le boutton supprimer ici */}
-
-
-
-
-
-
-
-
+        {user?.id === authorId && (
+          <TouchableOpacity
+            onPress={()=>handleDelete()}
+            style={{
+              paddingHorizontal: 10,
+              paddingVertical: 8,
+              backgroundColor: Colors.orange,
+              borderRadius: 8,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Text
+              style={{
+                color: Colors.white,
+                fontSize: 14,
+                fontFamily: Fonts.Inter.Basic,
+                fontWeight: '600',
+              }}
+            >
+              Supprimer
+            </Text>
+          </TouchableOpacity>
+        )}
         </View>
     </View>
   );

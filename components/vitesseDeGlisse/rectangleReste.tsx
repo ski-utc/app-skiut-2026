@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     },
     bigNumber: {
         fontSize: 24,
-        fontFamily: Fonts.Title.Medium,
+        fontFamily: Fonts.Text.Bold,
         marginRight: 30,
     },
     textContainer: {

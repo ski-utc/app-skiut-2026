@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     text: {
         color: Colors.white,
         fontSize: 18,
-        fontFamily: Fonts.Title.Medium,
+        fontFamily: Fonts.Text.Medium,
         marginTop: 2,
     },
     speedText: {

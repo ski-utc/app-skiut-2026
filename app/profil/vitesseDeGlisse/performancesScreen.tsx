@@ -1,4 +1,4 @@
-import { Text, View, ScrollView, StyleSheet } from "react-native";
+import { Text, View, ScrollView } from "react-native";
 import Header from "../../../components/header";
 import React from 'react';
 import { Colors } from '@/constants/GraphSettings';
@@ -23,41 +23,77 @@ const restPersonnes = sortedPersonnes.slice(3);
 
 export default function PerformancesScreen() {
     return (
-        <View style={styles.container}>
+        <View style={{ 
+            flex: 1, 
+            backgroundColor: Colors.white 
+        }}>
             <Header />
-            <View style={styles.content}>
+            <View style={{ 
+                width: '100%', 
+                backgroundColor: Colors.white, 
+                paddingHorizontal: 20, 
+                paddingBottom: 16, 
+                marginBottom: 12 
+            }}>
                 <BoutonRetour previousRoute={"VitesseDeGlisseScreen"} title={"Performances"} />
             </View>
-            <View style={styles.orangeBackground} />
-            <View style={styles.generalRanking}>
-                <View style={styles.generalRankingInner}>
-                    <Text style={styles.generalRankingText}>Classement des performances</Text>
+            <View style={{ 
+                backgroundColor: Colors.orange, 
+                padding: 16, 
+                alignItems: 'center', 
+                position: 'relative', 
+                height: 200 
+            }}>
+                <Text style={{ 
+                    color: Colors.white, 
+                    fontSize: 16, 
+                    fontFamily: 'Inter', 
+                    fontWeight: '600', 
+                    textAlign: 'center', 
+                    marginBottom: 16 
+                }}>
+                    Classement des performances
+                </Text>
+                <View style={{ 
+                    flexDirection: 'row', 
+                    justifyContent: 'center', 
+                    alignItems: 'flex-end', 
+                    width: '100%', 
+                    position: 'absolute', 
+                    bottom: 0 
+                }}>
+                    <RectanglePodium
+                        height={65}
+                        nom={podiumPersonnes[1].nom}
+                        vitesse={podiumPersonnes[1].vitesse}
+                        style={{ 
+                            marginHorizontal: 5 
+                        }}
+                    />
+                    <RectanglePodium
+                        height={100}
+                        nom={podiumPersonnes[0].nom}
+                        vitesse={podiumPersonnes[0].vitesse}
+                        style={{ 
+                            marginHorizontal: 5 
+                        }}
+                    />
+                    <RectanglePodium
+                        height={30}
+                        nom={podiumPersonnes[2].nom}
+                        vitesse={podiumPersonnes[2].vitesse}
+                        style={{ 
+                            marginHorizontal: 5 
+                        }}
+                    />
                 </View>
             </View>
-            <View style={styles.podiumContainer}>
-                <RectanglePodium
-                    key={1}
-                    height={65}
-                    nom={podiumPersonnes[1].nom}
-                    vitesse={podiumPersonnes[1].vitesse}
-                    style={styles.podiumItem}
-                />
-                <RectanglePodium
-                    key={2}
-                    height={100}
-                    nom={podiumPersonnes[0].nom}
-                    vitesse={podiumPersonnes[0].vitesse}
-                    style={styles.podiumItem}
-                />
-                <RectanglePodium
-                    key={3}
-                    height={30}
-                    nom={podiumPersonnes[2].nom}
-                    vitesse={podiumPersonnes[2].vitesse}
-                    style={styles.podiumItem}
-                />
-            </View>
-            <ScrollView contentContainerStyle={styles.scrollViewContent} style={styles.scrollView}>
+            <ScrollView contentContainerStyle={{ 
+                paddingBottom: 230 
+            }} style={{ 
+                flex: 1, 
+                width: '100%' 
+            }}>
                 {restPersonnes.map((person, index) => (
                     <RectangleReste
                         key={index + 4}
@@ -65,92 +101,12 @@ export default function PerformancesScreen() {
                         number={index + 4}
                         nom={person.nom}
                         vitesse={person.vitesse}
-                        style={styles.resteItem}
+                        style={{ 
+                            marginVertical: 10 
+                        }}
                     />
                 ))}
             </ScrollView>
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.white,
-    },
-    content: {
-        width: '100%',
-        flex: 1,
-        backgroundColor: Colors.white,
-        paddingHorizontal: 20,
-        paddingBottom: 16,
-    },
-    orangeBackground: {
-        position: 'absolute',
-        top: 135,
-        left: 0,
-        right: 0,
-        height: 200,
-        marginTop: 8,
-        backgroundColor: Colors.orange,
-    },
-    generalRanking: {
-        position: 'absolute',
-        width: 343,
-        top: 153,
-        left: '50%',
-        transform: [{ translateX: -171.5 }],
-        height: 31,
-        borderRadius: 12,
-        backgroundColor: Colors.lightOrange,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 4,
-    },
-    generalRankingInner: {
-        flex: 1,
-        width: '100%',
-        height: '100%',
-        backgroundColor: Colors.white,
-        borderRadius: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingLeft: 10,
-        paddingRight: 10,
-        paddingTop: 8,
-        paddingBottom: 8,
-    },
-    generalRankingText: {
-        color: Colors.orange,
-        fontSize: 12,
-        fontFamily: 'Inter',
-        fontWeight: '400',
-        textAlign: 'center',
-    },
-    podiumContainer: {
-        position: 'absolute',
-        bottom: 233,
-        left: '50%',
-        transform: [{ translateX: -150 }],
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'flex-end',
-        width: 300,
-    },
-    podiumItem: {
-        marginHorizontal: 5,
-    },
-    scrollViewContent: {
-        paddingBottom: 230,
-        paddingTop: 0,
-    },
-    scrollView: {
-        position: 'absolute',
-        top: 350,
-        left: 0,
-        right: 0,
-    },
-    resteItem: {
-        marginVertical: 10,
-    },
-});

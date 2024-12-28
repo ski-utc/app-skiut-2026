@@ -23,8 +23,8 @@ const LogoutButton: React.FC<{ setShowLogoutWebView: React.Dispatch<React.SetSta
             text: 'Déconnexion',
             style: 'destructive',
             onPress: async () => {
-              setShowLogoutWebView(true);
-              await logout();
+                setShowLogoutWebView(true);
+                await logout();
             },
           },
         ]

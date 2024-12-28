@@ -8,6 +8,7 @@ import oursSki from "../../assets/images/oursSki.png";
 
 const screenWidth = Dimensions.get("window").width; // Get screen width
 console.log("On est dans HomeScreen");
+
 // @ts-ignore
 export default function HomeScreen() {
   /* - - - - - - - - - - - - - Variables Globales - - - - - - - - - - - - - */

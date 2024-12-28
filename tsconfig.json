@@ -11,8 +11,7 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    ".expo/types/**/*.ts", // includes declaration file
-    "expo-env.d.ts", 
-    "components/navigation/customNavBarButton"
-    ]
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+, "components/navigation/customNavBarButton"  ]
 }

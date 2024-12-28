@@ -32,6 +32,7 @@ export default function AnecdotesForm() {
       if (response.success) {
         setResponseMessage(response.message);
         setResponseSuccess(true);
+        setText('');
         setLoading(false);
         setShowBanner(true);
         setTimeout(() => setShowBanner(false), 5000);
@@ -42,7 +43,6 @@ export default function AnecdotesForm() {
         setLoading(false);
         setShowBanner(true);
         setTimeout(() => setShowBanner(false), 5000);
-        setTimeout(() => navigation.navigate("anecdotesScreen"), 2000);
       }
     } catch (error) {
       if (error.name === "JWTError") {

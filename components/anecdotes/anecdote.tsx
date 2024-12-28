@@ -3,31 +3,54 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Colors, Fonts } from '@/constants/GraphSettings';
 import { Heart, TriangleAlert } from 'lucide-react-native';
 import { apiPost } from '@/constants/api/apiCalls';
+import { useUser } from '@/contexts/UserContext';
 
 // @ts-ignore
-export default function Anecdote({ id, text, room, nbLikes, liked, warned }) {
+export default function Anecdote({ id, text, room, nbLikes, liked, warned, setError, setResponseMessage, setResponseSuccess, setShowBanner }) {
   const [isLiked, setIsLiked] = useState(liked);
+  const [dynamicNbLikes, setDynamicNbLikes] = useState(nbLikes);
   const [isWarned, setIsWarned] =useState(warned);
+
+  const { setUser } = useUser();
 
   const handleLike = async () => {
     try {
-      const response = await apiPost('likeAnecdote', { id, liked: !isLiked });
+      const response = await apiPost('likeAnecdote', { 'anecdoteId': id, 'like': !isLiked });
       if (response.success) {
-        setIsLiked(!isLiked);
+        setIsLiked(response.liked);
+        const updateLike = (response.liked) ? 1 : -1;
+        setDynamicNbLikes(dynamicNbLikes+updateLike);
+      } else {
+        setResponseMessage(response.message);
+        setResponseSuccess(false);
+        setShowBanner(true);
+        setTimeout(() => setShowBanner(false), 5000);
       }
     } catch (error) {
-      console.error('Erreur lors du like de l’anecdote', error);
+      if (error.name === "JWTError") {
+        setUser(null);
+      } else {
+        setError(error.message);
+      }
     }
   };
   
   const handleWarning = async () => {
     try {
-      const response = await apiPost('warnAnecdote', { id, warned: !isWarned });
+      const response = await apiPost('warnAnecdote', { 'anecdoteId': id, 'warn': !isWarned });
       if (response.success) {
-        setIsWarned(!isWarned);
-      }
+        setIsWarned(response.warn);
+      } else {
+        setResponseMessage(response.message);
+        setResponseSuccess(false);
+        setShowBanner(true);
+        setTimeout(() => setShowBanner(false), 5000);      }
     } catch (error) {
-      console.error('Erreur lors du warning de l’anecdote', error);
+      if (error.name === "JWTError") {
+        setUser(null);
+      } else {
+        setError(error.message);
+      }
     }
   };  
 
@@ -120,7 +143,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned }) {
                 fontWeight: '600',
               }}
             >
-              {nbLikes}
+              {dynamicNbLikes}
             </Text>
         </TouchableOpacity>
         <TouchableOpacity

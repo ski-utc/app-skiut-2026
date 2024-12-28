@@ -26,14 +26,12 @@ const styles = StyleSheet.create({
     text: {
         color: Colors.white,
         fontSize: 18,
-        fontFamily: Fonts.Title.Medium,
-        marginTop: 2,
+        fontFamily: Fonts.Text.Medium,
     },
     likesText: {
         color: Colors.white,
         fontSize: 9,
         fontFamily: Fonts.Text.Light,
-        marginBottom: 0,
     },
     rectangle: {
         width: 100,

@@ -104,11 +104,11 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   image: {
-    width: 390, 
+    width: '100%', 
     height: 390,
     resizeMode: 'cover',
     position: 'absolute', 
-    bottom: 0, // Adjust this value to position the image just above customNavBar
+    bottom: 0,
   },  
   loadingContainer: {
     width: '100%',

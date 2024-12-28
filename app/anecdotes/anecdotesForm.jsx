@@ -178,14 +178,14 @@ export default function AnecdotesForm() {
           style={{
             padding: 10,
             backgroundColor: '#E64034',
-            opacity: isChecked && (text.trim().length > 10) ? 1 : 0.5,
+            opacity: isChecked && (text.trim().length > 5) ? 1 : 0.5,
             borderRadius: 8,
             justifyContent: 'center',
             alignItems: 'center',
             flexDirection: 'row',
             gap: 10,
           }}
-          disabled={!isChecked || loading || !(text.trim().length > 10)}
+          disabled={!isChecked || loading || !(text.trim().length > 5)}
           onPress={()=>handleSendAnecdote()}
         >
           <Text

@@ -7,7 +7,8 @@ import React from "react";
 import OAuthScreen from "./OAuthScreen";
 
 export default function LoginScreen() {
-    const { setUser } = useUser();
+    console.log("LoginScreen");
+    const { setUser } = useUser(); 
 
     useEffect(() => {
         if (BYPASS_LOGIN) {

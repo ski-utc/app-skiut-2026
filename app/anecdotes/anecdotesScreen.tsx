@@ -3,7 +3,6 @@ import { View, FlatList, ActivityIndicator } from 'react-native';
 import { Colors, Fonts } from '@/constants/GraphSettings';
 import Header from '../../components/header';
 import Banner from '@/components/divers/bannièreReponse';
-import { useNavigation } from '@react-navigation/native';
 import { useUser } from '@/contexts/UserContext';
 import Anecdote from '../../components/anecdotes/anecdote';
 import BoutonRetour from '@/components/divers/boutonRetour';

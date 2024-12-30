@@ -7,7 +7,7 @@ import PlanningNavigator from './planningNavigator';
 import AnecdotesNavigator from './anecdotesNavigator';
 import DefisNavigator from './defisNavigator';
 import ProfilNavigator from './profilNavigator';
-import LoginScreen from './login/loginScreen';
+import LoginNavigator from './loginNavigator';
 import CustomNavBar from '../components/navigation/customNavBar';
 import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react-native';
 
@@ -102,7 +102,7 @@ function Content() {
           />
         </Tab.Navigator>
       ) : (
-        <LoginScreen />
+        <LoginNavigator/>
       )}
     </>
   );

@@ -4,7 +4,6 @@ import Header from "../../components/header";
 import React, { useState, useEffect } from "react";
 import { apiGetPublic } from "../../constants/api/apiCalls";
 import { useNavigation } from '@react-navigation/native';
-import oursSki from "../../assets/images/oursSki.png";
 
 const screenWidth = Dimensions.get("window").width; // Get screen width
 console.log("On est dans HomeScreen");

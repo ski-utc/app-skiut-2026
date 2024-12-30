@@ -78,6 +78,7 @@ export default function OAuthScreen() {
         originWhitelist={["*"]}
         style={{ flex: 1, marginTop: 20 }}
         onNavigationStateChange={handleNavigationStateChange}
+        incognito={true}
       />
     </View>
   );

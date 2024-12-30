@@ -11,7 +11,7 @@
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/logo.png",
-      "resizeMode": "contain",
+      "resizeMode": "cover",
       "backgroundColor": "#aad1cd"
     },
     "ios": {

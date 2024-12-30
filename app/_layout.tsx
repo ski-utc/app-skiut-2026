@@ -1,4 +1,7 @@
 import React from 'react';
+import { useState, useEffect } from 'react';
+import { ActivityIndicator, View } from 'react-native';
+import { Colors } from '@/constants/GraphSettings';
 import { UserProvider, useUser } from '../contexts/UserContext';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -7,7 +10,7 @@ import PlanningNavigator from './planningNavigator';
 import AnecdotesNavigator from './anecdotesNavigator';
 import DefisNavigator from './defisNavigator';
 import ProfilNavigator from './profilNavigator';
-import LoginScreen from './login/loginScreen';
+import LoginNavigator from './loginNavigator';
 import CustomNavBar from '../components/navigation/customNavBar';
 import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react-native';
 
@@ -25,6 +28,42 @@ export default function RootLayout() {
 
 function Content() {
   const { user } = useUser();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false); 
+    }, 1000); 
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <View
+        style={{
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <View
+          style={{
+            width: '100%',
+            flex: 1,
+            backgroundColor: Colors.white,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <ActivityIndicator size="large" color={Colors.gray} />
+        </View>
+      </View>
+    );
+  }
   
   return (
     <>
@@ -102,7 +141,7 @@ function Content() {
           />
         </Tab.Navigator>
       ) : (
-        <LoginScreen />
+        <LoginNavigator/>
       )}
     </>
   );

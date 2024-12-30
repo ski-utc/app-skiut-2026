@@ -1,15 +1,91 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import Header from "../../components/header";
+import { useNavigation } from '@react-navigation/native';
+import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Send } from 'lucide-react-native';
+import { apiPost } from '@/constants/api/apiCalls';
+import Banner from '@/components/divers/bannièreReponse';
+import ErrorScreen from '@/components/pages/errorPage';
 
 // @ts-ignore
 export default function AnecdotesForm() {
   const [text, setText] = useState('');
   const [isChecked, setChecked] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [responseMessage, setResponseMessage] = useState('');
+  const [responseSuccess, setResponseSuccess] = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
+
+  const navigation = useNavigation();
+  const { setUser } = useUser();
+
+  const handleSendAnecdote = async () => {
+    setLoading(true);
+    try {
+      const response = await apiPost("sendAnecdote", {
+        texte: text
+      });
+      if (response.success) {
+        setResponseMessage(response.message);
+        setResponseSuccess(true);
+        setText('');
+        setLoading(false);
+        setShowBanner(true);
+        setTimeout(() => setShowBanner(false), 5000);
+        setTimeout(() => navigation.navigate("anecdotesScreen"), 2000);
+      } else {
+        setResponseMessage(response.message);
+        setResponseSuccess(false);
+        setLoading(false);
+        setShowBanner(true);
+        setTimeout(() => setShowBanner(false), 5000);
+      }
+    } catch (error) {
+      if (error.name === "JWTError") {
+        setUser(null);
+      } else {
+        setError(error.message);
+      }
+    }
+  };
+
+  if(error!='') {
+    return(
+      <ErrorScreen error={error}/>
+    )
+  }
+
+  if(loading) {
+    return(
+      <View
+      style={{
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+      >
+        <Header/>
+        <View style={{
+          width: '100%',
+          flex: 1,
+          backgroundColor: Colors.white,
+          justifyContent: "center",
+          alignItems: "center"
+        }}>
+          <ActivityIndicator size="large" color={Colors.gray}/>
+        </View>
+      </View>
+    )
+  }
+
   return (
     <View
     style={{
@@ -21,6 +97,7 @@ export default function AnecdotesForm() {
       justifyContent: "center",
     }}
   >
+    <Banner message={responseMessage} success={responseSuccess} show={showBanner}/>
     <Header/>
     <View style={{
       width: '100%',
@@ -60,8 +137,8 @@ export default function AnecdotesForm() {
           placeholderTextColor={'#969696'}
           multiline={true}
           numberOfLines={15}
-          onChangeText={(value) => setText(String(value))}  // Convertir la valeur en chaîne
-          value={text}  // Vérifiez que "text" est toujours une chaîne
+          onChangeText={(value) => setText(String(value))}
+          value={text}
         />
       </View>
       <View style={{
@@ -101,14 +178,15 @@ export default function AnecdotesForm() {
           style={{
             padding: 10,
             backgroundColor: '#E64034',
-            opacity: isChecked && text.trim() !== '' ? 1 : 0.5,
+            opacity: isChecked && (text.trim().length > 5) ? 1 : 0.5,
             borderRadius: 8,
             justifyContent: 'center',
             alignItems: 'center',
             flexDirection: 'row',
             gap: 10,
           }}
-          disabled={!isChecked || text.trim() === ''}
+          disabled={!isChecked || loading || !(text.trim().length > 5)}
+          onPress={()=>handleSendAnecdote()}
         >
           <Text
             style={{

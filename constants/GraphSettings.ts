@@ -18,8 +18,9 @@ export const loadFonts = async () => {
     
     'DIN-Light': require('../assets/fonts/Titre/DIN-Light.ttf'),
     'DIN-Medium': require('../assets/fonts/Titre/DIN-Medium.ttf'),
-    'DIN-Bold': require('../assets/fonts/Titre/DIN-Bold.ttf'),
+    'DIN-Bold': require('../assets/fonts/Titre/DIN-Bold.otf'),
 
+    
     'AvenirLTStd-Light': require('../assets/fonts/Text/AvenirLTStd-Light.otf'),
     'AvenirLTStd-Medium': require('../assets/fonts/Text/AvenirLTStd-Medium.otf'),
     'AvenirLTStd-Bold': require('../assets/fonts/Text/AvenirLTStd-Heavy.otf'),
@@ -31,6 +32,7 @@ export const Fonts = {
     Basic: 'Inter',
     Italic: 'Inter-Italic',
   },
+
   Title: {
     Light: 'DIN-Light',
     Medium: 'DIN-Medium',

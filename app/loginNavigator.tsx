@@ -1,8 +1,8 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import LaunchScreen1 from './login/lauchScreen1';
-import LaunchScreen2 from './login/lauchScreen2';
-import LaunchScreen3 from './login/lauchScreen3';
+import LaunchScreen1 from './login/launchScreen1';
+import LaunchScreen2 from './login/launchScreen2';
+import LaunchScreen3 from './login/launchScreen3';
 import LoginScreen from './login/loginScreen';
 
 const Stack = createStackNavigator();

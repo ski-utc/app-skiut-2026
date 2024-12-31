@@ -15,6 +15,6 @@ const BASE_URL = urls.dev;   // Changer ici si prod, dev ou local pour toute aut
 
 const API_BASE_URL = `${BASE_URL}/api`;
 
-const BYPASS_LOGIN = false;
+const BYPASS_LOGIN = true;
 
 export { DOMAIN , BASE_URL, API_BASE_URL, BYPASS_LOGIN };

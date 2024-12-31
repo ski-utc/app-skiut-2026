@@ -103,7 +103,9 @@ export default function LaunchScreen3() {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={()=>{navigation.navigate("launchScreen2")}}
+            onPress={() => {
+              navigation.goBack(); // Retourne à l'écran précédent
+            }}            
             style={{
               alignSelf: 'stretch',
               backgroundColor: '#F2F2F2',

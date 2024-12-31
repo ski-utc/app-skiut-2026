@@ -82,47 +82,50 @@ export default function LaunchScreen2() {
             Réalise un max de défis avec les membres de ta chambre et partage les avec tous les participants 
           </Text>
           <TouchableOpacity
-          onPress={()=>{navigation.navigate("launchScreen3")}}
+          onPress={() => { navigation.navigate("launchScreen3"); }}
+          style={{
+            alignSelf: 'stretch',
+            backgroundColor: '#E64034',
+            paddingVertical: 15,
+            borderRadius: 8,
+            alignItems: 'center',
+            marginBottom: 16, // Ensure same spacing
+          }}
+        >
+          <Text
             style={{
-              alignSelf: 'stretch',
-              backgroundColor: '#E64034',
-              paddingVertical: 15,
-              borderRadius: 8,
-              alignItems: 'center',
-              marginBottom: 8,
+              fontSize: 16,
+              fontWeight: '600',
+              color: 'white',
             }}
           >
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: 'white',
-              }}
-            >
-              Suivant
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={()=>{navigation.navigate("launchScreen1")}}
+            Suivant
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            navigation.goBack(); // Retourne à l'écran précédent
+          }}
+          style={{
+            alignSelf: 'stretch',
+            backgroundColor: '#F2F2F2',
+            opacity: 0.6, // Match opacity for consistency
+            paddingVertical: 15,
+            borderRadius: 8,
+            alignItems: 'center',
+          }}
+        >
+          <Text
             style={{
-              alignSelf: 'stretch',
-              backgroundColor: '#F2F2F2',
-              opacity: 0.6,
-              paddingVertical: 15,
-              borderRadius: 8,
-              alignItems: 'center',
+              fontSize: 16,
+              fontWeight: '600',
+              color: 'black',
             }}
           >
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: 'black',
-              }}
-            >
-              Retour
-            </Text>
-          </TouchableOpacity>
+            Retour
+          </Text>
+        </TouchableOpacity>
+
         </View>
       </View>
     </View>

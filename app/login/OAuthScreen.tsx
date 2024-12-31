@@ -14,9 +14,6 @@ export default function OAuthScreen() {
   const [canEnter, setCanEnter] = useState(true);
   const [currentUrl, setCurrentUrl] = useState(""); // L'état pour stocker l'URL actuelle
 
-  const handleNavigationStateChange2 = (navState) => {
-    setCurrentUrl(navState.url);
-  };
   const navigation = useNavigation();
 
   console.log("currentUrl", currentUrl === "" ? "empty" : currentUrl);  // Affiche l'URL actuelle ou "empty"

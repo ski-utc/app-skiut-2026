@@ -8,6 +8,7 @@ export default function LaunchScreen1() {
 
   const screenHeight = Dimensions.get("window").height;
   const imageWidth = 0.4*screenHeight;
+  console.log("launchScreen1");
 
   return (
     <View style={{ flex: 1, backgroundColor: 'white'}}>
@@ -82,47 +83,26 @@ export default function LaunchScreen1() {
             Ton indispensable pour passer une semaine de folie !!
           </Text>
           <TouchableOpacity
-          onPress={()=>{navigation.navigate("launchScreen2")}}
+          onPress={() => { navigation.navigate("launchScreen2"); }}
+          style={{
+            alignSelf: 'stretch',
+            backgroundColor: '#E64034',
+            paddingVertical: 15,
+            borderRadius: 8,
+            alignItems: 'center',
+            marginBottom: 16, // Ensure same spacing
+          }}
+        >
+          <Text
             style={{
-              alignSelf: 'stretch',
-              backgroundColor: '#E64034',
-              paddingVertical: 15,
-              borderRadius: 8,
-              alignItems: 'center',
-              marginBottom: 8,
+              fontSize: 16,
+              fontWeight: '600',
+              color: 'white',
             }}
           >
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: 'white',
-              }}
-            >
-              Suivant
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            disabled={true}
-            style={{
-              alignSelf: 'stretch',
-              backgroundColor: '#F2F2F2',
-              opacity: 0.2,
-              paddingVertical: 15,
-              borderRadius: 8,
-              alignItems: 'center',
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: 'black',
-              }}
-            >
-              Retour
-            </Text>
-          </TouchableOpacity>
+            Suivant
+          </Text>
+        </TouchableOpacity>
         </View>
       </View>
     </View>

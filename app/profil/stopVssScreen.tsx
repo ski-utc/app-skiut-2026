@@ -59,12 +59,11 @@ export default function Contact() {
 
 const styles = StyleSheet.create({
     container: {
-        height: "100%",
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",      
+        height: '100%',
+        width: '100%',
+        flex: 1,
+        backgroundColor: 'white',
+        paddingBottom: 8,     
     },
     screencontainer: {
         width: '100%',

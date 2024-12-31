@@ -13,8 +13,8 @@ interface Contact{
 
 // structure de données avec les nums  
 const contacts: Contact[] = [
-{ name: "Juliette - Présidente", phone: "06 33 95 68 48" },
-{ name: "Nicolas - Président", phone: "06 33 95 68 48" },
+{ name: "Juliette - Présidente", phone: "07 82 11 19 78" },
+{ name: "Nicolas - Président", phone: "07 89 49 06 99" },
 { name: "Secours des deux Alpes", phone: "04 76 79 75 01"},
 { name: "Pompiers", phone: "18"},
 { name: "Gendarmes", phone: "17"},
@@ -62,12 +62,11 @@ export default function Contact() {
 
 const styles = StyleSheet.create({
     container: {
-        height: "100%",
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",      
+        height: '100%',
+        width: '100%',
+        flex: 1,
+        backgroundColor: 'white',
+        paddingBottom: 8,  
     },
     screencontainer: {
         width: '100%',

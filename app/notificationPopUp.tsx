@@ -36,8 +36,11 @@ export default function NotificationPopup({ visible, onClose }) {
   };
 
   useEffect(() => {
-    fetchNotifications();
-  }, []);
+    if (visible) {
+      fetchNotifications();
+    }
+  }, [visible]);
+  
 
   if (error!='') {
     return (

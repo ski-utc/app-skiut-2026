@@ -5,9 +5,6 @@ import React, { useState, useEffect } from "react";
 import { apiGetPublic } from "../../constants/api/apiCalls";
 import { useNavigation } from '@react-navigation/native';
 
-const screenWidth = Dimensions.get("window").width; // Get screen width
-console.log("On est dans HomeScreen");
-
 // @ts-ignore
 export default function HomeScreen() {
   /* - - - - - - - - - - - - - Variables Globales - - - - - - - - - - - - - */

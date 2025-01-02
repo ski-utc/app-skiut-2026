@@ -75,6 +75,9 @@ export default function Profil() {
         )
     }
 
+    console.log("user?.admin", user?.admin);
+
+
     return (
         <View 
             style={{
@@ -182,19 +185,14 @@ export default function Profil() {
                 />
             </View>
 
-            <View   
-                style={[
-                    styles.navigationContainer,
-                    { display: user?.admin==1 ? 'flex' : 'none' }
-                ]}
-            >
-                <BoutonProfil 
-                    nextRoute={"AdminNavigator"} 
-                    options={{
-                        title: 'Contrôle Admin',
-                        icon: UserRoundCheck,
-                    }}
-                />
+            {/* Afficher le bouton admin uniquement si l'utilisateur est admin */}
+            {/*{user?.admin === true && (
+                <View style={styles.navigationContainer}>
+                    <BoutonProfil nextRoute={"AdminNavigator"} options={{ title: 'Contrôle Admin', icon: UserRoundCheck }} />
+                </View>
+            )}*/}
+            <View style={styles.navigationContainer}>
+                <BoutonProfil nextRoute={"AdminNavigator"} options={{ title: 'Contrôle Admin', icon: UserRoundCheck }} />
             </View>
             <LogoutButton setShowLogoutWebView={setShowLogoutWebView} />
         </View>

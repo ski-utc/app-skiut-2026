@@ -57,7 +57,7 @@ export const apiPost = async (url, data, multimedia = false) => {
   try {
     if (config.BYPASS_LOGIN) {
       console.log(`Bypassing login on ${config.API_BASE_URL}/${url}`);
-      response = await axios.get(`${config.API_BASE_URL}/${url}`, data, { headers: {} });
+      response = await axios.post(`${config.API_BASE_URL}/${url}`, data, { headers: {} });
     } else {
       response = await axios.post(`${config.API_BASE_URL}/${url}`, data, apiConfig);
     }

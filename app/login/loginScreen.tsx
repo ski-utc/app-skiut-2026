@@ -13,10 +13,10 @@ export default function LoginScreen() {
     useEffect(() => {
         if (BYPASS_LOGIN) {
             setUser({
-                id: 1,
-                name: 'Prénom',
-                lastName: 'Nom',
-                room: 333,
+                id: 316050,
+                name: 'Juliette',
+                lastName: 'Francony',
+                room: 52,
                 admin: true,
             });
         }

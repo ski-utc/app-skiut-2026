@@ -13,16 +13,10 @@ export default function LaunchScreen1() {
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
-    async function load() {
+    const loadAsyncFonts = async () => {
       await loadFonts();
-      setFontsLoaded(true);
-    }
-    load();
-  }, []);
-
-  if (!fontsLoaded) {
-    return <ActivityIndicator size="large" color={Colors.orange} />;
-  }
+    };
+    loadAsyncFonts();}, []);
 
   return (
     <View style={styles.container}>
@@ -106,7 +100,7 @@ const styles = StyleSheet.create({
     borderRadius: 61,
   },
   title: {
-    fontFamily: Fonts.Text.Bold, // was Fonts.Title.Bold
+    fontFamily: Fonts.Title.Bold, // was Fonts.Title.Bold
     fontSize: 32, 
     fontWeight: '500',
     color: 'black',

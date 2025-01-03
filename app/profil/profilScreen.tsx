@@ -9,6 +9,7 @@ import { Phone, PhoneCall, Map, MapPin, Gauge, Bus, UserRoundCheck } from 'lucid
 import { useUser } from "@/contexts/UserContext";
 import * as config from '../../constants/api/apiConfig';
 import WebView from "react-native-webview";
+import Admin from "../admin/adminScreen";
 
 const LogoutButton: React.FC<{ setShowLogoutWebView: React.Dispatch<React.SetStateAction<boolean>> }> = ({ setShowLogoutWebView }) => {
     const { logout } = useUser();
@@ -61,6 +62,7 @@ const LogoutButton: React.FC<{ setShowLogoutWebView: React.Dispatch<React.SetSta
 
 export default function Profil() {
     const { user } = useUser();
+    console.log(user?.admin); 
     const [showLogoutWebview, setShowLogoutWebView] = useState(false);
 
     if(showLogoutWebview){
@@ -186,14 +188,14 @@ export default function Profil() {
             </View>
 
             {/* Afficher le bouton admin uniquement si l'utilisateur est admin */}
-            {/*{user?.admin === true && (
+            {user?.admin === 1 && (
                 <View style={styles.navigationContainer}>
                     <BoutonProfil nextRoute={"AdminNavigator"} options={{ title: 'Contrôle Admin', icon: UserRoundCheck }} />
                 </View>
-            )}*/}
-            <View style={styles.navigationContainer}>
+            )}
+            {/*<View style={styles.navigationContainer}>
                 <BoutonProfil nextRoute={"AdminNavigator"} options={{ title: 'Contrôle Admin', icon: UserRoundCheck }} />
-            </View>
+            </View>*/}
             <LogoutButton setShowLogoutWebView={setShowLogoutWebView} />
         </View>
     );

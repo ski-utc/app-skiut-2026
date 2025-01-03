@@ -17,6 +17,8 @@ export default function OAuthScreen() {
     const url = state.url;
     const { hostname, path, queryParams } = Linking.parse(url);
 
+    console.log(url);
+
     if (canEnter && hostname === config.DOMAIN && path === "skiutc/api/connected") {
       setCanEnter(false);
 

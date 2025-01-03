@@ -1,12 +1,14 @@
 import axios from "axios";
 import * as config from "./apiConfig";
 import * as SecureStore from "expo-secure-store";
+import { Alert } from "react-native";
 
 // Rafraichir les tokens
 const refreshTokens = async () => {
   const refreshtoken = await SecureStore.getItemAsync("refreshToken");
   if (!refreshtoken) {
-    return null;
+    Alert.alert("Déconnexion", "Vous avez été déconnecté.", [{ text: "Ok" }]);
+    throw new Error('NoRefreshTokenError');
   }
   const apiConfig = { headers: { Authorization: `Bearer ${refreshtoken}` } };
   try {
@@ -15,7 +17,8 @@ const refreshTokens = async () => {
     return true;
   } catch (e) {
     await SecureStore.setItemAsync("accessToken", "");
-    throw new Error("JWT expired");
+    Alert.alert("Déconnexion", "Vous avez été déconnecté.", [{ text: "Ok" }]);
+    throw new Error('NoRefreshTokenError');
   }
 };
 
@@ -25,12 +28,7 @@ export const apiGet = async (url) => {
   let accessToken = await SecureStore.getItemAsync("accessToken");
   let apiConfig = { headers: { Authorization: `Bearer ${accessToken}` } };
   try {
-    if (config.BYPASS_LOGIN) {
-      console.log(`Bypassing login on ${config.API_BASE_URL}/${url}`);
-      response = await axios.get(`${config.API_BASE_URL}/${url}`, { headers: {} });
-    } else {
-      response = await axios.get(`${config.API_BASE_URL}/${url}`, apiConfig);
-    }
+    response = await axios.get(`${config.API_BASE_URL}/${url}`, apiConfig);
   } catch (error) {
     if (error.response?.data?.JWT_ERROR) {
       console.error("JWT expired, attempting to refresh tokens...");
@@ -55,12 +53,7 @@ export const apiPost = async (url, data, multimedia = false) => {
   };
 
   try {
-    if (config.BYPASS_LOGIN) {
-      console.log(`Bypassing login on ${config.API_BASE_URL}/${url}`);
-      response = await axios.get(`${config.API_BASE_URL}/${url}`, data, { headers: {} });
-    } else {
-      response = await axios.post(`${config.API_BASE_URL}/${url}`, data, apiConfig);
-    }
+    response = await axios.post(`${config.API_BASE_URL}/${url}`, data, apiConfig);
   } catch (error) {
     if (error.response?.data?.JWT_ERROR) {
       console.error("JWT expired, attempting to refresh tokens...");

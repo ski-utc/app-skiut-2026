@@ -8,7 +8,6 @@ export default function LaunchScreen1() {
 
   const screenHeight = Dimensions.get("window").height;
   const imageWidth = 0.4 * screenHeight;
-  console.log("launchScreen1");
 
   const [fontsLoaded, setFontsLoaded] = useState(false);
 

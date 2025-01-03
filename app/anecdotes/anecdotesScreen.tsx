@@ -39,7 +39,7 @@ export default function AnecdotesScreen() {
         setError('Une erreur est survenue lors de la récupération des anecdotes');
       }
     } catch (error) {
-      if (error.name === 'JWTError') {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
         setError(error.message);
@@ -52,7 +52,7 @@ export default function AnecdotesScreen() {
 
   useEffect(() => {
     fetchAnecdotes();
-  }, []);
+  },[]);
 
   const handleLoadMore = () => {
     if (hasMoreData && !loading && !loadingMore) {
@@ -79,7 +79,7 @@ export default function AnecdotesScreen() {
           justifyContent: 'center',
         }}
       >
-        <Header />
+        <Header/>
         <View
           style={{
             width: '100%',
@@ -107,7 +107,7 @@ export default function AnecdotesScreen() {
       }}
     >
       <Banner message={responseMessage} success={responseSuccess} show={showBanner}/>
-      <Header />
+      <Header refreshFunction={fetchAnecdotes}/>
       <View
         style={{
           width: '100%',

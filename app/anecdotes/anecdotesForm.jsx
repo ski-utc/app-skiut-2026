@@ -46,7 +46,7 @@ export default function AnecdotesForm() {
         setTimeout(() => setShowBanner(false), 5000);
       }
     } catch (error) {
-      if (error.name === "JWTError") {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
         setError(error.message);

@@ -38,7 +38,7 @@ export default function PlanningScreen() {
         setError("Une erreur est survenue lors de la récupération du planning");
       }
     } catch (error) {
-      if (error.name === "JWTError") {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null); 
       } else {
         setError(error.message || "Une erreur inattendue est survenue");
@@ -239,7 +239,7 @@ export default function PlanningScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header />
+      <Header refreshFunction={fetchPlanning}/>
       <View style={styles.content}>
         <BoutonRetour previousRoute={"homeNavigator"} title={"Planning"} />     
         <View style={{

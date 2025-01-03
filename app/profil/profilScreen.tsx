@@ -188,7 +188,7 @@ export default function Profil() {
             </View>
 
             {/* Afficher le bouton admin uniquement si l'utilisateur est admin */}
-            {user?.admin === 1 && (
+            {user?.admin === 1 && ( // 1 = true (admin)
                 <View style={styles.navigationContainer}>
                     <BoutonProfil nextRoute={"AdminNavigator"} options={{ title: 'Contrôle Admin', icon: UserRoundCheck }} />
                 </View>

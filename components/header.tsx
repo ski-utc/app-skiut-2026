@@ -9,6 +9,7 @@ import { useUser } from '@/contexts/UserContext';
 //@ts-ignore
 export default function Header({ refreshFunction }) {
   const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [disableRefresh, setDisableRefresh] = useState(false);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const { user } = useUser();
   const navigation = useNavigation();
@@ -25,6 +26,15 @@ export default function Header({ refreshFunction }) {
     navigation.navigate('profilNavigator', {
       screen: 'ProfilScreen',
     });
+  };
+
+  const handleRotateCcwPress = () => {
+    setDisableRefresh(true);
+    refreshFunction();
+    const timer = setTimeout(() => {
+      setDisableRefresh(false); 
+    }, 2000); 
+    return () => clearTimeout(timer);
   };
 
   if (!fontsLoaded) {
@@ -45,7 +55,7 @@ export default function Header({ refreshFunction }) {
         </View>
       </View>
       {refreshFunction==null ? null : 
-        <TouchableOpacity style={styles.refreshButton} onPress={refreshFunction}>
+        <TouchableOpacity style={styles.refreshButton} onPress={handleRotateCcwPress} disabled={disableRefresh}>
           <RotateCcw size={20} color={Colors.black} />
         </TouchableOpacity>
       }

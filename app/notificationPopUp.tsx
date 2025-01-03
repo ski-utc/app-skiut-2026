@@ -25,7 +25,7 @@ export default function NotificationPopup({ visible, onClose }) {
         setError('Une erreur est survenue lors de la récupération des notifications');
       }
     } catch (error) {
-      if (error.name === 'JWTError') {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
         setError(error.message);

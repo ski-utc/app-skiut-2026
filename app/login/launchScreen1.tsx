@@ -8,15 +8,20 @@ export default function LaunchScreen1() {
 
   const screenHeight = Dimensions.get("window").height;
   const imageWidth = 0.4 * screenHeight;
-  console.log("launchScreen1");
 
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
-    const loadAsyncFonts = async () => {
+    async function load() {
       await loadFonts();
-    };
-    loadAsyncFonts();}, []);
+      setFontsLoaded(true);
+    }
+    load();
+  }, []);
+
+  if (!fontsLoaded) {
+    return <ActivityIndicator size="large" color={Colors.orange} />;
+  }
 
   return (
     <View style={styles.container}>
@@ -100,7 +105,7 @@ const styles = StyleSheet.create({
     borderRadius: 61,
   },
   title: {
-    fontFamily: Fonts.Title.Bold, // was Fonts.Title.Bold
+    fontFamily: Fonts.Text.Bold, // was Fonts.Title.Bold
     fontSize: 32, 
     fontWeight: '500',
     color: 'black',

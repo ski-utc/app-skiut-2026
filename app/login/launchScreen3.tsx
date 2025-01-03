@@ -1,18 +1,14 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, Fonts } from '@/constants/GraphSettings';
 
 export default function LaunchScreen3() {
   const navigation = useNavigation();
 
   const screenHeight = Dimensions.get("window").height;
   const imageWidth = 0.4 * screenHeight;
-  useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();}, []);
+
   return (
     <View style={styles.container}>
       {/* Image */}
@@ -102,7 +98,7 @@ const styles = StyleSheet.create({
     borderRadius: 61,
   },
   title: {
-    fontFamily: Fonts.Title.Bold,  // was Fonts.Title.Bold
+    fontFamily: Fonts.Text.Bold,  // was Fonts.Title.Bold
     fontSize: 32,
     fontWeight: '500',
     color: 'black',

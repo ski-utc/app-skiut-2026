@@ -27,7 +27,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
         setTimeout(() => setShowBanner(false), 5000);
       }
     } catch (error) {
-      if (error.name === "JWTError") {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
         setError(error.message);
@@ -46,7 +46,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
         setShowBanner(true);
         setTimeout(() => setShowBanner(false), 5000);      }
     } catch (error) {
-      if (error.name === "JWTError") {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
         setError(error.message);
@@ -80,7 +80,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
               setShowBanner(true);
               setTimeout(() => setShowBanner(false), 5000);
             } catch (error) {
-              if (error.name === 'JWTError') {
+              if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
                 setUser(null);
               } else {
                 setError(error.message);
@@ -214,6 +214,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
               paddingVertical: 8,
               backgroundColor: Colors.orange,
               borderRadius: 8,
+              boxShadow: '0px 3px 5px rgba(0, 0, 0, 0.1)',
               justifyContent: 'center',
               alignItems: 'center',
             }}

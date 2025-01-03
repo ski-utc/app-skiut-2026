@@ -1,21 +1,3 @@
-Global : vérifier les fonts et les shadow
-
-defisInfos : Mettre l'image du défis
-defisClassement : Renvoir le rendu, c'est pas mal buggé
-
-pefromancesScreen : Renvoir le rendu, c'est pas mal buggé
-
-page Notification design à refaire
-
-planningTab : Faire la logique de coloration en fonction de si l'évent est actif, ou déjà passé
-
-page Home à implémenter
-
-stopVssScreen et contactScreen : largeur des items à revoir (ou paddingHorizontal plutot)
-
-
-
-
 react-native.config.js
 google-services.json (Pour poster sur le play store)    +Adapter app.json en fonction
 eas.json (Pour poster sur l'app store)                  +Adapter app.json en fonction

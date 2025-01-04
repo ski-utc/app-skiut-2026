@@ -59,7 +59,11 @@ export default function ValideAnecdotes() {
       const response = await apiPost(`updateAnecdoteStatus/${anecdoteId}/${isValid}`);
       if (response.success) {
         setAnecdoteStatus(isValid);
-        fetchAnecdoteDetails(); // Recharger les détails de l'anecdote après la mise à jour
+        setAnecdoteDetails((prevDetails) => ({
+          ...prevDetails,
+          valid: isValid,
+        }));
+        await fetchAnecdoteDetails(); // Recharger les détails de l'anecdote après la mise à jour
       }
     } catch (err) {
       setError('Erreur lors de la mise à jour du statut');
@@ -117,14 +121,14 @@ export default function ValideAnecdotes() {
             title="Désactiver l'anecdote"
             IconComponent={X}
             disabled={anecdoteDetails.valid == 0} 
-            onPress={() => handleValidation(false)} // Appeler la fonction pour invalider
+            onPress={() => handleValidation(0)} // Appeler la fonction pour invalider
           />
         </View>
         <BoutonActiver
           title="Valider l'anecdote"
           IconComponent={Check}
           disabled={anecdoteDetails.valid == 1}
-          onPress={() => handleValidation(true)} // Appeler la fonction pour valider
+          onPress={() => handleValidation(1)} // Appeler la fonction pour valider
         />
       </View>
     </View>

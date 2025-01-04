@@ -13,6 +13,7 @@ export default function PlanningScreen() {
   const [activitiesMap, setActivitiesMap] = useState<{ [key: string]: Activity[] }>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
+  const [disableRefresh, setDisableRefresh] = useState(false);
   const { setUser } = useUser();
 
   const dayMap = useMemo(
@@ -30,6 +31,7 @@ export default function PlanningScreen() {
 
   const fetchPlanning = async () => {
     setLoading(true);
+    setDisableRefresh(true);
     try {
       const response = await apiGet("getPlanning");
       if (response.success) {
@@ -45,6 +47,9 @@ export default function PlanningScreen() {
       }
     } finally {
       setLoading(false);
+      setTimeout(() => {
+        setDisableRefresh(false); 
+      }, 5000); 
     }
   };
 
@@ -239,7 +244,7 @@ export default function PlanningScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header refreshFunction={fetchPlanning}/>
+      <Header refreshFunction={fetchPlanning} disableRefresh={disableRefresh}/>
       <View style={styles.content}>
         <BoutonRetour previousRoute={"homeNavigator"} title={"Planning"} />     
         <View style={{

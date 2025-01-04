@@ -7,9 +7,8 @@ import NotificationPopup from '@/app/notificationPopUp';
 import { useUser } from '@/contexts/UserContext';
 
 //@ts-ignore
-export default function Header({ refreshFunction }) {
+export default function Header({ refreshFunction, disableRefresh }) {
   const [fontsLoaded, setFontsLoaded] = useState(false);
-  const [disableRefresh, setDisableRefresh] = useState(false);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const { user } = useUser();
   const navigation = useNavigation();
@@ -26,15 +25,6 @@ export default function Header({ refreshFunction }) {
     navigation.navigate('profilNavigator', {
       screen: 'ProfilScreen',
     });
-  };
-
-  const handleRotateCcwPress = () => {
-    setDisableRefresh(true);
-    refreshFunction();
-    const timer = setTimeout(() => {
-      setDisableRefresh(false); 
-    }, 2000); 
-    return () => clearTimeout(timer);
   };
 
   if (!fontsLoaded) {
@@ -55,7 +45,23 @@ export default function Header({ refreshFunction }) {
         </View>
       </View>
       {refreshFunction==null ? null : 
-        <TouchableOpacity style={styles.refreshButton} onPress={handleRotateCcwPress} disabled={disableRefresh}>
+        <TouchableOpacity 
+          style={{
+            position: 'absolute',
+            top: 40,
+            right: 70,
+            width: 40,
+            height: 40,
+            borderRadius: 8,
+            borderWidth: 1,
+            opacity: disableRefresh ? 0.4 : 1,
+            borderColor: '#EAEAEA',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }} 
+          onPress={refreshFunction} 
+          disabled={disableRefresh}
+        >
           <RotateCcw size={20} color={Colors.black} />
         </TouchableOpacity>
       }
@@ -110,18 +116,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 40, // Reduced to move the bell icon higher
     right: 20,
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#EAEAEA',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  refreshButton: {
-    position: 'absolute',
-    top: 40, // Reduced to move the bell icon higher
-    right: 70,
     width: 40,
     height: 40,
     borderRadius: 8,

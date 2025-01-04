@@ -21,12 +21,14 @@ export default function AnecdotesScreen() {
   const [responseMessage, setResponseMessage] = useState('');
   const [responseSuccess, setResponseSuccess] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
+  const [disableRefresh, setDisableRefresh] = useState(false);
 
   const { setUser } = useUser();
 
   const fetchAnecdotes = async (incrementalLoad = false) => {
     if (!incrementalLoad) setLoading(true);
     else setLoadingMore(true);
+    setDisableRefresh(true);
 
     try {
       const response = await apiPost('getAnecdotes', { 'quantity': quantity });
@@ -47,6 +49,9 @@ export default function AnecdotesScreen() {
     } finally {
       setLoading(false);
       setLoadingMore(false);
+      setTimeout(() => {
+        setDisableRefresh(false); 
+      }, 5000); 
     }
   };
 
@@ -107,7 +112,7 @@ export default function AnecdotesScreen() {
       }}
     >
       <Banner message={responseMessage} success={responseSuccess} show={showBanner}/>
-      <Header refreshFunction={fetchAnecdotes}/>
+      <Header refreshFunction={fetchAnecdotes} disableRefresh={disableRefresh}/>
       <View
         style={{
           width: '100%',
@@ -140,7 +145,7 @@ export default function AnecdotesScreen() {
           ItemSeparatorComponent={() => <View style={{ height: 36 }} />}
           onEndReached={handleLoadMore} 
           ListFooterComponent={() =>
-            loadingMore ? <ActivityIndicator size="small" color={Colors.gray} /> : <View style={{height:25}}/>
+            loadingMore ? <ActivityIndicator size="large" color={Colors.gray} /> : <View style={{height:25}}/>
           }
         />
         <BoutonNavigation

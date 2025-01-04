@@ -58,14 +58,14 @@ export default function PlanDesPistes() {
                 </View>
                 <View style={{ marginBottom: 9 }}>
                     <BoutonLien
-                        url="https://www.skipass-2alpes.com/fr/plan-des-pistes-live-les2alpes"
+                        url="https://www.skipass-2alpes.com/fr/webcams-les-deux-alpes"
                         title="Webcam en live"
                         IconComponent={Link}
                     />
                 </View>
                 <View>
                     <BoutonTelecharger
-                        url="https://www.skipass-2alpes.com/media/download/dalb2c/cms/media/PLANS/2025/2025-Plan_Hiver_les2alpes.pdf"
+                        url="https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&ved=2ahUKEwiJ6ZbGlt2KAxU3TKQEHZtzCs0QFnoECBsQAQ&url=https%3A%2F%2Fwww.skipass-2alpes.com%2Fmedia%2Fdownload%2Fdalb2c%2Fcms%2Fmedia%2FHIVER%2FPDF%2FPlan_hiver_Les2Alpes_AEON.pdf&usg=AOvVaw1mAs5R8MQp3AT_ME6J_tmP&opi=89978449"
                         title="Télécharger le plan"
                         IconComponent={Download}
                     />

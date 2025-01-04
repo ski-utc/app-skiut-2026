@@ -31,7 +31,6 @@ export const apiGet = async (url) => {
     response = await axios.get(`${config.API_BASE_URL}/${url}`, apiConfig);
   } catch (error) {
     if (error.response?.data?.JWT_ERROR) {
-      console.error("JWT expired, attempting to refresh tokens...");
       await refreshTokens();
       return await apiGet(url); // Retry with new token
     } else {
@@ -56,7 +55,6 @@ export const apiPost = async (url, data, multimedia = false) => {
     response = await axios.post(`${config.API_BASE_URL}/${url}`, data, apiConfig);
   } catch (error) {
     if (error.response?.data?.JWT_ERROR) {
-      console.error("JWT expired, attempting to refresh tokens...");
       await refreshTokens();
       return await apiPost(url, data, multimedia); // Retry with new token
     } else {

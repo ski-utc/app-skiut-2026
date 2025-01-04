@@ -20,10 +20,14 @@ export default function ValideAnecdotes() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [anecdoteStatus, setAnecdoteStatus] = useState(null); // État pour le statut de validation
+  const [disableRefresh, setDisableRefresh] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Fonction pour récupérer les détails de l'anecdote
-  const fetchAnecdoteDetails = async () => {
-    setLoading(true);
+  const fetchAnecdoteDetails = async (incrementalLoad = false) => {
+    if (!incrementalLoad) setLoading(true);
+    else setLoadingMore(true);
+    setDisableRefresh(true);
     try {
       const response = await apiGet(`getAnecdoteDetails/${anecdoteId}`);
       if (response.success) {
@@ -31,6 +35,8 @@ export default function ValideAnecdotes() {
         setNbLikes(response.nbLikes);
         setNbWarns(response.nbWarns);
         setAnecdoteStatus(response.data.valid); // Assurez-vous de récupérer et stocker le statut
+
+        console.log('isValid', response.data.valid);
       } else {
         setError('Erreur lors de la récupération des détails de l\'anecdote');
       }
@@ -38,6 +44,10 @@ export default function ValideAnecdotes() {
       setError('Erreur lors de la récupération des détails');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
+      setTimeout(() => {
+        setDisableRefresh(false); 
+      }, 5000); 
     }
   };
 
@@ -76,7 +86,7 @@ export default function ValideAnecdotes() {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Header refreshFunction={fetchAnecdoteDetails} disableRefresh={disableRefresh}/>
       <View style={styles.content}>
         <BoutonRetour previousRoute="gestionAnecdotesScreen" title={`Gérer l'anecdote ${anecdoteId}`} />
         <Text style={styles.title}>Détail de l'anecdote :</Text>

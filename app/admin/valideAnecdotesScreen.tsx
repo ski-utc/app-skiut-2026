@@ -15,6 +15,8 @@ export default function ValideAnecdotes() {
   console.log('Anecdote ID:', anecdoteId);
 
   const [anecdoteDetails, setAnecdoteDetails] = useState(null);
+  const [nbLikes, setNbLikes] = useState(null);
+  const [nbWarns, setNbWarns] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [anecdoteStatus, setAnecdoteStatus] = useState(null); // État pour le statut de validation
@@ -26,6 +28,8 @@ export default function ValideAnecdotes() {
       const response = await apiGet(`getAnecdoteDetails/${anecdoteId}`);
       if (response.success) {
         setAnecdoteDetails(response.data);
+        setNbLikes(response.nbLikes);
+        setNbWarns(response.nbWarns);
         setAnecdoteStatus(response.data.valid); // Assurez-vous de récupérer et stocker le statut
       } else {
         setError('Erreur lors de la récupération des détails de l\'anecdote');
@@ -44,7 +48,7 @@ export default function ValideAnecdotes() {
   const handleValidation = async (isValid) => {
     setLoading(true);
     try {
-      const response = await apiPost(`getAnecdoteDetails/${anecdoteId}/${isValid}`);
+      const response = await apiPost(`updateAnecdoteStatus/${anecdoteId}/${isValid}`);
       if (response.success) {
         setAnecdoteStatus(isValid); // Mettre à jour le statut localement
       }
@@ -90,6 +94,8 @@ export default function ValideAnecdotes() {
           }) : 'Date non disponible'}
           </Text>
           <Text style={styles.text}>Auteur : {anecdoteDetails?.user?.firstName} {anecdoteDetails?.user?.lastName || 'Auteur inconnu'}</Text>
+          <Text style={styles.text}>Nombre de likes : {nbLikes}</Text>
+          <Text style={styles.text}>Nombre de signalements : {nbWarns}</Text>
         </View>
         <View style={styles.anecdoteBox}>
           <Text style={styles.text}>{anecdoteDetails.text}</Text>

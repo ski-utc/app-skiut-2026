@@ -11,37 +11,27 @@ interface BoutonGestionProps {
 }
 
 
-const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, nextRoute }) => {
+const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, nextRoute, anecdoteId }) => {
     const navigation = useNavigation();
 
     const handleGestionClick = () => {
         console.log(`${nextRoute} clicked`);
-        // onClick(); // Trigger the onClick function passed from parent
-        navigation.navigate(nextRoute, { title, subtitle });
+        navigation.navigate(nextRoute, { anecdoteId });  // Passer uniquement l'ID
     };
 
     return (
-        <TouchableOpacity
-            onPress={handleGestionClick}
-            style={styles.buttonContainer}
-        >
-            {/* Left section: Title and Subtitle */}
+        <TouchableOpacity onPress={handleGestionClick} style={styles.buttonContainer}>
             <View style={styles.textContainer}>
                 <View style={styles.textWrapper}>
-                    <Text style={styles.titleText}>
-                        {title}
-                    </Text>
-                    <Text style={styles.subtitleText}>
-                        {subtitle}
-                    </Text>
+                    <Text style={styles.titleText}>{title}</Text>
+                    <Text style={styles.subtitleText}>{subtitle}</Text>
                 </View>
             </View>
-
-            {/* Right section: Chevron arrow */}
             <ChevronRight size={20} color={Colors.black} />
         </TouchableOpacity>
     );
 };
+
 
 const styles = StyleSheet.create({
     buttonContainer: {

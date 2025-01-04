@@ -16,6 +16,7 @@ const GestionAnecdotesScreen = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+
   const fetchAdminAnecdotes = async () => {
     setLoading(true);
     try {
@@ -23,6 +24,7 @@ const GestionAnecdotesScreen = () => {
       if (response.success) {
         setAnecdotes(response.data);
         setFilteredAnecdotes(response.data);
+        console.log('Anecdotes:', response.data);
       } else {
         setError('Erreur lors de la récupération des anecdotes');
       }
@@ -82,22 +84,20 @@ const GestionAnecdotesScreen = () => {
       </View>
 
       <View style={styles.list}>
-        <FlatList
-          data={filteredAnecdotes}
-          renderItem={({ item }) => (
+      <FlatList
+        data={filteredAnecdotes}
+        renderItem={({ item }) => (
             <BoutonGestion
-              title={`Anecdote: ${item.id}`}
-              subtitle={`Auteur: ${item.authorName}`}
-              nextRoute="valideAnecdotesScreen"
-              onPress={() =>
-                navigation.navigate('valideAnecdotesScreen', { anecdoteId: item.id })
-              }
+            title={`Anecdote: ${item.id}`}  // Afficher le titre de l'anecdote
+            subtitle={`Auteur: ${item?.user?.firstName} ${item?.user?.lastName || 'Nom inconnu'}`}
+            nextRoute="valideAnecdotesScreen"
+            anecdoteId={item.id}  // Passer l'ID de l'anecdote
             />
-          )}
-          keyExtractor={(item) => item.id.toString()}
-          ListEmptyComponent={
+        )}
+        keyExtractor={(item) => item.id.toString()}
+        ListEmptyComponent={
             <Text style={styles.emptyListText}>Aucune anecdote correspondante</Text>
-          }
+        }
         />
       </View>
     </View>
@@ -120,6 +120,7 @@ const styles = StyleSheet.create({
   list: {
     width: '100%',
     marginTop: 20,
+    flex: 1,  // Important pour permettre le défilement de la liste
   },
   loadingContainer: {
     flex: 1,

@@ -1,8 +1,7 @@
 import { View, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Text, Image } from "react-native";
 import Header from "../../components/header";
-import React from 'react';
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import BoutonProfil from "../../components/profil/boutonProfil";
 import { Fonts, Colors } from "@/constants/GraphSettings";
 import { Phone, PhoneCall, Map, MapPin, Gauge, Bus, UserRoundCheck } from 'lucide-react-native';
@@ -10,6 +9,8 @@ import { useUser } from "@/contexts/UserContext";
 import * as config from '../../constants/api/apiConfig';
 import WebView from "react-native-webview";
 import Admin from "../admin/adminScreen";
+import { apiGet } from '@/constants/api/apiCalls';
+
 
 const LogoutButton: React.FC<{ setShowLogoutWebView: React.Dispatch<React.SetStateAction<boolean>> }> = ({ setShowLogoutWebView }) => {
     const { logout } = useUser();
@@ -59,11 +60,39 @@ const LogoutButton: React.FC<{ setShowLogoutWebView: React.Dispatch<React.SetSta
     );
 };
 
-
 export default function Profil() {
     const { user } = useUser();
-    console.log(user?.admin);
     const [showLogoutWebview, setShowLogoutWebView] = useState(false);
+    const [roomName, setRoomName] = useState<any>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    // Fetch user data
+    const fetchUserData = async () => {
+        setLoading(true);
+        try {
+            const response = await apiGet("getUserData");
+            if (response.success) {
+                setRoomName(response.roomName);
+              } else {
+                setError("Une erreur est survenue lors de la récupération du planning");
+              }
+        } catch (error) {
+            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+                setUser(null);
+            } else {
+                setError(error.message || "Une erreur inattendue est survenue");
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (user) {
+            fetchUserData(); // Fetch data when user is available
+        }
+    }, [user]);
 
     if (showLogoutWebview) {
         return (
@@ -74,11 +103,8 @@ export default function Profil() {
                     style={{ flex: 1, marginTop: 20 }}
                 />
             </View>
-        )
+        );
     }
-
-    console.log("user?.admin", user?.admin);
-
 
     return (
         <View
@@ -118,8 +144,8 @@ export default function Profil() {
                             fontSize: 24,
                             fontFamily: Fonts.Inter.Basic,
                             fontWeight: '600',
-                            flexShrink: 1, // Réduit la taille du texte si nécessaire
-                            flexWrap: 'wrap', // Permet au texte de passer à la ligne suivante
+                            flexShrink: 1,
+                            flexWrap: 'wrap',
                         }}
                     >
                         {user?.name} {user?.lastName}
@@ -132,11 +158,19 @@ export default function Profil() {
                             color: Colors.gray,
                         }}
                     >
-                        Chambre {user?.room}
+                        {loading ? "Chargement..." : error || `Chambre ${roomName || 'Non attribuée'}`}
+
                     </Text>
                 </View>
-
-
+            </View>
+            <View style={styles.navigationContainer}>
+                <BoutonProfil
+                    nextRoute={"ContactScreen"}
+                    options={{
+                        title: 'Contact',
+                        icon: Phone,
+                    }}
+                />
             </View>
             <View style={styles.navigationContainer}>
                 <BoutonProfil

@@ -41,16 +41,15 @@ export default function ValideAnecdotes() {
     }
   };
 
-
-
-
   // Fonction pour valider ou invalider l'anecdote
   const handleValidation = async (isValid) => {
+    console.log('va valider:', isValid);
     setLoading(true);
     try {
       const response = await apiPost(`updateAnecdoteStatus/${anecdoteId}/${isValid}`);
       if (response.success) {
-        setAnecdoteStatus(isValid); // Mettre à jour le statut localement
+        setAnecdoteStatus(isValid);
+        fetchAnecdoteDetails(); // Recharger les détails de l'anecdote après la mise à jour
       }
     } catch (err) {
       setError('Erreur lors de la mise à jour du statut');
@@ -107,14 +106,14 @@ export default function ValideAnecdotes() {
           <BoutonActiver
             title="Désactiver l'anecdote"
             IconComponent={X}
-            disabled={anecdoteDetails.valid == 0} // Désactiver le bouton si l'anecdote est déjà invalidée
+            disabled={anecdoteDetails.valid == 0} 
             onPress={() => handleValidation(false)} // Appeler la fonction pour invalider
           />
         </View>
         <BoutonActiver
           title="Valider l'anecdote"
           IconComponent={Check}
-          disabled={anecdoteStatus == 1} // Désactiver le bouton si l'anecdote est déjà validée
+          disabled={anecdoteDetails.valid == 1}
           onPress={() => handleValidation(true)} // Appeler la fonction pour valider
         />
       </View>
@@ -198,5 +197,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontWeight: '600',
     marginRight: 10,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

@@ -1,47 +1,124 @@
-import React from 'react';
-import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Text, View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { X, Check } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors, Fonts } from '@/constants/GraphSettings'; 
+import { Colors, Fonts } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
+import { apiPost, apiGet } from '@/constants/api/apiCalls'; // Import the API calls
+import ErrorScreen from '@/components/pages/errorPage';
 
 export default function ValideNotifications() {
   const route = useRoute();
-  console.log('Route Params:', route.params);
-  const { title, subtitle } = route.params as { title: string, subtitle: string }; // title = ID de la notif, subtitle = date
+  const { id } = route.params; // Get the notification ID from route params
+  console.log('Notification ID:', id);
+
+  const [notificationDetails, setNotificationDetails] = useState(null);
+  
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [disableRefresh, setDisableRefresh] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  // Fetch notification details
+  const fetchNotificationDetails = async (incrementalLoad = false) => {
+    if (!incrementalLoad) setLoading(true);
+    else setLoadingMore(true);
+    setDisableRefresh(true);
+    try {
+      const response = await apiGet(`getNotificationDetails/${id}`);
+      if (response.success) {
+        setNotificationDetails(response.data);
+      } else {
+        setError('Erreur lors de la récupération des détails de la notification');
+      }
+    } catch (err) {
+      setError('Erreur lors de la récupération des détails');
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+      setTimeout(() => {
+        setDisableRefresh(false); 
+      }, 5000);
+    }
+  };
+
+  // Handle notification validation (approve or disapprove)
+  const handleValidation = async (isValid) => {
+    setLoading(true);
+    try {
+      const response = await apiPost(`updateNotificationStatus/${id}/${isValid}`);
+      if (response.success) {
+        setNotificationDetails((prevDetails) => ({
+          ...prevDetails,
+          valid: isValid,
+        }));
+        await fetchNotificationDetails(); // Reload notification details after update
+      }
+    } catch (err) {
+      setError('Erreur lors de la mise à jour du statut');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotificationDetails(); // Load notification details on component mount
+  }, [id]);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="gray" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return <ErrorScreen error={error} />;
+  }
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Header refreshFunction={fetchNotificationDetails} disableRefresh={disableRefresh}/>
       <View style={styles.content}>
-        <BoutonRetour previousRoute="gestionNotificationsScreen" title={"Gérer " + title} />
+        <BoutonRetour previousRoute="gestionNotificationsScreen" title={"Gérer notification " + id} />
         <Text style={styles.title}>Détail de la notification :</Text>
         <View style={styles.textBox}>
-          <Text style={styles.text}>Status : xxx</Text>
-          <Text style={styles.text}>Date : xxx</Text>
-          <Text style={styles.text}>Auteur : xxx</Text>
+          <Text style={styles.text}>Notification : {notificationDetails?.title || 'Pas de description'}</Text>
+          <Text style={styles.text}>Date : {notificationDetails?.created_at ? new Date(notificationDetails.created_at).toLocaleString('fr-FR', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+          }) : 'Date non disponible'}</Text>
+          <Text style={styles.text}>S'applique à : {notificationDetails?.general ? 'Tout le monde' : 'Individuel'}</Text>
         </View>
         <View style={styles.anecdoteBox}>
-          <Text style={styles.text}>{"---Notification complète---"}</Text>
+          <Text style={styles.text}>{notificationDetails?.description }</Text>
         </View>
       </View>
-     
 
       <View style={styles.buttonContainer}>
         <View style={styles.buttonSpacing}>
-            <BoutonActiver
+          <BoutonActiver
             title="Désactiver la notification"
             IconComponent={X}
-            disabled={true} // Désactive le bouton (dépend du status actuel de la notification)
-            />
+            disabled={notificationDetails.valid == 0}
+            onPress={() => handleValidation(0)} // Invalidate the notification
+          />
         </View>
         <BoutonActiver
-            title="Valider la notification"
-            IconComponent={Check}
+          title="Valider la notification"
+          IconComponent={Check}
+          disabled={notificationDetails.valid == 1}
+          onPress={() => handleValidation(1)} // Validate the notification
         />
-        </View>
+      </View>
     </View>
   );
 }
@@ -64,17 +141,15 @@ const styles = StyleSheet.create({
     color: Colors.black,
     fontFamily: 'Inter',
     fontWeight: '600',
-    alignSelf: 'stretch',
   },
   textBox: {
     marginTop: 8,
-    marginBottom: 16, 
     borderWidth: 1,
     borderColor: Colors.gray,
     borderRadius: 8,
     padding: 10,
     backgroundColor: Colors.white,
-    width: '100%',
+    marginBottom: 20,
   },
   anecdoteBox: {
     padding: 14,
@@ -90,10 +165,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start', 
     gap: 8, 
     width: '100%',
-    color: Colors.black,
-    fontFamily: Fonts.Inter.Basic,
-    fontWeight: 500,
-    fontSize: 14,
   },
   text: {
     fontSize: 14,
@@ -104,27 +175,16 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     position: 'absolute',
-    bottom: 20, // Adjust the distance from the bottom as needed
+    bottom: 20,
     width: '100%',
     paddingHorizontal: 20,
   },
   buttonSpacing: {
-    marginBottom: 16, // Ajout d'un espace entre les boutons
+    marginBottom: 16,
   },
-  button: {
-    backgroundColor: '#E64034',
-    padding: 15,
-    borderRadius: 8,
-    width: '100%',
-    alignItems: 'center',
-    flexDirection: 'row',
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontFamily: 'Inter',
-    fontWeight: '600',
-    marginRight: 10,
+    alignItems: 'center',
   },
 });

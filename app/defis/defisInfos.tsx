@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     bottom: 16,
     width: '90%',
     padding: 10,
-    backgroundColor: Colors.orange, // Kept same color for "Publier mon défi"
+    backgroundColor: Colors.orange,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',

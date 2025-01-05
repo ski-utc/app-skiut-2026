@@ -37,13 +37,13 @@ const GestionDefisScreen = () => {
   const handleFilter = (filter) => {
     switch (filter) {
       case 'pending':
-        setFilteredDefis(defis.filter((item) => !item.valid && !item.alert));
+        setFilteredDefis(defis.filter((item) => !item.valid && !item.delete));
         break;
-      case 'reported':
-        setFilteredDefis(defis.filter((item) => item.alert));
+      case 'deleted':
+        setFilteredDefis(defis.filter((item) => item.delete));
         break;
       default:
-        setFilteredDefis(defis);
+        setFilteredDefis(defis.filter((item) => !item.delete)); // ne montre pas les supprimés dans "tous les défis"
         break;
     }
   };
@@ -73,12 +73,12 @@ const GestionDefisScreen = () => {
 
       <View>
         <BoutonMenu
-          first="Tous les défis"
+          first="Tous les défis" // non supprimés 
           second="En attente"
-          third="Signalés"
+          third="Supprimés"
           onFirstClick={() => handleFilter('all')}
           onSecondClick={() => handleFilter('pending')}
-          onThirdClick={() => handleFilter('reported')}
+          onThirdClick={() => handleFilter('deleted')}
         />
       </View>
 

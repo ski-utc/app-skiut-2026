@@ -20,7 +20,7 @@ export default function NotificationPopup({ visible, onClose }) {
     try {
       const response = await apiGet('getNotifications');
       if (response.success) {
-        setNotifications(response.data); 
+        setNotifications(response.data.filter((item) => !item.delete));
       } else {
         setError('Une erreur est survenue lors de la récupération des notifications');
       }
@@ -373,7 +373,7 @@ export default function NotificationPopup({ visible, onClose }) {
                     color: Colors.gray,
                   }}
                 >
-                  {item.text}
+                  {item.description}
                 </Text>
               </View>
             )}

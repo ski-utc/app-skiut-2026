@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { X, Check } from 'lucide-react-native';
+import { X, Trash, Check } from 'lucide-react-native'; // Import Check icon
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, Fonts } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
-import { apiPost, apiGet } from '@/constants/api/apiCalls'; // Import the API calls
+import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 
 export default function ValideNotifications() {
@@ -15,7 +15,6 @@ export default function ValideNotifications() {
   console.log('Notification ID:', id);
 
   const [notificationDetails, setNotificationDetails] = useState(null);
-  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);
@@ -44,20 +43,16 @@ export default function ValideNotifications() {
     }
   };
 
-  // Handle notification validation (approve or disapprove)
-  const handleValidation = async (isValid) => {
+  // Handle notification deletion or recovery
+  const handleDelete = async (deleteFlag) => {
     setLoading(true);
     try {
-      const response = await apiPost(`updateNotificationStatus/${id}/${isValid}`);
+      const response = await apiPost(`deleteNotification/${id}/${deleteFlag}`);
       if (response.success) {
-        setNotificationDetails((prevDetails) => ({
-          ...prevDetails,
-          valid: isValid,
-        }));
-        await fetchNotificationDetails(); // Reload notification details after update
+        fetchNotificationDetails(); // Refresh the details after successful operation
       }
     } catch (err) {
-      setError('Erreur lors de la mise à jour du statut');
+      setError('Erreur lors de la mise à jour de la notification');
     } finally {
       setLoading(false);
     }
@@ -81,42 +76,44 @@ export default function ValideNotifications() {
 
   return (
     <View style={styles.container}>
-      <Header refreshFunction={fetchNotificationDetails} disableRefresh={disableRefresh}/>
+      <Header refreshFunction={fetchNotificationDetails} disableRefresh={disableRefresh} />
       <View style={styles.content}>
-        <BoutonRetour previousRoute="gestionNotificationsScreen" title={"Gérer notification " + id} />
+        <BoutonRetour previousRoute="gestionNotificationsScreen" title={`Gérer notification ${id}`} />
         <Text style={styles.title}>Détail de la notification :</Text>
         <View style={styles.textBox}>
           <Text style={styles.text}>Notification : {notificationDetails?.title || 'Pas de description'}</Text>
-          <Text style={styles.text}>Date : {notificationDetails?.created_at ? new Date(notificationDetails.created_at).toLocaleString('fr-FR', {
-            weekday: 'long',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false,
-          }) : 'Date non disponible'}</Text>
+          <Text style={styles.text}>
+            Date : {notificationDetails?.created_at ? new Date(notificationDetails.created_at).toLocaleString('fr-FR', {
+              weekday: 'long',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hour12: false,
+            }) : 'Date non disponible'}
+          </Text>
           <Text style={styles.text}>S'applique à : {notificationDetails?.general ? 'Tout le monde' : 'Individuel'}</Text>
         </View>
         <View style={styles.anecdoteBox}>
-          <Text style={styles.text}>{notificationDetails?.description }</Text>
+          <Text style={styles.text}>{notificationDetails?.description}</Text>
         </View>
       </View>
 
       <View style={styles.buttonContainer}>
         <View style={styles.buttonSpacing}>
           <BoutonActiver
-            title="Désactiver la notification"
-            IconComponent={X}
-            disabled={notificationDetails.valid == 0}
-            onPress={() => handleValidation(0)} // Invalidate the notification
+            title="Supprimer la notification"
+            IconComponent={Trash}
+            disabled={notificationDetails?.delete === 1} // Disable if already deleted
+            onPress={() => handleDelete(1)} // Delete notification
           />
         </View>
         <BoutonActiver
-          title="Valider la notification"
+          title="Récupérer la notification"
           IconComponent={Check}
-          disabled={notificationDetails.valid == 1}
-          onPress={() => handleValidation(1)} // Validate the notification
+          disabled={notificationDetails?.delete === 0} // Disable if not deleted
+          onPress={() => handleDelete(0)} // Recover notification
         />
       </View>
     </View>

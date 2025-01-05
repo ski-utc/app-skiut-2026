@@ -13,6 +13,7 @@ import ErrorScreen from '@/components/pages/errorPage';
 
 // @ts-ignore
 export default function NotificationsForm() {
+  const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const [isChecked, setChecked] = useState(false);
   const [error, setError] = useState('');
@@ -28,11 +29,13 @@ export default function NotificationsForm() {
     setLoading(true);
     try {
       const response = await apiPost("sendNotification", {
-        texte: text
+        titre: title,
+        texte: text,
       });
       if (response.success) {
         setResponseMessage(response.message);
         setResponseSuccess(true);
+        setTitle('');
         setText('');
         setLoading(false);
         setShowBanner(true);
@@ -86,6 +89,25 @@ export default function NotificationsForm() {
         <Header />
         <View style={{ width: '100%', flex: 1, backgroundColor: Colors.white, paddingHorizontal: 20, paddingBottom: 16 }}>
           <BoutonRetour previousRoute={"gestionNotificationsScreen"} title={"Ecris la notification à publier"} />
+          <TextInput
+            style={{
+              padding: 14,
+              marginBottom: 8,
+              height: 50,
+              backgroundColor: '#F8F8F8',
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: '#EAEAEA',
+              color: Colors.black,
+              fontFamily: Fonts.Inter.Basic,
+              fontWeight: '500',
+              fontSize: 14,
+            }}
+            placeholder="Titre de la notification"
+            placeholderTextColor={'#969696'}
+            onChangeText={setTitle}
+            value={title}
+          />
           <Pressable
             onPress={() => Keyboard.dismiss()}
             style={{ padding: 14, marginBottom: 8, height: 268, backgroundColor: '#F8F8F8', borderRadius: 12, borderWidth: 1, borderColor: '#EAEAEA' }}
@@ -114,8 +136,17 @@ export default function NotificationsForm() {
         </View>
         <View style={{ width: '100%', position: 'absolute', right: 0, bottom: 16, paddingHorizontal: 20 }}>
           <TouchableOpacity
-            style={{ padding: 10, backgroundColor: '#E64034', opacity: isChecked && text.trim().length > 5 ? 1 : 0.5, borderRadius: 8, justifyContent: 'center', alignItems: 'center', flexDirection: 'row', gap: 10 }}
-            disabled={!isChecked || loading || text.trim().length <= 5}
+            style={{
+              padding: 10,
+              backgroundColor: '#E64034',
+              opacity: isChecked && title.trim().length > 0 && text.trim().length > 5 ? 1 : 0.5,
+              borderRadius: 8,
+              justifyContent: 'center',
+              alignItems: 'center',
+              flexDirection: 'row',
+              gap: 10,
+            }}
+            disabled={!isChecked || loading || title.trim().length === 0 || text.trim().length <= 5}
             onPress={handleSendNotification}
           >
             <Text style={{ color: 'white', fontSize: 14, fontFamily: Fonts.Inter.Basic, fontWeight: '600' }}>Poster la notification</Text>

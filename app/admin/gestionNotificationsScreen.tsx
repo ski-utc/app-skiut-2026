@@ -73,7 +73,16 @@ const GestionNotificationsScreen = () => {
           renderItem={({ item }) => (
             <BoutonGestion
               title={item.title}
-              subtitle={`Date : ${item.created_at} | Statut : ${item.delete === 0 ? 'Active' : 'Supprimée'}`}
+              subtitle={`Date : ${item?.created_at ? new Date(item.created_at).toLocaleDateString('fr-FR', {
+                weekday: 'long', // Jour de la semaine complet
+                month: 'long', // Mois complet
+                day: 'numeric', // Jour
+              }) + ' ' + new Date(item.created_at).toLocaleTimeString('fr-FR', {
+                hour: '2-digit', // Heure sur 2 chiffres
+                minute: '2-digit', // Minute sur 2 chiffres
+                hour12: false, // Utiliser l'heure 24h
+              }) : 'Date non disponible'} | Statut : ${item.delete === 0 ? 'Active' : 'Supprimée'}`}
+    
               subtitleStyle={item.delete === 0 ? styles.activeSubtitle : styles.deletedSubtitle}
               nextRoute="valideNotificationsScreen"
               id={item.id}

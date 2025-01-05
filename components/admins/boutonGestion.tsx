@@ -7,17 +7,17 @@ import { ChevronRight } from 'lucide-react-native';
 interface BoutonGestionProps {
     title: string;
     subtitle: string;
+    subtitleStyle?: object; // Allow custom styles for subtitle
     nextRoute: string;
-    id: Int16Array; 
+    id: Int16Array;
 }
 
-
-const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, nextRoute, id }) => {
+const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, subtitleStyle, nextRoute, id }) => {
     const navigation = useNavigation();
 
     const handleGestionClick = () => {
         console.log(`${nextRoute} clicked`);
-        navigation.navigate(nextRoute, { id });  // Passer uniquement l'ID
+        navigation.navigate(nextRoute, { id });  // Pass only the ID
     };
 
     return (
@@ -25,14 +25,13 @@ const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, nextRout
             <View style={styles.textContainer}>
                 <View style={styles.textWrapper}>
                     <Text style={styles.titleText}>{title}</Text>
-                    <Text style={styles.subtitleText}>{subtitle}</Text>
+                    <Text style={[styles.subtitleText, subtitleStyle]}>{subtitle}</Text>
                 </View>
             </View>
             <ChevronRight size={20} color={Colors.black} />
         </TouchableOpacity>
     );
 };
-
 
 const styles = StyleSheet.create({
     buttonContainer: {

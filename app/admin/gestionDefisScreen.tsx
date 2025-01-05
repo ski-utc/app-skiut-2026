@@ -97,6 +97,7 @@ const GestionDefisScreen = () => {
             <BoutonGestion
               title={`Défi : ${item.challenge.title}`}
               subtitle={`Auteur: ${item?.user?.firstName} ${item?.user?.lastName || 'Nom inconnu'}`}
+              subtitleStyle={undefined}
               nextRoute="valideDefisScreen"
               id={item.id}
             />

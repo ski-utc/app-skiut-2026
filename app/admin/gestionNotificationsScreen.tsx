@@ -64,7 +64,8 @@ const GestionNotificationsScreen = () => {
           renderItem={({ item }) => (
             <BoutonGestion
               title={item.title}
-              subtitle={`Date: ${item.created_at}`} // Adjust this field as per your data structure
+              subtitle={`Date : ${item.created_at} | Statut : ${item.delete === 0 ? 'Active' : 'Supprimée'}`}
+              subtitleStyle={item.delete === 0 ? styles.activeSubtitle : styles.deletedSubtitle}
               nextRoute="valideNotificationsScreen"
               id={item.id}
             />
@@ -106,6 +107,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: 'gray',
     fontSize: 16,
+  },
+  activeSubtitle: {
+    color: 'green',
+    backgroundColor: '#DFF0D8', // Light green background for active
+    padding: 8,
+    borderRadius: 4,
+  },
+  deletedSubtitle: {
+    color: 'red',
+    backgroundColor: '#F8D7DA', // Light red background for deleted
+    padding: 8,
+    borderRadius: 4,
   },
 });
 

@@ -97,6 +97,7 @@ const GestionAnecdotesScreen = () => {
             <BoutonGestion
             title={`Anecdote: ${item.id}`}  // Afficher le titre de l'anecdote
             subtitle={`Auteur: ${item?.user?.firstName} ${item?.user?.lastName || 'Nom inconnu'}`}
+            subtitleStyle={undefined}
             nextRoute="valideAnecdotesScreen"
             id={item.id}  // Passer l'ID de l'anecdote
             />

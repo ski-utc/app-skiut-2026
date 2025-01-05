@@ -1,31 +1,38 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Text, View, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
 import { Colors } from '@/constants/GraphSettings';
 
 interface Navette {
-    aller_ou_retour: string;
-    depart: string;
-    destination: string;
-    heureDeDepart: string;
-    couleur: string;
+    id: number;
+    departure: string;
+    arrival: string;
+    colour: string;
+    type: string;
+    horaire_depart: string;
+    horaire_arrivee: string;
 }
 
 interface NavettesTabProps {
-    navettesMap: { [key: string]: Navette[] };
+    navettesMap: { [key: string]: any[] };
+    defaultType: "aller" | "retour";
 }
 
-const NavetteTab: React.FC<NavettesTabProps> = ({ navettesMap }) => {
-    const [selectedType, setSelectedType] = useState<"Aller" | "Retour" | "">("");
+const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap, defaultType }) => {
+    const [selectedType, setSelectedType] = useState<"aller" | "retour">(defaultType);
 
-    const handlePress = useCallback((type: "Aller" | "Retour") => {
+    useEffect(() => {
+        setSelectedType(defaultType);
+    }, [defaultType]);
+
+    const handlePress = (type: "aller" | "retour") => {
         setSelectedType(type);
-    }, []);
+    };
 
     return (
         <View style={styles.container}>
             <View style={styles.innerContainer}>
                 <View style={styles.buttonsContainer}>
-                    {["Aller", "Retour"].map((type, index) => {
+                    {["aller", "retour"].map((type, index) => {
                         const isSelected = selectedType === type;
                         return (
                             <TouchableOpacity
@@ -34,13 +41,13 @@ const NavetteTab: React.FC<NavettesTabProps> = ({ navettesMap }) => {
                                     styles.button,
                                     { backgroundColor: isSelected ? Colors.orange : Colors.white }
                                 ]}
-                                onPress={() => handlePress(type as "Aller" | "Retour")}
+                                onPress={() => handlePress(type as "aller" | "retour")}
                             >
                                 <Text style={[
                                     styles.buttonText,
                                     { color: isSelected ? Colors.white : Colors.black }
                                 ]}>
-                                    {type}
+                                    {type.toUpperCase()}
                                 </Text>
                             </TouchableOpacity>
                         );
@@ -50,19 +57,19 @@ const NavetteTab: React.FC<NavettesTabProps> = ({ navettesMap }) => {
                     <View style={styles.navettesContainer}>
                         <FlatList
                             data={navettesMap[selectedType] || []}
-                            keyExtractor={(_, index) => index.toString()}
+                            keyExtractor={(item) => item.id.toString()}
                             renderItem={({ item }) => (
                                 <View style={styles.navetteContainer}>
-                                    <View style={[styles.navetteIndicator, { backgroundColor: item.couleur }]} />
+                                    <View style={[styles.navetteIndicator, { backgroundColor: item.colour }]} />
                                     <View style={styles.navetteDetails}>
-                                        <Text style={styles.navetteTime}>
-                                            {item.heureDeDepart}
-                                        </Text>
                                         <Text style={styles.navetteText}>
-                                            {item.depart} - {item.destination}
+                                            {item.departure} → {item.arrival}
+                                        </Text>
+                                        <Text style={styles.navetteTimeText}>
+                                            Départ : {item.horaire_depart} | Arrivée : {item.horaire_arrivee}
                                         </Text>
                                         <Text style={styles.navetteCouleurText}>
-                                            Navette {item.couleur}
+                                            Navette {item.type} (Couleur: {item.colour})
                                         </Text>
                                     </View>
                                 </View>
@@ -134,7 +141,7 @@ const styles = StyleSheet.create({
     },
     navetteIndicator: {
         width: 5,
-        height: 50,
+        height: 55,
         borderRadius: 3,
         marginRight: 10
     },
@@ -144,13 +151,13 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start',
         alignItems: 'flex-start'
     },
-    navetteTime: {
+    navetteText: {
         color: Colors.black,
         fontSize: 16,
         fontFamily: 'Inter',
         fontWeight: '600'
     },
-    navetteText: {
+    navetteTimeText: {
         color: Colors.gray,
         fontSize: 14,
         fontFamily: 'Inter',
@@ -164,4 +171,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default NavetteTab;
+export default NavettesTab;

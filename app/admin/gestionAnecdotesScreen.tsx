@@ -91,7 +91,7 @@ const GestionAnecdotesScreen = () => {
             title={`Anecdote: ${item.id}`}  // Afficher le titre de l'anecdote
             subtitle={`Auteur: ${item?.user?.firstName} ${item?.user?.lastName || 'Nom inconnu'}`}
             nextRoute="valideAnecdotesScreen"
-            anecdoteId={item.id}  // Passer l'ID de l'anecdote
+            id={item.id}  // Passer l'ID de l'anecdote
             />
         )}
         keyExtractor={(item) => item.id.toString()}

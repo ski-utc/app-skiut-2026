@@ -90,7 +90,7 @@ const GestionDefisScreen = () => {
               title={`Défi: ${item.id}`}
               subtitle={`Auteur: ${item?.user?.firstName} ${item?.user?.lastName || 'Nom inconnu'}`}
               nextRoute="valideDefisScreen"
-              defiId={item.id}
+              id={item.id}
             />
           )}
           keyExtractor={(item) => item.id.toString()}

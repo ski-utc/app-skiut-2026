@@ -8,15 +8,16 @@ interface BoutonGestionProps {
     title: string;
     subtitle: string;
     nextRoute: string;
+    id: Int16Array; 
 }
 
 
-const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, nextRoute, anecdoteId }) => {
+const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, nextRoute, id }) => {
     const navigation = useNavigation();
 
     const handleGestionClick = () => {
         console.log(`${nextRoute} clicked`);
-        navigation.navigate(nextRoute, { anecdoteId });  // Passer uniquement l'ID
+        navigation.navigate(nextRoute, { id });  // Passer uniquement l'ID
     };
 
     return (

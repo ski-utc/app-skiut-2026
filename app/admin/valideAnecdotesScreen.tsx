@@ -11,8 +11,8 @@ import ErrorScreen from '@/components/pages/errorPage';
 
 export default function ValideAnecdotes() {
   const route = useRoute();
-  const { anecdoteId } = route.params; // Récupération de l'ID de l'anecdote
-  console.log('Anecdote ID:', anecdoteId);
+  const { id } = route.params; // Récupération de l'ID de l'anecdote
+  console.log('Anecdote ID:', id);
 
   const [anecdoteDetails, setAnecdoteDetails] = useState(null);
   const [nbLikes, setNbLikes] = useState(null);
@@ -29,7 +29,7 @@ export default function ValideAnecdotes() {
     else setLoadingMore(true);
     setDisableRefresh(true);
     try {
-      const response = await apiGet(`getAnecdoteDetails/${anecdoteId}`);
+      const response = await apiGet(`getAnecdoteDetails/${id}`);
       if (response.success) {
         setAnecdoteDetails(response.data);
         setNbLikes(response.nbLikes);
@@ -56,7 +56,7 @@ export default function ValideAnecdotes() {
     console.log('va valider:', isValid);
     setLoading(true);
     try {
-      const response = await apiPost(`updateAnecdoteStatus/${anecdoteId}/${isValid}`);
+      const response = await apiPost(`updateAnecdoteStatus/${id}/${isValid}`);
       if (response.success) {
         setAnecdoteStatus(isValid);
         setAnecdoteDetails((prevDetails) => ({
@@ -74,7 +74,7 @@ export default function ValideAnecdotes() {
 
   useEffect(() => {
     fetchAnecdoteDetails(); // Charger les détails de l'anecdote au chargement
-  }, [anecdoteId]);
+  }, [id]);
 
   if (loading) {
     return (
@@ -92,7 +92,7 @@ export default function ValideAnecdotes() {
     <View style={styles.container}>
       <Header refreshFunction={fetchAnecdoteDetails} disableRefresh={disableRefresh}/>
       <View style={styles.content}>
-        <BoutonRetour previousRoute="gestionAnecdotesScreen" title={`Gérer l'anecdote ${anecdoteId}`} />
+        <BoutonRetour previousRoute="gestionAnecdotesScreen" title={`Gérer l'anecdote ${id}`} />
         <Text style={styles.title}>Détail de l'anecdote :</Text>
         <View style={styles.textBox}>
           <Text style={styles.text}>Status : {anecdoteDetails?.valid ? 'Validée' : 'En attente de validation'}</Text>

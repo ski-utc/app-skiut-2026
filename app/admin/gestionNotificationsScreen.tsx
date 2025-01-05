@@ -1,76 +1,111 @@
-import React from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, FlatList, ActivityIndicator, Text } from 'react-native';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import Header from '../../components/header';
 import BoutonGestion from '@/components/admins/boutonGestion';
+import { apiGet } from '@/constants/api/apiCalls';
 import { useNavigation } from '@react-navigation/native';
-import BoutonNavigation from '@/components/divers/boutonNavigation';
-import { MessageCirclePlus } from 'lucide-react-native';
-
-const notifControls = [
-    { title: 'Notification 1', subtitle: 'Date notif 1', nextRoute: 'valideNotificationsScreen' },
-    { title: 'Notification 2', subtitle: 'Date notif 2', nextRoute: 'valideNotificationsScreen' },
-    { title: 'Notification 3', subtitle: 'Date notif 3', nextRoute: 'valideNotificationsScreen' },
-];
+import ErrorScreen from '@/components/pages/errorPage';
 
 const GestionNotificationsScreen = () => {
-    const navigation = useNavigation();
+  const navigation = useNavigation();
 
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [disableRefresh, setDisableRefresh] = useState(false);
+
+  // Fetch notifications from the API
+  const fetchAdminNotifications = async () => {
+    setLoading(true);
+    setDisableRefresh(true);
+    try {
+      const response = await apiGet('getAdminNotifications');
+      if (response.success) {
+        setNotifications(response.data);
+        console.log('Notifications:', response.data);
+      } else {
+        setError('Erreur lors de la récupération des notifications');
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+      setDisableRefresh(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAdminNotifications();
+  }, []);
+
+  if (error !== '') {
+    return <ErrorScreen error={error} />;
+  }
+
+  if (loading) {
     return (
-        <View style={styles.container}>
-            <Header />
-            <View style={styles.headerContainer}>
-                <BoutonRetour previousRoute="adminScreen" title="Gestion des notifications" />
-            </View>
-            
-            <View style={styles.list}>
-                <FlatList
-                    data={notifControls}
-                    renderItem={({ item }) => (
-                        <BoutonGestion 
-                            title={item.title} 
-                            subtitle={item.subtitle} 
-                            nextRoute={item.nextRoute}  
-                        />
-                    )}
-                    keyExtractor={(item) => item.title} 
-                />
-            </View>
-            <View style={styles.bottomButtonContainer}>
-            <BoutonNavigation
-                nextRoute={"notificationsForm"}
-                title={"Rédiger une notification"}
-                IconComponent={MessageCirclePlus}
-            />
-        </View>
-        </View>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="gray" />
+      </View>
     );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Header refreshFunction={fetchAdminNotifications} disableRefresh={disableRefresh} />
+      <View style={styles.headerContainer}>
+        <BoutonRetour previousRoute="adminScreen" title="Gestion des notifications" />
+      </View>
+
+      <View style={styles.list}>
+        <FlatList
+          data={notifications}
+          renderItem={({ item }) => (
+            <BoutonGestion
+              title={item.title}
+              subtitle={`Date: ${item.created_at}`} // Adjust this field as per your data structure
+              nextRoute="valideNotificationsScreen"
+              id={item.id}
+            />
+          )}
+          keyExtractor={(item) => item.id.toString()}
+          ListEmptyComponent={
+            <Text style={styles.emptyListText}>Aucune notification disponible</Text>
+          }
+        />
+      </View>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        height: '100%',
-        width: '100%',
-        flex: 1,
-        backgroundColor: 'white',
-        paddingBottom: 8,
-    },
-    headerContainer: {
-        width: '100%',
-        paddingHorizontal: 20,
-        paddingBottom: 16,
-    },
-    list: {
-        width: '100%',
-    },
-    listContentContainer: {
-        paddingHorizontal: 20,
-    },
-    bottomButtonContainer: {
-      position: 'absolute',
-      bottom: 20, 
-      width: '100%',
-      paddingHorizontal: 20, 
+  container: {
+    height: '100%',
+    width: '100%',
+    flex: 1,
+    backgroundColor: 'white',
+    paddingBottom: 8,
+  },
+  headerContainer: {
+    width: '100%',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  list: {
+    width: '100%',
+    marginTop: 20,
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyListText: {
+    textAlign: 'center',
+    color: 'gray',
+    fontSize: 16,
   },
 });
 

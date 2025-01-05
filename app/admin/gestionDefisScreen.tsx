@@ -15,9 +15,13 @@ const GestionDefisScreen = () => {
   const [filteredDefis, setFilteredDefis] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [disableRefresh, setDisableRefresh] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  const fetchAdminDefis = async () => {
-    setLoading(true);
+  const fetchAdminDefis = async (incrementalLoad = false) => {
+    if (!incrementalLoad) setLoading(true);
+    else setLoadingMore(true);
+    setDisableRefresh(true);
     try {
       const response = await apiGet('getAdminChallenges');
       if (response.success) {
@@ -30,9 +34,13 @@ const GestionDefisScreen = () => {
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
-    }
-  };
+        setLoading(false);
+        setLoadingMore(false);
+        setTimeout(() => {
+          setDisableRefresh(false); 
+        }, 5000);
+      }
+    };  
 
   const handleFilter = (filter) => {
     switch (filter) {
@@ -66,7 +74,7 @@ const GestionDefisScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Header refreshFunction={fetchAdminDefis} disableRefresh={disableRefresh}/>
       <View style={styles.headerContainer}>
         <BoutonRetour previousRoute="adminScreen" title="Gestion des défis" />
       </View>

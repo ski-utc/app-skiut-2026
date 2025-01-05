@@ -15,10 +15,15 @@ const GestionAnecdotesScreen = () => {
   const [filteredAnecdotes, setFilteredAnecdotes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [disableRefresh, setDisableRefresh] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  
 
 
-  const fetchAdminAnecdotes = async () => {
-    setLoading(true);
+  const fetchAdminAnecdotes = async (incrementalLoad = false) => {
+    if (!incrementalLoad) setLoading(true);
+    else setLoadingMore(true);
+    setDisableRefresh(true);
     try {
       const response = await apiGet('getAdminAnecdotes');
       if (response.success) {
@@ -32,6 +37,10 @@ const GestionAnecdotesScreen = () => {
       setError(err.message);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
+      setTimeout(() => {
+        setDisableRefresh(false); 
+      }, 5000);
     }
   };
 
@@ -67,7 +76,7 @@ const GestionAnecdotesScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Header refreshFunction={fetchAdminAnecdotes} disableRefresh={disableRefresh}/>
       <View style={styles.headerContainer}>
         <BoutonRetour previousRoute="adminScreen" title="Gestion des anecdotes" />
       </View>

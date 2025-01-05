@@ -1,4 +1,4 @@
-import { Text, View, ActivityIndicator, Image, Dimensions, StyleSheet } from "react-native";
+import { Text, View, ActivityIndicator, Image, StyleSheet } from "react-native";
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import React, { useState, useEffect } from "react";

@@ -99,6 +99,7 @@ export default function ValideDefis() {
             hour12: false, // Utiliser l'heure 24h (optionnel)
           }) : 'Date non disponible'}</Text>
           <Text style={styles.text}>Auteur : {challengeDetails?.user?.firstName} {challengeDetails?.user?.lastName || 'Auteur inconnu'}</Text>
+          <Text style={styles.text}>Défi : {challengeDetails?.challenge.title || 'Pas de description'}</Text>
         </View>
       </View>
 

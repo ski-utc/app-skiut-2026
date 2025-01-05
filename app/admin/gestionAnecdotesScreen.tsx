@@ -18,8 +18,6 @@ const GestionAnecdotesScreen = () => {
   const [disableRefresh, setDisableRefresh] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   
-
-
   const fetchAdminAnecdotes = async (incrementalLoad = false) => {
     if (!incrementalLoad) setLoading(true);
     else setLoadingMore(true);

@@ -15,6 +15,8 @@ export default function ValideDefis() {
   console.log('Challenge ID:', id);
 
   const [challengeDetails, setChallengeDetails] = useState(null);
+  const [challengeStatus, setChallengeStatus] = useState(null); // État pour le statut de validation
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);

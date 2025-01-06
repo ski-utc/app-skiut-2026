@@ -8,7 +8,7 @@ const DOMAIN = domains.dev;      // Changer ici si prod, dev ou local pour le lo
 const urls = {
   prod: "https://assos.utc.fr/skiutc",
   dev: "http://192.168.1.154:8000/skiutc",  // IP du serveur de développement à changer pour chaque machine
-  local: "http://192.168.1.154:8000/skiutc"
+  local: "http://127.0.0.1:8000/skiutc"
 }
 
 const BASE_URL = urls.dev;   // Changer ici si prod, dev ou local pour toute autre requête

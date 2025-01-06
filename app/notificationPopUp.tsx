@@ -340,56 +340,33 @@ export default function NotificationPopup({ visible, onClose }) {
               Notifications
             </Text>
           </View>
-          {notifications.length > 0 ? (
-            <FlatList
-              data={notifications}
-              renderItem={({ item }) => (
-                <View
+
+          <FlatList
+            data={notifications}
+            renderItem={({ item }) => (
+              <View
+                style={{
+                  backgroundColor: "#F9F9F9",
+                  padding: 15,
+                  borderRadius: 10,
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 5 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 5,
+                  marginBottom: 10,
+                }}
+              >
+                <Text
                   style={{
-                    backgroundColor: "#F9F9F9",
-                    padding: 15,
-                    borderRadius: 10,
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 5 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 5,
-                    marginBottom: 10,
+                    fontSize: 16,
+                    fontFamily: Fonts.Title.Bold,
+                    color: Colors.customBlack,
+                    marginBottom: 5,
                   }}
                 >
-                  <Text
-                    style={{
-                      fontSize: 16,
-                      fontFamily: Fonts.Title.Bold,
-                      color: Colors.customBlack,
-                      marginBottom: 5,
-                    }}
-                  >
-                    {item.title}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      fontFamily: Fonts.Inter.Basic,
-                      color: Colors.gray,
-                    }}
-                  >
-                    {item.text}
-                  </Text>
-                </View>
-              )}
-              keyExtractor={(item) => item.id.toString()}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 20 }}
-            />
-          ) : (
-            <View
-              style={{
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '80%'
-              }}
-            >
-              <Text 
+                  {item.title}
+                </Text>
+                <Text
                   style={{
                     fontSize: 14,
                     fontFamily: Fonts.Inter.Basic,

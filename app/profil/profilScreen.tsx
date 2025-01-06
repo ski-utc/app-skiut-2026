@@ -174,15 +174,6 @@ export default function Profil() {
             </View>
             <View style={styles.navigationContainer}>
                 <BoutonProfil
-                    nextRoute={"ContactScreen"}
-                    options={{
-                        title: 'Contact',
-                        icon: Phone,
-                    }}
-                />
-            </View>
-            <View style={styles.navigationContainer}>
-                <BoutonProfil
                     nextRoute={"StopVssScreen"}
                     options={{
                         title: 'Stop VSS',
@@ -228,6 +219,8 @@ export default function Profil() {
                         icon: Heart,
                     }}
                 />
+            </View>
+            <View style={styles.navigationContainer}>
                 <BoutonProfil
                     nextRoute={"NavettesScreen"}
                     options={{

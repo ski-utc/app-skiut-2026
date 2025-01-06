@@ -5,51 +5,98 @@ import { Colors, Fonts } from '@/constants/GraphSettings';
 import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Heart, X } from 'lucide-react-native';
+import { Heart, X, HeartCrack } from 'lucide-react-native';
 import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useNavigation } from '@react-navigation/native';
 
 export default function SkinderDiscover() {
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
     const [noPhoto, setNoPhoto] = useState(false);
     const [profile, setProfile] = useState({ id: null, nom: '', description: '', passions: [] });
-    const [imageProfil, setImageProfil] = useState('');
+    const [imageProfil, setImageProfil] = useState("https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png");
     const [disableButton, setDisableButton] = useState(false);
+    const [isLiking, setIsLiking] = useState(false);
+    const [isDisliking, setIsDisliking] = useState(false);
+
     const { setUser } = useUser();
     const navigation = useNavigation();
 
     const translateX = useRef(new Animated.Value(0)).current;
     const translateY = useRef(new Animated.Value(0)).current;
+    const cardOpacity = useRef(new Animated.Value(1)).current;
+    const likeOpacity = useRef(new Animated.Value(0)).current;
+    const dislikeOpacity = useRef(new Animated.Value(0)).current;
 
     const handleGesture = Animated.event(
         [{ nativeEvent: { translationX: translateX } }],
         { useNativeDriver: false }
     );
-
+    
     const handleGestureEnd = ({ nativeEvent }) => {
         translateY.setValue(0);
+    
         if (nativeEvent.translationX > 120) {
+            Animated.timing(likeOpacity, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+            }).start(() => {
+                setTimeout(() => {
+                    Animated.timing(likeOpacity, {
+                        toValue: 0,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }).start();
+                }, 500);
+            });
+    
             handleLike();
             animateCard(600);
         } else if (nativeEvent.translationX < -120) {
+            Animated.timing(dislikeOpacity, {
+                toValue: 1,
+                duration: 300,
+                useNativeDriver: true,
+            }).start(() => {
+                setTimeout(() => {
+                    Animated.timing(dislikeOpacity, {
+                        toValue: 0,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }).start();
+                }, 500);
+            });
+    
             animateCard(-600);
         } else {
             resetPosition();
         }
-    };
+    };    
 
     const animateCard = (toValue) => {
-        Animated.timing(translateX, {
-            toValue,
-            duration: 300,
-            useNativeDriver: false,
-        }).start(() => {
+        Animated.parallel([
+            Animated.timing(translateX, {
+                toValue,
+                duration: 300,
+                useNativeDriver: false,
+            }),
+            Animated.timing(translateY, {
+                toValue: 20,
+                duration: 300,
+                useNativeDriver: false,
+            }),
+            Animated.timing(cardOpacity, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: false,
+            }),
+        ]).start(() => {
             resetPosition();
             fetchProfil();
         });
     };
+    
 
     const resetPosition = () => {
         Animated.parallel([
@@ -63,12 +110,15 @@ export default function SkinderDiscover() {
                 duration: 200,
                 useNativeDriver: false,
             }),
+            Animated.timing(cardOpacity, {
+                toValue: 1, 
+                duration: 200,
+                useNativeDriver: false,
+            }),
         ]).start();
     };
 
     const fetchProfil = async () => {
-        setLoading(true);
-
         try {
             const response = await apiGet('getProfilSkinder');
             if (response.success) {
@@ -96,7 +146,6 @@ export default function SkinderDiscover() {
             }
         } finally {
             resetPosition();
-            setLoading(false);
         }
     };
 
@@ -135,34 +184,6 @@ export default function SkinderDiscover() {
 
     if (error !== '') {
         return <ErrorScreen error={error} />;
-    }
-
-    if (loading) {
-        return (
-            <View
-                style={{
-                    height: '100%',
-                    width: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
-            >
-                <Header />
-                <View
-                    style={{
-                        width: '100%',
-                        flex: 1,
-                        backgroundColor: Colors.white,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
-                >
-                    <ActivityIndicator size="large" color={Colors.gray} />
-                </View>
-            </View>
-        );
     }
 
     return (
@@ -303,12 +324,17 @@ export default function SkinderDiscover() {
                                         }),
                                     },
                                     ],
+                                opacity: cardOpacity,
+                                backgroundColor: translateX.interpolate({
+                                    inputRange: [-300, 0, 300],
+                                    outputRange: ['#ffcccc', Colors.white, '#ccffcc'],
+                                    extrapolate: 'clamp',
+                                }),
                                 justifyContent: 'center',
                                 alignItems: 'center',
                                 alignSelf: 'center',
                                 width: '90%',
                                 padding: 10, 
-                                backgroundColor: Colors.white, 
                                 borderRadius: 15,
                                 gap: 10, 
                                 marginTop:14,
@@ -460,6 +486,29 @@ export default function SkinderDiscover() {
                     <Heart size={30} color={Colors.white} />
                 </TouchableOpacity>
             </View>
+            <Animated.View
+                style={{
+                    position: 'absolute',
+                    top: '40%',
+                    left: '40%',
+                    opacity: likeOpacity,
+                    transform: [{ scale: likeOpacity }],
+                }}
+            >
+                <Heart size={75} color="red" fill="red" />
+            </Animated.View>
+
+            <Animated.View
+                style={{
+                    position: 'absolute',
+                    top: '40%',
+                    left: '40%',
+                    opacity: dislikeOpacity,
+                    transform: [{ scale: dislikeOpacity }],
+                }}
+            >
+                <HeartCrack size={75} color="red" />
+            </Animated.View>
         </View>
     );
 }

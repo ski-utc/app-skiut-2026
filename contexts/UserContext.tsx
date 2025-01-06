@@ -7,6 +7,7 @@ interface User {
   name: string;
   lastName: string;
   room: number;
+  roomName: string;
   admin: boolean;
 }
 

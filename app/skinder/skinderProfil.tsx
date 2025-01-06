@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert, TextInput, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from "expo-image-manipulator";
 import { Colors, Fonts } from '@/constants/GraphSettings';
@@ -206,85 +206,92 @@ export default function SkinderProfil() {
       );
   }
 
-  return (
-    <View
-      style={{
+  return(
+  <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+  >
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+      <View
+        style={{
           height: '100%',
           width: '100%',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-      }}
-    >
-      <Banner message={responseMessage} success={responseSuccess} show={showBanner}/>
-      <Header />
-      <View
-          style={{
-              width: '100%',
-              backgroundColor: Colors.white,
-              flex: 1,
-              paddingHorizontal: 20,
-              paddingBottom: 16,
-          }}
+        }}
       >
+        <Banner message={responseMessage} success={responseSuccess} show={showBanner}/>
+        <Header />
+        <View
+          style={{
+            width: '100%',
+            backgroundColor: Colors.white,
+            flex: 1,
+            paddingHorizontal: 20,
+            paddingBottom: 16,
+          }}
+        >
           <BoutonRetour previousRoute={'profilNavigator'} title={'Modifier mon profil'} />
-          <View style={{ alignItems: 'center', marginVertical: 10 }}>
-              <TouchableOpacity onPress={handleImagePick}>
-                  <Image
-                      source={{ uri: `${profile.image}?timestamp=${new Date().getTime()}` }} 
-                      style={{ width: '90%', aspectRatio: '1/1', borderRadius: 25, borderWidth: 1, borderColor: Colors.gray }}
-                      resizeMode="cover"
-                  />
-              </TouchableOpacity>
+          <View style={{ alignItems: 'center', marginVertical: 5 }}>
+            <TouchableOpacity onPress={handleImagePick}>
+              <Image
+                  source={{ uri: `${profile.image}?timestamp=${new Date().getTime()}` }} 
+                  style={{ width: '90%', aspectRatio: '1/1', borderRadius: 25, borderWidth: 1, borderColor: Colors.gray }}
+                  resizeMode="cover"
+              />
+            </TouchableOpacity>
           </View>
-          <Text style={{ marginHorizontal: 20, marginBottom:4, fontSize: 18, fontWeight: '600' }}>{profile.nom}</Text>
+          <Text style={{ marginHorizontal: 20, marginBottom: 4, fontSize: 18, fontWeight: '600' }}>{profile.nom}</Text>
           <TextInput
-              style={{
-                  fontSize: 14,
-                  fontFamily: Fonts.Inter.Basic,
-                  color: Colors.black,
-                  borderWidth: 1,
-                  borderColor: Colors.gray,
-                  borderRadius: 8,
-                  padding: 10,
-                  marginHorizontal: 20,
-                  marginBottom: 20,
-              }}
-              placeholder="Ajoutez une description"
-              placeholderTextColor="#969696"
-              multiline={true}
-              numberOfLines={2}
-              value={profile.description}
-              onChangeText={(text) => setProfile({ ...profile, description: text })}
+            style={{
+              fontSize: 14,
+              fontFamily: Fonts.Inter.Basic,
+              color: Colors.black,
+              borderWidth: 1,
+              borderColor: Colors.gray,
+              borderRadius: 8,
+              padding: 10,
+              marginHorizontal: 20,
+              marginBottom: 10,
+            }}
+            placeholder="Ajoutez une description"
+            placeholderTextColor="#969696"
+            multiline={true}
+            numberOfLines={2}
+            value={profile.description}
+            onChangeText={(text) => setProfile({ ...profile, description: text })}
           />
           <Text style={{ marginHorizontal: 20, fontSize: 18, fontWeight: '600' }}>Passions</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginHorizontal: 20, marginTop: 10 }}>
-              {profile.passions.map((passion, index) => (
-                  <TextInput
-                      key={index}
-                      style={{
-                          width: '30%',
-                          padding: 10,
-                          borderRadius: 8,
-                          borderWidth: 1,
-                          borderColor: Colors.orange,
-                          fontFamily: Fonts.Inter.Basic,
-                          marginBottom: 10,
-                          fontSize: 14,
-                      }}
-                      placeholder={`Passion ${index + 1}`}
-                      placeholderTextColor="#969696"
-                      value={passion}
-                      onChangeText={(text) => {
-                          const newPassions = [...profile.passions];
-                          newPassions[index] = text;
-                          setProfile({ ...profile, passions: newPassions });
-                      }}
-                  />
-              ))}
-           </View>
-           <View
+            {profile.passions.map((passion, index) => (
+              <TextInput
+                key={index}
+                style={{
+                  width: '30%',
+                  padding: 10,
+                  borderRadius: 8,
+                  borderWidth: 1,
+                  borderColor: Colors.orange,
+                  fontFamily: Fonts.Inter.Basic,
+                  marginBottom: 10,
+                  fontSize: 14,
+                }}
+                placeholder={`Passion ${index + 1}`}
+                placeholderTextColor="#969696"
+                value={passion}
+                onChangeText={(text) => {
+                  if (text.length <= 13) {
+                    const newPassions = [...profile.passions];
+                    newPassions[index] = text;
+                    setProfile({ ...profile, passions: newPassions });
+                  }
+                }}
+              />
+            ))}
+          </View>
+          <View
               style={{
                   flexDirection: 'row',
                   justifyContent: 'space-around',
@@ -337,7 +344,9 @@ export default function SkinderProfil() {
                   </Text>
               </TouchableOpacity>
           </View>
-       </View>
-    </View>
-  );
+        </View>
+      </View>
+    </ScrollView>
+  </KeyboardAvoidingView>
+  )
 }

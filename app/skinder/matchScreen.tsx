@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Image, Text } from 'react-native';
+import { View, Image, Text, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Colors, Fonts } from '@/constants/GraphSettings';
 import Header from '@/components/header';
@@ -105,6 +105,27 @@ export default function MatchScreen() {
                         Allez toquer à la chambre {roomNumber}{roomResp ? ` (ou contactez ${roomResp}) pour vous rencontrer en vrai !` : ' pour vous rencontrer en vrai !'}
                     </Text>
                 </View>
+                <TouchableOpacity
+                  onPress={()=>navigation.goBack()}
+                  style={{
+                      paddingHorizontal: 16,
+                      paddingVertical: 8,
+                      backgroundColor: Colors.orange,
+                      borderRadius: 8,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+              >
+                  <Text
+                      style={{
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: '600',
+                      }}
+                  >
+                      Trop cool !
+                  </Text>
+              </TouchableOpacity>
             </View>
         </View>
     </View>

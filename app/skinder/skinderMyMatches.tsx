@@ -141,7 +141,7 @@ export default function SkinderMyMatches() {
                 <Text
                   style={{
                     color: Colors.black,
-                    fontSize: 18,
+                    fontSize: 16,
                     fontFamily: Fonts.Inter.Basic,
                     fontWeight: '600',
                   }}
@@ -151,7 +151,7 @@ export default function SkinderMyMatches() {
                 <Text
                   style={{
                     color: Colors.black,
-                    fontSize: 16,
+                    fontSize: 14,
                     fontFamily: Fonts.Inter.Basic,
                     fontWeight: '400',
                     marginTop: 4,

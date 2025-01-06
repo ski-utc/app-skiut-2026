@@ -1,90 +1,144 @@
-import React from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, FlatList, ActivityIndicator, Text } from 'react-native';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import Header from '../../components/header';
 import BoutonMenu from '@/components/admins/boutonMenu';
 import BoutonGestion from '@/components/admins/boutonGestion';
+import { apiGet } from '@/constants/api/apiCalls';
 import { useNavigation } from '@react-navigation/native';
-
-const defiControls = [
-    { title: 'Défi n°13', subtitle: 'Chambre Projet X', nextRoute: 'valideDefisScreen' },
-    { title: 'Défi n°6', subtitle: 'Chambre Les skieuses', nextRoute: 'valideDefisScreen' },
-    { title: 'Défi n°16', subtitle: 'Chambre Marmotte', nextRoute: 'valideDefisScreen' },
-];
-
-const handleFirstClick = () => {
-    console.log('Filter data: En attente');
-    // Add filtering logic for "En attente"
-};
-
-const handleSecondClick = () => {
-    console.log('Filter data: Signalés');
-    // Add filtering logic for "Signalés"
-};
-
-const handleThirdClick = () => {
-    console.log('Filter data: Tous les défis');
-    // Add filtering logic for "Tous les défis"
-};
+import ErrorScreen from '@/components/pages/errorPage';
 
 const GestionDefisScreen = () => {
-    const navigation = useNavigation();
+  const navigation = useNavigation();
 
+  const [defis, setDefis] = useState([]);
+  const [filteredDefis, setFilteredDefis] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [disableRefresh, setDisableRefresh] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const fetchAdminDefis = async (incrementalLoad = false) => {
+    if (!incrementalLoad) setLoading(true);
+    else setLoadingMore(true);
+    setDisableRefresh(true);
+    try {
+      const response = await apiGet('getAdminChallenges');
+      if (response.success) {
+        setDefis(response.data);
+        setFilteredDefis(response.data);
+        console.log('Défis:', response.data);
+      } else {
+        setError('Erreur lors de la récupération des défis');
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+        setLoading(false);
+        setLoadingMore(false);
+        setTimeout(() => {
+          setDisableRefresh(false); 
+        }, 5000);
+      }
+    };  
+
+  const handleFilter = (filter) => {
+    switch (filter) {
+      case 'pending':
+        setFilteredDefis(defis.filter((item) => !item.valid && !item.delete));
+        break;
+      case 'deleted':
+        setFilteredDefis(defis.filter((item) => item.delete));
+        break;
+      default:
+        setFilteredDefis(defis.filter((item) => !item.delete)); // ne montre pas les supprimés dans "tous les défis"
+        break;
+    }
+  };
+
+  useEffect(() => {
+    fetchAdminDefis();
+  }, []);
+
+  if (error !== '') {
+    return <ErrorScreen error={error} />;
+  }
+
+  if (loading) {
     return (
-        <View style={styles.container}>
-            <Header />
-            <View style={styles.headerContainer}>
-                <BoutonRetour previousRoute="adminScreen" title="Gestion des défis" />
-            </View>
-
-            <View>
-                <BoutonMenu 
-                    first="En attente" 
-                    second="Signalés" 
-                    third="Tous les défis" 
-                    onFirstClick={handleFirstClick} 
-                    onSecondClick={handleSecondClick} 
-                    onThirdClick={handleThirdClick} 
-                />
-            </View>
-
-            
-            <View style={styles.list}>
-                <FlatList
-                    data={defiControls}
-                    renderItem={({ item }) => (
-                        <BoutonGestion 
-                            title={item.title} 
-                            subtitle={item.subtitle} 
-                            nextRoute={item.nextRoute}  
-                        />
-                    )}
-                    keyExtractor={(item) => item.title} 
-                />
-            </View>
-        </View>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="gray" />
+      </View>
     );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Header refreshFunction={fetchAdminDefis} disableRefresh={disableRefresh}/>
+      <View style={styles.headerContainer}>
+        <BoutonRetour previousRoute="adminScreen" title="Gestion des défis" />
+      </View>
+
+      <View>
+        <BoutonMenu
+          first="Tous les défis" // non supprimés 
+          second="En attente"
+          third="Supprimés"
+          onFirstClick={() => handleFilter('all')}
+          onSecondClick={() => handleFilter('pending')}
+          onThirdClick={() => handleFilter('deleted')}
+        />
+      </View>
+
+      <View style={styles.list}>
+        <FlatList
+          data={filteredDefis}
+          renderItem={({ item }) => (
+            <BoutonGestion
+              title={`Défi : ${item.challenge.title}`}
+              subtitle={`Auteur: ${item?.user?.firstName} ${item?.user?.lastName || 'Nom inconnu'}`}
+              nextRoute="valideDefisScreen"
+              id={item.id}
+            />
+          )}
+          keyExtractor={(item) => item.id.toString()}
+          ListEmptyComponent={
+            <Text style={styles.emptyListText}>Aucun défi correspondant</Text>
+          }
+        />
+      </View>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        height: '100%',
-        width: '100%',
-        flex: 1,
-        backgroundColor: 'white',
-        paddingBottom: 8,
-    },
-    headerContainer: {
-        width: '100%',
-        paddingHorizontal: 20,
-        paddingBottom: 16,
-    },
-    list: {
-        width: '100%',
-    },
-    listContentContainer: {
-        paddingHorizontal: 20,
-    },
+  container: {
+    height: '100%',
+    width: '100%',
+    flex: 1,
+    backgroundColor: 'white',
+    paddingBottom: 8,
+  },
+  headerContainer: {
+    width: '100%',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  list: {
+    width: '100%',
+    marginTop: 20,
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyListText: {
+    textAlign: 'center',
+    color: 'gray',
+    fontSize: 16,
+  },
 });
 
 export default GestionDefisScreen;

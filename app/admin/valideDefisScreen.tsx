@@ -1,43 +1,124 @@
-import React from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Text, View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { X, Check } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors } from '@/constants/GraphSettings'; 
+import { Colors, Fonts } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
+import { apiPost, apiGet } from '@/constants/api/apiCalls'; // Import the API calls
+import ErrorScreen from '@/components/pages/errorPage';
 
 export default function ValideDefis() {
   const route = useRoute();
-  console.log('Route Params:', route.params);
-  const { title, subtitle } = route.params as { title: string, subtitle: string };
+  const { id } = route.params; // Récupération de l'ID de l'anecdote
+  console.log('Challenge ID:', id);
+
+  const [challengeDetails, setChallengeDetails] = useState(null);
+  const [challengeStatus, setChallengeStatus] = useState(null); // État pour le statut de validation
+  
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [disableRefresh, setDisableRefresh] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  // Fetch challenge details
+  const fetchChallengeDetails = async (incrementalLoad = false) => {
+    if (!incrementalLoad) setLoading(true);
+    else setLoadingMore(true);
+    setDisableRefresh(true);
+    try {
+      const response = await apiGet(`getChallengeDetails/${id}`);
+      if (response.success) {
+        setChallengeDetails(response.data);
+      } else {
+        setError('Erreur lors de la récupération des détails du défi');
+      }
+    } catch (err) {
+      setError('Erreur lors de la récupération des détails');
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+      setTimeout(() => {
+        setDisableRefresh(false); 
+      }, 5000);
+    }
+  };
+
+  // Handle challenge validation (approve or disapprove)
+  const handleValidation = async (isValid) => {
+    setLoading(true);
+    try {
+      const response = await apiPost(`updateChallengeStatus/${id}/${isValid}`);
+      if (response.success) {
+        setChallengeStatus(isValid);
+        setChallengeDetails((prevDetails) => ({
+          ...prevDetails,
+          valid: isValid,
+        }));
+        await fetchChallengeDetails(); // Reload challenge details after update
+      }
+    } catch (err) {
+      setError('Erreur lors de la mise à jour du statut');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchChallengeDetails(); // Load challenge details on component mount
+  }, [id]);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="gray" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return <ErrorScreen error={error} />;
+  }
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Header refreshFunction={fetchChallengeDetails} disableRefresh={disableRefresh}/>
       <View style={styles.content}>
-        <BoutonRetour previousRoute="gestionDefisScreen" title={"Gérer " + title} />
+        <BoutonRetour previousRoute="gestionDefisScreen" title={"Gérer défis " + id} />
         <Text style={styles.title}>Détails du défi :</Text>
         <View style={styles.textBox}>
-          <Text style={styles.text}>Status : xxxx</Text>
-          <Text style={styles.text}>Date : xxxx</Text>
-          <Text style={styles.text}>Auteur : {subtitle}</Text>
+          <Text style={styles.text}>Status : {challengeDetails?.valid ? 'Validée' : 'En attente de validation'}</Text>
+          <Text style={styles.text}>Date : {challengeDetails?.created_at ? new Date(challengeDetails.created_at).toLocaleString('fr-FR', {
+            weekday: 'long', // Jour de la semaine complet
+            month: 'long', // Mois complet
+            day: 'numeric', // Jour
+            hour: '2-digit', // Heure sur 2 chiffres
+            minute: '2-digit', // Minute sur 2 chiffres
+            second: '2-digit', // Seconde sur 2 chiffres
+            hour12: false, // Utiliser l'heure 24h (optionnel)
+          }) : 'Date non disponible'}</Text>
+          <Text style={styles.text}>Auteur : {challengeDetails?.user?.firstName} {challengeDetails?.user?.lastName || 'Auteur inconnu'}</Text>
+          <Text style={styles.text}>Défi : {challengeDetails?.challenge.title || 'Pas de description'}</Text>
         </View>
       </View>
 
       <View style={styles.buttonContainer}>
         <View style={styles.buttonSpacing}>
-            <BoutonActiver
+          <BoutonActiver
             title="Désactiver le défi"
             IconComponent={X}
-            disabled={true} // Désactive le bouton (dépend du status actuel de la notification)
-            />
+            disabled={challengeDetails.valid == 0}
+            onPress={() => handleValidation(0)} // Invalidate the challenge
+          />
         </View>
         <BoutonActiver
-            title="Valider la défi"
-            IconComponent={Check}
+          title="Valider le défi"
+          IconComponent={Check}
+          disabled={challengeDetails.valid == 1}
+          onPress={() => handleValidation(1)} // Validate the challenge
         />
-        </View>
+      </View>
     </View>
   );
 }
@@ -53,7 +134,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     paddingHorizontal: 20,
     paddingBottom: 16,
-    alignSelf: 'stretch',
   },
   title: {
     marginTop: 20,
@@ -69,7 +149,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     backgroundColor: Colors.white,
-    alignSelf: 'stretch',
+    marginBottom: 20,
   },
   text: {
     fontSize: 14,
@@ -83,26 +163,14 @@ const styles = StyleSheet.create({
     bottom: 20, // Adjust the distance from the bottom as needed
     width: '100%',
     paddingHorizontal: 20,
-    alignSelf: 'stretch',
   },
   buttonSpacing: {
-    marginBottom: 16, // Ajout d'un espace entre les boutons
+    marginBottom: 16, // Add spacing between the buttons
   },
-  button: {
-    backgroundColor: '#E64034',
-    padding: 15,
-    borderRadius: 8,
-    width: '100%',
-    alignItems: 'center',
-    flexDirection: 'row',
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontFamily: 'Inter',
-    fontWeight: '600',
-    marginRight: 10,
-    alignSelf: 'stretch',
+    alignItems: 'center',
   },
 });
+

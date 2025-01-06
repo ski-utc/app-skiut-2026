@@ -1,86 +1,113 @@
-import { Text, View, ActivityIndicator, Image, Dimensions, StyleSheet } from "react-native";
+import { Text, View, ActivityIndicator, Image, StyleSheet } from "react-native";
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import React, { useState, useEffect } from "react";
-import { apiGetPublic } from "../../constants/api/apiCalls";
-import { useNavigation } from '@react-navigation/native';
+import { apiGetPublic } from "@/constants/api/apiCalls";
+import WidgetBanal from "@/components/home/WidgetBanal";
 
-// @ts-ignore
 export default function HomeScreen() {
-  /* - - - - - - - - - - - - - Variables Globales - - - - - - - - - - - - - */
-  const [loading, setLoading] = useState(true);  // Variable globale de chargement et son setter
-  const [error, setError] = useState<Error | null>(null);  // Variable globale d'erreur et son setter
-  const [arrayDeData, setArrayDeData] = useState<{ message: string } | null>(null);  // Variable globale pour stocker les data d'une requête et son setter
-  const navigation = useNavigation();  // Hook de navigation
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [data, setData] = useState<any>(null); // Stocke les données récupérées
 
-  /* - - - - - - - - - - - - - Récup les ressources - - - - - - - - - - - - - */
   useEffect(() => {
-    const loadAsyncFonts = async () => {  //Fonction asynchrone pour load les polices
+    const loadAsyncFonts = async () => {
       await loadFonts();
     };
     loadAsyncFonts();
 
-    const fetchData = async () => {  //Fonction asynchrone pour récup les données du serveur
+    const fetchData = async () => {
       try {
-        setLoading(true);  //On met la page en cours de chargement
-        const response = await apiGetPublic("getTrucDuServeur");  //On balance la requête GET sans JWT à la route getTrucDuServeur
-        setArrayDeData(response);  // On met à jour les données de notre variable globale
+        setLoading(true);
+        const response = await apiGetPublic("random-data"); // Récupération des données
+        setData(response.data);
       } catch (err) {
-        setError(err as Error);  //Si il y a une erreur, on l'affecte à notre variable globale error qui s'affiche à l'écran
+        setError(err as Error);
       } finally {
-        setLoading(false); // On quitte l'état de chargement
+        setLoading(false);
       }
     };
-    fetchData();  //Appel de la fonction asynchrone
-    
+
+    fetchData();
+
     const intervalId = setInterval(() => {
-      fetchData().catch((err) => setError(err));  // Toutes les 5 minutes on refait la requête pour rafraîchir
+      fetchData().catch((err) => setError(err));
     }, 300000);
-    
-    return () => clearInterval(intervalId);  // On clear l'intervalle pour pas avoir des big fuites de mémoire
+
+    return () => clearInterval(intervalId);
   }, []);
 
-  /* - - - - - - - - - - - - - Page en cas d'erreur - - - - - - - - - - - - - */
   if (error) {
     return (
-      <View style={styles.container}>
-        <Header />
-        <View style={styles.errorContainer}>
-          <Text style={styles.title}>Erreur:</Text>
-          <Text style={styles.errorMessage}>{error?.message || "Une erreur est survenue"}</Text>
+        <View style={styles.container}>
+          <Header refreshFunction={undefined} disableRefresh={undefined} />
+          <View style={styles.errorContainer}>
+            <Text style={styles.title}>Erreur:</Text>
+            <Text style={styles.errorMessage}>{error.message || "Une erreur est survenue"}</Text>
+          </View>
+          <Image
+              source={require("../../assets/images/oursSki.png")}
+              style={styles.image}
+          />
         </View>
-        <Image
-          source={require("../../assets/images/oursSki.png")}
-          style={styles.image}
-        />
-      </View>
     );
   }
 
-  /* - - - - - - - - - - - - - Page de chargement - - - - - - - - - - - - - */
   if (loading) {
     return (
-      <View style={styles.container}>
-        <Header />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.black} />
+        <View style={styles.container}>
+          <Header refreshFunction={undefined} disableRefresh={undefined} />
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.black} />
+          </View>
         </View>
-      </View>
     );
   }
 
-  /* - - - - - - - - - - - - - Page classique burger - - - - - - - - - - - - - */
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleDateString("fr-FR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
   return (
-    <View style={styles.container}>
-      <Header />
-      <View style={styles.contentContainer}>
-        <Text style={styles.title}>Bienvenue sur l'appli Ski'UTC</Text>
+      <View style={styles.container}>
+        <Header refreshFunction={undefined} disableRefresh={undefined} />
+        <View style={styles.contentContainer}>
+          <WidgetBanal
+              title={`Prochaine activité : ${data.closestActivity.text}`}
+              subtitles={[
+                { text: `Jour : ${formatDate(data.closestActivity.date)}` },
+                { text: `Début : ${data.closestActivity.startTime}` },
+                { text: `Fin : ${data.closestActivity.endTime}` },
+              ]}
+              backgroundColor="#80AEAC"
+              textColor={Colors.white}
+          />
+
+          <WidgetBanal
+              title="Valide ce défi si ce n'est pas déjà fait!"
+              subtitles={[{ text: data.randomChallenge.title }]}
+              backgroundColor={Colors.orange}
+              textColor={Colors.white}
+          />
+
+          <WidgetBanal
+              title="Un bug sur l'app? Contacte la team info!"
+              subtitles={[
+                { text: `On est pas méchants et on a encore beaucoup à apprendre...` },
+                {
+                  text: 'Formulaire de retour : ',
+                  link: 'https://forms.gle/E8hhG7pDRqyfR8CS6',
+                },
+              ]}
+              backgroundColor="#80AEAC"
+              textColor={Colors.white}
+          />
+        </View>
       </View>
-      <Image
-          source={require("../../assets/images/oursSki.png")}
-          style={styles.image}
-      />
-    </View>
   );
 }
 
@@ -92,44 +119,46 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: Colors.white,
   },
   errorContainer: {
-    width: '100%',
+    width: "100%",
     flex: 1,
-    backgroundColor: "#b2cecb", 
+    backgroundColor: "#b2cecb",
     paddingBottom: 16,
   },
   image: {
-    width: '100%', 
+    width: "100%",
     height: 390,
-    resizeMode: 'cover',
-    position: 'absolute', 
+    resizeMode: "cover",
+    position: "absolute",
     bottom: 0,
-  },  
+  },
   loadingContainer: {
-    width: '100%',
+    width: "100%",
     flex: 1,
     backgroundColor: "#b2cecb",
     justifyContent: "center",
   },
   contentContainer: {
-    backgroundColor: "#b2cecb", 
-    width: '100%',
+    backgroundColor: Colors.white,
+    width: "100%",
     flex: 1,
     paddingBottom: 16,
+    paddingHorizontal: 14,
   },
   title: {
     paddingTop: 40,
     paddingBottom: 15,
-    paddingLeft: 21, 
-    fontSize: 40,
+    paddingLeft: 21,
+    fontSize: 25,
     textAlign: "left",
     maxWidth: "90%",
     color: Colors.white,
     fontFamily: Fonts.Text.Bold,
   },
   errorMessage: {
-    paddingLeft: 21, 
+    paddingLeft: 21,
     fontSize: 25,
     textAlign: "left",
     maxWidth: "90%",

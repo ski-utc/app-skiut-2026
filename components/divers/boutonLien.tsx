@@ -30,7 +30,7 @@ export default function BoutonLien({ url, title, IconComponent }) {
                     color: Colors.black,
                     fontSize: 14,
                     fontFamily: Fonts.Inter.Basic,
-                    fontWeight: '300',
+                    fontWeight: '600',
                 }}
             >
                 {title}

@@ -5,13 +5,29 @@ import { GanttChart, Bell, RotateCcw } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import NotificationPopup from '@/app/notificationPopUp';
 import { useUser } from '@/contexts/UserContext';
+import { apiGet } from '@/constants/api/apiCalls'; // Import apiGet to fetch user data
 
 //@ts-ignore
 export default function Header({ refreshFunction, disableRefresh }) {
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [roomName, setRoomName] = useState<any>(null);
   const { user } = useUser();
   const navigation = useNavigation();
+
+  // Fetch user data and room name
+  const fetchUserData = async () => {
+    try {
+      const response = await apiGet("getUserData"); // Adjust API endpoint if needed
+      if (response.success) {
+        setRoomName(response.roomName); // Set room name from response
+      } else {
+        console.error("Error fetching user data:", response.message);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
 
   useEffect(() => {
     const loadAsyncFonts = async () => {
@@ -19,7 +35,11 @@ export default function Header({ refreshFunction, disableRefresh }) {
       setFontsLoaded(true);
     };
     loadAsyncFonts();
-  }, []);
+
+    if (user) {
+      fetchUserData(); // Fetch user data when user is available
+    }
+  }, [user]);
 
   const handleGanttChartPress = () => {
     navigation.navigate('profilNavigator', {
@@ -41,10 +61,12 @@ export default function Header({ refreshFunction, disableRefresh }) {
           <Text style={styles.nameText} numberOfLines={1}>
             {user?.name} {user?.lastName}
           </Text>
-          <Text style={styles.roomText}>Chambre {user?.room}</Text>
+          <Text style={styles.roomText}>
+          {`Chambre ${roomName || 'Non attribuée'}`}
+          </Text>
         </View>
       </View>
-      {refreshFunction==null ? null : 
+      {refreshFunction == null ? null :
         <TouchableOpacity 
           style={{
             position: 'absolute',
@@ -68,7 +90,7 @@ export default function Header({ refreshFunction, disableRefresh }) {
       <TouchableOpacity style={styles.bellButton} onPress={() => setIsPopupVisible(true)}>
         <Bell size={20} color={Colors.black} />
       </TouchableOpacity>
-      <NotificationPopup visible={isPopupVisible} onClose={() => setIsPopupVisible(false)}/>
+      <NotificationPopup visible={isPopupVisible} onClose={() => setIsPopupVisible(false)} />
     </View>
   );
 }
@@ -77,7 +99,7 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     backgroundColor: Colors.white,
-    paddingTop: 40, // Reduced to move the header higher
+    paddingTop: 40,
     paddingBottom: 20, 
     paddingLeft: 20,
     paddingRight: 20,
@@ -90,15 +112,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: 13,
-    marginTop: 2, // Adjusted to slightly raise the group
+    marginTop: 2,
   },
   textContainer: {
-    width: 150,
+    width: 'auto',
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
     gap: 4,
-    marginTop: 0, // Reset to ensure text stays aligned
+    marginTop: 0,
   },
   nameText: {
     color: Colors.black,
@@ -114,7 +136,7 @@ const styles = StyleSheet.create({
   },
   bellButton: {
     position: 'absolute',
-    top: 40, // Reduced to move the bell icon higher
+    top: 40,
     right: 20,
     width: 40,
     height: 40,

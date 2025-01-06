@@ -1,46 +1,136 @@
-import React from 'react';
-import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import { Text, View, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { X, Check } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors, Fonts } from '@/constants/GraphSettings'; 
+import { Colors, Fonts } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
+import { apiPost, apiGet } from '@/constants/api/apiCalls'; // Assurez-vous d'importer l'appel API
+import ErrorScreen from '@/components/pages/errorPage';
 
 export default function ValideAnecdotes() {
   const route = useRoute();
-  console.log('Route Params:', route.params);
-  const { title, subtitle } = route.params as { title: string, subtitle: string }; // title = ID de l'anecdote, subtitle = user
+  const { id } = route.params; // Récupération de l'ID de l'anecdote
+  console.log('Anecdote ID:', id);
+
+  const [anecdoteDetails, setAnecdoteDetails] = useState(null);
+  const [nbLikes, setNbLikes] = useState(null);
+  const [nbWarns, setNbWarns] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [anecdoteStatus, setAnecdoteStatus] = useState(null); // État pour le statut de validation
+  const [disableRefresh, setDisableRefresh] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  // Fonction pour récupérer les détails de l'anecdote
+  const fetchAnecdoteDetails = async (incrementalLoad = false) => {
+    if (!incrementalLoad) setLoading(true);
+    else setLoadingMore(true);
+    setDisableRefresh(true);
+    try {
+      const response = await apiGet(`getAnecdoteDetails/${id}`);
+      if (response.success) {
+        setAnecdoteDetails(response.data);
+        setNbLikes(response.nbLikes);
+        setNbWarns(response.nbWarns);
+        setAnecdoteStatus(response.data.valid); // Assurez-vous de récupérer et stocker le statut
+
+        console.log('isValid', response.data.valid);
+      } else {
+        setError('Erreur lors de la récupération des détails de l\'anecdote');
+      }
+    } catch (err) {
+      setError('Erreur lors de la récupération des détails');
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+      setTimeout(() => {
+        setDisableRefresh(false); 
+      }, 5000); 
+    }
+  };
+
+  // Fonction pour valider ou invalider l'anecdote
+  const handleValidation = async (isValid) => {
+    console.log('va valider:', isValid);
+    setLoading(true);
+    try {
+      const response = await apiPost(`updateAnecdoteStatus/${id}/${isValid}`);
+      if (response.success) {
+        setAnecdoteStatus(isValid);
+        setAnecdoteDetails((prevDetails) => ({
+          ...prevDetails,
+          valid: isValid,
+        }));
+        await fetchAnecdoteDetails(); // Recharger les détails de l'anecdote après la mise à jour
+      }
+    } catch (err) {
+      setError('Erreur lors de la mise à jour du statut');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnecdoteDetails(); // Charger les détails de l'anecdote au chargement
+  }, [id]);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="gray" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return <ErrorScreen error={error} />;
+  }
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Header refreshFunction={fetchAnecdoteDetails} disableRefresh={disableRefresh}/>
       <View style={styles.content}>
-        <BoutonRetour previousRoute="gestionAnecdotesScreen" title={"Gérer " + title} />
+        <BoutonRetour previousRoute="gestionAnecdotesScreen" title={`Gérer l'anecdote ${id}`} />
         <Text style={styles.title}>Détail de l'anecdote :</Text>
-        <View style={styles.textBox}> 
-          <Text style={styles.text}>Status : En attente de validation</Text> 
-          <Text style={styles.text}>Date : xxx</Text>
-          <Text style={styles.text}>Auteur : {subtitle}</Text>
+        <View style={styles.textBox}>
+          <Text style={styles.text}>Status : {anecdoteDetails?.valid ? 'Validée' : 'En attente de validation'}</Text>
+          <Text style={styles.text}>Date : {anecdoteDetails?.created_at ? new Date(anecdoteDetails.created_at).toLocaleString('fr-FR', {
+            weekday: 'long', // Jour de la semaine complet
+            month: 'long', // Mois complet
+            day: 'numeric', // Jour
+            hour: '2-digit', // Heure sur 2 chiffres
+            minute: '2-digit', // Minute sur 2 chiffres
+            second: '2-digit', // Seconde sur 2 chiffres
+            hour12: false, // Utiliser l'heure 24h (optionnel)
+          }) : 'Date non disponible'}
+          </Text>
+          <Text style={styles.text}>Auteur : {anecdoteDetails?.user?.firstName} {anecdoteDetails?.user?.lastName || 'Auteur inconnu'}</Text>
+          <Text style={styles.text}>Nombre de likes : {nbLikes}</Text>
+          <Text style={styles.text}>Nombre de signalements : {nbWarns}</Text>
         </View>
         <View style={styles.anecdoteBox}>
-          <Text style={styles.text}>{"---Anecdote complète---"}</Text>
+          <Text style={styles.text}>{anecdoteDetails.text}</Text>
         </View>
       </View>
 
       <View style={styles.buttonContainer}>
         <View style={styles.buttonSpacing}>
-            <BoutonActiver
+          <BoutonActiver
             title="Désactiver l'anecdote"
             IconComponent={X}
-            disabled={true} // Désactive le bouton (dépend du status actuel de la notification)
-            />
+            disabled={anecdoteDetails.valid == 0} 
+            onPress={() => handleValidation(0)} // Appeler la fonction pour invalider
+          />
         </View>
         <BoutonActiver
-            title="Valider l'anecdote"
-            IconComponent={Check}
+          title="Valider l'anecdote"
+          IconComponent={Check}
+          disabled={anecdoteDetails.valid == 1}
+          onPress={() => handleValidation(1)} // Appeler la fonction pour valider
         />
-        </View>
+      </View>
     </View>
   );
 }
@@ -71,20 +161,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     backgroundColor: Colors.white,
-    marginBottom: 20, 
+    marginBottom: 20,
   },
   anecdoteBox: {
     padding: 14,
     minHeight: 200,
     marginBottom: 8,
     backgroundColor: '#F8F8F8',
-    borderRadius: 12, 
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#EAEAEA',
-    flexDirection: 'column', 
-    justifyContent: 'flex-start', 
-    alignItems: 'flex-start', 
-    gap: 8, 
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    gap: 8,
     color: Colors.black,
     fontFamily: Fonts.Inter.Basic,
     fontWeight: 500,
@@ -121,5 +211,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontWeight: '600',
     marginRight: 10,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

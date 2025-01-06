@@ -1,4 +1,4 @@
-import { SafeAreaView, View, StyleSheet, Text, FlatList, ActivityIndicator, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Text, FlatList, ActivityIndicator, TouchableOpacity } from "react-native";
 import { Colors, Fonts } from '@/constants/GraphSettings';
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Header from "@/components/header";
@@ -243,7 +243,7 @@ export default function PlanningScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <Header refreshFunction={fetchPlanning} disableRefresh={disableRefresh}/>
       <View style={styles.content}>
         <BoutonRetour previousRoute={"homeNavigator"} title={"Planning"} />     
@@ -259,7 +259,7 @@ export default function PlanningScreen() {
             />
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 

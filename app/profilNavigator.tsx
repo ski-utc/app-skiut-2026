@@ -8,6 +8,7 @@ import PlanDesPistes from './profil/planDesPistesScreen';
 import PlanStation from './profil/planStationScreen';
 import VitesseDeGlisseScreen from './profil/vitesseDeGlisse/vitesseDeGlisseScreen';
 import PerformancesScreen from './profil/vitesseDeGlisse/performancesScreen';
+import SkinderNavigator from './skinder/skinderNavigator';
 import NavettesScreen from './profil/navettesScreen';
 import AdminNavigator from './adminNavigator';
 
@@ -24,6 +25,7 @@ export default function ProfilNavigator() {
       <Stack.Screen name="PlanStationScreen" component={PlanStation} />
       <Stack.Screen name="VitesseDeGlisseScreen" component={VitesseDeGlisseScreen} />
       <Stack.Screen name='PerformancesScreen' component={PerformancesScreen} />
+      <Stack.Screen name="SkinderNavigator" component={SkinderNavigator}/>
       <Stack.Screen name="NavettesScreen" component={NavettesScreen} />
       <Stack.Screen name="AdminNavigator" component={AdminNavigator} />
     </Stack.Navigator>

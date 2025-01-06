@@ -5,7 +5,7 @@ import React from 'react';
 import { useState } from "react";
 import BoutonProfil from "../../components/profil/boutonProfil";
 import { Fonts, Colors } from "@/constants/GraphSettings";
-import { Phone, PhoneCall, Map, MapPin, Gauge, Bus, UserRoundCheck } from 'lucide-react-native';
+import { Phone, PhoneCall, Map, MapPin, Gauge, Bus, UserRoundCheck, Heart } from 'lucide-react-native';
 import { useUser } from "@/contexts/UserContext";
 import * as config from '../../constants/api/apiConfig';
 import WebView from "react-native-webview";
@@ -168,6 +168,16 @@ export default function Profil() {
                     options={{
                         title: 'Vitesse de glisse',
                         icon: Gauge,
+                    }}
+                />
+            </View>
+
+            <View style={styles.navigationContainer}>
+                <BoutonProfil 
+                    nextRoute={"SkinderNavigator"} 
+                    options={{
+                        title: 'Skinder',
+                        icon: Heart,
                     }}
                 />
             </View>

@@ -10,11 +10,7 @@ export default function BoutonRetour({ previousRoute, title }) {
     const route = useRoute();
 
     const onPress = () => {
-        if (previousRoute) {
-            navigation.navigate(previousRoute);
-        } else {
-            navigation.goBack();
-        }
+        navigation.goBack();
     };
 
     const onLongPress = () => {

@@ -20,7 +20,7 @@ export default function NotificationPopup({ visible, onClose }) {
     try {
       const response = await apiGet('getNotifications');
       if (response.success) {
-        setNotifications(response.data); 
+        setNotifications(response.data.filter((item) => !item.delete));
       } else {
         setError('Une erreur est survenue lors de la récupération des notifications');
       }
@@ -391,15 +391,20 @@ export default function NotificationPopup({ visible, onClose }) {
             >
               <Text 
                   style={{
-                      fontSize: 16,
-                      color: Colors.gray,
-                      textAlign: "center",
-                      marginTop: 10,
-                  }}>
-                Il n'y a rien ici pour le moment
-              </Text>
-            </View>
-          )}
+                    fontSize: 14,
+                    fontFamily: Fonts.Inter.Basic,
+                    color: Colors.gray,
+                  }}
+                >
+                  {item.description}
+                </Text>
+              </View>
+            )}
+            keyExtractor={(item) => item.id.toString()}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 20 }}
+          />
+
           <View
             style={{
               marginTop: 15,

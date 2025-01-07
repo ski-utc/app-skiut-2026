@@ -14,7 +14,7 @@ interface Contact{
 
 // structure de données avec les nums  
 const contacts: Contact[] = [
-{ name: "Téléphone VSS", phone: "00 00 00 00 00" },
+{ name: "Téléphone VSS", phone: "07 83 09 12 39" },
 ];
 
 export default function Contact() {

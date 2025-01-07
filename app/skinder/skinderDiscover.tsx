@@ -16,8 +16,6 @@ export default function SkinderDiscover() {
     const [profile, setProfile] = useState({ id: null, nom: '', description: '', passions: [] });
     const [imageProfil, setImageProfil] = useState("https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png");
     const [disableButton, setDisableButton] = useState(false);
-    const [isLiking, setIsLiking] = useState(false);
-    const [isDisliking, setIsDisliking] = useState(false);
 
     const { setUser } = useUser();
     const navigation = useNavigation();
@@ -131,7 +129,7 @@ export default function SkinderDiscover() {
                 setImageProfil(response.data.image);
             } else {
                 setDisableButton(true);
-                if(response.message="NoPhoto"){
+                if(response.message=="NoPhoto"){
                     setNoPhoto(true);
                 } else {
                     setError(response.message || "Une erreur est survenue lors de la récupération du profil");

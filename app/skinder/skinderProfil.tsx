@@ -17,8 +17,8 @@ export default function SkinderProfil() {
     nom: '',
     description: '',
     passions: ['', '', '', '', '', ''],
-    image: '',
   });
+  const [profileImage, setProfileImage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { setUser } = useUser();
@@ -41,8 +41,8 @@ export default function SkinderProfil() {
           nom: response.data.name,
           description: response.data.description,
           passions: [...Array(6)].map((_, i) => passions[i] || ''),
-          image: response.data.image || "https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png",
         });
+        setProfileImage(response.data.image || "https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png");
       } else {
         setError(response.message || "Erreur lors de la récupération du profil.");
       }
@@ -108,7 +108,7 @@ export default function SkinderProfil() {
         return;
       }
       setModifiedPicture(true);
-      setProfile({ ...profile, image: compressedImage.uri });
+      setProfileImage(compressedImage.uri);
     } catch (error) {
       setError('Erreur lors de la compression de l\'image :', error);
     }
@@ -144,7 +144,7 @@ export default function SkinderProfil() {
       const filteredPassions = profile.passions.filter(p => p.trim() !== '');
       const response = await apiPost('modifyProfilSkinder', {'description':profile.description, 'passions':filteredPassions});
       if(modifiedPicture){
-        const response2 = await uploadImage(profile.image);
+        const response2 = await uploadImage(profileImage);
         setResponseMessage(response.message +' '+ response2.message);
         setResponseSuccess(response.success && response2.success);
         if (response.success && response2.success) {
@@ -237,7 +237,7 @@ export default function SkinderProfil() {
           <View style={{ alignItems: 'center', marginVertical: 5 }}>
             <TouchableOpacity onPress={handleImagePick}>
               <Image
-                  source={{ uri: `${profile.image}?timestamp=${new Date().getTime()}` }} 
+                  source={{ uri: `${profileImage}?timestamp=${new Date().getTime()}` }} 
                   style={{ width: '90%', aspectRatio: '1/1', borderRadius: 25, borderWidth: 1, borderColor: Colors.gray }}
                   resizeMode="cover"
               />

@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, Linking } from 'react-native';
+import {View, Text, StyleSheet, Linking, TouchableOpacity} from 'react-native';
 
-const WidgetBanal = ({ title, subtitles, backgroundColor, textColor }) => {
+const WidgetBanal = ({ title, subtitles, backgroundColor, textColor, onPress }) => {
     return (
-        <View style={[styles.container, { backgroundColor }]}>
+        <TouchableOpacity style={[styles.container, { backgroundColor }]} onPress={onPress} disabled={!onPress}>
             <Text style={[styles.title, { color: textColor }]}>{title}</Text>
             {subtitles.map((subtitle, index) => (
                 <Text key={index} style={[styles.subtitle, { color: textColor }]}>
@@ -19,7 +19,7 @@ const WidgetBanal = ({ title, subtitles, backgroundColor, textColor }) => {
                     )}
                 </Text>
             ))}
-        </View>
+        </TouchableOpacity>
     );
 };
 

@@ -98,11 +98,10 @@ const styles = StyleSheet.create({
   headerContainer: {
     width: '100%',
     paddingHorizontal: 20,
-    paddingBottom: 16,
   },
   list: {
     width: "100%",
-    marginTop: 20,
+    marginTop: 8,
   },
   navigationContainer: {
     width: '100%',

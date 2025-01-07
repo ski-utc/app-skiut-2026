@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View, TouchableOpacity, StyleSheet, ScrollView, Image, Dimensions, Alert } from 'react-native';
 import { useRoute } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
 import { Video } from "expo-av";
 import { LandPlot, Check, Trash } from 'lucide-react-native';
 import Header from '../../components/header';

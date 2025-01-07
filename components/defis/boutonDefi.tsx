@@ -7,8 +7,12 @@ import { ChevronRight, Check } from 'lucide-react-native';
 interface BoutonDefiProps {
     nextRoute: string;
     defi: {
+        id: number;
         title: string;
         details: string;
+        points: number;
+        isActive: boolean;
+        [key: string]: any; // Allow additional dynamic properties
     };
     estValide: boolean;
 }
@@ -18,8 +22,7 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ nextRoute, defi, estValide }) =
 
     const onPress = () => {
         navigation.navigate(nextRoute, {
-            transmittedText1: defi.title,
-            transmittedText2: defi.details,
+            ...defi, // Spread all defi properties to pass them as parameters
             estValide: estValide,
         });
     };
@@ -42,7 +45,7 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ nextRoute, defi, estValide }) =
                 backgroundColor: 'white',
             }}
         >
-            {/* Partie gauche : icône et titre */}
+            {/* Left section: Icon and title */}
             <View
                 style={{
                     justifyContent: "flex-start",
@@ -69,7 +72,7 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ nextRoute, defi, estValide }) =
                 </Text>
             </View>
 
-            {/* Icône flèche à droite */}
+            {/* Right section: Chevron icon */}
             <ChevronRight size={20} color={Colors.black} />
         </TouchableOpacity>
     );

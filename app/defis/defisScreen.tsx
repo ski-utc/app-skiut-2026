@@ -1,109 +1,80 @@
-import { View, FlatList, StyleSheet } from "react-native";
+import React, { useState, useEffect } from 'react';
+import { View, FlatList, StyleSheet, ActivityIndicator } from "react-native";
 import Header from "../../components/header";
 import { Trophy } from 'lucide-react-native';
-import React from 'react';
 import BoutonNavigation from "@/components/divers/boutonNavigation";
 import BoutonRetour from "@/components/divers/boutonRetour";
 import BoutonDefi from "@/components/defis/boutonDefi";
-import { Colors } from "@/constants/GraphSettings"
-
-const challenges: { title: string; details: string; estValide: boolean }[] = [
-  {
-    title: "Prendre une photo avec un mono",
-    details: "Prenez une photo avec un moniteur de ski et partagez-la sur les réseaux sociaux.",
-    estValide: true,
-  },
-  {
-    title: "Faire un bonhomme de neige",
-    details: "Construisez un bonhomme de neige et prenez une photo de votre création.",
-    estValide: false,
-  },
-  {
-    title: "Descendre une piste rouge",
-    details: "Descendez une piste rouge sans tomber.",
-    estValide: false,
-  },
-  {
-    title: "Faire une bataille de boules de neige",
-    details: "Participez à une bataille de boules de neige avec au moins deux autres personnes.",
-    estValide: true,
-  },
-  {
-    title: "Prendre un cours de ski",
-    details: "Inscrivez-vous et participez à un cours de ski.",
-    estValide: false,
-  },
-  {
-    title: "Visiter un chalet",
-    details: "Visitez un chalet de montagne et prenez une photo.",
-    estValide: false,
-  },
-  {
-    title: "Faire du ski de fond",
-    details: "Faites du ski de fond sur une piste balisée.",
-    estValide: false,
-  },
-  {
-    title: "Construire un igloo",
-    details: "Construisez un igloo et prenez une photo de votre construction.",
-    estValide: false,
-  },
-  {
-    title: "Descendre une piste noire",
-    details: "Descendez une piste noire sans tomber.",
-    estValide: false,
-  },
-];
+import { Colors } from "@/constants/GraphSettings";
+import { apiGet } from "@/constants/api/apiCalls";
+import ErrorScreen from '@/components/pages/errorPage';
 
 // @ts-ignore
 export default function Defis() {
-  return (
-    <View
-    style={{
-      height: "100%",
-      width: "100%",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-    }}
-  >
-    <Header/>
-    <View style={{
-      width: '100%',
-      flex: 1,
-      backgroundColor: Colors.white,
-      paddingBottom: 16,
-    }}>
-      <View style={{paddingHorizontal: 20}}>
-        <BoutonRetour
-          previousRoute={"homeNavigator"}
-          title={"Défis"}
-        />
-      </View>
-      <FlatList
-        data={challenges}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <View>
-            <BoutonDefi nextRoute={"defisInfos"} defi={item} estValide={item.estValide} />
-          </View>
-        )}
-        style={{}}
-      />
-      <View
-      style={{
-        width: '100%',
-        backgroundColor: Colors.white,
-        paddingHorizontal: 20,
-        paddingBottom: 16,
-      }}
-    >
-      <BoutonNavigation nextRoute={"defisClassement"} title={"Classement"} IconComponent={Trophy} />
-    </View>
+  const [challenges, setChallenges] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
 
-    </View>
-  </View>
+  // Fetch challenges from the API
+  const fetchChallenges = async () => {
+    try {
+      setLoading(true);
+      const response = await apiGet("challenges");
+      setChallenges(response.data);
+    } catch (err) {
+      setError(err.message || "Une erreur est survenue lors de la récupération des défis.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchChallenges();
+  }, []);
+
+  if (loading) {
+    return (
+        <View style={styles.loadingContainer}>
+          <Header refreshFunction={undefined} disableRefresh={undefined} />
+          <ActivityIndicator size="large" color={Colors.gray} />
+        </View>
+    );
+  }
+
+  if (error !== '') {
+    return <ErrorScreen error={error} />;
+  }
+
+  return (
+      <View style={styles.container}>
+        <Header refreshFunction={undefined} disableRefresh={undefined} />
+        <View style={styles.headerContainer}>
+          <BoutonRetour previousRoute={"homeNavigator"} title={"Défis"} />
+        </View>
+        <FlatList
+            data={challenges}
+            keyExtractor={(item) => item.id.toString()} // Use unique challenge ID
+            renderItem={({ item }) => (
+                <View>
+                  <BoutonDefi
+                      nextRoute={"defisInfos"}
+                      defi={{
+                        id: item.id,
+                        title: item.title,
+                        details: item.details,
+                        points: item.nbPoints,
+                        isActive: item.isActive,
+                      }}
+                      estValide={item.estValide} // Pass estValide dynamically
+                  />
+                </View>
+            )}
+            style={styles.list}
+        />
+        <View style={styles.navigationContainer}>
+          <BoutonNavigation nextRoute={"defisClassement"} title={"Classement"} IconComponent={Trophy} />
+        </View>
+      </View>
   );
 }
 
@@ -116,22 +87,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: Colors.white,
-    paddingBottom: 8,
+  },
+  loadingContainer: {
+    height: "100%",
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-start",
   },
   headerContainer: {
     width: '100%',
-    flex: 1,
-    backgroundColor: Colors.white,
     paddingHorizontal: 20,
-    paddingBottom: 16,
   },
   list: {
     width: "100%",
-    marginTop: 20,
-    marginBottom: 8,
+    marginTop: 8,
   },
-  listContentContainer: {
-    paddingLeft: 20,
-    paddingRight: 20,
+  navigationContainer: {
+    width: '100%',
+    backgroundColor: Colors.white,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
   },
 });

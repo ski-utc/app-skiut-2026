@@ -2,13 +2,16 @@ import { Text, View, ActivityIndicator, Image, StyleSheet } from "react-native";
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import React, { useState, useEffect } from "react";
-import { apiGetPublic } from "@/constants/api/apiCalls";
+import { apiGet } from "@/constants/api/apiCalls";
 import WidgetBanal from "@/components/home/WidgetBanal";
+import {useNavigation} from "@react-navigation/native";
 
 export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [data, setData] = useState<any>(null); // Stocke les données récupérées
+
+  const navigation = useNavigation();
 
   useEffect(() => {
     const loadAsyncFonts = async () => {
@@ -19,7 +22,7 @@ export default function HomeScreen() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await apiGetPublic("random-data"); // Récupération des données
+        const response = await apiGet("random-data"); // Récupération des données
         setData(response.data);
       } catch (err) {
         setError(err as Error);
@@ -85,6 +88,7 @@ export default function HomeScreen() {
               ]}
               backgroundColor="#80AEAC"
               textColor={Colors.white}
+              onPress={() => {navigation.navigate('planningNavigator')}}
           />
 
           <WidgetBanal
@@ -92,10 +96,11 @@ export default function HomeScreen() {
               subtitles={[{ text: data.randomChallenge.title }]}
               backgroundColor={Colors.orange}
               textColor={Colors.white}
+              onPress={() => {navigation.navigate('defisNavigator')}}
           />
 
           <WidgetBanal
-              title="Un bug sur l'app? Contacte la team info!"
+              title="Un bug sur l'app ? Contacte la team info !"
               subtitles={[
                 { text: `On est pas méchants et on a encore beaucoup à apprendre...` },
                 {

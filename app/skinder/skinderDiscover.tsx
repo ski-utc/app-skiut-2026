@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 export default function SkinderDiscover() {
     const [error, setError] = useState('');
     const [noPhoto, setNoPhoto] = useState(false);
+    const [tooMuch, setTooMuch] = useState(false);
     const [profile, setProfile] = useState({ id: null, nom: '', description: '', passions: [] });
     const [imageProfil, setImageProfil] = useState("https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png");
     const [disableButton, setDisableButton] = useState(false);
@@ -131,6 +132,8 @@ export default function SkinderDiscover() {
                 setDisableButton(true);
                 if(response.message=="NoPhoto"){
                     setNoPhoto(true);
+                } else if(response.message=="TooMuch") {
+                    setTooMuch(true);
                 } else {
                     setError(response.message || "Une erreur est survenue lors de la récupération du profil");
                 }
@@ -277,7 +280,159 @@ export default function SkinderDiscover() {
                         </TouchableOpacity>
                     </View>
                 </View>
-                { noPhoto ?
+                {!noPhoto ? (
+                    !tooMuch ? (
+                        <PanGestureHandler onGestureEvent={handleGesture} onEnded={handleGestureEnd}>
+                            <Animated.View
+                                style={{
+                                    transform: [
+                                        { translateX }, 
+                                        {
+                                            translateY: translateX.interpolate({
+                                                inputRange: [-300, -150, 0, 150, 300],
+                                                outputRange: [20, 5, 0, 5, 20], 
+                                                extrapolate: 'clamp',
+                                            }),
+                                        },
+                                        {
+                                            rotate: translateX.interpolate({
+                                                inputRange: [-300, 0, 300],
+                                                outputRange: ['-10deg', '0deg', '10deg'],
+                                                extrapolate: 'clamp',
+                                            }),
+                                        },
+                                    ],
+                                    opacity: cardOpacity,
+                                    backgroundColor: translateX.interpolate({
+                                        inputRange: [-300, 0, 300],
+                                        outputRange: ['#ffcccc', Colors.white, '#ccffcc'],
+                                        extrapolate: 'clamp',
+                                    }),
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    alignSelf: 'center',
+                                    width: '90%',
+                                    padding: 10, 
+                                    borderRadius: 15,
+                                    gap: 10, 
+                                    marginTop: 14,
+                                    shadowColor: "#000",
+                                    shadowOffset: { width: 0, height: 2 },
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 4,
+                                    elevation: 5,
+                                }}
+                            >
+                                <Image
+                                    source={{ uri: imageProfil }}
+                                    style={{
+                                        width: '100%',
+                                        aspectRatio: 1,
+                                        borderRadius: 12, 
+                                        borderWidth: 1,
+                                        borderColor: Colors.gray,
+                                    }}
+                                    resizeMode="cover"
+                                    onError={() => setImageProfil("https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png")}
+                                />
+                                <Text
+                                    style={{
+                                        fontSize: 16, 
+                                        fontFamily: Fonts.Inter.Basic,
+                                        fontWeight: '600',
+                                        color: Colors.black,
+                                        alignSelf: 'flex-start',
+                                    }}
+                                >
+                                    {profile.nom}
+                                </Text>
+                                <View
+                                    style={{
+                                        backgroundColor: '#F8F8F8',
+                                        borderColor: Colors.gray,
+                                        borderWidth: 1,
+                                        borderRadius: 10, 
+                                        padding: 10,
+                                        width: '100%',
+                                        justifyContent: 'flex-start',
+                                        alignContent: 'center',
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            fontSize: 14,
+                                            fontFamily: Fonts.Inter.Basic,
+                                            fontWeight: '500',
+                                            color: Colors.black,
+                                        }}
+                                    >
+                                        {profile.description}
+                                    </Text>
+                                </View>
+                                <Text
+                                    style={{
+                                        fontSize: 16, 
+                                        fontFamily: Fonts.Inter.Basic,
+                                        fontWeight: '600',
+                                        color: Colors.black,
+                                        alignSelf: 'flex-start',
+                                    }}
+                                >
+                                    Passions
+                                </Text>
+                                <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
+                                    {profile.passions.map((passion, index) => (
+                                        <View
+                                            key={index}
+                                            style={{
+                                                backgroundColor: Colors.white,
+                                                paddingVertical: 8, 
+                                                paddingHorizontal: 12, 
+                                                borderRadius: 15, 
+                                                margin: 4,
+                                                borderColor: Colors.orange,
+                                                borderWidth: 1,
+                                                shadowColor: "#000", 
+                                                shadowOffset: { width: 0, height: 1 },
+                                                shadowOpacity: 0.1,
+                                                shadowRadius: 2,
+                                                elevation: 2, 
+                                            }}
+                                        >
+                                            <Text style={{ fontSize: 14, fontFamily: Fonts.Inter.Basic, fontWeight: '500', color: Colors.black }}>
+                                                {passion}
+                                            </Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            </Animated.View>
+                        </PanGestureHandler>
+                    ) : (
+                        <View
+                            style={{
+                                width: "100%",
+                                flex: 1,
+                                backgroundColor: Colors.white,
+                                justifyContent: "center",
+                                alignItems: "center",
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color: Colors.black,
+                                    fontSize: 20,
+                                    fontFamily: Fonts.Inter.Basic,
+                                    fontWeight: "400",
+                                    padding: 10,
+                                    paddingBottom: 32,
+                                    textAlign: "center",
+                                }}
+                            >
+                                Vous avez déjà liké tous les profils disponibles
+                            </Text>
+                        </View>
+                    )
+                ) : (
                     <View
                         style={{
                             width: "100%",
@@ -289,145 +444,19 @@ export default function SkinderDiscover() {
                     >
                         <Text
                             style={{
-                            color: Colors.black,
-                            fontSize: 20,
-                            fontFamily: Fonts.Inter.Basic,
-                            fontWeight: "400",
-                            padding: 10,
-                            paddingBottom: 32,
-                            textAlign: "center",
+                                color: Colors.black,
+                                fontSize: 20,
+                                fontFamily: Fonts.Inter.Basic,
+                                fontWeight: "400",
+                                padding: 10,
+                                paddingBottom: 32,
+                                textAlign: "center",
                             }}
                         >
                             Veuillez d'abord choisir une photo de profil pour pouvoir utiliser Skinder
                         </Text>
                     </View>
-                    :
-                    <PanGestureHandler onGestureEvent={handleGesture} onEnded={handleGestureEnd}>
-                        <Animated.View
-                            style={{
-                                transform: [
-                                    { translateX }, 
-                                    {
-                                        translateY: translateX.interpolate({
-                                            inputRange: [-300, -150, 0, 150, 300],
-                                            outputRange: [20, 5, 0, 5, 20], 
-                                            extrapolate: 'clamp',
-                                        }),
-                                    },
-                                    {
-                                        rotate: translateX.interpolate({
-                                            inputRange: [-300, 0, 300],
-                                            outputRange: ['-10deg', '0deg', '10deg'],
-                                            extrapolate: 'clamp',
-                                        }),
-                                    },
-                                    ],
-                                opacity: cardOpacity,
-                                backgroundColor: translateX.interpolate({
-                                    inputRange: [-300, 0, 300],
-                                    outputRange: ['#ffcccc', Colors.white, '#ccffcc'],
-                                    extrapolate: 'clamp',
-                                }),
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                alignSelf: 'center',
-                                width: '90%',
-                                padding: 10, 
-                                borderRadius: 15,
-                                gap: 10, 
-                                marginTop:14,
-                                shadowColor: "#000",
-                                shadowOffset: { width: 0, height: 2 },
-                                shadowOpacity: 0.2,
-                                shadowRadius: 4,
-                                elevation: 5,
-                            }}
-                        >
-                            <Image
-                                source={{ uri: imageProfil }}
-                                style={{
-                                    width: '100%',
-                                    aspectRatio: 1,
-                                    borderRadius: 12, 
-                                    borderWidth: 1,
-                                    borderColor: Colors.gray,
-                                }}
-                                resizeMode="cover"
-                                onError={() => setImageProfil("https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png")}
-                            />
-                            <Text
-                                style={{
-                                    fontSize: 16, 
-                                    fontFamily: Fonts.Inter.Basic,
-                                    fontWeight: '600',
-                                    color: Colors.black,
-                                    alignSelf: 'flex-start',
-                                }}
-                            >
-                                {profile.nom}
-                            </Text>
-                            <View
-                                style={{
-                                    backgroundColor: '#F8F8F8',
-                                    borderColor: Colors.gray,
-                                    borderWidth: 1,
-                                    borderRadius: 10, 
-                                    padding: 10,
-                                    width: '100%',
-                                    justifyContent: 'flex-start',
-                                    alignContent: 'center',
-                                }}
-                            >
-                                <Text
-                                    style={{
-                                        fontSize: 14,
-                                        fontFamily: Fonts.Inter.Basic,
-                                        fontWeight: '500',
-                                        color: Colors.black,
-                                    }}
-                                >
-                                    {profile.description}
-                                </Text>
-                            </View>
-                            <Text
-                                style={{
-                                    fontSize: 16, 
-                                    fontFamily: Fonts.Inter.Basic,
-                                    fontWeight: '600',
-                                    color: Colors.black,
-                                    alignSelf: 'flex-start',
-                                }}
-                            >
-                                Passions
-                            </Text>
-                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
-                                {profile.passions.map((passion, index) => (
-                                    <View
-                                        key={index}
-                                        style={{
-                                            backgroundColor: Colors.white,
-                                            paddingVertical: 8, 
-                                            paddingHorizontal: 12, 
-                                            borderRadius: 15, 
-                                            margin: 4,
-                                            borderColor: Colors.orange,
-                                            borderWidth: 1,
-                                            shadowColor: "#000", 
-                                            shadowOffset: { width: 0, height: 1 },
-                                            shadowOpacity: 0.1,
-                                            shadowRadius: 2,
-                                            elevation: 2, 
-                                        }}
-                                    >
-                                        <Text style={{ fontSize: 14, fontFamily: Fonts.Inter.Basic, fontWeight: '500', color: Colors.black }}>
-                                            {passion}
-                                        </Text>
-                                    </View>
-                                ))}
-                            </View>
-                        </Animated.View>
-                    </PanGestureHandler>
-                }
+                )}
             </View>
             <View
                 style={{

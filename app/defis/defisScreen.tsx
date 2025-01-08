@@ -36,7 +36,9 @@ export default function Defis() {
     return (
         <View style={styles.loadingContainer}>
           <Header refreshFunction={undefined} disableRefresh={undefined} />
-          <ActivityIndicator size="large" color={Colors.gray} />
+            <View style={{ width: '100%', flex: 1, backgroundColor: Colors.white, justifyContent: 'center', alignItems: 'center', }}>
+                <ActivityIndicator size="large" color={Colors.gray} />
+            </View>
         </View>
     );
   }
@@ -47,7 +49,7 @@ export default function Defis() {
 
   return (
       <View style={styles.container}>
-        <Header refreshFunction={undefined} disableRefresh={undefined} />
+        <Header refreshFunction={fetchChallenges} disableRefresh={undefined} />
         <View style={styles.headerContainer}>
           <BoutonRetour previousRoute={"homeNavigator"} title={"Défis"} />
         </View>

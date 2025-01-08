@@ -1,10 +1,12 @@
 import React from "react";
-import { View, Text } from "react-native"; 
+import { View, Text, TouchableOpacity } from "react-native"; 
 import { Colors, Fonts } from "@/constants/GraphSettings";
+import { useNavigation } from "@react-navigation/native";
 import Header from "../header";
 
 //@ts-ignore
 export default function ErrorScreen({ error }) {
+  const navigation = useNavigation();
   return (
     <View
       style={{
@@ -63,6 +65,27 @@ export default function ErrorScreen({ error }) {
         >
           Si l'erreur persiste, merci de contacter Louise Caignaert ou Mathis Delmaere
         </Text>
+        <TouchableOpacity
+            onPress={()=>navigation.goBack()}
+            style={{
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                backgroundColor: Colors.orange,
+                borderRadius: 8,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+        >
+            <Text
+                style={{
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: '600',
+                }}
+            >
+                Retour
+            </Text>
+          </TouchableOpacity>
       </View>
     </View>
   );

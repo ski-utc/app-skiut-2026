@@ -23,7 +23,6 @@ export default function HomeScreen() {
       try {
         setLoading(true);
         const response = await apiGet("random-data"); // Récupération des données
-        console.log(response);
         setData(response.data);
       } catch (err) {
         setError(err as Error);

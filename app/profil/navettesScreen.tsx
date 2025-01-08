@@ -72,14 +72,16 @@ export default function NavettesScreen() {
         return (
             <View style={styles.loadingContainer}>
                 <Header refreshFunction={undefined} disableRefresh={undefined} />
-                <ActivityIndicator size="large" color={Colors.gray} />
+                <View style={{width: '100%', flex: 1, backgroundColor: Colors.white, justifyContent: 'center', alignItems: 'center',}}>
+                    <ActivityIndicator size="large" color={Colors.gray} />
+                </View>
             </View>
         );
     }
 
     return (
         <View style={styles.container}>
-            <Header refreshFunction={undefined} disableRefresh={undefined} />
+            <Header refreshFunction={fetchNavettes} disableRefresh={undefined} />
             <View style={styles.content}>
                 <BoutonRetour previousRoute="ProfilScreen" title="Navettes" />
                 <NavettesTab navettesMap={navettesMap} defaultType={defaultType} />

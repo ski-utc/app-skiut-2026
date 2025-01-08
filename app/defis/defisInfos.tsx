@@ -19,22 +19,23 @@ const DefisInfos = () => {
   const [mediaHeights, setMediaHeights] = useState({});
   const [loading, setLoading] = useState(true);
 
+  const fetchProofs = async () => {
+    try {
+      const { success, data, message } = await apiGet(`challenges/${route.params.id}/proofs`);
+      success
+          ? setProofs(data) // Si la requête réussit, stocke les preuves récupérées
+          : Alert.alert('Erreur', message || 'Impossible de récupérer les preuves.');
+    } catch {
+      Alert.alert('Erreur', 'Une erreur est survenue.');
+    } finally {
+      setLoading(false); // Met fin à l'état de chargement
+    }
+  };
+
   // Chargement des preuves associées au défi à partir de l'API au chargement du composant
   useEffect(() => {
-    const fetchProofs = async () => {
-      try {
-        const { success, data, message } = await apiGet(`challenges/${route.params.id}/proofs`);
-        success
-            ? setProofs(data) // Si la requête réussit, stocke les preuves récupérées
-            : Alert.alert('Erreur', message || 'Impossible de récupérer les preuves.');
-      } catch {
-        Alert.alert('Erreur', 'Une erreur est survenue.');
-      } finally {
-        setLoading(false); // Met fin à l'état de chargement
-      }
-    };
     fetchProofs();
-  }, []);
+  }, [])
 
   // Calcule dynamiquement la hauteur des médias pour maintenir leur proportion
   const calculateMediaHeight = (id, width, height) => {
@@ -86,7 +87,7 @@ const DefisInfos = () => {
   return (
       <View style={styles.container}>
         {/* Entête */}
-        <Header refreshFunction={undefined} disableRefresh={undefined} />
+        <Header refreshFunction={fetchProofs} disableRefresh={undefined} />
         <View style={styles.boutonRetourContainer}>
           <BoutonRetour previousRoute="defisScreen" title={title} />
         </View>

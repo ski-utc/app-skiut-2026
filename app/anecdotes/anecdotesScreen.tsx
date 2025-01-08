@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, ActivityIndicator } from 'react-native';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import Header from '../../components/header';
 import Banner from '@/components/divers/bannièreReponse';
 import { useUser } from '@/contexts/UserContext';
@@ -56,8 +56,13 @@ export default function AnecdotesScreen() {
   };
 
   useEffect(() => {
+    const loadAsyncFonts = async () => {
+      await loadFonts();
+    };
+    loadAsyncFonts();
+
     fetchAnecdotes();
-  },[]);
+  }, []);
 
   const handleLoadMore = () => {
     if (hasMoreData && !loading && !loadingMore) {
@@ -66,10 +71,8 @@ export default function AnecdotesScreen() {
     }
   };
 
-  if(error!='') {
-    return(
-      <ErrorScreen error={error}/>
-    )
+  if (error != '') {
+    return <ErrorScreen error={error} />;
   }
 
   if (loading) {
@@ -84,7 +87,7 @@ export default function AnecdotesScreen() {
           justifyContent: 'center',
         }}
       >
-        <Header/>
+        <Header />
         <View
           style={{
             width: '100%',

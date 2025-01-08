@@ -5,13 +5,36 @@ import React, { useState, useEffect } from "react";
 import { apiGet } from "@/constants/api/apiCalls";
 import WidgetBanal from "@/components/home/WidgetBanal";
 import {useNavigation} from "@react-navigation/native";
+import { useUser } from "@/contexts/UserContext";
 
 export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState('');
   const [data, setData] = useState<any>(null); // Stocke les données récupérées
 
   const navigation = useNavigation();
+  const { setUser } = useUser();
+
+  const fetchData = async () => {
+    setLoading(true);
+
+    try {
+      const response = await apiGet("random-data"); // Récupération des données
+      if (response.success) {
+        setData(response.data);
+      } else {
+        setError(response.message);
+      }
+    } catch (error) {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        setUser(null);
+      } else {
+        setError(error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const loadAsyncFonts = async () => {
@@ -19,28 +42,10 @@ export default function HomeScreen() {
     };
     loadAsyncFonts();
 
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await apiGet("random-data"); // Récupération des données
-        setData(response.data);
-      } catch (err) {
-        setError(err as Error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
-
-    const intervalId = setInterval(() => {
-      fetchData().catch((err) => setError(err));
-    }, 300000);
-
-    return () => clearInterval(intervalId);
   }, []);
 
-  if (error) {
+  if (error!='') {
     return (
         <View style={styles.container}>
           <Header refreshFunction={undefined} disableRefresh={undefined} />
@@ -58,12 +63,29 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-        <View style={styles.container}>
-          <Header refreshFunction={undefined} disableRefresh={undefined} />
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={Colors.black} />
-          </View>
+      <View
+        style={{
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Header/>
+        <View
+          style={{
+            width: '100%',
+            flex: 1,
+            backgroundColor: Colors.white,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <ActivityIndicator size="large" color={Colors.gray} />
         </View>
+      </View>
     );
   }
 
@@ -95,7 +117,7 @@ export default function HomeScreen() {
 
           { data.randomChallenge ? 
           <WidgetBanal
-              title="Valide ce défi si ce n'est pas déjà fait!"
+              title="Il reste des défis que tu n'as pas encore fait !"
               subtitles={[{ text: data.randomChallenge }]}
               backgroundColor={Colors.orange}
               textColor={Colors.white}
@@ -124,6 +146,7 @@ export default function HomeScreen() {
               ]}
               backgroundColor={Colors.orange}
               textColor={Colors.white}
+              onPress={null}
           />
 
         </View>

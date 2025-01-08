@@ -18,7 +18,7 @@ export default function SkinderProfil() {
     description: '',
     passions: ['', '', '', '', '', ''],
   });
-  const [profileImage, setProfileImage] = useState('');
+  const [profileImage, setProfileImage] = useState('https://icon-library.com/images/upload-icon-png/upload-icon-png-16.jpg');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { setUser } = useUser();
@@ -42,7 +42,7 @@ export default function SkinderProfil() {
           description: response.data.description,
           passions: [...Array(6)].map((_, i) => passions[i] || ''),
         });
-        setProfileImage(response.data.image || "https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png");
+        setProfileImage(response.data.image || "https://icon-library.com/images/upload-icon-png/upload-icon-png-16.jpg");
       } else {
         setError(response.message || "Erreur lors de la récupération du profil.");
       }
@@ -240,6 +240,7 @@ export default function SkinderProfil() {
                   source={{ uri: `${profileImage}?timestamp=${new Date().getTime()}` }} 
                   style={{ width: '90%', aspectRatio: '1/1', borderRadius: 25, borderWidth: 1, borderColor: Colors.gray }}
                   resizeMode="cover"
+                  onError={() => setProfileImage("https://cdn.icon-icons.com/icons2/3812/PNG/512/upload_file_icon_233420.png")}
               />
             </TouchableOpacity>
           </View>

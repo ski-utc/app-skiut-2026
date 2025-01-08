@@ -10,13 +10,13 @@ interface BoutonGestionProps {
     subtitleStyle?: object; // Allow custom styles for subtitle
     nextRoute: string;
     id: Int16Array;
+    valide:boolean;
 }
 
-const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, subtitleStyle, nextRoute, id }) => {
+const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, subtitleStyle, nextRoute, id, valide }) => {
     const navigation = useNavigation();
 
     const handleGestionClick = () => {
-        console.log(`${nextRoute} clicked`);
         navigation.navigate(nextRoute, { id });  // Pass only the ID
     };
 
@@ -28,6 +28,7 @@ const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, subtitle
                     <Text style={[styles.subtitleText, subtitleStyle]}>{subtitle}</Text>
                 </View>
             </View>
+            <View style={{height:8, width:8, borderRadius:100, backgroundColor: valide? 'green' : 'orange'}}></View>
             <ChevronRight size={20} color={Colors.black} />
         </TouchableOpacity>
     );

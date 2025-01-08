@@ -54,12 +54,19 @@ export default function AnecdotesForm() {
     }
   };
 
+  useEffect(() => {
+    const loadAsyncFonts = async () => {
+      await loadFonts();
+    };
+    loadAsyncFonts();
+  }, []);
+
   const handleCheckboxPress = () => {
     setChecked(!isChecked);
     Keyboard.dismiss(); // Dismiss the keyboard when the checkbox is clicked
   };
 
-  if (error !== '') {
+  if (error != '') {
     return (
       <ErrorScreen error={error} />
     );

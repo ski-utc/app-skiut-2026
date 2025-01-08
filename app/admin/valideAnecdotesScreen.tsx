@@ -4,15 +4,16 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { X, Check } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiPost, apiGet } from '@/constants/api/apiCalls'; // Assurez-vous d'importer l'appel API
 import ErrorScreen from '@/components/pages/errorPage';
+import { useUser } from '@/contexts/UserContext';
 
 export default function ValideAnecdotes() {
   const route = useRoute();
   const { id } = route.params; // Récupération de l'ID de l'anecdote
-  console.log('Anecdote ID:', id);
+  const {setUser} = useUser();
 
   const [anecdoteDetails, setAnecdoteDetails] = useState(null);
   const [nbLikes, setNbLikes] = useState(null);
@@ -21,12 +22,10 @@ export default function ValideAnecdotes() {
   const [error, setError] = useState('');
   const [anecdoteStatus, setAnecdoteStatus] = useState(null); // État pour le statut de validation
   const [disableRefresh, setDisableRefresh] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
 
   // Fonction pour récupérer les détails de l'anecdote
-  const fetchAnecdoteDetails = async (incrementalLoad = false) => {
-    if (!incrementalLoad) setLoading(true);
-    else setLoadingMore(true);
+  const fetchAnecdoteDetails = async () => {
+    setLoading(true);
     setDisableRefresh(true);
     try {
       const response = await apiGet(`getAnecdoteDetails/${id}`);
@@ -35,16 +34,17 @@ export default function ValideAnecdotes() {
         setNbLikes(response.nbLikes);
         setNbWarns(response.nbWarns);
         setAnecdoteStatus(response.data.valid); // Assurez-vous de récupérer et stocker le statut
-
-        console.log('isValid', response.data.valid);
       } else {
         setError('Erreur lors de la récupération des détails de l\'anecdote');
       }
-    } catch (err) {
-      setError('Erreur lors de la récupération des détails');
+    } catch (error) {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        setUser(null);
+      } else {
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
-      setLoadingMore(false);
       setTimeout(() => {
         setDisableRefresh(false); 
       }, 5000); 
@@ -53,7 +53,6 @@ export default function ValideAnecdotes() {
 
   // Fonction pour valider ou invalider l'anecdote
   const handleValidation = async (isValid) => {
-    console.log('va valider:', isValid);
     setLoading(true);
     try {
       const response = await apiPost(`updateAnecdoteStatus/${id}/${isValid}`);
@@ -64,28 +63,59 @@ export default function ValideAnecdotes() {
           valid: isValid,
         }));
         await fetchAnecdoteDetails(); // Recharger les détails de l'anecdote après la mise à jour
+      } else {
+        setError(response.message);
       }
-    } catch (err) {
-      setError('Erreur lors de la mise à jour du statut');
+    } catch (error) {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        setUser(null);
+      } else {
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchAnecdoteDetails(); // Charger les détails de l'anecdote au chargement
-  }, [id]);
+    const loadAsyncFonts = async () => {
+      await loadFonts();
+    };
+    loadAsyncFonts();
+
+    fetchAnecdoteDetails();
+  }, []);
+
+  if (error != '') {
+    return <ErrorScreen error={error} />;
+  }
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="gray" />
+      <View
+        style={{
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Header />
+        <View
+          style={{
+            width: '100%',
+            flex: 1,
+            backgroundColor: Colors.white,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <ActivityIndicator size="large" color={Colors.gray} />
+        </View>
       </View>
     );
-  }
-
-  if (error) {
-    return <ErrorScreen error={error} />;
   }
 
   return (

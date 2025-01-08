@@ -1,7 +1,7 @@
 import { Text, View, ScrollView } from "react-native";
 import Header from "../../components/header";
 import React from 'react';
-import { Colors } from '@/constants/GraphSettings';
+import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import RectanglePodium from '@/components/classement/rectanglePodium';
 import RectangleReste from '@/components/classement/rectangleReste';

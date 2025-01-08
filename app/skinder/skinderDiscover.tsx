@@ -180,8 +180,12 @@ export default function SkinderDiscover() {
     };
 
     useEffect(() => {
-        fetchProfil();
-    }, []);
+        const unsubscribe = navigation.addListener('focus', () => {
+            fetchProfil();
+          });
+      
+        return unsubscribe;
+    }, [navigation]);
 
     if (error !== '') {
         return <ErrorScreen error={error} />;

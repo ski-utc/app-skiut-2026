@@ -3,14 +3,13 @@ import { Text, Image } from "react-native";
 import Header from "../../components/header";
 import React, { useState, useEffect } from "react";
 import BoutonProfil from "../../components/profil/boutonProfil";
-import { Fonts, Colors } from "@/constants/GraphSettings";
+import { Fonts, Colors, loadFonts } from "@/constants/GraphSettings";
 import { Phone, PhoneCall, Map, MapPin, Gauge, Bus, UserRoundCheck, Heart } from 'lucide-react-native';
 import { useUser } from "@/contexts/UserContext";
 import * as config from '../../constants/api/apiConfig';
 import WebView from "react-native-webview";
-import Admin from "../admin/adminScreen";
 import { apiGet } from '@/constants/api/apiCalls';
-
+import ErrorScreen from "@/components/pages/errorPage";
 
 const LogoutButton: React.FC<{ setShowLogoutWebView: React.Dispatch<React.SetStateAction<boolean>> }> = ({ setShowLogoutWebView }) => {
     const { logout } = useUser();
@@ -89,10 +88,18 @@ export default function Profil() {
     };
 
     useEffect(() => {
+        const loadAsyncFonts = async () => {
+            await loadFonts();
+          };
+          loadAsyncFonts();
         if (user) {
-            fetchUserData(); // Fetch data when user is available
+            fetchUserData();
         }
     }, [user]);
+
+    if (error != '') {
+        return <ErrorScreen error={error} />;
+      }
 
     if (showLogoutWebview) {
         return (

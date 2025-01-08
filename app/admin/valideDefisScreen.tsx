@@ -4,28 +4,27 @@ import { useRoute } from '@react-navigation/native';
 import { X, Check } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiPost, apiGet } from '@/constants/api/apiCalls'; // Import the API calls
 import ErrorScreen from '@/components/pages/errorPage';
+import { useUser } from '@/contexts/UserContext';
 
 export default function ValideDefis() {
   const route = useRoute();
   const { id } = route.params; // Récupération de l'ID de l'anecdote
-  console.log('Challenge ID:', id);
-
+  const {setUser} = useUser();
+  
   const [challengeDetails, setChallengeDetails] = useState(null);
   const [challengeStatus, setChallengeStatus] = useState(null); // État pour le statut de validation
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
 
   // Fetch challenge details
-  const fetchChallengeDetails = async (incrementalLoad = false) => {
-    if (!incrementalLoad) setLoading(true);
-    else setLoadingMore(true);
+  const fetchChallengeDetails = async () => {
+    setLoading(true);
     setDisableRefresh(true);
     try {
       const response = await apiGet(`getChallengeDetails/${id}`);
@@ -34,11 +33,14 @@ export default function ValideDefis() {
       } else {
         setError('Erreur lors de la récupération des détails du défi');
       }
-    } catch (err) {
-      setError('Erreur lors de la récupération des détails');
+    } catch (error) {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        setUser(null);
+      } else {
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
-      setLoadingMore(false);
       setTimeout(() => {
         setDisableRefresh(false); 
       }, 5000);
@@ -57,28 +59,59 @@ export default function ValideDefis() {
           valid: isValid,
         }));
         await fetchChallengeDetails(); // Reload challenge details after update
+      } else {
+        setError(response.message);
       }
-    } catch (err) {
-      setError('Erreur lors de la mise à jour du statut');
+    } catch (error) {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        setUser(null);
+      } else {
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchChallengeDetails(); // Load challenge details on component mount
-  }, [id]);
+    const loadAsyncFonts = async () => {
+      await loadFonts();
+    };
+    loadAsyncFonts();
+
+    fetchChallengeDetails();
+  }, []);
+
+  if (error != '') {
+    return <ErrorScreen error={error} />;
+  }
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="gray" />
+      <View
+        style={{
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Header />
+        <View
+          style={{
+            width: '100%',
+            flex: 1,
+            backgroundColor: Colors.white,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <ActivityIndicator size="large" color={Colors.gray} />
+        </View>
       </View>
     );
-  }
-
-  if (error) {
-    return <ErrorScreen error={error} />;
   }
 
   return (

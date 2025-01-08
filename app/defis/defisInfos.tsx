@@ -7,7 +7,7 @@ import { LandPlot, Check, Trash } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { apiGet, apiPost } from "@/constants/api/apiCalls";
-import { Colors } from '@/constants/GraphSettings';
+import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 
 const DefisInfos = () => {
   // Récupération des paramètres de la route, notamment le titre et l'état du défi

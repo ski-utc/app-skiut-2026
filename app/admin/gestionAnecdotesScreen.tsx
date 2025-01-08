@@ -5,40 +5,39 @@ import Header from '../../components/header';
 import BoutonMenu from '@/components/admins/boutonMenu';
 import BoutonGestion from '@/components/admins/boutonGestion';
 import { apiGet } from '@/constants/api/apiCalls';
-import { useNavigation } from '@react-navigation/native';
 import ErrorScreen from '@/components/pages/errorPage';
+import { useUser } from '@/contexts/UserContext';
+import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 
 const GestionAnecdotesScreen = () => {
-  const navigation = useNavigation();
-
   const [anecdotes, setAnecdotes] = useState([]);
   const [filteredAnecdotes, setFilteredAnecdotes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  
-  const fetchAdminAnecdotes = async (incrementalLoad = false) => {
-    if (!incrementalLoad) setLoading(true);
-    else setLoadingMore(true);
+
+  const { setUser } = useUser();
+
+  const fetchAdminAnecdotes = async () => {
+    setLoading(true);
     setDisableRefresh(true);
+
     try {
       const response = await apiGet('getAdminAnecdotes');
       if (response.success) {
         setAnecdotes(response.data);
         setFilteredAnecdotes(response.data);
-        console.log('Anecdotes:', response.data);
       } else {
-        setError('Erreur lors de la récupération des anecdotes');
+        setError(response.message);
       }
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        setUser(null);
+      } else {
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
-      setLoadingMore(false);
-      setTimeout(() => {
-        setDisableRefresh(false); 
-      }, 5000);
     }
   };
 
@@ -57,17 +56,42 @@ const GestionAnecdotesScreen = () => {
   };
 
   useEffect(() => {
+    const loadAsyncFonts = async () => {
+      await loadFonts();
+    };
+    loadAsyncFonts();
+
     fetchAdminAnecdotes();
   }, []);
 
-  if (error !== '') {
+  if (error != '') {
     return <ErrorScreen error={error} />;
   }
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="gray" />
+      <View
+        style={{
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Header />
+        <View
+          style={{
+            width: '100%',
+            flex: 1,
+            backgroundColor: Colors.white,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <ActivityIndicator size="large" color={Colors.gray} />
+        </View>
       </View>
     );
   }
@@ -81,7 +105,7 @@ const GestionAnecdotesScreen = () => {
 
       <View>
         <BoutonMenu
-          first="Toutes les anecdotes"
+          first="Toutes"
           second="En attente"
           third="Signalées"
           onFirstClick={() => handleFilter('all')}
@@ -95,11 +119,12 @@ const GestionAnecdotesScreen = () => {
         data={filteredAnecdotes}
         renderItem={({ item }) => (
             <BoutonGestion
-            title={`Anecdote: ${item.id}`}  // Afficher le titre de l'anecdote
-            subtitle={`Auteur: ${item?.user?.firstName} ${item?.user?.lastName || 'Nom inconnu'}`}
-            subtitleStyle={undefined}
-            nextRoute="valideAnecdotesScreen"
-            id={item.id}  // Passer l'ID de l'anecdote
+              title={`Anecdote: ${item.id}`}  // Afficher le titre de l'anecdote
+              subtitle={`Auteur: ${item?.user?.firstName} ${item?.user?.lastName || 'Nom inconnu'}`}
+              subtitleStyle={undefined}
+              nextRoute="valideAnecdotesScreen"
+              id={item.id}  // Passer l'ID de l'anecdote
+              valide={item.valid}
             />
         )}
         keyExtractor={(item) => item.id.toString()}
@@ -127,7 +152,6 @@ const styles = StyleSheet.create({
   },
   list: {
     width: '100%',
-    marginTop: 20,
     flex: 1,  // Important pour permettre le défilement de la liste
   },
   loadingContainer: {
@@ -139,6 +163,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: 'gray',
     fontSize: 16,
+    marginTop:20
   },
 });
 

@@ -5,44 +5,85 @@ import { Trophy } from 'lucide-react-native';
 import BoutonNavigation from "@/components/divers/boutonNavigation";
 import BoutonRetour from "@/components/divers/boutonRetour";
 import BoutonDefi from "@/components/defis/boutonDefi";
-import { Colors } from "@/constants/GraphSettings";
+import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import { apiGet } from "@/constants/api/apiCalls";
 import ErrorScreen from '@/components/pages/errorPage';
+import { useNavigation } from 'expo-router';
+import { useUser } from '@/contexts/UserContext';
 
 // @ts-ignore
 export default function Defis() {
   const [challenges, setChallenges] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState('');
+
+  const navigation = useNavigation();
+  const { setUser } = useUser();
 
   // Fetch challenges from the API
   const fetchChallenges = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const response = await apiGet("challenges");
-      setChallenges(response.data);
-    } catch (err) {
-      setError(err.message || "Une erreur est survenue lors de la récupération des défis.");
+      if(response.success){
+        setChallenges(response.data);
+      } else {
+        setError(response.message);
+      }
+    } catch (error) {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        setUser(null);
+      } else {
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    const loadAsyncFonts = async () => {
+      await loadFonts();
+    };
+    loadAsyncFonts();
     fetchChallenges();
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+        fetchChallenges();
+      });
+  
+    return unsubscribe;
+}, [navigation]);
 
-  if (loading) {
-    return (
-        <View style={styles.loadingContainer}>
-          <Header refreshFunction={undefined} disableRefresh={undefined} />
-          <ActivityIndicator size="large" color={Colors.gray} />
-        </View>
-    );
+  if (error != '') {
+    return <ErrorScreen error={error} />;
   }
 
-  if (error !== '') {
-    return <ErrorScreen error={error} />;
+  if (loading) {
+      return (
+          <View
+              style={{
+                  height: '100%',
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+              }}
+          >
+              <Header />
+              <View
+                  style={{
+                      width: '100%',
+                      flex: 1,
+                      backgroundColor: Colors.white,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                  }}
+              >
+                  <ActivityIndicator size="large" color={Colors.gray} />
+              </View>
+          </View>
+      );
   }
 
   return (

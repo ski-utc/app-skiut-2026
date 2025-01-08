@@ -1,29 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { X, Trash, Check } from 'lucide-react-native'; // Import Check icon
+import { Trash, Check } from 'lucide-react-native'; // Import Check icon
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
+import { useUser } from '@/contexts/UserContext';
 
 export default function ValideNotifications() {
   const route = useRoute();
   const { id } = route.params; // Get the notification ID from route params
-  console.log('Notification ID:', id);
+  const {setUser} = useUser();
 
   const [notificationDetails, setNotificationDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
 
   // Fetch notification details
-  const fetchNotificationDetails = async (incrementalLoad = false) => {
-    if (!incrementalLoad) setLoading(true);
-    else setLoadingMore(true);
+  const fetchNotificationDetails = async () => {
+    setLoading(true);
     setDisableRefresh(true);
     try {
       const response = await apiGet(`getNotificationDetails/${id}`);
@@ -32,11 +31,14 @@ export default function ValideNotifications() {
       } else {
         setError('Erreur lors de la récupération des détails de la notification');
       }
-    } catch (err) {
-      setError('Erreur lors de la récupération des détails');
+    } catch (error) {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        setUser(null);
+      } else {
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
-      setLoadingMore(false);
       setTimeout(() => {
         setDisableRefresh(false); 
       }, 5000);
@@ -50,28 +52,59 @@ export default function ValideNotifications() {
       const response = await apiPost(`deleteNotification/${id}/${deleteFlag}`);
       if (response.success) {
         fetchNotificationDetails(); // Refresh the details after successful operation
+      } else {
+        setError(response.message);
       }
-    } catch (err) {
-      setError('Erreur lors de la mise à jour de la notification');
+    } catch (error) {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        setUser(null);
+      } else {
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchNotificationDetails(); // Load notification details on component mount
-  }, [id]);
+    const loadAsyncFonts = async () => {
+      await loadFonts();
+    };
+    loadAsyncFonts();
+
+    fetchNotificationDetails();
+  }, []);
+
+  if (error != '') {
+    return <ErrorScreen error={error} />;
+  }
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="gray" />
+      <View
+        style={{
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Header />
+        <View
+          style={{
+            width: '100%',
+            flex: 1,
+            backgroundColor: Colors.white,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <ActivityIndicator size="large" color={Colors.gray} />
+        </View>
       </View>
     );
-  }
-
-  if (error) {
-    return <ErrorScreen error={error} />;
   }
 
   return (

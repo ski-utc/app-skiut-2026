@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard, Pressable } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
@@ -62,17 +62,39 @@ export default function NotificationsForm() {
     Keyboard.dismiss(); // Dismiss the keyboard when the checkbox is clicked
   };
 
-  if (error !== '') {
-    return (
-      <ErrorScreen error={error} />
-    );
+  useEffect(() => {
+    const loadAsyncFonts = async () => {
+      await loadFonts();
+    };
+    loadAsyncFonts();
+  }, []);
+
+  if (error != '') {
+    return <ErrorScreen error={error} />;
   }
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View
+        style={{
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <Header />
-        <View style={{ width: '100%', flex: 1, backgroundColor: Colors.white, justifyContent: "center", alignItems: "center" }}>
+        <View
+          style={{
+            width: '100%',
+            flex: 1,
+            backgroundColor: Colors.white,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
           <ActivityIndicator size="large" color={Colors.gray} />
         </View>
       </View>

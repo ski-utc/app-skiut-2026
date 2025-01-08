@@ -108,7 +108,7 @@ export default function AnecdotesForm() {
               color={isChecked ? Colors.orange : undefined}
             />
             <Text style={{ color: Colors.black, fontSize: 12, fontFamily: Fonts.Inter.Basic, fontWeight: '500', paddingRight: 20 }}>
-              En postant ce potin, je certifie qu’il respecte les autres participant.e.s du voyage
+              En postant cette anecdote, je certifie qu’il respecte les autres participant.e.s du voyage
             </Text>
           </View>
         </View>
@@ -118,7 +118,7 @@ export default function AnecdotesForm() {
             disabled={!isChecked || loading || text.trim().length <= 5}
             onPress={handleSendAnecdote}
           >
-            <Text style={{ color: 'white', fontSize: 14, fontFamily: Fonts.Inter.Basic, fontWeight: '600' }}>Poster mon potin</Text>
+            <Text style={{ color: 'white', fontSize: 14, fontFamily: Fonts.Inter.Basic, fontWeight: '600' }}>Poster mon anecdote</Text>
             <Send size={20} color={Colors.white} />
           </TouchableOpacity>
         </View>

@@ -20,7 +20,7 @@ export default function NotificationPopup({ visible, onClose }) {
     try {
       const response = await apiGet('getNotifications');
       if (response.success) {
-        setNotifications(response.data); 
+        setNotifications(response.data.filter((item) => !item.delete));
       } else {
         setError('Une erreur est survenue lors de la récupération des notifications');
       }
@@ -340,7 +340,7 @@ export default function NotificationPopup({ visible, onClose }) {
               Notifications
             </Text>
           </View>
-
+          {notifications.length > 0 ? (
           <FlatList
             data={notifications}
             renderItem={({ item }) => (
@@ -373,7 +373,7 @@ export default function NotificationPopup({ visible, onClose }) {
                     color: Colors.gray,
                   }}
                 >
-                  {item.text}
+                  {item.description}
                 </Text>
               </View>
             )}
@@ -381,7 +381,25 @@ export default function NotificationPopup({ visible, onClose }) {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 20 }}
           />
-
+          ) : (
+            <View
+              style={{
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '80%'
+              }}
+            >
+              <Text 
+                  style={{
+                    fontSize: 14,
+                    fontFamily: Fonts.Inter.Basic,
+                    color: Colors.gray,
+                  }}
+                >
+                  Il n'y a rien ici pour le moment
+                </Text>
+              </View>
+            )}          
           <View
             style={{
               marginTop: 15,

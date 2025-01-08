@@ -13,6 +13,7 @@ import ProfilNavigator from './profilNavigator';
 import LoginNavigator from './loginNavigator';
 import CustomNavBar from '../components/navigation/customNavBar';
 import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react-native';
+import { loadFonts } from '@/constants/GraphSettings';
 
 const Tab = createBottomTabNavigator();
 
@@ -31,10 +32,14 @@ function Content() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const loadAsyncFonts = async () => {
+      await loadFonts();
+    };
+    loadAsyncFonts();
+    
     const timer = setTimeout(() => {
       setIsLoading(false); 
-    },200); 
-
+    },50); 
     return () => clearTimeout(timer);
   }, []);
 

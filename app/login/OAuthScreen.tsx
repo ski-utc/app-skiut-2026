@@ -1,23 +1,24 @@
 import React, { useState } from "react";
-import { View, Text } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { WebView } from "react-native-webview";
 import * as Linking from "expo-linking";
 import * as SecureStore from "expo-secure-store";
 import { useUser } from "@/contexts/UserContext";
 import * as config from "../../constants/api/apiConfig";
 import { apiGet } from "@/constants/api/apiCalls";
-import ErrorScreen from "@/components/pages/errorPage";
+import { Colors, Fonts } from "@/constants/GraphSettings";
+import { useNavigation } from '@react-navigation/native';
 
 export default function OAuthScreen() {
   const { setUser } = useUser();
+  const navigation = useNavigation();
   const [error, setError] = useState('');
   const [canEnter, setCanEnter] = useState(true);
+  const [isWebViewVisible, setWebViewVisible] = useState(true);
 
   const handleNavigationStateChange = async (state: any) => {
     const url = state.url;
     const { hostname, path, queryParams } = Linking.parse(url);
-
-    console.log(url);
 
     if (canEnter && hostname === config.DOMAIN && path === "skiutc/api/connected") {
       setCanEnter(false);
@@ -38,40 +39,118 @@ export default function OAuthScreen() {
               name: response.name,
               lastName: response.lastName,
               room: response.room,
+              roomName: response.roomName,
               admin: response.admin
             });
           } else {
+            setWebViewVisible(false);
             setError(`Une erreur est survenue lors de la récupération du user : ${response.message}`);
           }
-        } catch (error) {
-          if (error.JWT_ERROR) {
+        } catch (err) {
+          if (err.JWT_ERROR) {
             setUser(null);
           } else {
-            setError(error.message);
+            setWebViewVisible(false);
+            setError(err.message);
           }
         }
       } else {
+        setWebViewVisible(false);
         setError("Access Token ou Refresh Token manquant")
         setCanEnter(true);
       }
+    } else if (hostname === config.DOMAIN && path === "skiutc/api/notConnected") {
+      setWebViewVisible(false);
+      const message = queryParams?.message;
+      setError(message);
     }
   };
 
   if(error!='') {
     return(
-      <ErrorScreen error={error}/>
+      <View
+      style={{
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Text
+        style={{
+          color: Colors.black,
+          fontSize: 32,
+          fontFamily: Fonts.Inter.Basic,
+          fontWeight: "800",
+          padding: 10,
+          textAlign: "center",
+        }}
+      >
+        Une erreur est survenue...
+      </Text>
+      <Text
+        style={{
+          color: Colors.black,
+          fontSize: 20,
+          fontFamily: Fonts.Inter.Basic,
+          fontWeight: "400",
+          padding: 10,
+          paddingBottom: 32,
+          textAlign: "center",
+        }}
+      >
+        {error}
+      </Text>
+      <Text
+        style={{
+          color: Colors.black,
+          fontSize: 16,
+          fontFamily: Fonts.Inter.Italic,
+          fontWeight: "400",
+          padding: 16,
+          textAlign: "center",
+        }}
+      >
+        Si l'erreur persiste, merci de contacter Louise Caignaert ou Mathis Delmaere
+      </Text>
+      <TouchableOpacity
+          onPress={() => { navigation.goBack(); }}
+          style={{
+            width: '90%',
+            alignSelf: 'center',
+            backgroundColor: Colors.orange,
+            paddingVertical: 15,
+            marginVertical: 16,
+            borderRadius: 8,
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{
+            fontSize: 16,
+            fontWeight: '600',
+            color: Colors.white,
+          }}>
+            Retour
+          </Text>
+      </TouchableOpacity>
+    </View>
     )
   }
 
   return (
     <View style={{ flex: 1 }}>
-      <WebView
-        source={{ uri: `${config.BASE_URL}/auth/login` }}
-        originWhitelist={["*"]}
-        style={{ flex: 1 }}
-        onNavigationStateChange={handleNavigationStateChange}
-        incognito={true}
-      />
+      {isWebViewVisible && (
+        <WebView
+          source={{ uri: `${config.BASE_URL}/auth/login` }}
+          originWhitelist={["*"]}
+          style={{ flex: 1 }}
+          onNavigationStateChange={handleNavigationStateChange}
+          incognito={true}
+          show
+        />
+      )}
     </View>
   );
 }

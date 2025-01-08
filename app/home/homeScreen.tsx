@@ -23,6 +23,7 @@ export default function HomeScreen() {
       try {
         setLoading(true);
         const response = await apiGet("random-data"); // Récupération des données
+        console.log(response);
         setData(response.data);
       } catch (err) {
         setError(err as Error);
@@ -79,6 +80,7 @@ export default function HomeScreen() {
       <View style={styles.container}>
         <Header refreshFunction={undefined} disableRefresh={undefined} />
         <View style={styles.contentContainer}>
+          { data.closestActivity ? 
           <WidgetBanal
               title={`Prochaine activité : ${data.closestActivity.text}`}
               subtitles={[
@@ -90,14 +92,27 @@ export default function HomeScreen() {
               textColor={Colors.white}
               onPress={() => {navigation.navigate('planningNavigator')}}
           />
+          : null }
 
+          { data.randomChallenge ? 
           <WidgetBanal
               title="Valide ce défi si ce n'est pas déjà fait!"
-              subtitles={[{ text: data.randomChallenge.title }]}
+              subtitles={[{ text: data.randomChallenge }]}
               backgroundColor={Colors.orange}
               textColor={Colors.white}
               onPress={() => {navigation.navigate('defisNavigator')}}
           />
+          : null }
+
+          { data.bestAnecdote ? 
+          <WidgetBanal
+              title="L'anecdote la plus likée :"
+              subtitles={[{ text: data.bestAnecdote }]}
+              backgroundColor={'#80AEAC'}
+              textColor={Colors.white}
+              onPress={() => {navigation.navigate('anecdotesNavigator')}}
+          />
+          : null }
 
           <WidgetBanal
               title="Un bug sur l'app ? Contacte la team info !"
@@ -108,9 +123,10 @@ export default function HomeScreen() {
                   link: 'https://forms.gle/E8hhG7pDRqyfR8CS6',
                 },
               ]}
-              backgroundColor="#80AEAC"
+              backgroundColor={Colors.orange}
               textColor={Colors.white}
           />
+
         </View>
       </View>
   );

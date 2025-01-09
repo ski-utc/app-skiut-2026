@@ -110,7 +110,7 @@ export default function NavettesScreen() {
 
     return (
         <View style={styles.container}>
-            <Header refreshFunction={undefined} disableRefresh={undefined} />
+            <Header refreshFunction={fetchNavettes} disableRefresh={undefined} />
             <View style={styles.content}>
                 <BoutonRetour previousRoute="ProfilScreen" title="Navettes" />
                 <NavettesTab navettesMap={navettesMap} defaultType={defaultType} />

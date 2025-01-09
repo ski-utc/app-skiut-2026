@@ -20,7 +20,6 @@ export default function Defis() {
   const navigation = useNavigation();
   const { setUser } = useUser();
 
-  // Fetch challenges from the API
   const fetchChallenges = async () => {
     setLoading(true);
     try {
@@ -39,6 +38,16 @@ export default function Defis() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const onUpdateDefiStatus = (updatedDefiId, newStatus) => {
+    setChallenges((prevChallenges) =>
+      prevChallenges.map((challenge) =>
+        challenge.id === updatedDefiId
+          ? { ...challenge, status: newStatus }
+          : challenge
+      )
+    );
   };
 
   useEffect(() => {
@@ -95,18 +104,17 @@ export default function Defis() {
         <FlatList
             data={challenges}
             keyExtractor={(item) => item.id.toString()} // Use unique challenge ID
+            extraData={challenges}
             renderItem={({ item }) => (
                 <View>
                   <BoutonDefi
-                      nextRoute={"defisInfos"}
                       defi={{
                         id: item.id,
                         title: item.title,
-                        details: item.details,
                         points: item.nbPoints,
-                        isActive: item.isActive,
+                        status: item.status
                       }}
-                      estValide={item.estValide} // Pass estValide dynamically
+                      onUpdate={onUpdateDefiStatus}
                   />
                 </View>
             )}

@@ -5,27 +5,28 @@ import { useNavigation } from '@react-navigation/native';
 import { ChevronRight, Check } from 'lucide-react-native';
 
 interface BoutonDefiProps {
-    nextRoute: string;
     defi: {
-        id: number;
-        title: string;
-        details: string;
-        points: number;
-        isActive: boolean;
-        [key: string]: any; // Allow additional dynamic properties
+        id: number,
+        title: string,
+        points: number,
+        status: string,
+        [key: string]: any;
     };
-    estValide: boolean;
 }
 
-const BoutonDefi: React.FC<BoutonDefiProps> = ({ nextRoute, defi, estValide }) => {
+const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
     const navigation = useNavigation();
 
     const onPress = () => {
-        navigation.navigate(nextRoute, {
-            ...defi, // Spread all defi properties to pass them as parameters
-            estValide: estValide,
+        navigation.navigate("defisInfos", {
+            id: defi.id,
+            title: defi.title,
+            points: defi.points,
+            status: defi.status,
+            onUpdate
         });
     };
+    
 
     return (
         <TouchableOpacity
@@ -56,8 +57,9 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ nextRoute, defi, estValide }) =
                 }}
             >
                 <Check
-                    color={estValide ? "#05AA1F" : "#8A8A8A"}
+                    color={defi.status !== 'empty' ? (defi.status === 'done' ? 'green' : 'orange') : '#8A8A8A'}
                     size={20}
+                    strokeWidth={4}
                 />
                 <Text
                     style={{
@@ -73,7 +75,7 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ nextRoute, defi, estValide }) =
             </View>
 
             {/* Right section: Chevron icon */}
-            <ChevronRight size={20} color={Colors.black} />
+            <ChevronRight size={40} color={Colors.black} />
         </TouchableOpacity>
     );
 };

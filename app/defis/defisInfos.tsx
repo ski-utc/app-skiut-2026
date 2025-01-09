@@ -1,148 +1,304 @@
-import React, { useState, useEffect } from 'react';
-import { Text, View, TouchableOpacity, StyleSheet, ScrollView, Image, Dimensions, Alert } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { Video } from "expo-av";
-import { LandPlot, Check, Trash } from 'lucide-react-native';
+import * as ImageManipulator from "expo-image-manipulator";
+import { useRoute } from '@react-navigation/native';
+import { Colors, Fonts } from '@/constants/GraphSettings';
+import { LandPlot, Trash, Check, Hourglass } from 'lucide-react-native';
 import Header from '../../components/header';
+import { useUser } from '@/contexts/UserContext';
+import { useNavigation } from '@react-navigation/native';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiGet, apiPost } from "@/constants/api/apiCalls";
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { apiPost } from '@/constants/api/apiCalls';
+import ErrorScreen from '@/components/pages/errorPage';
+import Banner from '@/components/divers/bannièreReponse';
 
-const DefisInfos = () => {
-  // Récupération des paramètres de la route, notamment le titre et l'état du défi
+export default function DefisInfos() {
   const route = useRoute();
-  const { title, estValide, points, isActive } = route.params;
+  const { id, title, points, status } = route.params;
 
-  // États pour stocker les preuves, les hauteurs dynamiques des médias, et l'état de chargement
-  const [proofs, setProofs] = useState([]);
-  const [mediaHeights, setMediaHeights] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [proofImage, setProofImage] = useState('https://cdn.icon-icons.com/icons2/3812/PNG/512/upload_file_icon_233420.png');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  // Chargement des preuves associées au défi à partir de l'API au chargement du composant
-  useEffect(() => {
-    const fetchProofs = async () => {
-      try {
-        const { success, data, message } = await apiGet(`challenges/${route.params.id}/proofs`);
-        success
-            ? setProofs(data) // Si la requête réussit, stocke les preuves récupérées
-            : Alert.alert('Erreur', message || 'Impossible de récupérer les preuves.');
-      } catch {
-        Alert.alert('Erreur', 'Une erreur est survenue.');
-      } finally {
-        setLoading(false); // Met fin à l'état de chargement
-      }
-    };
-    fetchProofs();
-  }, []);
+  const { setUser, user } = useUser();
+  const navigation = useNavigation();
 
-  // Calcule dynamiquement la hauteur des médias pour maintenir leur proportion
-  const calculateMediaHeight = (id, width, height) => {
-    const ratio = height / width; // Ratio hauteur/largeur du média
-    setMediaHeights((prev) => ({
-      ...prev,
-      [id]: Dimensions.get('window').width * ratio, // Ajuste la hauteur en fonction de la largeur de l'écran
-    }));
-  };
+  const [modifiedPicture, setModifiedPicture] = useState(false);
+  const [imageAspectRatio, setImageAspectRatio] = useState(1);
+  const [dynamicStatus, setStatus] = useState(status);
+  const [responseMessage, setResponseMessage] = useState('');
+  const [responseSuccess, setResponseSuccess] = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
 
-  // Soumission d'une nouvelle preuve via l'API
-  const handleSubmit = async () => {
+  const fetchProof = async () => {
+    setLoading(true);
     try {
-      const { canceled, assets } = await ImagePicker.launchImageLibraryAsync({ mediaTypes: 'All', quality: 0.8 });
-      if (canceled) return; // Si l'utilisateur annule, on sort
+      const response = await apiPost('challenges/getProofImage', { defiId:id });
+      if (response.success) {
+        setProofImage(response.image);
+      } else {
+        setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
+      }
+    } catch (error) {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        setUser(null);
+      } else {
+        setError(error.message || 'Erreur réseau.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
 
-      const file = assets[0]; // Récupération du fichier sélectionné
-      const formData = new FormData();
-      formData.append("file", { uri: file.uri, type: file.type, name: file.fileName });
-      formData.append("challenge_id", route.params.id); // Ajout de l'ID du défi pour lier la preuve
+  useEffect(() => {
+    if(status!='empty') {
+      fetchProof();
+    }
+  }, [status]);
 
-      await apiPost("proofs", formData, true); // Envoi du fichier à l'API
-      Alert.alert("Succès", "Ton défi va être vérifié !");
-    } catch {
-      Alert.alert("Erreur", "Impossible de publier le défi.");
+  const handleImagePick = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.status !== 'granted') {
+      Alert.alert('Permission requise', 'Nous avons besoin de votre permission pour accéder à votre galerie.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+
+    if (result.canceled) {
+      return;
+    }
+
+    try {
+      const { uri, width, height } = result.assets[0];
+      let compressQuality = 1;
+
+      let compressedImage = await ImageManipulator.manipulateAsync(
+        uri,
+        [
+          { resize: { width: width > 1080 ? 1080 : width } },
+        ],
+        { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG },
+      );
+
+      const fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
+      while (fileInfo.size > 1 * 1024 * 1024 && compressQuality > 0.1) {
+        compressQuality -= 0.1;
+        compressedImage = await ImageManipulator.manipulateAsync(
+          uri,
+          [
+            { resize: { width: width > 1080 ? 1080 : width } },
+          ],
+          { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG },
+        );
+      }
+
+      if (fileInfo.size > 1 * 1024 * 1024) {
+        Alert.alert('Erreur', 'Image trop lourde :(');
+        return;
+      }
+      setModifiedPicture(true);
+      setImageAspectRatio(width / height);
+      setProofImage(compressedImage.uri);
+    } catch (error) {
+      setError('Erreur lors de la compression de l\'image :', error);
     }
   };
 
-  // Rend une carte de preuve, incluant un média (image ou vidéo)
-  const renderProof = (proof) => {
-    const isVideo = proof.file.endsWith('.mp4') || proof.file.endsWith('.mov'); // Détection du type de média
-    const MediaComponent = isVideo ? Video : Image; // Sélectionne le composant média approprié
-    const mediaProps = isVideo
-        ? { useNativeControls: true, resizeMode: 'contain', onLoad: ({ naturalSize }) => calculateMediaHeight(proof.id, naturalSize.width, naturalSize.height) }
-        : { resizeMode: 'contain', onLoad: ({ nativeEvent }) => calculateMediaHeight(proof.id, nativeEvent.source.width, nativeEvent.source.height) };
+  const uploadImage = async (uri) => {
+    try {
+      const fileInfo = await fetch(uri).then((res) => res.blob());
 
-    return (
-        <View key={proof.id} style={styles.proofCard}>
-          <MediaComponent
-              source={{ uri: proof.file_url }}
-              style={[styles.proofMedia, { height: mediaHeights[proof.id] || 200 }]} // Utilise la hauteur calculée
-              {...mediaProps}
-          />
-          <Text style={styles.proofInfo}>Posté le : {new Date(proof.created_at).toLocaleDateString()}</Text>
-        </View>
-    );
+      if (fileInfo.size > 1 * 1024 * 1024) {
+        Alert.alert('Erreur', 'L\'image dépasse la taille maximale de 1 Mo.');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('image', {
+        uri,
+        name: `challenge_${id}_room_${user?.room}.jpg`,
+        type: 'image/jpeg',
+      });
+      formData.append('defiId',id)
+
+      const response = await apiPost('challenges/uploadProofImage', formData, true);
+      if(response.success){
+        setStatus('waiting');
+        route.params.onUpdate(id, 'waiting');
+      }
+      return response;
+    } catch (error) {
+      setError(error.message || "Erreur lors du téléversement de l'image");
+    }
   };
 
-  return (
-      <View style={styles.container}>
-        {/* Entête */}
-        <Header refreshFunction={undefined} disableRefresh={undefined} />
-        <View style={styles.boutonRetourContainer}>
-          <BoutonRetour previousRoute="defisScreen" title={title} />
-        </View>
-        {/* Informations sur le défi */}
-        <View style={styles.content}>
-          <Text style={styles.points}>Points : {points}</Text>
-          <Text style={styles.status}>Statut : {isActive ? 'Actif' : 'Inactif'}</Text>
-        </View>
-        {/* Liste des preuves */}
-        <ScrollView style={styles.proofsContainer}>
-          {loading ? (
-              <Text style={styles.loadingText}>Chargement des preuves...</Text>
-          ) : (
-              proofs.map(renderProof) // Rendu des preuves
-          )}
-        </ScrollView>
-        {/* Boutons pour valider ou soumettre */}
-        {estValide ? (
-            <View style={styles.validContainer}>
-              <View style={styles.validTextBox}>
-                <Text style={styles.validText}>Défi validé</Text>
-                <Check color="white" size={20} />
+  const handleSendDefi = async () => {
+    setLoading(true);
+
+    try {
+      const response = await uploadImage(proofImage);
+      setResponseMessage(response.message);
+      setResponseSuccess(response.success);
+    } catch (error) {
+        if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+            setUser(null);
+        } else {
+            setError(error.message || 'Erreur réseau ou serveur.');
+        }
+    } finally {
+      setShowBanner(true);
+      setLoading(false);
+      setTimeout(() => setShowBanner(false), 5000);
+    }
+  };
+
+  if (error !== '') {
+    return <ErrorScreen error={error} />;
+  }
+
+  if (loading) {
+      return (
+          <View
+              style={{
+                  height: '100%',
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+              }}
+          >
+              <Header />
+              <View
+                  style={{
+                      width: '100%',
+                      flex: 1,
+                      backgroundColor: Colors.white,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                  }}
+              >
+                  <ActivityIndicator size="large" color={Colors.gray} />
               </View>
-              <TouchableOpacity style={styles.deleteButton}>
-                <Text style={styles.deleteButtonText}>Supprimer</Text>
-                <Trash color="white" size={20} />
-              </TouchableOpacity>
-            </View>
-        ) : (
-            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-              <Text style={styles.submitButtonText}>Publier mon défi</Text>
-              <LandPlot color="white" size={20} />
-            </TouchableOpacity>
-        )}
+          </View>
+      );
+  }
+
+  return(
+    <View style={{ flex: 1, backgroundColor: 'white' }}>
+      <Banner message={responseMessage} success={responseSuccess} show={showBanner}/>
+      <Header refreshFunction={undefined} disableRefresh={undefined} />
+      <View style={{ width: '100%', paddingHorizontal: 20 }}>
+        <BoutonRetour previousRoute="defisScreen" title={title} />
       </View>
-  );
+      <View style={{ width: '100%', paddingHorizontal: 20, paddingBottom: 16 }}>
+        <Text style={{ marginTop: 20, fontSize: 24, color: 'black', fontWeight: '700' }}>Points : {points}</Text>
+      </View>
+      <View style={{ width: '100%', flexGrow: 1, marginTop: 20, justifyContent: 'center', alignContent: 'center' }}>
+          {
+            status == 'empty' ?
+            <TouchableOpacity onPress={handleImagePick} style={{ justifyContent: 'center', alignItems:'center'}}>
+              <Image
+                  source={{ uri: proofImage }} 
+                  style={{ width: '90%', aspectRatio: imageAspectRatio, borderRadius: 25, borderWidth: 1, borderColor: Colors.gray }}
+                  resizeMode="cover"
+                  onError={() => setProofImage("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
+              />
+            </TouchableOpacity>
+            :
+            <Image
+                source={{ uri: `${proofImage}?timestamp=${new Date().getTime()}` }} 
+                style={{ width: '90%', aspectRatio: imageAspectRatio, borderRadius: 25, borderWidth: 1, borderColor: Colors.gray, alignSelf:'center' }}
+                resizeMode="cover"
+                onError={() => setProofImage("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
+            />
+          }
+      </View>
+      {dynamicStatus!='empty' ? (dynamicStatus!='done' ? (
+        <View style={{ width: '100%', alignItems: 'center', paddingBottom: 20 }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: 'blue',
+              borderRadius: 8,
+              padding: 10,
+              marginBottom: 16,
+              width: '90%',
+              justifyContent: 'center',
+            }}
+          >
+            <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
+              Défi en attente
+            </Text>
+            <Hourglass color="white" size={20} />
+          </View>
+          <TouchableOpacity
+              style={{
+                width: '90%',
+                padding: 10,
+                backgroundColor: 'red',
+                borderRadius: 8,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
+                Supprimer
+              </Text>
+              <Trash color="white" size={20} />
+            </TouchableOpacity>
+        </View>
+      ) : (
+      <View style={{ width: '100%', alignItems: 'center', paddingBottom: 20 }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: 'green',
+            borderRadius: 8,
+            padding: 10,
+            marginBottom: 16,
+            width: '90%',
+            justifyContent: 'center',
+          }}
+        >
+          <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
+            Défi validé
+          </Text>
+          <Check color="white" size={20} />
+        </View>
+      </View>
+        )) : (
+        <View style={{ width: '100%', alignItems: 'center', paddingBottom: 20 }}>
+          <TouchableOpacity
+            style={{
+              width: '90%',
+              padding: 10,
+              backgroundColor: Colors.orange,
+              borderRadius: 8,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 16,
+              opacity : modifiedPicture ? 1 : 0.4
+            }}
+            onPress={handleSendDefi}
+            disabled={!modifiedPicture}
+          >
+            <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
+              Publier mon défi
+            </Text>
+            <LandPlot color="white" size={20} />
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  )
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.white, alignItems: 'center' },
-  boutonRetourContainer: { width: '100%', paddingHorizontal: 20 },
-  content: { width: '100%', flex: 0, paddingHorizontal: 20, paddingBottom: 16 },
-  points: { marginTop: 20, fontSize: 24, color: Colors.black, fontWeight: '700' },
-  status: { marginTop: 10, fontSize: 20, color: Colors.gray, fontWeight: '600' },
-  proofsContainer: { width: '100%', flexGrow: 1, paddingHorizontal: 20, marginTop: 10 },
-  proofCard: { marginBottom: 10, borderRadius: 8, borderWidth: 1, borderColor: Colors.gray, padding: 8, backgroundColor: Colors.white },
-  proofInfo: { marginTop: 4, fontSize: 14, color: Colors.black },
-  proofMedia: { width: '100%', alignSelf: 'center', borderRadius: 8 },
-  validContainer: { width: '100%', alignItems: 'center', paddingBottom: 20 },
-  validTextBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'green', borderRadius: 8, padding: 10, marginBottom: 16, width: '90%', justifyContent: 'center' },
-  validText: { color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 },
-  submitButton: { width: '90%', padding: 10, backgroundColor: Colors.orange, borderRadius: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  submitButtonText: { color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 },
-  deleteButton: { width: '90%', padding: 10, backgroundColor: 'red', borderRadius: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  deleteButtonText: { color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 },
-  loadingText: { fontSize: 16, color: Colors.gray, textAlign: 'center', marginTop: 20 },
-});
-
-export default DefisInfos;

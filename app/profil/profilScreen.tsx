@@ -8,11 +8,9 @@ import { Phone, PhoneCall, Map, MapPin, Gauge, Bus, UserRoundCheck, Heart } from
 import { useUser } from "@/contexts/UserContext";
 import * as config from '../../constants/api/apiConfig';
 import WebView from "react-native-webview";
-import { apiGet } from '@/constants/api/apiCalls';
-import ErrorScreen from "@/components/pages/errorPage";
 
 const LogoutButton: React.FC<{ setShowLogoutWebView: React.Dispatch<React.SetStateAction<boolean>> }> = ({ setShowLogoutWebView }) => {
-    const { logout } = useUser();
+    const { logout, user } = useUser();
 
     const handleLogout = () => {
         Alert.alert(
@@ -62,44 +60,13 @@ const LogoutButton: React.FC<{ setShowLogoutWebView: React.Dispatch<React.SetSta
 export default function Profil() {
     const { user } = useUser();
     const [showLogoutWebview, setShowLogoutWebView] = useState(false);
-    const [roomName, setRoomName] = useState<any>(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    // Fetch user data
-    const fetchUserData = async () => {
-        setLoading(true);
-        try {
-            const response = await apiGet("getUserData");
-            if (response.success) {
-                setRoomName(response.roomName);
-              } else {
-                setError("Une erreur est survenue lors de la récupération du planning");
-              }
-        } catch (error) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
-            } else {
-                setError(error.message || "Une erreur inattendue est survenue");
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
 
     useEffect(() => {
         const loadAsyncFonts = async () => {
             await loadFonts();
           };
           loadAsyncFonts();
-        if (user) {
-            fetchUserData();
-        }
     }, [user]);
-
-    if (error != '') {
-        return <ErrorScreen error={error} />;
-      }
 
     if (showLogoutWebview) {
         return (
@@ -165,7 +132,7 @@ export default function Profil() {
                             color: Colors.gray,
                         }}
                     >
-                        {loading ? "Chargement..." : error || `Chambre ${roomName || 'Non attribuée'}`}
+                        {`Chambre ${user?.roomName || 'Non attribuée'}`}
 
                     </Text>
                 </View>

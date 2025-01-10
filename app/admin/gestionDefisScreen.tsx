@@ -8,6 +8,7 @@ import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
+import { useNavigation } from '@react-navigation/native';
 
 const GestionDefisScreen = () => {
   const [defis, setDefis] = useState([]);
@@ -17,6 +18,7 @@ const GestionDefisScreen = () => {
   const [disableRefresh, setDisableRefresh] = useState(false);
 
   const { setUser } = useUser();
+  const navigation = useNavigation();
 
   const fetchAdminDefis = async () => {
     setLoading(true);
@@ -62,9 +64,13 @@ const GestionDefisScreen = () => {
       await loadFonts();
     };
     loadAsyncFonts();
-
     fetchAdminDefis();
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+        fetchAdminDefis();
+      });
+  
+    return unsubscribe;
+}, [navigation]);
 
   if (error != '') {
     return <ErrorScreen error={error} />;

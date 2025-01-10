@@ -47,9 +47,13 @@ const GestionNotificationsScreen = () => {
       await loadFonts();
     };
     loadAsyncFonts();
-
     fetchAdminNotifications();
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+        fetchAdminNotifications();
+      });
+  
+    return unsubscribe;
+}, [navigation]);
 
   if (error != '') {
     return <ErrorScreen error={error} />;

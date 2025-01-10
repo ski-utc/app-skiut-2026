@@ -16,12 +16,15 @@ export default function Defis() {
   const [challenges, setChallenges] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState('');
+  const [disableRefresh, setDisableRefresh] = useState(false);
 
   const navigation = useNavigation();
   const { setUser } = useUser();
 
   const fetchChallenges = async () => {
     setLoading(true);
+    setDisableRefresh(true);
+
     try {
       const response = await apiGet("challenges");
       if(response.success){
@@ -37,6 +40,9 @@ export default function Defis() {
       }
     } finally {
       setLoading(false);
+      setTimeout(() => {
+        setDisableRefresh(false); 
+      }, 5000); 
     }
   };
 
@@ -78,7 +84,7 @@ export default function Defis() {
 
   return (
       <View style={styles.container}>
-        <Header refreshFunction={fetchChallenges} disableRefresh={undefined} />
+        <Header refreshFunction={fetchChallenges} disableRefresh={disableRefresh} />
         <View style={styles.headerContainer}>
           <BoutonRetour previousRoute={"homeNavigator"} title={"Défis"} />
         </View>
@@ -131,7 +137,6 @@ const styles = StyleSheet.create({
   },
   list: {
     width: "100%",
-    marginTop: 8,
   },
   navigationContainer: {
     width: '100%',

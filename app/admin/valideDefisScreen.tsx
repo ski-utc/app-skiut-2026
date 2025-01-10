@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator } from 'react-native';
+import { Text, View, StyleSheet, ActivityIndicator, Image, Alert } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { X, Check } from 'lucide-react-native';
 import Header from '../../components/header';
@@ -9,18 +9,25 @@ import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiPost, apiGet } from '@/constants/api/apiCalls'; // Import the API calls
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
+import Banner from '@/components/divers/bannièreReponse';
+import { useNavigation } from '@react-navigation/native';
 
 export default function ValideDefis() {
   const route = useRoute();
   const { id } = route.params; // Récupération de l'ID de l'anecdote
   const {setUser} = useUser();
+  const navigation = useNavigation();
   
   const [challengeDetails, setChallengeDetails] = useState(null);
   const [challengeStatus, setChallengeStatus] = useState(null); // État pour le statut de validation
+  const [proofImage, setProofImage] = useState("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg");
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);
+  const [responseMessage, setResponseMessage] = useState('');
+  const [responseSuccess, setResponseSuccess] = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
 
   // Fetch challenge details
   const fetchChallengeDetails = async () => {
@@ -30,6 +37,7 @@ export default function ValideDefis() {
       const response = await apiGet(`getChallengeDetails/${id}`);
       if (response.success) {
         setChallengeDetails(response.data);
+        setProofImage(response.imagePath);
       } else {
         setError('Erreur lors de la récupération des détails du défi');
       }
@@ -52,6 +60,8 @@ export default function ValideDefis() {
     setLoading(true);
     try {
       const response = await apiPost(`updateChallengeStatus/${id}/${isValid}`);
+      setResponseMessage(response.message);
+      setResponseSuccess(response.success);
       if (response.success) {
         setChallengeStatus(isValid);
         setChallengeDetails((prevDetails) => ({
@@ -69,8 +79,49 @@ export default function ValideDefis() {
         setError(error.message);
       }
     } finally {
+      setShowBanner(true);
       setLoading(false);
+      setTimeout(() => setShowBanner(false), 5000);
     }
+  };
+
+  const handleRemoveDefi = async () => {
+    Alert.alert(
+      'Confirmation',
+      'Êtes-vous sûr de vouloir supprimer ce défi ?',
+      [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+        },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await apiPost('challenges/deleteproofImage', { defiId:challengeDetails.challenge_id });
+              setResponseMessage(response.message);
+              setResponseSuccess(response.success);
+              if (!response.success) {
+                setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
+              }
+            } catch (error) {
+              if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+                setUser(null);
+              } else {
+                setError(error.message || 'Erreur réseau.');
+              }
+            } finally {
+              setShowBanner(true);
+              setLoading(false);
+              setTimeout(() => setShowBanner(false), 5000);
+              setTimeout(() => navigation.goBack(), 2000);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   useEffect(() => {
@@ -116,9 +167,10 @@ export default function ValideDefis() {
 
   return (
     <View style={styles.container}>
+      <Banner message={responseMessage} success={responseSuccess} show={showBanner}/>
       <Header refreshFunction={fetchChallengeDetails} disableRefresh={disableRefresh}/>
       <View style={styles.content}>
-        <BoutonRetour previousRoute="gestionDefisScreen" title={"Gérer défis " + id} />
+        <BoutonRetour previousRoute="gestionDefisScreen" title="Gestion défis "/>
         <Text style={styles.title}>Détails du défi :</Text>
         <View style={styles.textBox}>
           <Text style={styles.text}>Status : {challengeDetails?.valid ? 'Validée' : 'En attente de validation'}</Text>
@@ -134,8 +186,13 @@ export default function ValideDefis() {
           <Text style={styles.text}>Auteur : {challengeDetails?.user?.firstName} {challengeDetails?.user?.lastName || 'Auteur inconnu'}</Text>
           <Text style={styles.text}>Défi : {challengeDetails?.challenge.title || 'Pas de description'}</Text>
         </View>
+        <Image
+          source={{ uri: `${proofImage}?timestamp=${new Date().getTime()}` }} 
+          style={{ width: '90%', aspectRatio:1, maxHeight:'100%', borderRadius: 25 }}
+          resizeMode="contain"
+          onError={() => setProofImage("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
+        />
       </View>
-
       <View style={styles.buttonContainer}>
         <View style={styles.buttonSpacing}>
           <BoutonActiver
@@ -145,12 +202,27 @@ export default function ValideDefis() {
             onPress={() => handleValidation(0)} // Invalidate the challenge
           />
         </View>
-        <BoutonActiver
-          title="Valider le défi"
-          IconComponent={Check}
-          disabled={challengeDetails.valid == 1}
-          onPress={() => handleValidation(1)} // Validate the challenge
-        />
+        <View 
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-evenly',
+            alignItems: 'center',
+            width: '100%'
+          }}
+        >
+      <BoutonActiver
+            title="Refuser le défi"
+            IconComponent={X}
+            disabled={challengeDetails.valid == 1}
+            onPress={handleRemoveDefi}
+          />
+          <BoutonActiver
+            title="Valider le défi"
+            IconComponent={Check}
+            disabled={challengeDetails.valid == 1}
+            onPress={() => handleValidation(1)}
+          />
+        </View>
       </View>
     </View>
   );

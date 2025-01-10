@@ -8,6 +8,7 @@ import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { useNavigation } from '@react-navigation/native';
 
 const GestionAnecdotesScreen = () => {
   const [anecdotes, setAnecdotes] = useState([]);
@@ -17,6 +18,7 @@ const GestionAnecdotesScreen = () => {
   const [disableRefresh, setDisableRefresh] = useState(false);
 
   const { setUser } = useUser();
+  const navigation = useNavigation();
 
   const fetchAdminAnecdotes = async () => {
     setLoading(true);
@@ -60,9 +62,13 @@ const GestionAnecdotesScreen = () => {
       await loadFonts();
     };
     loadAsyncFonts();
-
     fetchAdminAnecdotes();
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+        fetchAdminAnecdotes();
+      });
+  
+    return unsubscribe;
+}, [navigation]);
 
   if (error != '') {
     return <ErrorScreen error={error} />;

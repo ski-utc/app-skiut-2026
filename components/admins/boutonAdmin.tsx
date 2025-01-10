@@ -48,7 +48,7 @@ const BoutonAdmin: React.FC<BoutonAdminProps> = ({ nextRoute, title }) => {
                 <Text
                     style={{
                         color: "#1E1E1E",
-                        fontSize: 14,
+                        fontSize: 16,
                         fontFamily: Fonts.Inter.Basic,
                         fontWeight: "500",
                         marginLeft: 10,

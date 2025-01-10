@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard, Pressable } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
@@ -37,7 +37,7 @@ export default function AnecdotesForm() {
         setLoading(false);
         setShowBanner(true);
         setTimeout(() => setShowBanner(false), 5000);
-        setTimeout(() => navigation.navigate("anecdotesScreen"), 2000);
+        setTimeout(() => navigation.goBack(), 2000);
       } else {
         setResponseMessage(response.message);
         setResponseSuccess(false);

@@ -25,8 +25,8 @@ export default function DefisInfos() {
   const navigation = useNavigation();
 
   const [modifiedPicture, setModifiedPicture] = useState(false);
-  const [imageAspectRatio, setImageAspectRatio] = useState(1);
   const [dynamicStatus, setStatus] = useState(status);
+  const [imageAspectRatio, setImageAspectRatio] = useState(1.0);
   const [responseMessage, setResponseMessage] = useState('');
   const [responseSuccess, setResponseSuccess] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
@@ -75,6 +75,7 @@ export default function DefisInfos() {
 
     try {
       const { uri, width, height } = result.assets[0];
+      setImageAspectRatio(width / height);
       let compressQuality = 1;
 
       let compressedImage = await ImageManipulator.manipulateAsync(
@@ -102,7 +103,6 @@ export default function DefisInfos() {
         return;
       }
       setModifiedPicture(true);
-      setImageAspectRatio(width / height);
       setProofImage(compressedImage.uri);
     } catch (error) {
       setError('Erreur lors de la compression de l\'image :', error);
@@ -131,7 +131,9 @@ export default function DefisInfos() {
         setStatus('waiting');
         route.params.onUpdate(id, 'waiting');
       }
-      return response;
+      setResponseMessage(response.message);
+      setResponseSuccess(response.success);
+      return response
     } catch (error) {
       setError(error.message || "Erreur lors du téléversement de l'image");
     }
@@ -142,8 +144,6 @@ export default function DefisInfos() {
 
     try {
       const response = await uploadImage(proofImage);
-      setResponseMessage(response.message);
-      setResponseSuccess(response.success);
     } catch (error) {
         if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
             setUser(null);
@@ -155,6 +155,47 @@ export default function DefisInfos() {
       setLoading(false);
       setTimeout(() => setShowBanner(false), 5000);
     }
+  };
+
+  const handleRemoveDefi = async () => {
+    Alert.alert(
+      'Confirmation',
+      'Êtes-vous sûr de vouloir supprimer ce défi ?',
+      [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+        },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await apiPost('challenges/deleteproofImage', { defiId:id });
+              setResponseMessage(response.message);
+              setResponseSuccess(response.success);
+              if (response.success) {
+                setProofImage('https://cdn.icon-icons.com/icons2/3812/PNG/512/upload_file_icon_233420.png');
+                setStatus('empty');
+              } else {
+                setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
+              }
+            } catch (error) {
+              if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+                setUser(null);
+              } else {
+                setError(error.message || 'Erreur réseau.');
+              }
+            } finally {
+              setShowBanner(true);
+              setLoading(false);
+              setTimeout(() => setShowBanner(false), 5000);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   if (error !== '') {
@@ -199,106 +240,115 @@ export default function DefisInfos() {
       <View style={{ width: '100%', paddingHorizontal: 20, paddingBottom: 16 }}>
         <Text style={{ marginTop: 20, fontSize: 24, color: 'black', fontWeight: '700' }}>Points : {points}</Text>
       </View>
-      <View style={{ width: '100%', flexGrow: 1, marginTop: 20, justifyContent: 'center', alignContent: 'center' }}>
+      <View style={{ width: '100%', height:'60%', marginTop: 10, justifyContent: 'center', alignItems:'center' }}>
           {
             status == 'empty' ?
-            <TouchableOpacity onPress={handleImagePick} style={{ justifyContent: 'center', alignItems:'center'}}>
+            <TouchableOpacity onPress={handleImagePick} style={{ justifyContent: 'center', alignItems:'center', width:'100%', height:'100%'}} disabled={responseMessage!=''}>
               <Image
                   source={{ uri: proofImage }} 
-                  style={{ width: '90%', aspectRatio: imageAspectRatio, borderRadius: 25, borderWidth: 1, borderColor: Colors.gray }}
-                  resizeMode="cover"
+                  style={{ width: '90%', aspectRatio:imageAspectRatio, maxHeight:'100%', borderRadius: 25 }}
+                  resizeMode="contain"
                   onError={() => setProofImage("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
               />
             </TouchableOpacity>
             :
             <Image
                 source={{ uri: `${proofImage}?timestamp=${new Date().getTime()}` }} 
-                style={{ width: '90%', aspectRatio: imageAspectRatio, borderRadius: 25, borderWidth: 1, borderColor: Colors.gray, alignSelf:'center' }}
-                resizeMode="cover"
+                style={{ width: '90%', aspectRatio:imageAspectRatio, maxHeight:'100%', borderRadius: 25 }}
+                resizeMode="contain"
                 onError={() => setProofImage("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
             />
           }
       </View>
-      {dynamicStatus!='empty' ? (dynamicStatus!='done' ? (
-        <View style={{ width: '100%', alignItems: 'center', paddingBottom: 20 }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: 'blue',
-              borderRadius: 8,
-              padding: 10,
-              marginBottom: 16,
-              width: '90%',
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
-              Défi en attente
-            </Text>
-            <Hourglass color="white" size={20} />
-          </View>
-          <TouchableOpacity
+      <View
+        style={{
+          position: 'absolute',
+          width:'100%',
+          bottom:0
+        }}
+      >
+        {dynamicStatus!='empty' ? (dynamicStatus!='done' ? (
+          <View style={{ width: '100%', alignItems: 'center' }}>
+            <View
               style={{
-                width: '90%',
-                padding: 10,
-                backgroundColor: 'red',
-                borderRadius: 8,
                 flexDirection: 'row',
                 alignItems: 'center',
+                backgroundColor: 'blue',
+                borderRadius: 8,
+                padding: 10,
+                marginBottom: 16,
+                width: '90%',
                 justifyContent: 'center',
               }}
             >
               <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
-                Supprimer
+                Défi en attente
               </Text>
-              <Trash color="white" size={20} />
-            </TouchableOpacity>
-        </View>
-      ) : (
-      <View style={{ width: '100%', alignItems: 'center', paddingBottom: 20 }}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: 'green',
-            borderRadius: 8,
-            padding: 10,
-            marginBottom: 16,
-            width: '90%',
-            justifyContent: 'center',
-          }}
-        >
-          <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
-            Défi validé
-          </Text>
-          <Check color="white" size={20} />
-        </View>
-      </View>
-        )) : (
-        <View style={{ width: '100%', alignItems: 'center', paddingBottom: 20 }}>
-          <TouchableOpacity
+              <Hourglass color="white" size={20} />
+            </View>
+            <TouchableOpacity
+                style={{
+                  width: '90%',
+                  padding: 10,
+                  backgroundColor: 'red',
+                  borderRadius: 8,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onPress={handleRemoveDefi}
+              >
+                <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
+                  Supprimer
+                </Text>
+                <Trash color="white" size={20} />
+              </TouchableOpacity>
+          </View>
+        ) : (
+        <View style={{ width: '100%', alignItems: 'center' }}>
+          <View
             style={{
-              width: '90%',
-              padding: 10,
-              backgroundColor: Colors.orange,
-              borderRadius: 8,
               flexDirection: 'row',
               alignItems: 'center',
-              justifyContent: 'center',
+              backgroundColor: 'green',
+              borderRadius: 8,
+              padding: 10,
               marginBottom: 16,
-              opacity : modifiedPicture ? 1 : 0.4
+              width: '90%',
+              justifyContent: 'center',
             }}
-            onPress={handleSendDefi}
-            disabled={!modifiedPicture}
           >
             <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
-              Publier mon défi
+              Défi validé
             </Text>
-            <LandPlot color="white" size={20} />
-          </TouchableOpacity>
+            <Check color="white" size={20} />
+          </View>
         </View>
-      )}
+          )) : (
+          <View style={{ width: '100%', alignItems: 'center' }}>
+            <TouchableOpacity
+              style={{
+                width: '90%',
+                padding: 10,
+                backgroundColor: Colors.orange,
+                borderRadius: 8,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+                opacity : modifiedPicture ? 1 : 0.4
+              }}
+              onPress={handleSendDefi}
+              disabled={!modifiedPicture}
+            >
+              <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
+                Publier mon défi
+              </Text>
+              <LandPlot color="white" size={20} />
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
     </View>
   )
 };

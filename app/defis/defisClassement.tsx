@@ -2,6 +2,7 @@ import { Text, View, ScrollView, ActivityIndicator, Alert } from "react-native";
 import Header from "../../components/header";
 import React, { useState, useEffect } from "react";
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Crown } from "lucide-react-native";
 import BoutonRetour from '@/components/divers/boutonRetour';
 import RectanglePodium from '@/components/classement/rectanglePodium';
 import RectangleReste from '@/components/classement/rectangleReste';
@@ -13,6 +14,7 @@ export default function DefisClassement() {
     const [error, setError] = useState('');
     const [podium, setPodium] = useState([]); // Les données du podium
     const [rest, setRest] = useState([]); // Le reste des chambres
+    const [disableRefresh, setDisableRefresh] = useState(false);
 
     useEffect(() => {
         fetchClassement(); // Charger les données
@@ -24,6 +26,7 @@ export default function DefisClassement() {
 
     const fetchClassement = async () => {
         setLoading(true);
+        setDisableRefresh(true);
         try {
             const response = await apiGet("classement-chambres");
             if(response.success){
@@ -41,6 +44,9 @@ export default function DefisClassement() {
             }
         } finally {
             setLoading(false);
+            setTimeout(() => {
+                setDisableRefresh(false); 
+              }, 5000); 
         }
     };
 
@@ -65,13 +71,13 @@ export default function DefisClassement() {
 
     return (
         <View style={{ flex: 1, backgroundColor: Colors.white }}>
-            <Header refreshFunction={fetchClassement} disableRefresh={false} />
+            <Header refreshFunction={fetchClassement} disableRefresh={disableRefresh} />
             <View
                 style={{
                     width: '100%',
                     backgroundColor: Colors.white,
                     paddingHorizontal: 20,
-                    paddingBottom: 16,
+                    paddingBottom: 8,
                 }}
             >
                 <BoutonRetour previousRoute={"defisScreen"} title={"Classement"} />
@@ -83,8 +89,7 @@ export default function DefisClassement() {
                     backgroundColor: Colors.orange,
                     padding: 16,
                     alignItems: 'center',
-                    marginTop: 16,
-                    height: 200,
+                    height: 250,
                 }}
             >
                 <Text
@@ -94,11 +99,12 @@ export default function DefisClassement() {
                         fontFamily: 'Inter',
                         fontWeight: '600',
                         textAlign: 'center',
-                        marginBottom: 16,
+                        marginBottom: 32,
                     }}
                 >
                     Classement général
                 </Text>
+                <Crown size={40} color={'#ffbc44'}/>
                 <View
                     style={{
                         flexDirection: 'row',

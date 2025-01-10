@@ -40,6 +40,9 @@ const GestionAnecdotesScreen = () => {
       }
     } finally {
       setLoading(false);
+      setTimeout(() => {
+        setDisableRefresh(false); 
+      }, 5000);
     }
   };
 

@@ -1,4 +1,4 @@
-import { View, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Alert, ScrollView } from "react-native";
 import { Text, Image } from "react-native";
 import Header from "../../components/header";
 import React, { useState, useEffect } from "react";
@@ -94,126 +94,134 @@ export default function Profil() {
             }}
         >
             <Header />
-            <View
-                style={{
-                    flexDirection: 'row',
-                    width: '100%',
-                    justifyContent: 'start',
-                    alignItems: 'center',
+            <ScrollView
+                contentContainerStyle={{
+                    alignItems: "center",
+                    justifyContent: "start",
                     paddingBottom: 8,
-                    paddingHorizontal: 20,
-                    gap: 25
                 }}
             >
-                <Image source={require("../../assets/images/OursCabine.png")} style={{ height: 164, width: 164 }} />
                 <View
                     style={{
-                        flex: 1,
-                        justifyContent: 'center',
-                        alignItems: 'flex-start',
+                        flexDirection: 'row',
+                        width: '100%',
+                        justifyContent: 'start',
+                        alignItems: 'center',
+                        paddingBottom: 8,
+                        paddingHorizontal: 20,
+                        gap: 25
                     }}
                 >
-                    <Text
+                    <Image source={require("../../assets/images/OursCabine.png")} style={{ height: 164, width: 164 }} />
+                    <View
                         style={{
-                            fontSize: 24,
-                            fontFamily: Fonts.Inter.Basic,
-                            fontWeight: '600',
-                            flexShrink: 1,
-                            flexWrap: 'wrap',
+                            flex: 1,
+                            justifyContent: 'center',
+                            alignItems: 'flex-start',
                         }}
                     >
-                        {user?.name} {user?.lastName}
-                    </Text>
-                    <Text
-                        style={{
-                            fontSize: 18,
-                            fontFamily: Fonts.Inter.Basic,
-                            fontWeight: '400',
-                            color: Colors.gray,
-                        }}
-                    >
-                        {`Chambre ${user?.roomName || 'Non attribuée'}`}
+                        <Text
+                            style={{
+                                fontSize: 24,
+                                fontFamily: Fonts.Inter.Basic,
+                                fontWeight: '600',
+                                flexShrink: 1,
+                                flexWrap: 'wrap',
+                            }}
+                        >
+                            {user?.name} {user?.lastName}
+                        </Text>
+                        <Text
+                            style={{
+                                fontSize: 18,
+                                fontFamily: Fonts.Inter.Basic,
+                                fontWeight: '400',
+                                color: Colors.gray,
+                            }}
+                        >
+                            {`Chambre ${user?.roomName || 'Non attribuée'}`}
 
-                    </Text>
+                        </Text>
+                    </View>
                 </View>
-            </View>
-            <View style={styles.navigationContainer}>
-                <BoutonProfil
-                    nextRoute={"ContactScreen"}
-                    options={{
-                        title: 'Contact',
-                        icon: Phone,
-                    }}
-                />
-            </View>
-            <View style={styles.navigationContainer}>
-                <BoutonProfil
-                    nextRoute={"StopVssScreen"}
-                    options={{
-                        title: 'Stop VSS',
-                        icon: PhoneCall,
-                    }}
-                />
-            </View>
-
-            <View style={styles.navigationContainer}>
-                <BoutonProfil
-                    nextRoute={"PlanDesPistesScreen"}
-                    options={{
-                        title: 'Plan des pistes',
-                        icon: Map,
-                    }}
-                />
-            </View>
-
-            <View style={styles.navigationContainer}>
-                <BoutonProfil
-                    nextRoute={"PlanStationScreen"}
-                    options={{
-                        title: 'Plan de la station',
-                        icon: MapPin,
-                    }}
-                />
-            </View>
-            <View style={styles.navigationContainer}>
-                <BoutonProfil
-                    nextRoute={"VitesseDeGlisseScreen"}
-                    options={{
-                        title: 'Vitesse de glisse',
-                        icon: Gauge,
-                    }}
-                />
-            </View>
-
-            <View style={styles.navigationContainer}>
-                <BoutonProfil 
-                    nextRoute={"SkinderNavigator"} 
-                    options={{
-                        title: 'Skinder',
-                        icon: Heart,
-                    }}
-                />
-            </View>
-            <View style={styles.navigationContainer}>
-                <BoutonProfil
-                    nextRoute={"NavettesScreen"}
-                    options={{
-                        title: 'Navettes',
-                        icon: Bus,
-                    }}
-                />
-            </View>
-
-            {/* Afficher le bouton admin uniquement si l'utilisateur est admin */}
-            {user?.admin === 1 && ( // 1 = true (admin)
                 <View style={styles.navigationContainer}>
-                    <BoutonProfil nextRoute={"AdminNavigator"} options={{ title: 'Contrôle Admin', icon: UserRoundCheck }} />
+                    <BoutonProfil
+                        nextRoute={"ContactScreen"}
+                        options={{
+                            title: 'Contact',
+                            icon: Phone,
+                        }}
+                    />
                 </View>
-            )}
-            {/*<View style={styles.navigationContainer}>
-                <BoutonProfil nextRoute={"AdminNavigator"} options={{ title: 'Contrôle Admin', icon: UserRoundCheck }} />
-            </View>*/}
-            <LogoutButton setShowLogoutWebView={setShowLogoutWebView} />
+                <View style={styles.navigationContainer}>
+                    <BoutonProfil
+                        nextRoute={"StopVssScreen"}
+                        options={{
+                            title: 'Stop VSS',
+                            icon: PhoneCall,
+                        }}
+                    />
+                </View>
+
+                <View style={styles.navigationContainer}>
+                    <BoutonProfil
+                        nextRoute={"PlanDesPistesScreen"}
+                        options={{
+                            title: 'Plan des pistes',
+                            icon: Map,
+                        }}
+                    />
+                </View>
+
+                <View style={styles.navigationContainer}>
+                    <BoutonProfil
+                        nextRoute={"PlanStationScreen"}
+                        options={{
+                            title: 'Plan de la station',
+                            icon: MapPin,
+                        }}
+                    />
+                </View>
+                <View style={styles.navigationContainer}>
+                    <BoutonProfil
+                        nextRoute={"VitesseDeGlisseScreen"}
+                        options={{
+                            title: 'Vitesse de glisse',
+                            icon: Gauge,
+                        }}
+                    />
+                </View>
+
+                <View style={styles.navigationContainer}>
+                    <BoutonProfil 
+                        nextRoute={"SkinderNavigator"} 
+                        options={{
+                            title: 'Skinder',
+                            icon: Heart,
+                        }}
+                    />
+                </View>
+                <View style={styles.navigationContainer}>
+                    <BoutonProfil
+                        nextRoute={"NavettesScreen"}
+                        options={{
+                            title: 'Navettes',
+                            icon: Bus,
+                        }}
+                    />
+                </View>
+
+                {/* Afficher le bouton admin uniquement si l'utilisateur est admin */}
+                {user?.admin === 1 && ( // 1 = true (admin)
+                    <View style={styles.navigationContainer}>
+                        <BoutonProfil nextRoute={"AdminNavigator"} options={{ title: 'Contrôle Admin', icon: UserRoundCheck }} />
+                    </View>
+                )}
+                {/*<View style={styles.navigationContainer}>
+                    <BoutonProfil nextRoute={"AdminNavigator"} options={{ title: 'Contrôle Admin', icon: UserRoundCheck }} />
+                </View>*/}
+                <LogoutButton setShowLogoutWebView={setShowLogoutWebView} />
+            </ScrollView>
         </View>
     );
 }

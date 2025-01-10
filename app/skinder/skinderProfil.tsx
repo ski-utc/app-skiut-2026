@@ -9,7 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
-import Banner from '@/components/divers/bannièreReponse';
+import Toast from 'react-native-toast-message';
 
 export default function SkinderProfil() {
   const [profile, setProfile] = useState({
@@ -18,15 +18,12 @@ export default function SkinderProfil() {
     description: '',
     passions: ['', '', '', '', '', ''],
   });
-  const [profileImage, setProfileImage] = useState('https://cdn.icon-icons.com/icons2/3812/PNG/512/upload_file_icon_233420.png');
+  const [profileImage, setProfileImage] = useState('https://pixsector.com/cache/d69e58d4/avbfe351f753bcaa24ae2.png');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { setUser } = useUser();
   const navigation = useNavigation();
   const [modifiedPicture, setModifiedPicture] = useState(false);
-  const [responseMessage, setResponseMessage] = useState('');
-  const [responseSuccess, setResponseSuccess] = useState(false);
-  const [showBanner, setShowBanner] = useState(false);
 
   const fetchProfil = async () => {
     setLoading(true);
@@ -67,31 +64,31 @@ export default function SkinderProfil() {
       Alert.alert('Permission requise', 'Nous avons besoin de votre permission pour accéder à votre galerie.');
       return;
     }
-
+  
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1], 
       quality: 1,
     });
-
+  
     if (result.canceled) {
       return;
     }
-
+  
     try {
-      const { uri, width, height } = result.assets[0];
+      const { uri, width } = result.assets[0];
       let compressQuality = 1;
-
+  
       let compressedImage = await ImageManipulator.manipulateAsync(
         uri,
         [
           { resize: { width: width > 1080 ? 1080 : width } },
         ],
-        { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG },
+        { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
       );
-
-      const fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
+  
+      let fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());  
       while (fileInfo.size > 1 * 1024 * 1024 && compressQuality > 0.1) {
         compressQuality -= 0.1;
         compressedImage = await ImageManipulator.manipulateAsync(
@@ -99,20 +96,23 @@ export default function SkinderProfil() {
           [
             { resize: { width: width > 1080 ? 1080 : width } },
           ],
-          { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG },
+          { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
         );
+  
+        fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
       }
-
+  
       if (fileInfo.size > 1 * 1024 * 1024) {
-        Alert.alert('Erreur', 'Image trop lourde :(');
+        Alert.alert('Erreur', 'Image trop lourde même après compression :(');
         return;
       }
+  
       setModifiedPicture(true);
       setProfileImage(compressedImage.uri);
     } catch (error) {
-      setError('Erreur lors de la compression de l\'image :', error);
+      setError('Erreur lors de la compression de l\'image.');
     }
-  };
+  };  
 
   const uploadImage = async (uri) => {
     try {
@@ -145,16 +145,22 @@ export default function SkinderProfil() {
       const response = await apiPost('modifyProfilSkinder', {'description':profile.description, 'passions':filteredPassions});
       if(modifiedPicture){
         const response2 = await uploadImage(profileImage);
-        setResponseMessage(response.message +' '+ response2.message);
-        setResponseSuccess(response.success && response2.success);
+        Toast.show({
+          type: (response.success && response2.success ? 'success' : 'error'),
+          text1: 'Profil modifié !',
+          text2: response.message +' '+ response2.message,
+        });
         if (response.success && response2.success) {
           fetchProfil();
         } else {
           setError(response.message || 'Erreur lors de la sauvegarde des données.');
         }
       } else {
-        setResponseMessage(response.message);
-        setResponseSuccess(response.success);
+        Toast.show({
+          type: 'error',
+          text1: 'Une erreur est survenue...',
+          text2: response.message,
+        });
         if (response.success) {
           fetchProfil();
         } else {
@@ -168,9 +174,7 @@ export default function SkinderProfil() {
             setError(error.message || 'Erreur réseau ou serveur.');
         }
     } finally {
-      setShowBanner(true);
       setLoading(false);
-      setTimeout(() => setShowBanner(false), 5000);
     }
   };
 
@@ -222,7 +226,6 @@ export default function SkinderProfil() {
           justifyContent: 'center',
         }}
       >
-        <Banner message={responseMessage} success={responseSuccess} show={showBanner}/>
         <Header />
         <View
           style={{
@@ -240,7 +243,7 @@ export default function SkinderProfil() {
                   source={{ uri: `${profileImage}?timestamp=${new Date().getTime()}` }} 
                   style={{ width: '90%', aspectRatio: '1/1', borderRadius: 25, borderWidth: 1, borderColor: Colors.gray }}
                   resizeMode="cover"
-                  onError={() => setProfileImage("https://cdn.icon-icons.com/icons2/3812/PNG/512/upload_file_icon_233420.png")}
+                  onError={() => setProfileImage("https://pixsector.com/cache/d69e58d4/avbfe351f753bcaa24ae2.png")}
               />
             </TouchableOpacity>
           </View>

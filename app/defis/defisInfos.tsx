@@ -11,13 +11,13 @@ import { useNavigation } from '@react-navigation/native';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { apiPost } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
-import Banner from '@/components/divers/bannièreReponse';
+import Toast from 'react-native-toast-message';
 
 export default function DefisInfos() {
   const route = useRoute();
   const { id, title, points, status } = route.params;
 
-  const [proofImage, setProofImage] = useState('https://cdn.icon-icons.com/icons2/3812/PNG/512/upload_file_icon_233420.png');
+  const [proofImage, setProofImage] = useState('https://pixsector.com/cache/d69e58d4/avbfe351f753bcaa24ae2.png');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,11 +25,9 @@ export default function DefisInfos() {
   const navigation = useNavigation();
 
   const [modifiedPicture, setModifiedPicture] = useState(false);
+  const [challengeSent, setChallengeSent] = useState(false);
   const [dynamicStatus, setStatus] = useState(status);
   const [imageAspectRatio, setImageAspectRatio] = useState(1.0);
-  const [responseMessage, setResponseMessage] = useState('');
-  const [responseSuccess, setResponseSuccess] = useState(false);
-  const [showBanner, setShowBanner] = useState(false);
 
   const fetchProof = async () => {
     setLoading(true);
@@ -74,19 +72,18 @@ export default function DefisInfos() {
     }
 
     try {
-      const { uri, width, height } = result.assets[0];
-      setImageAspectRatio(width / height);
+      const { uri, width } = result.assets[0];
       let compressQuality = 1;
-
+  
       let compressedImage = await ImageManipulator.manipulateAsync(
         uri,
         [
           { resize: { width: width > 1080 ? 1080 : width } },
         ],
-        { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG },
+        { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
       );
-
-      const fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
+  
+      let fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());  
       while (fileInfo.size > 1 * 1024 * 1024 && compressQuality > 0.1) {
         compressQuality -= 0.1;
         compressedImage = await ImageManipulator.manipulateAsync(
@@ -94,12 +91,14 @@ export default function DefisInfos() {
           [
             { resize: { width: width > 1080 ? 1080 : width } },
           ],
-          { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG },
+          { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
         );
+  
+        fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
       }
-
+  
       if (fileInfo.size > 1 * 1024 * 1024) {
-        Alert.alert('Erreur', 'Image trop lourde :(');
+        Alert.alert('Erreur', 'Image trop lourde même après compression :(');
         return;
       }
       setModifiedPicture(true);
@@ -130,9 +129,19 @@ export default function DefisInfos() {
       if(response.success){
         setStatus('waiting');
         route.params.onUpdate(id, 'waiting');
+        Toast.show({
+          type: 'success',
+          text1: 'Défi posté !',
+          text2: response.message,
+        });
+        setChallengeSent(true);
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Une erreur est survenue...',
+          text2: response.message,
+        });
       }
-      setResponseMessage(response.message);
-      setResponseSuccess(response.success);
       return response
     } catch (error) {
       setError(error.message || "Erreur lors du téléversement de l'image");
@@ -151,9 +160,7 @@ export default function DefisInfos() {
             setError(error.message || 'Erreur réseau ou serveur.');
         }
     } finally {
-      setShowBanner(true);
       setLoading(false);
-      setTimeout(() => setShowBanner(false), 5000);
     }
   };
 
@@ -172,11 +179,14 @@ export default function DefisInfos() {
           onPress: async () => {
             try {
               const response = await apiPost('challenges/deleteproofImage', { defiId:id });
-              setResponseMessage(response.message);
-              setResponseSuccess(response.success);
               if (response.success) {
-                setProofImage('https://cdn.icon-icons.com/icons2/3812/PNG/512/upload_file_icon_233420.png');
+                setProofImage('https://pixsector.com/cache/d69e58d4/avbfe351f753bcaa24ae2.png');
                 setStatus('empty');
+                Toast.show({
+                  type: 'success',
+                  text1: 'Défi supprimé !',
+                  text2: response.message,
+                });
               } else {
                 setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
               }
@@ -187,9 +197,7 @@ export default function DefisInfos() {
                 setError(error.message || 'Erreur réseau.');
               }
             } finally {
-              setShowBanner(true);
               setLoading(false);
-              setTimeout(() => setShowBanner(false), 5000);
             }
           },
         },
@@ -232,7 +240,6 @@ export default function DefisInfos() {
 
   return(
     <View style={{ flex: 1, backgroundColor: 'white' }}>
-      <Banner message={responseMessage} success={responseSuccess} show={showBanner}/>
       <Header refreshFunction={undefined} disableRefresh={undefined} />
       <View style={{ width: '100%', paddingHorizontal: 20 }}>
         <BoutonRetour previousRoute="defisScreen" title={title} />
@@ -243,7 +250,7 @@ export default function DefisInfos() {
       <View style={{ width: '100%', height:'60%', marginTop: 10, justifyContent: 'center', alignItems:'center' }}>
           {
             status == 'empty' ?
-            <TouchableOpacity onPress={handleImagePick} style={{ justifyContent: 'center', alignItems:'center', width:'100%', height:'100%'}} disabled={responseMessage!=''}>
+            <TouchableOpacity onPress={handleImagePick} style={{ justifyContent: 'center', alignItems:'center', width:'100%', height:'100%'}} disabled={challengeSent}>
               <Image
                   source={{ uri: proofImage }} 
                   style={{ width: '90%', aspectRatio:imageAspectRatio, maxHeight:'100%', borderRadius: 25 }}

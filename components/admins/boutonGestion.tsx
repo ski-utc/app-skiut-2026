@@ -61,14 +61,14 @@ const styles = StyleSheet.create({
     },
     titleText: {
         color: "#1E1E1E",
-        fontSize: 14,
+        fontSize: 16,
         fontFamily: Fonts.Inter.Basic,
         fontWeight: "600",
         wordWrap: 'break-word',
     },
     subtitleText: {
         color: "#737373",
-        fontSize: 12,
+        fontSize: 14,
         fontFamily: Fonts.Inter.Basic,
         fontStyle: "italic",
         fontWeight: "400",

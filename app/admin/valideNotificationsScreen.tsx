@@ -18,12 +18,10 @@ export default function ValideNotifications() {
   const [notificationDetails, setNotificationDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [disableRefresh, setDisableRefresh] = useState(false);
 
   // Fetch notification details
   const fetchNotificationDetails = async () => {
     setLoading(true);
-    setDisableRefresh(true);
     try {
       const response = await apiGet(`getNotificationDetails/${id}`);
       if (response.success) {
@@ -39,9 +37,6 @@ export default function ValideNotifications() {
       }
     } finally {
       setLoading(false);
-      setTimeout(() => {
-        setDisableRefresh(false); 
-      }, 5000);
     }
   };
 
@@ -109,7 +104,7 @@ export default function ValideNotifications() {
 
   return (
     <View style={styles.container}>
-      <Header refreshFunction={fetchNotificationDetails} disableRefresh={disableRefresh} />
+      <Header />
       <View style={styles.content}>
         <BoutonRetour previousRoute="gestionNotificationsScreen" title={`Gérer notification ${id}`} />
         <Text style={styles.title}>Détail de la notification :</Text>

@@ -9,7 +9,6 @@ import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiPost, apiGet } from '@/constants/api/apiCalls'; // Assurez-vous d'importer l'appel API
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
-import Banner from '@/components/divers/bannièreReponse';
 
 export default function ValideAnecdotes() {
   const route = useRoute();
@@ -22,15 +21,10 @@ export default function ValideAnecdotes() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [anecdoteStatus, setAnecdoteStatus] = useState(null); // État pour le statut de validation
-  const [disableRefresh, setDisableRefresh] = useState(false);
-  const [responseMessage, setResponseMessage] = useState('');
-  const [responseSuccess, setResponseSuccess] = useState(false);
-  const [showBanner, setShowBanner] = useState(false);
 
   // Fonction pour récupérer les détails de l'anecdote
   const fetchAnecdoteDetails = async () => {
     setLoading(true);
-    setDisableRefresh(true);
     try {
       const response = await apiGet(`getAnecdoteDetails/${id}`);
       if (response.success) {
@@ -49,9 +43,6 @@ export default function ValideAnecdotes() {
       }
     } finally {
       setLoading(false);
-      setTimeout(() => {
-        setDisableRefresh(false); 
-      }, 5000); 
     }
   };
 
@@ -60,8 +51,6 @@ export default function ValideAnecdotes() {
     setLoading(true);
     try {
       const response = await apiPost(`updateAnecdoteStatus/${id}/${isValid}`);
-      setResponseMessage(response.message);
-      setResponseSuccess(response.success);
       if (response.success) {
         setAnecdoteStatus(isValid);
         setAnecdoteDetails((prevDetails) => ({
@@ -79,9 +68,7 @@ export default function ValideAnecdotes() {
         setError(error.message);
       }
     } finally {
-      setShowBanner(true);
       setLoading(false);
-      setTimeout(() => setShowBanner(false), 5000);
     }
   };
 
@@ -128,8 +115,7 @@ export default function ValideAnecdotes() {
 
   return (
     <View style={styles.container}>
-      <Banner message={responseMessage} success={responseSuccess} show={showBanner}/>
-      <Header refreshFunction={fetchAnecdoteDetails} disableRefresh={disableRefresh}/>
+      <Header/>
       <View style={styles.content}>
         <BoutonRetour previousRoute="gestionAnecdotesScreen" title={`Gérer l'anecdote ${id}`} />
         <Text style={styles.title}>Détail de l'anecdote :</Text>

@@ -38,7 +38,9 @@ const GestionNotificationsScreen = () => {
       }
     } finally {
       setLoading(false);
-      setDisableRefresh(false);
+      setTimeout(() => {
+        setDisableRefresh(false); 
+      }, 5000);
     }
   };
 

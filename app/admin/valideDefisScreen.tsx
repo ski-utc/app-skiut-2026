@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator, Image, Alert } from 'react-native';
+import { Text, View, StyleSheet, ActivityIndicator, Image, Alert, Modal, TouchableOpacity, StatusBar } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { X, Check } from 'lucide-react-native';
 import Header from '../../components/header';
@@ -9,7 +9,7 @@ import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiPost, apiGet } from '@/constants/api/apiCalls'; // Import the API calls
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
-import Banner from '@/components/divers/bannièreReponse';
+import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 
 export default function ValideDefis() {
@@ -21,18 +21,14 @@ export default function ValideDefis() {
   const [challengeDetails, setChallengeDetails] = useState(null);
   const [challengeStatus, setChallengeStatus] = useState(null); // État pour le statut de validation
   const [proofImage, setProofImage] = useState("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg");
-  
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [disableRefresh, setDisableRefresh] = useState(false);
-  const [responseMessage, setResponseMessage] = useState('');
-  const [responseSuccess, setResponseSuccess] = useState(false);
-  const [showBanner, setShowBanner] = useState(false);
 
   // Fetch challenge details
   const fetchChallengeDetails = async () => {
     setLoading(true);
-    setDisableRefresh(true);
     try {
       const response = await apiGet(`getChallengeDetails/${id}`);
       if (response.success) {
@@ -49,9 +45,6 @@ export default function ValideDefis() {
       }
     } finally {
       setLoading(false);
-      setTimeout(() => {
-        setDisableRefresh(false); 
-      }, 5000);
     }
   };
 
@@ -60,8 +53,6 @@ export default function ValideDefis() {
     setLoading(true);
     try {
       const response = await apiPost(`updateChallengeStatus/${id}/${isValid}`);
-      setResponseMessage(response.message);
-      setResponseSuccess(response.success);
       if (response.success) {
         setChallengeStatus(isValid);
         setChallengeDetails((prevDetails) => ({
@@ -79,9 +70,7 @@ export default function ValideDefis() {
         setError(error.message);
       }
     } finally {
-      setShowBanner(true);
       setLoading(false);
-      setTimeout(() => setShowBanner(false), 5000);
     }
   };
 
@@ -100,9 +89,18 @@ export default function ValideDefis() {
           onPress: async () => {
             try {
               const response = await apiPost('challenges/deleteproofImage', { defiId:challengeDetails.challenge_id });
-              setResponseMessage(response.message);
-              setResponseSuccess(response.success);
-              if (!response.success) {
+              if(response.success){
+                Toast.show({
+                  type: 'success',
+                  text1: 'Défi supprimé !',
+                  text2: response.message,
+                });
+              } else {
+                Toast.show({
+                  type: 'error',
+                  text1: 'Une erreur est survenue...',
+                  text2: response.message,
+                });
                 setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
               }
             } catch (error) {
@@ -112,16 +110,18 @@ export default function ValideDefis() {
                 setError(error.message || 'Erreur réseau.');
               }
             } finally {
-              setShowBanner(true);
               setLoading(false);
-              setTimeout(() => setShowBanner(false), 5000);
-              setTimeout(() => navigation.goBack(), 2000);
+              navigation.goBack();
             }
           },
         },
       ],
       { cancelable: true }
     );
+  };
+
+  const toggleModal = () => {
+    setIsModalVisible(!isModalVisible); 
   };
 
   useEffect(() => {
@@ -167,8 +167,7 @@ export default function ValideDefis() {
 
   return (
     <View style={styles.container}>
-      <Banner message={responseMessage} success={responseSuccess} show={showBanner}/>
-      <Header refreshFunction={fetchChallengeDetails} disableRefresh={disableRefresh}/>
+      <Header />
       <View style={styles.content}>
         <BoutonRetour previousRoute="gestionDefisScreen" title="Gestion défis "/>
         <Text style={styles.title}>Détails du défi :</Text>
@@ -186,12 +185,14 @@ export default function ValideDefis() {
           <Text style={styles.text}>Auteur : {challengeDetails?.user?.firstName} {challengeDetails?.user?.lastName || 'Auteur inconnu'}</Text>
           <Text style={styles.text}>Défi : {challengeDetails?.challenge.title || 'Pas de description'}</Text>
         </View>
-        <Image
-          source={{ uri: `${proofImage}?timestamp=${new Date().getTime()}` }} 
-          style={{ width: '90%', aspectRatio:1, maxHeight:'100%', borderRadius: 25 }}
-          resizeMode="contain"
-          onError={() => setProofImage("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
-        />
+        <TouchableOpacity onPress={toggleModal}>
+          <Image
+            source={{ uri: `${proofImage}?timestamp=${new Date().getTime()}` }} 
+            style={{ width: '90%', aspectRatio:1, maxHeight:'100%', borderRadius: 25 }}
+            resizeMode="contain"
+            onError={() => setProofImage("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
+          />
+        </TouchableOpacity>
       </View>
       <View style={styles.buttonContainer}>
         <View style={styles.buttonSpacing}>
@@ -224,6 +225,45 @@ export default function ValideDefis() {
           />
         </View>
       </View>
+      <Modal visible={isModalVisible} transparent={true} animationType="fade">
+        <StatusBar backgroundColor="rgba(0,0,0,0.9)" />
+        <View 
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <TouchableOpacity 
+            style={{
+              position: 'absolute',
+              top: 40,
+              right: 20,
+              backgroundColor: Colors.white,
+              padding: 10,
+              borderRadius: 8,
+            }} 
+            onPress={toggleModal}
+          >
+            <Text style={{
+              fontSize: 16,
+              fontWeight: '600',
+              color: Colors.black,
+            }}>
+              Fermer
+            </Text>
+          </TouchableOpacity>
+          <Image
+            source={{ uri: `${proofImage}?timestamp=${new Date().getTime()}` }}
+            style={{
+              width: '100%',
+              height: '80%',
+            }}
+            resizeMode="contain"
+          />
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -278,4 +318,3 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
-

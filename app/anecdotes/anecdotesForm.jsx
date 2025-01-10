@@ -8,8 +8,8 @@ import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Send } from 'lucide-react-native';
 import { apiPost } from '@/constants/api/apiCalls';
-import Banner from '@/components/divers/bannièreReponse';
 import ErrorScreen from '@/components/pages/errorPage';
+import Toast from 'react-native-toast-message';
 
 // @ts-ignore
 export default function AnecdotesForm() {
@@ -17,9 +17,6 @@ export default function AnecdotesForm() {
   const [isChecked, setChecked] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [responseMessage, setResponseMessage] = useState('');
-  const [responseSuccess, setResponseSuccess] = useState(false);
-  const [showBanner, setShowBanner] = useState(false);
 
   const navigation = useNavigation();
   const { setUser } = useUser();
@@ -31,19 +28,18 @@ export default function AnecdotesForm() {
         texte: text
       });
       if (response.success) {
-        setResponseMessage(response.message);
-        setResponseSuccess(true);
-        setText('');
-        setLoading(false);
-        setShowBanner(true);
-        setTimeout(() => setShowBanner(false), 5000);
-        setTimeout(() => navigation.goBack(), 2000);
+        Toast.show({
+          type: 'success',
+          text1: 'Anecdote postée !',
+          text2: response.message,
+        });
+        navigation.goBack();
       } else {
-        setResponseMessage(response.message);
-        setResponseSuccess(false);
-        setLoading(false);
-        setShowBanner(true);
-        setTimeout(() => setShowBanner(false), 5000);
+        Toast.show({
+          type: 'error',
+          text1: 'Une erreur est survenue...',
+          text2: response.message,
+        });
       }
     } catch (error) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
@@ -89,7 +85,6 @@ export default function AnecdotesForm() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Banner message={responseMessage} success={responseSuccess} show={showBanner} />
         <Header />
         <View style={{ width: '100%', flex: 1, backgroundColor: Colors.white, paddingHorizontal: 20, paddingBottom: 16 }}>
           <BoutonRetour previousRoute={"anecdotesScreen"} title={"Raconte nous ta meilleure anecdote !"} />

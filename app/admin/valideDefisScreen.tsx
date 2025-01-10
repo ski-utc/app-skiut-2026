@@ -11,6 +11,7 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
+import ImageViewer from 'react-native-image-zoom-viewer';
 
 export default function ValideDefis() {
   const route = useRoute();
@@ -226,44 +227,41 @@ export default function ValideDefis() {
         </View>
       </View>
       <Modal visible={isModalVisible} transparent={true} animationType="fade">
-        <StatusBar backgroundColor="rgba(0,0,0,0.9)" />
-        <View 
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <TouchableOpacity 
-            style={{
-              position: 'absolute',
-              top: 40,
-              right: 20,
-              backgroundColor: Colors.white,
-              padding: 10,
-              borderRadius: 8,
-            }} 
-            onPress={toggleModal}
-          >
-            <Text style={{
-              fontSize: 16,
-              fontWeight: '600',
-              color: Colors.black,
-            }}>
-              Fermer
-            </Text>
-          </TouchableOpacity>
-          <Image
-            source={{ uri: `${proofImage}?timestamp=${new Date().getTime()}` }}
-            style={{
-              width: '100%',
-              height: '80%',
-            }}
-            resizeMode="contain"
-          />
-        </View>
-      </Modal>
+  <StatusBar backgroundColor="rgba(0,0,0,0.9)" />
+  <View 
+    style={{
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    }}
+  >
+    <TouchableOpacity 
+      style={{
+        position: 'absolute',
+        top: 40,
+        right: 20,
+        backgroundColor: Colors.white,
+        padding: 10,
+        borderRadius: 8,
+        zIndex: 10,
+      }} 
+      onPress={toggleModal}
+    >
+      <Text style={{
+        fontSize: 16,
+        fontWeight: '600',
+        color: Colors.black,
+      }}>
+        Fermer
+      </Text>
+    </TouchableOpacity>
+    <ImageViewer
+      imageUrls={[{ url: proofImage }]}
+      enableSwipeDown={true}
+      onSwipeDown={toggleModal}
+      renderIndicator={() => null} // Supprimer l'indicateur de pagination
+    />
+  </View>
+</Modal>
     </View>
   );
 }

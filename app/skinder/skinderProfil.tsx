@@ -88,8 +88,21 @@ export default function SkinderProfil() {
         { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
       );
   
-      let fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());  
-      while (fileInfo.size > 1 * 1024 * 1024 && compressQuality > 0.1) {
+      let fileInfo = await fetch(compressedImage.uri).then((res) => res.blob()); 
+      let maxFileSize = 1024*1024; 
+      try {
+        const getTailleMax = await apiGet("getMaxFileSize");
+        if (getTailleMax.success) {
+          maxFileSize = getTailleMax.data;
+        }
+      } catch (error) {
+        if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+          setUser(null);
+        } else {
+          setError(error.message);
+        }
+      }
+      while (fileInfo.size > maxFileSize && compressQuality > 0.1) {
         compressQuality -= 0.1;
         compressedImage = await ImageManipulator.manipulateAsync(
           uri,

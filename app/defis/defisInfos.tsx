@@ -9,7 +9,7 @@ import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import { useNavigation } from '@react-navigation/native';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiPost } from '@/constants/api/apiCalls';
+import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import Toast from 'react-native-toast-message';
 
@@ -84,7 +84,20 @@ export default function DefisInfos() {
       );
   
       let fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());  
-      while (fileInfo.size > 1 * 1024 * 1024 && compressQuality > 0.1) {
+      let maxFileSize = 1024*1024; 
+      try {
+        const getTailleMax = await apiGet("getMaxFileSize");
+        if (getTailleMax.success) {
+          maxFileSize = getTailleMax.data;
+        }
+      } catch (error) {
+        if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+          setUser(null);
+        } else {
+          setError(error.message);
+        }
+      }
+      while (fileInfo.size > maxFileSize && compressQuality > 0.1) {
         compressQuality -= 0.1;
         compressedImage = await ImageManipulator.manipulateAsync(
           uri,

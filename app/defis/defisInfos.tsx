@@ -1,146 +1,374 @@
-import React from 'react';
-import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from "expo-image-manipulator";
 import { useRoute } from '@react-navigation/native';
-import { LandPlot, Check, Trash } from 'lucide-react-native'; // Added Trash icon
+import { Colors, Fonts } from '@/constants/GraphSettings';
+import { LandPlot, Trash, Check, Hourglass } from 'lucide-react-native';
 import Header from '../../components/header';
+import { useUser } from '@/contexts/UserContext';
+import { useNavigation } from '@react-navigation/native';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors } from '@/constants/GraphSettings';
+import { apiPost, apiGet } from '@/constants/api/apiCalls';
+import ErrorScreen from '@/components/pages/errorPage';
+import Toast from 'react-native-toast-message';
 
 export default function DefisInfos() {
   const route = useRoute();
-  const { transmittedText1, transmittedText2, estValide } = route.params as { transmittedText1: string, transmittedText2: string, estValide: boolean };
+  const { id, title, points, status } = route.params;
 
-  const handleDelete = () => {
-    console.log('Défi supprimé :', transmittedText1, transmittedText2);
-    // Add delete logic here
+  const [proofImage, setProofImage] = useState('https://pixsector.com/cache/d69e58d4/avbfe351f753bcaa24ae2.png');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const { setUser, user } = useUser();
+  const navigation = useNavigation();
+
+  const [modifiedPicture, setModifiedPicture] = useState(false);
+  const [challengeSent, setChallengeSent] = useState(false);
+  const [dynamicStatus, setStatus] = useState(status);
+  const [imageAspectRatio, setImageAspectRatio] = useState(1.0);
+
+  const fetchProof = async () => {
+    setLoading(true);
+    try {
+      const response = await apiPost('challenges/getProofImage', { defiId:id });
+      if (response.success) {
+        setProofImage(response.image);
+      } else {
+        setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
+      }
+    } catch (error) {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        setUser(null);
+      } else {
+        setError(error.message || 'Erreur réseau.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if(status!='empty') {
+      fetchProof();
+    }
+  }, [status]);
+
+  const handleImagePick = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.status !== 'granted') {
+      Alert.alert('Permission requise', 'Nous avons besoin de votre permission pour accéder à votre galerie.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+    });
+
+    if (result.canceled) {
+      return;
+    }
+
+    try {
+      const { uri, width } = result.assets[0];
+      let compressQuality = 1;
+  
+      let compressedImage = await ImageManipulator.manipulateAsync(
+        uri,
+        [
+          { resize: { width: width > 1080 ? 1080 : width } },
+        ],
+        { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
+      );
+  
+      let fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());  
+      let maxFileSize = 1024*1024; 
+      try {
+        const getTailleMax = await apiGet("getMaxFileSize");
+        if (getTailleMax.success) {
+          maxFileSize = getTailleMax.data;
+        }
+      } catch (error) {
+        if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+          setUser(null);
+        } else {
+          setError(error.message);
+        }
+      }
+      while (fileInfo.size > maxFileSize && compressQuality > 0.1) {
+        compressQuality -= 0.1;
+        compressedImage = await ImageManipulator.manipulateAsync(
+          uri,
+          [
+            { resize: { width: width > 1080 ? 1080 : width } },
+          ],
+          { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
+        );
+  
+        fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
+      }
+  
+      if (fileInfo.size > 1 * 1024 * 1024) {
+        Alert.alert('Erreur', 'Image trop lourde même après compression :(');
+        return;
+      }
+      setModifiedPicture(true);
+      setProofImage(compressedImage.uri);
+    } catch (error) {
+      setError('Erreur lors de la compression de l\'image :', error);
+    }
   };
 
-  return (
-    <View style={styles.container}>
-      <Header />
-      <View style={styles.content}>
-        <BoutonRetour previousRoute="defisScreen" title={transmittedText1} />
-        <Text style={styles.title}>Détails du défi :</Text>
-        <View style={styles.textBox}>
-          <Text style={styles.text}>{transmittedText2}</Text>
-        </View>
+  const uploadImage = async (uri) => {
+    try {
+      const fileInfo = await fetch(uri).then((res) => res.blob());
+
+      if (fileInfo.size > 1 * 1024 * 1024) {
+        Alert.alert('Erreur', 'L\'image dépasse la taille maximale de 1 Mo.');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('image', {
+        uri,
+        name: `challenge_${id}_room_${user?.room}.jpg`,
+        type: 'image/jpeg',
+      });
+      formData.append('defiId',id)
+
+      const response = await apiPost('challenges/uploadProofImage', formData, true);
+      if(response.success){
+        setStatus('waiting');
+        route.params.onUpdate(id, 'waiting');
+        Toast.show({
+          type: 'success',
+          text1: 'Défi posté !',
+          text2: response.message,
+        });
+        setChallengeSent(true);
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Une erreur est survenue...',
+          text2: response.message,
+        });
+      }
+      return response
+    } catch (error) {
+      setError(error.message || "Erreur lors du téléversement de l'image");
+    }
+  };
+
+  const handleSendDefi = async () => {
+    setLoading(true);
+
+    try {
+      const response = await uploadImage(proofImage);
+    } catch (error) {
+        if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+            setUser(null);
+        } else {
+            setError(error.message || 'Erreur réseau ou serveur.');
+        }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRemoveDefi = async () => {
+    Alert.alert(
+      'Confirmation',
+      'Êtes-vous sûr de vouloir supprimer ce défi ?',
+      [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+        },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await apiPost('challenges/deleteproofImage', { defiId:id });
+              if (response.success) {
+                setProofImage('https://pixsector.com/cache/d69e58d4/avbfe351f753bcaa24ae2.png');
+                setStatus('empty');
+                Toast.show({
+                  type: 'success',
+                  text1: 'Défi supprimé !',
+                  text2: response.message,
+                });
+              } else {
+                setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
+              }
+            } catch (error) {
+              if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+                setUser(null);
+              } else {
+                setError(error.message || 'Erreur réseau.');
+              }
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  if (error !== '') {
+    return <ErrorScreen error={error} />;
+  }
+
+  if (loading) {
+      return (
+          <View
+              style={{
+                  height: '100%',
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+              }}
+          >
+              <Header />
+              <View
+                  style={{
+                      width: '100%',
+                      flex: 1,
+                      backgroundColor: Colors.white,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                  }}
+              >
+                  <ActivityIndicator size="large" color={Colors.gray} />
+              </View>
+          </View>
+      );
+  }
+
+  return(
+    <View style={{ flex: 1, backgroundColor: 'white' }}>
+      <Header refreshFunction={undefined} disableRefresh={undefined} />
+      <View style={{ width: '100%', paddingHorizontal: 20 }}>
+        <BoutonRetour previousRoute="defisScreen" title={title} />
       </View>
-      {estValide ? (
-        <>
-          <View style={styles.validTextContainer}>
-            <Text style={styles.validText}>Défi validé</Text>
+      <View style={{ width: '100%', paddingHorizontal: 20, paddingBottom: 16 }}>
+        <Text style={{ marginTop: 20, fontSize: 24, color: 'black', fontWeight: '700' }}>Points : {points}</Text>
+      </View>
+      <View style={{ width: '100%', height:'60%', marginTop: 10, justifyContent: 'center', alignItems:'center' }}>
+          {
+            status == 'empty' ?
+            <TouchableOpacity onPress={handleImagePick} style={{ justifyContent: 'center', alignItems:'center', width:'100%', height:'100%'}} disabled={challengeSent}>
+              <Image
+                  source={{ uri: proofImage }} 
+                  style={{ width: '90%', aspectRatio:imageAspectRatio, maxHeight:'100%', borderRadius: 25 }}
+                  resizeMode="contain"
+                  onError={() => setProofImage("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
+              />
+            </TouchableOpacity>
+            :
+            <Image
+                source={{ uri: `${proofImage}?timestamp=${new Date().getTime()}` }} 
+                style={{ width: '90%', aspectRatio:imageAspectRatio, maxHeight:'100%', borderRadius: 25 }}
+                resizeMode="contain"
+                onError={() => setProofImage("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
+            />
+          }
+      </View>
+      <View
+        style={{
+          position: 'absolute',
+          width:'100%',
+          bottom:0
+        }}
+      >
+        {dynamicStatus!='empty' ? (dynamicStatus!='done' ? (
+          <View style={{ width: '100%', alignItems: 'center' }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: 'blue',
+                borderRadius: 8,
+                padding: 10,
+                marginBottom: 16,
+                width: '90%',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
+                Défi en attente
+              </Text>
+              <Hourglass color="white" size={20} />
+            </View>
+            <TouchableOpacity
+                style={{
+                  width: '90%',
+                  padding: 10,
+                  backgroundColor: 'red',
+                  borderRadius: 8,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onPress={handleRemoveDefi}
+              >
+                <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
+                  Supprimer
+                </Text>
+                <Trash color="white" size={20} />
+              </TouchableOpacity>
+          </View>
+        ) : (
+        <View style={{ width: '100%', alignItems: 'center' }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: 'green',
+              borderRadius: 8,
+              padding: 10,
+              marginBottom: 16,
+              width: '90%',
+              justifyContent: 'center',
+            }}
+          >
+            <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
+              Défi validé
+            </Text>
             <Check color="white" size={20} />
           </View>
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={handleDelete}
-          >
-            <Text style={styles.deleteButtonText}>Supprimer</Text>
-            <Trash color="white" size={20} />
-          </TouchableOpacity>
-        </>
-      ) : (
-        <TouchableOpacity
-          style={[styles.button, styles.deleteButton]} // Reuse deleteButton positioning
-          onPress={() => console.log('Défi soumis :', transmittedText1, transmittedText2, estValide)}
-        >
-          <Text style={styles.buttonText}>Publier mon défi</Text>
-          <LandPlot color="white" size={20} />
-        </TouchableOpacity>
-      )}
+        </View>
+          )) : (
+          <View style={{ width: '100%', alignItems: 'center' }}>
+            <TouchableOpacity
+              style={{
+                width: '90%',
+                padding: 10,
+                backgroundColor: Colors.orange,
+                borderRadius: 8,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+                opacity : modifiedPicture ? 1 : 0.4
+              }}
+              onPress={handleSendDefi}
+              disabled={!modifiedPicture}
+            >
+              <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
+                Publier mon défi
+              </Text>
+              <LandPlot color="white" size={20} />
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
     </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  content: {
-    width: '100%',
-    flex: 1,
-    backgroundColor: Colors.white,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  title: {
-    marginTop: 20,
-    fontSize: 16,
-    color: Colors.black,
-    fontFamily: 'Inter',
-    fontWeight: '600',
-  },
-  textBox: {
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: Colors.gray,
-    borderRadius: 8,
-    padding: 10,
-    backgroundColor: Colors.white,
-  },
-  text: {
-    fontSize: 14,
-    color: Colors.black,
-    fontFamily: 'Inter',
-    fontWeight: '400',
-    lineHeight: 20,
-  },
-  validTextContainer: {
-    position: 'absolute',
-    bottom: 80,
-    width: '90%',
-    padding: 10,
-    backgroundColor: 'green',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-  },
-  validText: {
-    color: 'white',
-    fontSize: 16,
-    fontFamily: 'Inter',
-    fontWeight: '600',
-    marginRight: 10,
-  },
-  button: {
-    width: '90%',
-    padding: 10,
-    backgroundColor: Colors.orange,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontFamily: 'Inter',
-    fontWeight: '600',
-    marginRight: 10,
-  },
-  deleteButton: {
-    position: 'absolute',
-    bottom: 16,
-    width: '90%',
-    padding: 10,
-    backgroundColor: Colors.orange,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-  },
-  deleteButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontFamily: 'Inter',
-    fontWeight: '600',
-    marginRight: 10,
-  },
-});
+  )
+};

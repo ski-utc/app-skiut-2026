@@ -1,19 +1,16 @@
-import { View, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { View, StyleSheet, TouchableOpacity, Alert, ScrollView } from "react-native";
 import { Text, Image } from "react-native";
 import Header from "../../components/header";
 import React, { useState, useEffect } from "react";
 import BoutonProfil from "../../components/profil/boutonProfil";
-import { Fonts, Colors } from "@/constants/GraphSettings";
+import { Fonts, Colors, loadFonts } from "@/constants/GraphSettings";
 import { Phone, PhoneCall, Map, MapPin, Gauge, Bus, UserRoundCheck, Heart } from 'lucide-react-native';
 import { useUser } from "@/contexts/UserContext";
 import * as config from '../../constants/api/apiConfig';
 import WebView from "react-native-webview";
-import Admin from "../admin/adminScreen";
-import { apiGet } from '@/constants/api/apiCalls';
-
 
 const LogoutButton: React.FC<{ setShowLogoutWebView: React.Dispatch<React.SetStateAction<boolean>> }> = ({ setShowLogoutWebView }) => {
-    const { logout } = useUser();
+    const { logout, user } = useUser();
 
     const handleLogout = () => {
         Alert.alert(
@@ -63,35 +60,12 @@ const LogoutButton: React.FC<{ setShowLogoutWebView: React.Dispatch<React.SetSta
 export default function Profil() {
     const { user } = useUser();
     const [showLogoutWebview, setShowLogoutWebView] = useState(false);
-    const [roomName, setRoomName] = useState<any>(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    // Fetch user data
-    const fetchUserData = async () => {
-        setLoading(true);
-        try {
-            const response = await apiGet("getUserData");
-            if (response.success) {
-                setRoomName(response.roomName);
-              } else {
-                setError("Une erreur est survenue lors de la récupération du planning");
-              }
-        } catch (error) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
-            } else {
-                setError(error.message || "Une erreur inattendue est survenue");
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
 
     useEffect(() => {
-        if (user) {
-            fetchUserData(); // Fetch data when user is available
-        }
+        const loadAsyncFonts = async () => {
+            await loadFonts();
+          };
+          loadAsyncFonts();
     }, [user]);
 
     if (showLogoutWebview) {
@@ -120,126 +94,134 @@ export default function Profil() {
             }}
         >
             <Header />
-            <View
-                style={{
-                    flexDirection: 'row',
-                    width: '100%',
-                    justifyContent: 'start',
-                    alignItems: 'center',
+            <ScrollView
+                contentContainerStyle={{
+                    alignItems: "center",
+                    justifyContent: "start",
                     paddingBottom: 8,
-                    paddingHorizontal: 20,
-                    gap: 25
                 }}
             >
-                <Image source={require("../../assets/images/OursCabine.png")} style={{ height: 164, width: 164 }} />
                 <View
                     style={{
-                        flex: 1,
-                        justifyContent: 'center',
-                        alignItems: 'flex-start',
+                        flexDirection: 'row',
+                        width: '100%',
+                        justifyContent: 'start',
+                        alignItems: 'center',
+                        paddingBottom: 8,
+                        paddingHorizontal: 20,
+                        gap: 25
                     }}
                 >
-                    <Text
+                    <Image source={require("../../assets/images/OursCabine.png")} style={{ height: 164, width: 164 }} />
+                    <View
                         style={{
-                            fontSize: 24,
-                            fontFamily: Fonts.Inter.Basic,
-                            fontWeight: '600',
-                            flexShrink: 1,
-                            flexWrap: 'wrap',
+                            flex: 1,
+                            justifyContent: 'center',
+                            alignItems: 'flex-start',
                         }}
                     >
-                        {user?.name} {user?.lastName}
-                    </Text>
-                    <Text
-                        style={{
-                            fontSize: 18,
-                            fontFamily: Fonts.Inter.Basic,
-                            fontWeight: '400',
-                            color: Colors.gray,
-                        }}
-                    >
-                        {loading ? "Chargement..." : error || `Chambre ${roomName || 'Non attribuée'}`}
+                        <Text
+                            style={{
+                                fontSize: 24,
+                                fontFamily: Fonts.Inter.Basic,
+                                fontWeight: '600',
+                                flexShrink: 1,
+                                flexWrap: 'wrap',
+                            }}
+                        >
+                            {user?.name} {user?.lastName}
+                        </Text>
+                        <Text
+                            style={{
+                                fontSize: 18,
+                                fontFamily: Fonts.Inter.Basic,
+                                fontWeight: '400',
+                                color: Colors.gray,
+                            }}
+                        >
+                            {`Chambre ${user?.roomName || 'Non attribuée'}`}
 
-                    </Text>
+                        </Text>
+                    </View>
                 </View>
-            </View>
-            <View style={styles.navigationContainer}>
-                <BoutonProfil
-                    nextRoute={"ContactScreen"}
-                    options={{
-                        title: 'Contact',
-                        icon: Phone,
-                    }}
-                />
-            </View>
-            <View style={styles.navigationContainer}>
-                <BoutonProfil
-                    nextRoute={"StopVssScreen"}
-                    options={{
-                        title: 'Stop VSS',
-                        icon: PhoneCall,
-                    }}
-                />
-            </View>
-
-            <View style={styles.navigationContainer}>
-                <BoutonProfil
-                    nextRoute={"PlanDesPistesScreen"}
-                    options={{
-                        title: 'Plan des pistes',
-                        icon: Map,
-                    }}
-                />
-            </View>
-
-            <View style={styles.navigationContainer}>
-                <BoutonProfil
-                    nextRoute={"PlanStationScreen"}
-                    options={{
-                        title: 'Plan de la station',
-                        icon: MapPin,
-                    }}
-                />
-            </View>
-            <View style={styles.navigationContainer}>
-                <BoutonProfil
-                    nextRoute={"VitesseDeGlisseScreen"}
-                    options={{
-                        title: 'Vitesse de glisse',
-                        icon: Gauge,
-                    }}
-                />
-            </View>
-
-            <View style={styles.navigationContainer}>
-                <BoutonProfil 
-                    nextRoute={"SkinderNavigator"} 
-                    options={{
-                        title: 'Skinder',
-                        icon: Heart,
-                    }}
-                />
-            </View>
-            <View style={styles.navigationContainer}>
-                <BoutonProfil
-                    nextRoute={"NavettesScreen"}
-                    options={{
-                        title: 'Navettes',
-                        icon: Bus,
-                    }}
-                />
-            </View>
-
-            {/* Afficher le bouton admin uniquement si l'utilisateur est admin */}
-            {user?.admin === 1 && ( // 1 = true (admin)
                 <View style={styles.navigationContainer}>
-                    <BoutonProfil nextRoute={"AdminNavigator"} options={{ title: 'Contrôle Admin', icon: UserRoundCheck }} />
+                    <BoutonProfil
+                        nextRoute={"ContactScreen"}
+                        options={{
+                            title: 'Contact',
+                            icon: Phone,
+                        }}
+                    />
                 </View>
-            )}
-            {/*<View style={styles.navigationContainer}>
-                <BoutonProfil nextRoute={"AdminNavigator"} options={{ title: 'Contrôle Admin', icon: UserRoundCheck }} />
-            </View>*/}
-            <LogoutButton setShowLogoutWebView={setShowLogoutWebView} />
+                <View style={styles.navigationContainer}>
+                    <BoutonProfil
+                        nextRoute={"StopVssScreen"}
+                        options={{
+                            title: 'Stop VSS',
+                            icon: PhoneCall,
+                        }}
+                    />
+                </View>
+
+                <View style={styles.navigationContainer}>
+                    <BoutonProfil
+                        nextRoute={"PlanDesPistesScreen"}
+                        options={{
+                            title: 'Plan des pistes',
+                            icon: Map,
+                        }}
+                    />
+                </View>
+
+                <View style={styles.navigationContainer}>
+                    <BoutonProfil
+                        nextRoute={"PlanStationScreen"}
+                        options={{
+                            title: 'Plan de la station',
+                            icon: MapPin,
+                        }}
+                    />
+                </View>
+                <View style={styles.navigationContainer}>
+                    <BoutonProfil
+                        nextRoute={"VitesseDeGlisseScreen"}
+                        options={{
+                            title: 'Vitesse de glisse',
+                            icon: Gauge,
+                        }}
+                    />
+                </View>
+
+                <View style={styles.navigationContainer}>
+                    <BoutonProfil 
+                        nextRoute={"SkinderNavigator"} 
+                        options={{
+                            title: 'Skinder',
+                            icon: Heart,
+                        }}
+                    />
+                </View>
+                <View style={styles.navigationContainer}>
+                    <BoutonProfil
+                        nextRoute={"NavettesScreen"}
+                        options={{
+                            title: 'Navettes',
+                            icon: Bus,
+                        }}
+                    />
+                </View>
+
+                {/* Afficher le bouton admin uniquement si l'utilisateur est admin */}
+                {user?.admin === 1 && ( // 1 = true (admin)
+                    <View style={styles.navigationContainer}>
+                        <BoutonProfil nextRoute={"AdminNavigator"} options={{ title: 'Contrôle Admin', icon: UserRoundCheck }} />
+                    </View>
+                )}
+                {/*<View style={styles.navigationContainer}>
+                    <BoutonProfil nextRoute={"AdminNavigator"} options={{ title: 'Contrôle Admin', icon: UserRoundCheck }} />
+                </View>*/}
+                <LogoutButton setShowLogoutWebView={setShowLogoutWebView} />
+            </ScrollView>
         </View>
     );
 }

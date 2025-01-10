@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, ActivityIndicator } from 'react-native';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import Header from '../../components/header';
-import Banner from '@/components/divers/bannièreReponse';
 import { useUser } from '@/contexts/UserContext';
 import Anecdote from '../../components/anecdotes/anecdote';
 import BoutonRetour from '@/components/divers/boutonRetour';
@@ -18,9 +17,6 @@ export default function AnecdotesScreen() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [quantity, setQuantity] = useState(10);
   const [hasMoreData, setHasMoreData] = useState(true); 
-  const [responseMessage, setResponseMessage] = useState('');
-  const [responseSuccess, setResponseSuccess] = useState(false);
-  const [showBanner, setShowBanner] = useState(false);
   const [disableRefresh, setDisableRefresh] = useState(false);
 
   const { setUser } = useUser();
@@ -56,8 +52,13 @@ export default function AnecdotesScreen() {
   };
 
   useEffect(() => {
+    const loadAsyncFonts = async () => {
+      await loadFonts();
+    };
+    loadAsyncFonts();
+
     fetchAnecdotes();
-  },[]);
+  }, []);
 
   const handleLoadMore = () => {
     if (hasMoreData && !loading && !loadingMore) {
@@ -66,10 +67,8 @@ export default function AnecdotesScreen() {
     }
   };
 
-  if(error!='') {
-    return(
-      <ErrorScreen error={error}/>
-    )
+  if (error != '') {
+    return <ErrorScreen error={error} />;
   }
 
   if (loading) {
@@ -84,7 +83,7 @@ export default function AnecdotesScreen() {
           justifyContent: 'center',
         }}
       >
-        <Header/>
+        <Header />
         <View
           style={{
             width: '100%',
@@ -111,7 +110,6 @@ export default function AnecdotesScreen() {
         justifyContent: 'center',
       }}
     >
-      <Banner message={responseMessage} success={responseSuccess} show={showBanner}/>
       <Header refreshFunction={fetchAnecdotes} disableRefresh={disableRefresh}/>
       <View
         style={{
@@ -136,9 +134,6 @@ export default function AnecdotesScreen() {
               authorId={item.authorId}
               refresh={fetchAnecdotes}
               setError={setError}
-              setResponseMessage={setResponseMessage}
-              setResponseSuccess={setResponseSuccess}
-              setShowBanner={setShowBanner}
             />
           )}
           keyExtractor={item => item.id}

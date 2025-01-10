@@ -7,10 +7,12 @@ import { apiGet } from '@/constants/api/apiCalls';
 import { useNavigation } from '@react-navigation/native';
 import ErrorScreen from '@/components/pages/errorPage';
 import { PenLine } from 'lucide-react-native';
-import { Colors } from '@/constants/GraphSettings';
+import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { useUser } from '@/contexts/UserContext';
 
 const GestionNotificationsScreen = () => {
   const navigation = useNavigation();
+  const { setUser } = useUser();
 
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -25,30 +27,64 @@ const GestionNotificationsScreen = () => {
       const response = await apiGet('getAdminNotifications');
       if (response.success) {
         setNotifications(response.data);
-        console.log('Notifications:', response.data);
       } else {
         setError('Erreur lors de la récupération des notifications');
       }
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        setUser(null);
+      } else {
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
-      setDisableRefresh(false);
+      setTimeout(() => {
+        setDisableRefresh(false); 
+      }, 5000);
     }
   };
 
   useEffect(() => {
+    const loadAsyncFonts = async () => {
+      await loadFonts();
+    };
+    loadAsyncFonts();
     fetchAdminNotifications();
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+        fetchAdminNotifications();
+      });
+  
+    return unsubscribe;
+}, [navigation]);
 
-  if (error !== '') {
+  if (error != '') {
     return <ErrorScreen error={error} />;
   }
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="gray" />
+      <View
+        style={{
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Header />
+        <View
+          style={{
+            width: '100%',
+            flex: 1,
+            backgroundColor: Colors.white,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <ActivityIndicator size="large" color={Colors.gray} />
+        </View>
       </View>
     );
   }
@@ -86,6 +122,7 @@ const GestionNotificationsScreen = () => {
               subtitleStyle={item.delete === 0 ? styles.activeSubtitle : styles.deletedSubtitle}
               nextRoute="valideNotificationsScreen"
               id={item.id}
+              active={item.active}
             />
           )}
           keyExtractor={(item) => item.id.toString()}
@@ -113,7 +150,6 @@ const styles = StyleSheet.create({
   },
   list: {
     width: '100%',
-    marginTop: 20,
     flex: 1,
   },
   loadingContainer: {

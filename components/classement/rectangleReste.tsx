@@ -16,7 +16,7 @@ const RectangleReste: React.FC<RectangleResteProps> = ({ bottom, number, num, nb
             <Text style={styles.bigNumber}>{number}</Text>
             <View style={styles.textContainer}>
                 <Text style={styles.chambreText}>Chambre {num}</Text>
-                <Text style={styles.likesText}>{nb_likes} likes</Text>
+                <Text style={styles.likesText}>{nb_likes} points</Text>
             </View>
         </View>
     );

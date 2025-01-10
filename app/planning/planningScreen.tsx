@@ -1,5 +1,5 @@
 import { View, StyleSheet, Text, FlatList, ActivityIndicator, TouchableOpacity } from "react-native";
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import Header from "@/components/header";
 import ErrorScreen from "@/components/pages/errorPage";
@@ -53,7 +53,20 @@ export default function PlanningScreen() {
     }
   };
 
+  const getTodayKey = () => {
+    const today = new Date();
+    const formatter = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const [{ value: day }, , { value: month }, , { value: year }] = formatter.formatToParts(today);
+    return `${year}-${month}-${day}`; 
+  };
+  
   useEffect(() => {
+    const loadAsyncFonts = async () => {
+      await loadFonts();
+    };
+    loadAsyncFonts();
+    const todayKey = getTodayKey();
+    setSelectedDate(todayKey);
     fetchPlanning();
   }, []);
 

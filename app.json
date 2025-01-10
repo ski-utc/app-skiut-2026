@@ -27,7 +27,8 @@
       },
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.READ_EXTERNAL_STORAGE"
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -47,7 +48,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Autoriser Ski'Ut à accéder à la Galerie photo.",
+          "photosPermission": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images.",
           "cameraPermission": "Autoriser Ski'Ut à accéder à la Caméra."
         }
       ],

@@ -5,43 +5,46 @@ import Header from '../../components/header';
 import BoutonMenu from '@/components/admins/boutonMenu';
 import BoutonGestion from '@/components/admins/boutonGestion';
 import { apiGet } from '@/constants/api/apiCalls';
-import { useNavigation } from '@react-navigation/native';
 import ErrorScreen from '@/components/pages/errorPage';
+import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { useUser } from '@/contexts/UserContext';
+import { useNavigation } from '@react-navigation/native';
 
 const GestionDefisScreen = () => {
-  const navigation = useNavigation();
-
   const [defis, setDefis] = useState([]);
   const [filteredDefis, setFilteredDefis] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
 
-  const fetchAdminDefis = async (incrementalLoad = false) => {
-    if (!incrementalLoad) setLoading(true);
-    else setLoadingMore(true);
+  const { setUser } = useUser();
+  const navigation = useNavigation();
+
+  const fetchAdminDefis = async () => {
+    setLoading(true);
     setDisableRefresh(true);
     try {
       const response = await apiGet('getAdminChallenges');
       if (response.success) {
         setDefis(response.data);
         setFilteredDefis(response.data);
-        console.log('Défis:', response.data);
       } else {
         setError('Erreur lors de la récupération des défis');
       }
-    } catch (err) {
-      setError(err.message);
-    } finally {
-        setLoading(false);
-        setLoadingMore(false);
-        setTimeout(() => {
-          setDisableRefresh(false); 
-        }, 5000);
+    } catch (error) {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        setUser(null);
+      } else {
+        setError(error.message);
       }
-    };  
-
+    } finally {
+      setLoading(false);
+      setTimeout(() => {
+        setDisableRefresh(false); 
+      }, 5000);
+    }
+    }; 
+   
   const handleFilter = (filter) => {
     switch (filter) {
       case 'pending':
@@ -57,17 +60,46 @@ const GestionDefisScreen = () => {
   };
 
   useEffect(() => {
+    const loadAsyncFonts = async () => {
+      await loadFonts();
+    };
+    loadAsyncFonts();
     fetchAdminDefis();
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+        fetchAdminDefis();
+      });
+  
+    return unsubscribe;
+}, [navigation]);
 
-  if (error !== '') {
+  if (error != '') {
     return <ErrorScreen error={error} />;
   }
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="gray" />
+      <View
+        style={{
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Header />
+        <View
+          style={{
+            width: '100%',
+            flex: 1,
+            backgroundColor: Colors.white,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <ActivityIndicator size="large" color={Colors.gray} />
+        </View>
       </View>
     );
   }
@@ -81,7 +113,7 @@ const GestionDefisScreen = () => {
 
       <View>
         <BoutonMenu
-          first="Tous les défis" // non supprimés 
+          first="Tous" // non supprimés 
           second="En attente"
           third="Supprimés"
           onFirstClick={() => handleFilter('all')}
@@ -100,6 +132,7 @@ const GestionDefisScreen = () => {
               subtitleStyle={undefined}
               nextRoute="valideDefisScreen"
               id={item.id}
+              valide={item.valid}
             />
           )}
           keyExtractor={(item) => item.id.toString()}
@@ -127,7 +160,6 @@ const styles = StyleSheet.create({
   },
   list: {
     width: '100%',
-    marginTop: 20,
     flex: 1,
   },
   loadingContainer: {
@@ -139,6 +171,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: 'gray',
     fontSize: 16,
+    marginTop:20
   },
 });
 

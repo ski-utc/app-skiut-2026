@@ -13,7 +13,7 @@ const RectanglePodium: React.FC<RectanglePodiumProps> = ({ height, num, nb_likes
     return (
         <View style={[styles.container, style]}>
             <Text style={styles.text}>Chambre {num}</Text>
-            <Text style={styles.likesText}>{nb_likes} likes</Text>
+            <Text style={styles.likesText}>{nb_likes} points</Text>
             <View style={[styles.rectangle, { height }]} />
         </View>
     );
@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     },
     likesText: {
         color: Colors.white,
-        fontSize: 9,
+        fontSize: 14,
         fontFamily: Fonts.Text.Light,
     },
     rectangle: {

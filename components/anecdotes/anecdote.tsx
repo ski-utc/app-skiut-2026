@@ -4,9 +4,10 @@ import { Colors, Fonts } from '@/constants/GraphSettings';
 import { Heart, TriangleAlert } from 'lucide-react-native';
 import { apiPost } from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
+import Toast from 'react-native-toast-message';
 
 // @ts-ignore
-export default function Anecdote({ id, text, room, nbLikes, liked, warned, authorId, refresh, setError, setResponseMessage, setResponseSuccess, setShowBanner }) {
+export default function Anecdote({ id, text, room, nbLikes, liked, warned, authorId, refresh, setError }) {
   const [isLiked, setIsLiked] = useState(liked);
   const [dynamicNbLikes, setDynamicNbLikes] = useState(nbLikes);
   const [isWarned, setIsWarned] =useState(warned);
@@ -21,10 +22,11 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
         const updateLike = (response.liked) ? 1 : -1;
         setDynamicNbLikes(dynamicNbLikes+updateLike);
       } else {
-        setResponseMessage(response.message);
-        setResponseSuccess(false);
-        setShowBanner(true);
-        setTimeout(() => setShowBanner(false), 5000);
+        Toast.show({
+          type: 'error',
+          text1: 'Une erreur est survenue...',
+          text2: response.message,
+        });
       }
     } catch (error) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
@@ -41,10 +43,12 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
       if (response.success) {
         setIsWarned(response.warn);
       } else {
-        setResponseMessage(response.message);
-        setResponseSuccess(false);
-        setShowBanner(true);
-        setTimeout(() => setShowBanner(false), 5000);      }
+        Toast.show({
+          type: 'error',
+          text1: 'Une erreur est survenue...',
+          text2: response.message,
+        });
+      }
     } catch (error) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
@@ -70,15 +74,19 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
             try {
               const response = await apiPost('deleteAnecdote', { anecdoteId: id });
               if (response.success) {
-                setResponseMessage('Anecdote supprimée avec succès !');
-                setResponseSuccess(true);
+                Toast.show({
+                  type: 'success',
+                  text1: 'Anecdote supprimée avec succès !',
+                  text2: response.message,
+                });
                 refresh();
               } else {
-                setResponseMessage(response.message);
-                setResponseSuccess(false);
+                Toast.show({
+                  type: 'error',
+                  text1: 'Une erreur est survenue...',
+                  text2: response.message,
+                });
               }
-              setShowBanner(true);
-              setTimeout(() => setShowBanner(false), 5000);
             } catch (error) {
               if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
                 setUser(null);

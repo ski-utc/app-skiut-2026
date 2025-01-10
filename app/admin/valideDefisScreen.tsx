@@ -1,47 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator } from 'react-native';
+import { Text, View, StyleSheet, ActivityIndicator, Image, Alert, Modal, TouchableOpacity, StatusBar } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { X, Check } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiPost, apiGet } from '@/constants/api/apiCalls'; // Import the API calls
 import ErrorScreen from '@/components/pages/errorPage';
+import { useUser } from '@/contexts/UserContext';
+import Toast from 'react-native-toast-message';
+import { useNavigation } from '@react-navigation/native';
 
 export default function ValideDefis() {
   const route = useRoute();
   const { id } = route.params; // Récupération de l'ID de l'anecdote
-  console.log('Challenge ID:', id);
-
+  const {setUser} = useUser();
+  const navigation = useNavigation();
+  
   const [challengeDetails, setChallengeDetails] = useState(null);
   const [challengeStatus, setChallengeStatus] = useState(null); // État pour le statut de validation
-  
+  const [proofImage, setProofImage] = useState("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg");
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [disableRefresh, setDisableRefresh] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
 
   // Fetch challenge details
-  const fetchChallengeDetails = async (incrementalLoad = false) => {
-    if (!incrementalLoad) setLoading(true);
-    else setLoadingMore(true);
-    setDisableRefresh(true);
+  const fetchChallengeDetails = async () => {
+    setLoading(true);
     try {
       const response = await apiGet(`getChallengeDetails/${id}`);
       if (response.success) {
         setChallengeDetails(response.data);
+        setProofImage(response.imagePath);
       } else {
         setError('Erreur lors de la récupération des détails du défi');
       }
-    } catch (err) {
-      setError('Erreur lors de la récupération des détails');
+    } catch (error) {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        setUser(null);
+      } else {
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
-      setLoadingMore(false);
-      setTimeout(() => {
-        setDisableRefresh(false); 
-      }, 5000);
     }
   };
 
@@ -57,35 +60,116 @@ export default function ValideDefis() {
           valid: isValid,
         }));
         await fetchChallengeDetails(); // Reload challenge details after update
+      } else {
+        setError(response.message);
       }
-    } catch (err) {
-      setError('Erreur lors de la mise à jour du statut');
+    } catch (error) {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        setUser(null);
+      } else {
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleRemoveDefi = async () => {
+    Alert.alert(
+      'Confirmation',
+      'Êtes-vous sûr de vouloir supprimer ce défi ?',
+      [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+        },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await apiPost('challenges/deleteproofImage', { defiId:challengeDetails.challenge_id });
+              if(response.success){
+                Toast.show({
+                  type: 'success',
+                  text1: 'Défi supprimé !',
+                  text2: response.message,
+                });
+              } else {
+                Toast.show({
+                  type: 'error',
+                  text1: 'Une erreur est survenue...',
+                  text2: response.message,
+                });
+                setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
+              }
+            } catch (error) {
+              if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+                setUser(null);
+              } else {
+                setError(error.message || 'Erreur réseau.');
+              }
+            } finally {
+              setLoading(false);
+              navigation.goBack();
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const toggleModal = () => {
+    setIsModalVisible(!isModalVisible); 
+  };
+
   useEffect(() => {
-    fetchChallengeDetails(); // Load challenge details on component mount
-  }, [id]);
+    const loadAsyncFonts = async () => {
+      await loadFonts();
+    };
+    loadAsyncFonts();
+
+    fetchChallengeDetails();
+  }, []);
+
+  if (error != '') {
+    return <ErrorScreen error={error} />;
+  }
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="gray" />
+      <View
+        style={{
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Header />
+        <View
+          style={{
+            width: '100%',
+            flex: 1,
+            backgroundColor: Colors.white,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <ActivityIndicator size="large" color={Colors.gray} />
+        </View>
       </View>
     );
   }
 
-  if (error) {
-    return <ErrorScreen error={error} />;
-  }
-
   return (
     <View style={styles.container}>
-      <Header refreshFunction={fetchChallengeDetails} disableRefresh={disableRefresh}/>
+      <Header />
       <View style={styles.content}>
-        <BoutonRetour previousRoute="gestionDefisScreen" title={"Gérer défis " + id} />
+        <BoutonRetour previousRoute="gestionDefisScreen" title="Gestion défis "/>
         <Text style={styles.title}>Détails du défi :</Text>
         <View style={styles.textBox}>
           <Text style={styles.text}>Status : {challengeDetails?.valid ? 'Validée' : 'En attente de validation'}</Text>
@@ -101,8 +185,15 @@ export default function ValideDefis() {
           <Text style={styles.text}>Auteur : {challengeDetails?.user?.firstName} {challengeDetails?.user?.lastName || 'Auteur inconnu'}</Text>
           <Text style={styles.text}>Défi : {challengeDetails?.challenge.title || 'Pas de description'}</Text>
         </View>
+        <TouchableOpacity onPress={toggleModal}>
+          <Image
+            source={{ uri: `${proofImage}?timestamp=${new Date().getTime()}` }} 
+            style={{ width: '90%', aspectRatio:1, maxHeight:'100%', borderRadius: 25 }}
+            resizeMode="contain"
+            onError={() => setProofImage("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
+          />
+        </TouchableOpacity>
       </View>
-
       <View style={styles.buttonContainer}>
         <View style={styles.buttonSpacing}>
           <BoutonActiver
@@ -112,13 +203,67 @@ export default function ValideDefis() {
             onPress={() => handleValidation(0)} // Invalidate the challenge
           />
         </View>
-        <BoutonActiver
-          title="Valider le défi"
-          IconComponent={Check}
-          disabled={challengeDetails.valid == 1}
-          onPress={() => handleValidation(1)} // Validate the challenge
-        />
+        <View 
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-evenly',
+            alignItems: 'center',
+            width: '100%'
+          }}
+        >
+      <BoutonActiver
+            title="Refuser le défi"
+            IconComponent={X}
+            disabled={challengeDetails.valid == 1}
+            onPress={handleRemoveDefi}
+          />
+          <BoutonActiver
+            title="Valider le défi"
+            IconComponent={Check}
+            disabled={challengeDetails.valid == 1}
+            onPress={() => handleValidation(1)}
+          />
+        </View>
       </View>
+      <Modal visible={isModalVisible} transparent={true} animationType="fade">
+        <StatusBar backgroundColor="rgba(0,0,0,0.9)" />
+        <View 
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <TouchableOpacity 
+            style={{
+              position: 'absolute',
+              top: 40,
+              right: 20,
+              backgroundColor: Colors.white,
+              padding: 10,
+              borderRadius: 8,
+            }} 
+            onPress={toggleModal}
+          >
+            <Text style={{
+              fontSize: 16,
+              fontWeight: '600',
+              color: Colors.black,
+            }}>
+              Fermer
+            </Text>
+          </TouchableOpacity>
+          <Image
+            source={{ uri: `${proofImage}?timestamp=${new Date().getTime()}` }}
+            style={{
+              width: '100%',
+              height: '80%',
+            }}
+            resizeMode="contain"
+          />
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -173,4 +318,3 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
-

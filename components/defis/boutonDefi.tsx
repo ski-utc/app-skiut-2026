@@ -5,24 +5,28 @@ import { useNavigation } from '@react-navigation/native';
 import { ChevronRight, Check } from 'lucide-react-native';
 
 interface BoutonDefiProps {
-    nextRoute: string;
     defi: {
-        title: string;
-        details: string;
+        id: number,
+        title: string,
+        points: number,
+        status: string,
+        [key: string]: any;
     };
-    estValide: boolean;
 }
 
-const BoutonDefi: React.FC<BoutonDefiProps> = ({ nextRoute, defi, estValide }) => {
+const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
     const navigation = useNavigation();
 
     const onPress = () => {
-        navigation.navigate(nextRoute, {
-            transmittedText1: defi.title,
-            transmittedText2: defi.details,
-            estValide: estValide,
+        navigation.navigate("defisInfos", {
+            id: defi.id,
+            title: defi.title,
+            points: defi.points,
+            status: defi.status,
+            onUpdate
         });
     };
+    
 
     return (
         <TouchableOpacity
@@ -42,7 +46,7 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ nextRoute, defi, estValide }) =
                 backgroundColor: 'white',
             }}
         >
-            {/* Partie gauche : icône et titre */}
+            {/* Left section: Icon and title */}
             <View
                 style={{
                     justifyContent: "flex-start",
@@ -53,8 +57,9 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ nextRoute, defi, estValide }) =
                 }}
             >
                 <Check
-                    color={estValide ? "#05AA1F" : "#8A8A8A"}
-                    size={20}
+                    color={defi.status !== 'empty' ? (defi.status === 'done' ? 'green' : 'orange') : '#8A8A8A'}
+                    size={25}
+                    strokeWidth={4}
                 />
                 <Text
                     style={{
@@ -69,8 +74,8 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ nextRoute, defi, estValide }) =
                 </Text>
             </View>
 
-            {/* Icône flèche à droite */}
-            <ChevronRight size={20} color={Colors.black} />
+            {/* Right section: Chevron icon */}
+            <ChevronRight size={40} color={Colors.black} />
         </TouchableOpacity>
     );
 };

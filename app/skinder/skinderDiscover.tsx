@@ -17,6 +17,7 @@ export default function SkinderDiscover() {
     const [profile, setProfile] = useState({ id: null, nom: '', description: '', passions: [] });
     const [imageProfil, setImageProfil] = useState("https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png");
     const [disableButton, setDisableButton] = useState(false);
+    const [disableRefresh, setDisableRefresh] = useState(false);
 
     const { setUser } = useUser();
     const navigation = useNavigation();
@@ -118,6 +119,7 @@ export default function SkinderDiscover() {
     };
 
     const fetchProfil = async () => {
+        setDisableRefresh(true);
         try {
             const response = await apiGet('getProfilSkinder');
             if (response.success) {
@@ -147,6 +149,9 @@ export default function SkinderDiscover() {
             }
         } finally {
             resetPosition();
+            setTimeout(() => {
+                setDisableRefresh(false); 
+              }, 5000); 
         }
     };
 
@@ -180,8 +185,12 @@ export default function SkinderDiscover() {
     };
 
     useEffect(() => {
-        fetchProfil();
-    }, []);
+        const unsubscribe = navigation.addListener('focus', () => {
+            fetchProfil();
+          });
+      
+        return unsubscribe;
+    }, [navigation]);
 
     if (error !== '') {
         return <ErrorScreen error={error} />;
@@ -198,7 +207,7 @@ export default function SkinderDiscover() {
                 justifyContent: 'center',
             }}
         >
-            <Header />
+            <Header refreshFunction={fetchProfil} disableRefresh={disableRefresh}/>
             <View
                 style={{
                     width: '100%',

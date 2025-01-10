@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     },
     speedText: {
         color: Colors.white,
-        fontSize: 9,
+        fontSize: 13,
         fontFamily: Fonts.Text.Light,
         marginBottom: 0,
     },

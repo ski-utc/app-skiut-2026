@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, FlatList, ActivityIndicator, Text } from 'react-native';
-import { useUser } from '@/contexts/UserContext'; // Contexte utilisateur, si disponible
 import { apiGet } from '@/constants/api/apiCalls'; // API pour récupérer les infos utilisateur
 import BoutonRetour from '@/components/divers/boutonRetour';
 import BoutonAdmin from '@/components/admins/boutonAdmin';
 import Header from '../../components/header';
-import { useNavigation } from '@react-navigation/native'; // Pour la navigation
 import ErrorScreen from '@/components/pages/errorPage';
+import { useNavigation } from '@react-navigation/native';
+import { useUser } from '@/contexts/UserContext';
+import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 
 const adminControls = [
   { title: 'Gestion des défis', nextRoute: 'gestionDefisScreen' },
@@ -15,39 +16,43 @@ const adminControls = [
 ];
 
 export default function Admin() {
-  const { user } = useUser(); // Contexte utilisateur
-  const [admin, setAdmin] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const navigation = useNavigation();
 
-  const fetchAdmin = async (incrementalLoad = false) => {
-    console.log('fetchAdmin');
-    if (!incrementalLoad) setLoading(true);
+  const navigation = useNavigation();
+  const { setUser } = useUser();
+
+  const fetchAdmin = async () => {
+    setLoading(true);
 
     try {
-      const response = await apiGet('admin');
-      console.log('response: ', response.success);
-      if (response.success) {
-        setAdmin(response.data);
-      } else {
-        setError('Accès interdit, vous n\'êtes pas administrateur');
+      const response = await apiGet("admin"); // Récupération des données
+      if (!response.success) {
+        navigation.goBack();
+        return null;
       }
     } catch (error) {
-      setError(error.message);
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        setUser(null);
+      } else {
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    const loadAsyncFonts = async () => {
+      await loadFonts();
+    };
+    loadAsyncFonts();
+
     fetchAdmin();
   }, []);
 
   if (error != '') {
-    return (
-      <ErrorScreen error={error} />
-    )
+    return <ErrorScreen error={error} />;
   }
 
   if (loading) {
@@ -67,12 +72,12 @@ export default function Admin() {
           style={{
             width: '100%',
             flex: 1,
-            backgroundColor: 'white',
+            backgroundColor: Colors.white,
             justifyContent: 'center',
             alignItems: 'center',
           }}
         >
-          <ActivityIndicator size="large" color="gray" />
+          <ActivityIndicator size="large" color={Colors.gray} />
         </View>
       </View>
     );

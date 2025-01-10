@@ -58,7 +58,7 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
             >
                 <Check
                     color={defi.status !== 'empty' ? (defi.status === 'done' ? 'green' : 'orange') : '#8A8A8A'}
-                    size={20}
+                    size={25}
                     strokeWidth={4}
                 />
                 <Text

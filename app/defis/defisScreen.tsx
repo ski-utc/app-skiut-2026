@@ -74,13 +74,32 @@ export default function Defis() {
   }
 
   if (loading) {
-    return (
-        <View style={styles.loadingContainer}>
-          <Header refreshFunction={undefined} disableRefresh={undefined} />
-          <ActivityIndicator size="large" color={Colors.gray} />
+      return (
+        <View
+          style={{
+            height: '100%',
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Header />
+          <View
+            style={{
+              width: '100%',
+              flex: 1,
+              backgroundColor: Colors.white,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <ActivityIndicator size="large" color={Colors.gray} />
+          </View>
         </View>
-    );
-  }
+      );
+    }
 
   return (
       <View style={styles.container}>

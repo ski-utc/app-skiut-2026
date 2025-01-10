@@ -293,7 +293,7 @@ export default function DefisInfos() {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                backgroundColor: 'blue',
+                backgroundColor: 'grey',
                 borderRadius: 8,
                 padding: 10,
                 marginBottom: 16,

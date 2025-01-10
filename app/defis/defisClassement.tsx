@@ -29,7 +29,7 @@ export default function DefisClassement() {
         setDisableRefresh(true);
         try {
             const response = await apiGet("classement-chambres");
-            if(response.success){
+            if (response.success) {
                 setPodium(response.podium); // Mettre à jour le podium
                 setRest(response.rest);
             } else {
@@ -45,8 +45,8 @@ export default function DefisClassement() {
         } finally {
             setLoading(false);
             setTimeout(() => {
-                setDisableRefresh(false); 
-              }, 5000); 
+                setDisableRefresh(false);
+            }, 5000);
         }
     };
 
@@ -56,15 +56,28 @@ export default function DefisClassement() {
 
     if (loading) {
         return (
-            <View style={{
-                height: "100%",
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "flex-start",
-            }}>
-                <Header refreshFunction={undefined} disableRefresh={undefined} />
-                <ActivityIndicator size="large" color={Colors.gray} />
+            <View
+                style={{
+                    height: '100%',
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
+                <Header />
+                <View
+                    style={{
+                        width: '100%',
+                        flex: 1,
+                        backgroundColor: Colors.white,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <ActivityIndicator size="large" color={Colors.gray} />
+                </View>
             </View>
         );
     }
@@ -104,7 +117,7 @@ export default function DefisClassement() {
                 >
                     Classement général
                 </Text>
-                <Crown size={40} color={'#ffbc44'}/>
+                <Crown size={40} color={'#ffbc44'} />
                 <View
                     style={{
                         flexDirection: 'row',

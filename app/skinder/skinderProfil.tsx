@@ -299,7 +299,7 @@ export default function SkinderProfil() {
                 placeholderTextColor="#969696"
                 value={passion}
                 onChangeText={(text) => {
-                  if (text.length <= 13) {
+                  if (text.length <= 16) {
                     const newPassions = [...profile.passions];
                     newPassions[index] = text;
                     setProfile({ ...profile, passions: newPassions });

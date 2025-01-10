@@ -39,7 +39,7 @@ const GestionNotificationsScreen = () => {
     } finally {
       setLoading(false);
       setTimeout(() => {
-        setDisableRefresh(false); 
+        setDisableRefresh(false);
       }, 5000);
     }
   };
@@ -51,11 +51,11 @@ const GestionNotificationsScreen = () => {
     loadAsyncFonts();
     fetchAdminNotifications();
     const unsubscribe = navigation.addListener('focus', () => {
-        fetchAdminNotifications();
-      });
-  
+      fetchAdminNotifications();
+    });
+
     return unsubscribe;
-}, [navigation]);
+  }, [navigation]);
 
   if (error != '') {
     return <ErrorScreen error={error} />;
@@ -97,12 +97,12 @@ const GestionNotificationsScreen = () => {
       </View>
 
       <TouchableOpacity
-          style={[styles.button, styles.deleteButton]} // Reuse deleteButton positioning
-          onPress={() => navigation.navigate('notificationsForm')}
-        >
-          <Text style={styles.buttonText}>Ecrire une nouvelle notification</Text>
-          <PenLine color="white" size={20} />
-        </TouchableOpacity>
+        style={[styles.button, styles.deleteButton]} // Reuse deleteButton positioning
+        onPress={() => navigation.navigate('notificationsForm')}
+      >
+        <Text style={styles.buttonText}>Ecrire une nouvelle notification</Text>
+        <PenLine color="white" size={20} />
+      </TouchableOpacity>
       <View style={styles.list}>
         <FlatList
           data={notifications}
@@ -118,7 +118,7 @@ const GestionNotificationsScreen = () => {
                 minute: '2-digit', // Minute sur 2 chiffres
                 hour12: false, // Utiliser l'heure 24h
               }) : 'Date non disponible'} | Statut : ${item.delete === 0 ? 'Active' : 'Supprimée'}`}
-    
+
               subtitleStyle={item.delete === 0 ? styles.activeSubtitle : styles.deletedSubtitle}
               nextRoute="valideNotificationsScreen"
               id={item.id}

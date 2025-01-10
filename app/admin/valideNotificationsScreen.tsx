@@ -9,11 +9,15 @@ import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
+import { useNavigation } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
 
 export default function ValideNotifications() {
   const route = useRoute();
+  const navigation = useNavigation();
+  
   const { id } = route.params; // Get the notification ID from route params
-  const {setUser} = useUser();
+  const { setUser } = useUser();
 
   const [notificationDetails, setNotificationDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -46,9 +50,18 @@ export default function ValideNotifications() {
     try {
       const response = await apiPost(`deleteNotification/${id}/${deleteFlag}`);
       if (response.success) {
-        fetchNotificationDetails(); // Refresh the details after successful operation
+        Toast.show({
+          type: 'success',
+          text1: 'Notification envoyée !',
+          text2: response.message,
+        });
+        navigation.goBack();
       } else {
-        setError(response.message);
+        Toast.show({
+          type: 'error',
+          text1: 'Une erreur est survenue...',
+          text2: response.message,
+        });
       }
     } catch (error) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
@@ -182,13 +195,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 8,
     backgroundColor: '#F8F8F8',
-    borderRadius: 12, 
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#EAEAEA',
-    flexDirection: 'column', 
-    justifyContent: 'flex-start', 
-    alignItems: 'flex-start', 
-    gap: 8, 
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    gap: 8,
     width: '100%',
   },
   text: {

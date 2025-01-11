@@ -2,10 +2,11 @@ import { Text, View, ActivityIndicator, Image, StyleSheet } from "react-native";
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import React, { useState, useEffect } from "react";
-import { apiGet } from "@/constants/api/apiCalls";
+import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import WidgetBanal from "@/components/home/WidgetBanal";
 import {useNavigation} from "@react-navigation/native";
 import { useUser } from "@/contexts/UserContext";
+import { usePushNotifications } from "../../usePushNotifications";
 
 export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
@@ -14,6 +15,7 @@ export default function HomeScreen() {
 
   const navigation = useNavigation();
   const { setUser } = useUser();
+  const { expoPushToken } = usePushNotifications();
 
   const fetchData = async () => {
     setLoading(true);
@@ -37,6 +39,16 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
+    const registerForPushNotifications = async () => {        
+      try {
+        const res = await apiPost("save-token", {userToken:expoPushToken});
+      } catch (error) {
+        console.log(error);
+      }
+    };    
+
+    registerForPushNotifications();
+
     const loadAsyncFonts = async () => {
       await loadFonts();
     };
@@ -73,7 +85,7 @@ export default function HomeScreen() {
           justifyContent: 'center',
         }}
       >
-        <Header/>
+        <Header refreshFunction={undefined} disableRefresh={undefined}/>
         <View
           style={{
             width: '100%',

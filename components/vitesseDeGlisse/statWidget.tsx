@@ -5,52 +5,39 @@ import { Colors } from '@/constants/GraphSettings';
 interface StatWidgetProps {
     topText: string;
     bottomText: string;
-    topTextPosition: { top: number; left: number };
-    bottomTextPosition: { top: number; left: number };
 }
 
-const StatWidget: React.FC<StatWidgetProps> = ({ 
-    topText, 
-    bottomText, 
-    topTextPosition, 
-    bottomTextPosition 
-}) => {
+const StatWidget: React.FC<StatWidgetProps> = ({ topText, bottomText }) => {
     return (
-        <View>
-            <Text
-                style={[
-                    styles.topText,
-                    { top: topTextPosition.top, left: topTextPosition.left }
-                ]}
-            >
-                {topText}
-            </Text>
-            <Text
-                style={[
-                    styles.bottomText,
-                    { top: bottomTextPosition.top, left: bottomTextPosition.left }
-                ]}
-            >
-                {bottomText}
-            </Text>
+        <View style={styles.container}>
+            <Text style={styles.topText}>{topText}</Text>
+            <Text style={styles.bottomText}>{bottomText}</Text>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
+    container: {
+        alignItems: 'center', // Centrer horizontalement les textes
+        justifyContent: 'center', // Centrer verticalement si nécessaire
+        backgroundColor: Colors.orange, // Fond orange
+        borderWidth: 2, // Bordure blanche
+        borderColor: Colors.white,
+        borderRadius: 10, // Coins arrondis
+        paddingVertical: 20, // Espacement vertical interne
+        paddingHorizontal: 40, // Espacement horizontal interne
+        marginVertical: 10, // Espacement externe entre widgets
+    },
     topText: {
-        position: 'absolute',
         color: Colors.white,
-        fontSize: 14,
-        fontFamily: 'Inter',
+        fontSize: 16,
         fontWeight: '400',
+        marginBottom: 4, // Espace entre le texte supérieur et inférieur
     },
     bottomText: {
-        position: 'absolute',
         color: Colors.white,
         fontSize: 24,
-        fontFamily: 'Inter',
-        fontWeight: '400',
+        fontWeight: '700',
     },
 });
 

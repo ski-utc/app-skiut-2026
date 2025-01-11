@@ -85,99 +85,105 @@ export default function DefisClassement() {
     return (
         <View style={{ flex: 1, backgroundColor: Colors.white }}>
             <Header refreshFunction={fetchClassement} disableRefresh={disableRefresh} />
-            <View
-                style={{
-                    width: '100%',
-                    backgroundColor: Colors.white,
-                    paddingHorizontal: 20,
-                    paddingBottom: 8,
-                }}
-            >
+            <View style={styles.headerContainer}>
                 <BoutonRetour previousRoute={"defisScreen"} title={"Classement"} />
             </View>
 
-            {/* Rectangle orange avec le podium */}
-            <View
-                style={{
-                    backgroundColor: Colors.orange,
-                    padding: 16,
-                    alignItems: 'center',
-                    height: 250,
-                }}
-            >
-                <Text
-                    style={{
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontFamily: 'Inter',
-                        fontWeight: '600',
-                        textAlign: 'center',
-                        marginBottom: 32,
-                    }}
-                >
-                    Classement général
-                </Text>
-                <Crown size={40} color={'#ffbc44'} />
-                <View
-                    style={{
-                        flexDirection: 'row',
-                        justifyContent: 'center',
-                        alignItems: 'flex-end',
-                        width: '100%',
-                        position: 'absolute',
-                        bottom: 0,
-                    }}
-                >
+            {/* Podium Section */}
+            <View style={styles.podiumContainer}>
+                <Text style={styles.podiumTitle}>Classement général</Text>
+                <View style={styles.podiumRow}>
                     {podium.length > 1 && (
                         <RectanglePodium
                             height={65}
                             num={podium[1].roomNumber}
                             nb_likes={podium[1].totalPoints}
-                            style={{ marginHorizontal: 5 }}
+                            style={styles.podiumItem}
                         />
                     )}
                     {podium.length > 0 && (
-                        <RectanglePodium
-                            height={100}
-                            num={podium[0].roomNumber}
-                            nb_likes={podium[0].totalPoints}
-                            style={{ marginHorizontal: 5 }}
-                        />
+                        <View style={styles.firstPlaceContainer}>
+                            <RectanglePodium
+                                height={100}
+                                num={podium[0].roomNumber}
+                                nb_likes={podium[0].totalPoints}
+                                style={styles.podiumItem}
+                            />
+                            <Crown size={40} color={'#ffbc44'} style={styles.crownStyle} />
+                        </View>
                     )}
                     {podium.length > 2 && (
                         <RectanglePodium
                             height={30}
                             num={podium[2].roomNumber}
                             nb_likes={podium[2].totalPoints}
-                            style={{ marginHorizontal: 5 }}
+                            style={styles.podiumItem}
                         />
                     )}
                 </View>
             </View>
 
-            {/* ScrollView avec le reste des chambres */}
-            <ScrollView
-                style={{
-                    flex: 1,
-                    backgroundColor: Colors.white,
-                }}
-                contentContainerStyle={{
-                    paddingHorizontal: 20,
-                    paddingVertical: 16,
-                    paddingBottom: 100,
-                }}
-            >
+            {/* Remainder Section */}
+            <ScrollView contentContainerStyle={styles.scrollViewContainer}>
                 {Object.values(rest).map((room: any, index: number) => (
                     <RectangleReste
                         key={room.roomNumber}
-                        bottom={55 - index * 50}
                         number={index + 4}
                         num={room.roomNumber}
                         nb_likes={room.totalPoints}
-                        style={{ marginVertical: 10 }}
+                        style={styles.remainderItem}
                     />
                 ))}
             </ScrollView>
         </View>
     );
 }
+
+const styles = {
+    headerContainer: {
+        width: '100%',
+        backgroundColor: Colors.white,
+        paddingHorizontal: 20,
+        paddingBottom: 8,
+    },
+    podiumContainer: {
+        backgroundColor: Colors.orange,
+        padding: 16,
+        alignItems: 'center',
+        height: 250,
+    },
+    podiumTitle: {
+        color: Colors.white,
+        fontSize: 16,
+        fontWeight: '600',
+        textAlign: 'center',
+        marginBottom: 32,
+    },
+    podiumRow: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'flex-end',
+        width: '100%',
+        position: 'absolute',
+        bottom: 0,
+    },
+    podiumItem: {
+        marginHorizontal: 5,
+    },
+    firstPlaceContainer: {
+        position: 'relative',
+        alignItems: 'center', // Center the crown horizontally
+    },
+    crownStyle: {
+        position: 'absolute',
+        top: -45, // Adjust the crown position above the rectangle
+        zIndex: 1, // Make sure the crown is above the podium
+    },
+    scrollViewContainer: {
+        paddingHorizontal: 0,
+        paddingVertical: 0,
+    },
+    remainderItem: {
+        width: '100%',
+    },
+};

@@ -27,7 +27,7 @@ export default function Defis() {
 
     try {
       const response = await apiGet("challenges");
-      if(response.success){
+      if (response.success) {
         setChallenges(response.data);
       } else {
         setError(response.message);
@@ -41,8 +41,8 @@ export default function Defis() {
     } finally {
       setLoading(false);
       setTimeout(() => {
-        setDisableRefresh(false); 
-      }, 5000); 
+        setDisableRefresh(false);
+      }, 5000);
     }
   };
 
@@ -63,73 +63,73 @@ export default function Defis() {
     loadAsyncFonts();
     fetchChallenges();
     const unsubscribe = navigation.addListener('focus', () => {
-        fetchChallenges();
-      });
-  
+      fetchChallenges();
+    });
+
     return unsubscribe;
-}, [navigation]);
+  }, [navigation]);
 
   if (error != '') {
     return <ErrorScreen error={error} />;
   }
 
   if (loading) {
-      return (
+    return (
+      <View
+        style={{
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Header />
         <View
           style={{
-            height: '100%',
             width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
+            flex: 1,
+            backgroundColor: Colors.white,
             justifyContent: 'center',
+            alignItems: 'center',
           }}
         >
-          <Header />
-          <View
-            style={{
-              width: '100%',
-              flex: 1,
-              backgroundColor: Colors.white,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <ActivityIndicator size="large" color={Colors.gray} />
-          </View>
-        </View>
-      );
-    }
-
-  return (
-      <View style={styles.container}>
-        <Header refreshFunction={fetchChallenges} disableRefresh={disableRefresh} />
-        <View style={styles.headerContainer}>
-          <BoutonRetour previousRoute={"homeNavigator"} title={"Défis"} />
-        </View>
-        <FlatList
-            data={challenges}
-            keyExtractor={(item) => item.id.toString()} // Use unique challenge ID
-            extraData={challenges}
-            renderItem={({ item }) => (
-                <View>
-                  <BoutonDefi
-                      defi={{
-                        id: item.id,
-                        title: item.title,
-                        points: item.nbPoints,
-                        status: item.status
-                      }}
-                      onUpdate={onUpdateDefiStatus}
-                  />
-                </View>
-            )}
-            style={styles.list}
-        />
-        <View style={styles.navigationContainer}>
-          <BoutonNavigation nextRoute={"defisClassement"} title={"Classement"} IconComponent={Trophy} />
+          <ActivityIndicator size="large" color={Colors.gray} />
         </View>
       </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Header refreshFunction={fetchChallenges} disableRefresh={disableRefresh} />
+      <View style={styles.headerContainer}>
+        <BoutonRetour previousRoute={"homeNavigator"} title={"Défis"} />
+      </View>
+      <FlatList
+        data={challenges}
+        keyExtractor={(item) => item.id.toString()} // Use unique challenge ID
+        extraData={challenges}
+        renderItem={({ item }) => (
+          <View>
+            <BoutonDefi
+              defi={{
+                id: item.id,
+                title: item.title,
+                points: item.nbPoints,
+                status: item.status
+              }}
+              onUpdate={onUpdateDefiStatus}
+            />
+          </View>
+        )}
+        style={styles.list}
+      />
+      <View style={styles.navigationContainer}>
+        <BoutonNavigation nextRoute={"defisClassement"} title={"Classement"} IconComponent={Trophy} />
+      </View>
+    </View>
   );
 }
 

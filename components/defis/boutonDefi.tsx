@@ -75,7 +75,7 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
             </View>
 
             {/* Right section: Chevron icon */}
-            <ChevronRight size={40} color={Colors.black} />
+            <ChevronRight size={20} color={Colors.black} />
         </TouchableOpacity>
     );
 };

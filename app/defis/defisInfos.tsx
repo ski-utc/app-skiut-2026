@@ -141,7 +141,12 @@ export default function DefisInfos() {
       const response = await apiPost('challenges/uploadProofImage', formData, true);
       if(response.success){
         setStatus('waiting');
-        route.params.onUpdate(id, 'waiting');
+        try{
+          route.params.onUpdate(id, 'waiting');
+        } catch (error) {
+          setError(error.message || 'Erreur lors de la mise à jour du défi');
+        }
+        //route.params.onUpdate(id, 'waiting');
         Toast.show({
           type: 'success',
           text1: 'Défi posté !',

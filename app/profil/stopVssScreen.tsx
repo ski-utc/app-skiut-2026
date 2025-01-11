@@ -1,4 +1,4 @@
-import {  View, StyleSheet, FlatList, Text, TouchableOpacity } from "react-native";
+import { View, StyleSheet, FlatList, Text, TouchableOpacity } from "react-native";
 import Header from "../../components/header";
 import React from 'react';
 import * as Linking from 'expo-linking';
@@ -7,14 +7,14 @@ import BoutonRetour from "../../components/divers/boutonRetour";
 import { PhoneCall } from "lucide-react-native";
 
 // pour définir les types de contact
-interface Contact{
+interface Contact {
     name: string;
     phone: string;
 }
 
 // structure de données avec les nums  
 const contacts: Contact[] = [
-{ name: "Téléphone VSS", phone: "07 83 09 12 39" },
+    { name: "Téléphone VSS", phone: "07 83 09 12 39" },
 ];
 
 export default function Contact() {
@@ -24,15 +24,15 @@ export default function Contact() {
     };
 
     // Rendu d'un contact
-    const renderItem = ({ item }: {item: Contact}) => (
+    const renderItem = ({ item }: { item: Contact }) => (
         <TouchableOpacity style={styles.phoneContainer} onPress={() => makeCall(item.phone)}>
-        <View style={styles.icon}>
-            <PhoneCall size={20} color={Colors.gray}/>
-        </View>        
-        <View style={styles.phoneDetails}>
-            <Text style={styles.phoneName}>{item.name}</Text>
-            <Text style={styles.phoneNumber}>{item.phone}</Text>
-        </View>
+            <View style={styles.icon}>
+                <PhoneCall size={20} color={Colors.gray} />
+            </View>
+            <View style={styles.phoneDetails}>
+                <Text style={styles.phoneName}>{item.name}</Text>
+                <Text style={styles.phoneNumber}>{item.phone}</Text>
+            </View>
         </TouchableOpacity>
     );
 
@@ -40,11 +40,16 @@ export default function Contact() {
         <View style={styles.container}>
             <Header />
             <View style={styles.screencontainer}>
-                <View style={{paddingHorizontal: 20}}>
+                <View style={{ paddingHorizontal: 20 }}>
                     <BoutonRetour
                         previousRoute={"ProfilScreen"}
                         title={"Stop VSS"}
                     />
+                </View>
+                <View style={styles.explanatoryTextContainer}>
+                    <Text style={styles.explanatoryText}>
+                        Si tu es victime et/ou témoin de violences sexistes ou sexuelles à n'importe quel moment du voyage, tu peux contacter ce numéro (appel ou SMS) pour demander de l'aide, du soutien ou faire un signalement. Ce numéro est tenu en journée comme en soirée par des membres de l'association Ski'UTC formé.e.s à cet effet. Les témoignages sont confidentiels.
+                    </Text>
                 </View>
                 <FlatList
                     data={contacts}
@@ -63,7 +68,7 @@ const styles = StyleSheet.create({
         width: '100%',
         flex: 1,
         backgroundColor: 'white',
-        paddingBottom: 8,     
+        paddingBottom: 8,
     },
     screencontainer: {
         width: '100%',
@@ -71,11 +76,21 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.white,
         paddingBottom: 16,
     },
+    explanatoryTextContainer: {
+        paddingHorizontal: 25,
+        paddingBottom: 16,
+    },
+    explanatoryText: {
+        color: Colors.orange,
+        fontSize: 14,
+        lineHeight: 20,
+        textAlign: 'justify',
+    },
     icon: {
         marginRight: 20, // Espacement entre l'icône et les détails
         justifyContent: "center",
         alignItems: "center",
-      },
+    },
     phoneListContainer: {
         paddingHorizontal: 16,
     },

@@ -1,22 +1,24 @@
+import { Text, View, ScrollView, ActivityIndicator, Alert } from "react-native";
+import Header from "@/components/header";
 import React, { useState, useEffect } from "react";
-import { Text, View, ScrollView, ActivityIndicator } from "react-native";
-import Header from "../../../components/header";
-import BoutonRetour from "@/components/divers/boutonRetour";
-import RectanglePodium from "@/components/vitesseDeGlisse/rectanglePodium";
-import RectangleReste from "@/components/vitesseDeGlisse/rectangleReste";
-import { Colors, loadFonts } from "@/constants/GraphSettings";
-import { apiGet } from "@/constants/api/apiCalls";
+import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Crown } from "lucide-react-native";
+import BoutonRetour from '@/components/divers/boutonRetour';
+import RectanglePodium from '@/components/vitesseDeGlisse/rectanglePodium';
+import RectangleReste from '@/components/vitesseDeGlisse/rectangleReste';
+import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from "@/components/pages/errorPage";
 
 export default function PerformancesScreen() {
     const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string>("");
-    const [podium, setPodium] = useState<any[]>([]); // Les données du podium
-    const [rest, setRest] = useState<any[]>([]); // Les performances restantes
+    const [error, setError] = useState('');
+    const [podium, setPodium] = useState([]); // Les données du podium
+    const [rest, setRest] = useState([]); // Le reste des chambres
+    const [disableRefresh, setDisableRefresh] = useState(false);
 
     useEffect(() => {
-        fetchPerformances();
-        const loadAsyncFonts = async () => {
+        fetchPerformances(); // Charger les données
+        const loadAsyncFonts = async () => { // Charger les polices
             await loadFonts();
         };
         loadAsyncFonts();
@@ -24,22 +26,31 @@ export default function PerformancesScreen() {
 
     const fetchPerformances = async () => {
         setLoading(true);
+        setDisableRefresh(true);
         try {
             const response = await apiGet("classement-performances");
             if (response.success) {
-                setPodium(response.podium);
-                setRest(Object.values(response.rest));
+                setPodium(response.podium); // Mettre à jour le podium
+                setRest(response.rest);
             } else {
                 setError(response.message);
             }
-        } catch (error: any) {
-            setError(error.message || "Erreur inattendue");
+        } catch (error) {
+            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+                setPodium([]);
+                setRest([]);
+            } else {
+                setError(error.message);
+            }
         } finally {
             setLoading(false);
+            setTimeout(() => {
+                setDisableRefresh(false);
+            }, 5000);
         }
     };
 
-    if (error) {
+    if (error != '') {
         return <ErrorScreen error={error} />;
     }
 
@@ -47,117 +58,132 @@ export default function PerformancesScreen() {
         return (
             <View
                 style={{
-                    height: "100%",
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: Colors.white,
+                    height: '100%',
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                 }}
             >
                 <Header refreshFunction={undefined} disableRefresh={undefined} />
-                <ActivityIndicator size="large" color={Colors.gray} />
+                <View
+                    style={{
+                        width: '100%',
+                        flex: 1,
+                        backgroundColor: Colors.white,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    <ActivityIndicator size="large" color={Colors.gray} />
+                </View>
             </View>
         );
     }
 
     return (
         <View style={{ flex: 1, backgroundColor: Colors.white }}>
-            <Header refreshFunction={fetchPerformances} disableRefresh={false} />
-            <View
-                style={{
-                    width: "100%",
-                    backgroundColor: Colors.white,
-                    paddingHorizontal: 20,
-                    paddingBottom: 16,
-                    marginBottom: 12,
-                }}
-            >
+            <Header refreshFunction={fetchPerformances} disableRefresh={disableRefresh} />
+            <View style={styles.headerContainer}>
                 <BoutonRetour previousRoute={"VitesseDeGlisseScreen"} title={"Performances"} />
             </View>
 
-            {/* Rectangle orange avec le podium */}
-            <View
-                style={{
-                    backgroundColor: Colors.orange,
-                    padding: 16,
-                    alignItems: "center",
-                    marginTop: 16,
-                    height: 200,
-                }}
-            >
-                <Text
-                    style={{
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontFamily: "Inter",
-                        fontWeight: "600",
-                        textAlign: "center",
-                        marginBottom: 16,
-                    }}
-                >
-                    Classement des performances
-                </Text>
-                <View
-                    style={{
-                        flexDirection: "row",
-                        justifyContent: "center",
-                        alignItems: "flex-end",
-                        width: "100%",
-                        position: "absolute",
-                        bottom: 0,
-                    }}
-                >
+            {/* Podium Section */}
+            <View style={styles.podiumContainer}>
+                <Text style={styles.podiumTitle}>Classement général</Text>
+                <View style={styles.podiumRow}>
                     {podium.length > 1 && (
                         <RectanglePodium
                             height={65}
-                            nom={podium[1]?.full_name}
+                            nom={podium[1].full_name}
                             vitesse={podium[1].max_speed}
-                            style={{ marginHorizontal: 5 }}
+                            style={styles.podiumItem}
                         />
                     )}
                     {podium.length > 0 && (
-                        <RectanglePodium
-                            height={100}
-                            nom={podium[0]?.full_name}
-                            vitesse={podium[0].max_speed}
-                            style={{ marginHorizontal: 5 }}
-                        />
+                        <View style={styles.firstPlaceContainer}>
+                            <RectanglePodium
+                                height={100}
+                                nom={podium[0].full_name}
+                                vitesse={podium[0].max_speed}
+                                style={styles.podiumItem}
+                            />
+                            <Crown size={40} color={'#ffbc44'} style={styles.crownStyle} />
+                        </View>
                     )}
                     {podium.length > 2 && (
                         <RectanglePodium
                             height={30}
-                            nom={podium[2]?.full_name}
+                            nom={podium[2].full_name}
                             vitesse={podium[2].max_speed}
-                            style={{ marginHorizontal: 5 }}
+                            style={styles.podiumItem}
                         />
                     )}
                 </View>
             </View>
 
-            {/* ScrollView avec le reste des performances */}
-            <ScrollView
-                style={{
-                    flex: 1,
-                    backgroundColor: Colors.white,
-                }}
-                contentContainerStyle={{
-                    paddingHorizontal: 20,
-                    paddingVertical: 16,
-                    paddingBottom: 100,
-                }}
-            >
-                {rest.map((person: any, index: number) => (
+            {/* Remainder Section */}
+            <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+                {Object.values(rest).map((person: any, index: number) => (
                     <RectangleReste
                         key={person.user_id}
-                        bottom={55 - index * 50}
                         number={index + 4}
                         nom={person.full_name}
                         vitesse={person.max_speed}
-                        style={{ marginVertical: 10 }}
+                        style={styles.remainderItem}
                     />
                 ))}
             </ScrollView>
         </View>
     );
 }
+
+const styles = {
+    headerContainer: {
+        width: '100%',
+        backgroundColor: Colors.white,
+        paddingHorizontal: 20,
+        paddingBottom: 8,
+    },
+    podiumContainer: {
+        backgroundColor: Colors.orange,
+        padding: 16,
+        alignItems: 'center',
+        height: 250,
+    },
+    podiumTitle: {
+        color: Colors.white,
+        fontSize: 16,
+        fontWeight: '600',
+        textAlign: 'center',
+        marginBottom: 32,
+    },
+    podiumRow: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'flex-end',
+        width: '100%',
+        position: 'absolute',
+        bottom: 0,
+    },
+    podiumItem: {
+        marginHorizontal: 5,
+    },
+    firstPlaceContainer: {
+        position: 'relative',
+        alignItems: 'center',
+    },
+    crownStyle: {
+        position: 'absolute',
+        top: -45,
+        zIndex: 1,
+    },
+    scrollViewContainer: {
+        paddingHorizontal: 0,
+        paddingVertical: 0,
+    },
+    remainderItem: {
+        width: '100%',
+    },
+};

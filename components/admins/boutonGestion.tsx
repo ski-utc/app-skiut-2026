@@ -28,7 +28,7 @@ const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, subtitle
                     <Text style={[styles.subtitleText, subtitleStyle]}>{subtitle}</Text>
                 </View>
             </View>
-            <View style={{height:8, width:8, borderRadius:100, backgroundColor: valide? 'green' : 'orange'}}></View>
+            {valide!=null ? <View style={{height:8, width:8, borderRadius:100, backgroundColor: valide? 'green' : 'orange'}}></View> : null}
             <ChevronRight size={20} color={Colors.black} />
         </TouchableOpacity>
     );

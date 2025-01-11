@@ -1,3 +1,0 @@
-react-native.config.js
-google-services.json (Pour poster sur le play store)    +Adapter app.json en fonction
-eas.json (Pour poster sur l'app store)                  +Adapter app.json en fonction

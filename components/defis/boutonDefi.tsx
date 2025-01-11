@@ -26,7 +26,7 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
             onUpdate
         });
     };
-    
+
 
     return (
         <TouchableOpacity
@@ -57,8 +57,11 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
                 }}
             >
                 <Check
-                    color={defi.status !== 'empty' ? (defi.status === 'done' ? 'green' : 'orange') : '#8A8A8A'}
-                    size={25}
+                    color={
+                        defi.status === 'done' ? 'green' :
+                            defi.status === 'refused' ? 'red' :
+                                defi.status === 'pending' ? 'orange' : '#8A8A8A'
+                    } size={25}
                     strokeWidth={4}
                 />
                 <Text

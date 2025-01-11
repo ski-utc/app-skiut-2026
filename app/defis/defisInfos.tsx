@@ -4,7 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from "expo-image-manipulator";
 import { useRoute } from '@react-navigation/native';
 import { Colors, Fonts } from '@/constants/GraphSettings';
-import { LandPlot, Trash, Check, Hourglass } from 'lucide-react-native';
+import { LandPlot, Trash, Check, Hourglass, X } from 'lucide-react-native';
 import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import { useNavigation } from '@react-navigation/native';
@@ -306,10 +306,21 @@ export default function DefisInfos() {
                 justifyContent: 'center',
               }}
             >
+              {dynamicStatus!='pending' ?
               <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
-                Défi en attente
+                Défi refusé
               </Text>
+              :
+              <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
+                En attente de validation
+              </Text>
+              }
+
+              {dynamicStatus!='pending' ?
+              <X color="white" size={20} />
+              :
               <Hourglass color="white" size={20} />
+              }
             </View>
             <TouchableOpacity
                 style={{

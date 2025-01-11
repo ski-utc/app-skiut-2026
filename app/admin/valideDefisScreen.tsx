@@ -15,10 +15,10 @@ import ImageViewer from 'react-native-image-zoom-viewer';
 
 export default function ValideDefis() {
   const route = useRoute();
-  const { id } = route.params; // Récupération de l'ID de l'anecdote
-  const {setUser} = useUser();
+  const { id } = route.params; // récupère l'id du challengeProof
+  const { setUser } = useUser();
   const navigation = useNavigation();
-  
+
   const [challengeDetails, setChallengeDetails] = useState(null);
   const [challengeStatus, setChallengeStatus] = useState(null); // État pour le statut de validation
   const [proofImage, setProofImage] = useState("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg");
@@ -50,19 +50,66 @@ export default function ValideDefis() {
   };
 
   // Handle challenge validation (approve or disapprove)
-  const handleValidation = async (isValid) => {
+  const handleValidation = async (isValid, isDelete) => {
     setLoading(true);
     try {
-      const response = await apiPost(`updateChallengeStatus/${id}/${isValid}`);
-      if (response.success) {
-        setChallengeStatus(isValid);
-        setChallengeDetails((prevDetails) => ({
-          ...prevDetails,
-          valid: isValid,
-        }));
-        await fetchChallengeDetails(); // Reload challenge details after update
-      } else {
-        setError(response.message);
+      const response = await apiPost(`updateChallengeStatus/${id}/${isValid}/${isDelete}`);
+
+      // Veut refuser le défi
+      if(isValid && isDelete) {
+        if(response.success) {
+          Toast.show({
+            type: 'success',
+            text1: 'Défi supprimé !',
+            text2: response.message,
+          });
+          navigation.goBack();
+        } else {
+          Toast.show({
+            type: 'error',
+            text1: 'Une erreur est survenue...',
+            text2: response.message,
+          });
+          setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
+        }
+      }
+
+      // Veut valider le défis 
+      if(isValid && !isDelete) {
+        if(response.success) {
+          Toast.show({
+            type: 'success',
+            text1: 'Défi validé !',
+            text2: response.message,
+          });
+          navigation.goBack();
+        } else {
+          Toast.show({
+            type: 'error',
+            text1: 'Une erreur est survenue...',
+            text2: response.message,
+          });
+          setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
+        }
+      }
+
+      // Veut mettre en attente le défis (pour revenir sur sa décision)
+      if(!isValid) {
+        if(response.success) {
+          Toast.show({
+            type: 'success',
+            text1: 'Défis en attente !',
+            text2: response.message,
+          });
+          navigation.goBack();
+        } else {
+          Toast.show({
+            type: 'error',
+            text1: 'Une erreur est survenue...',
+            text2: response.message,
+          });
+          setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
+        }
       }
     } catch (error) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
@@ -75,7 +122,7 @@ export default function ValideDefis() {
     }
   };
 
-  const handleRemoveDefi = async () => {
+  /*const handleRemoveDefi = async () => {
     Alert.alert(
       'Confirmation',
       'Êtes-vous sûr de vouloir supprimer ce défi ?',
@@ -89,14 +136,14 @@ export default function ValideDefis() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const response = await apiPost('challenges/deleteproofImage', { defiId:challengeDetails.challenge_id });
-              if(response.success){
+              const response = await apiPost('challenges/deleteproofImage', { defiId: challengeDetails.challenge_id });
+              if (response.success) {
                 Toast.show({
                   type: 'success',
                   text1: 'Défi supprimé !',
                   text2: response.message,
                 });
-              } else {
+                navigation.goBack();
                 Toast.show({
                   type: 'error',
                   text1: 'Une erreur est survenue...',
@@ -119,10 +166,10 @@ export default function ValideDefis() {
       ],
       { cancelable: true }
     );
-  };
+  };*/
 
   const toggleModal = () => {
-    setIsModalVisible(!isModalVisible); 
+    setIsModalVisible(!isModalVisible);
   };
 
   useEffect(() => {
@@ -170,8 +217,8 @@ export default function ValideDefis() {
     <View style={styles.container}>
       <Header />
       <View style={styles.content}>
-        <BoutonRetour previousRoute="gestionDefisScreen" title="Gestion défis "/>
-        <Text style={styles.title}>Détails du défi :</Text>
+        <BoutonRetour previousRoute="gestionDefisScreen" title="Gestion défis " />
+        <Text style={styles.title}>Détails du défi : {challengeDetails?.id}</Text>
         <View style={styles.textBox}>
           <Text style={styles.text}>Status : {challengeDetails?.valid ? 'Validée' : 'En attente de validation'}</Text>
           <Text style={styles.text}>Date : {challengeDetails?.created_at ? new Date(challengeDetails.created_at).toLocaleString('fr-FR', {
@@ -188,8 +235,8 @@ export default function ValideDefis() {
         </View>
         <TouchableOpacity onPress={toggleModal}>
           <Image
-            source={{ uri: `${proofImage}?timestamp=${new Date().getTime()}` }} 
-            style={{ width: '90%', aspectRatio:1, maxHeight:'100%', borderRadius: 25 }}
+            source={{ uri: `${proofImage}?timestamp=${new Date().getTime()}` }}
+            style={{ width: '90%', aspectRatio: 1, maxHeight: '100%', borderRadius: 25 }}
             resizeMode="contain"
             onError={() => setProofImage("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
           />
@@ -201,10 +248,10 @@ export default function ValideDefis() {
             title="Désactiver le défi"
             IconComponent={X}
             disabled={challengeDetails.valid == 0}
-            onPress={() => handleValidation(0)} // Invalidate the challenge
+            onPress={() => handleValidation(0, 0)}
           />
         </View>
-        <View 
+        <View
           style={{
             flexDirection: 'row',
             justifyContent: 'space-evenly',
@@ -212,56 +259,56 @@ export default function ValideDefis() {
             width: '100%'
           }}
         >
-      <BoutonActiver
+          <BoutonActiver
             title="Refuser le défi"
             IconComponent={X}
             disabled={challengeDetails.valid == 1}
-            onPress={handleRemoveDefi}
+            onPress={() => handleValidation(1, 1)}
           />
           <BoutonActiver
             title="Valider le défi"
             IconComponent={Check}
             disabled={challengeDetails.valid == 1}
-            onPress={() => handleValidation(1)}
+            onPress={() => handleValidation(1, 0)}
           />
         </View>
       </View>
       <Modal visible={isModalVisible} transparent={true} animationType="fade">
-  <StatusBar backgroundColor="rgba(0,0,0,0.9)" />
-  <View 
-    style={{
-      flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.9)',
-    }}
-  >
-    <TouchableOpacity 
-      style={{
-        position: 'absolute',
-        top: 40,
-        right: 20,
-        backgroundColor: Colors.white,
-        padding: 10,
-        borderRadius: 8,
-        zIndex: 10,
-      }} 
-      onPress={toggleModal}
-    >
-      <Text style={{
-        fontSize: 16,
-        fontWeight: '600',
-        color: Colors.black,
-      }}>
-        Fermer
-      </Text>
-    </TouchableOpacity>
-    <ImageViewer
-      imageUrls={[{ url: proofImage }]}
-      enableSwipeDown={true}
-      onSwipeDown={toggleModal}
-      renderIndicator={() => null} // Supprimer l'indicateur de pagination
-    />
-  </View>
-</Modal>
+        <StatusBar backgroundColor="rgba(0,0,0,0.9)" />
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          }}
+        >
+          <TouchableOpacity
+            style={{
+              position: 'absolute',
+              top: 40,
+              right: 20,
+              backgroundColor: Colors.white,
+              padding: 10,
+              borderRadius: 8,
+              zIndex: 10,
+            }}
+            onPress={toggleModal}
+          >
+            <Text style={{
+              fontSize: 16,
+              fontWeight: '600',
+              color: Colors.black,
+            }}>
+              Fermer
+            </Text>
+          </TouchableOpacity>
+          <ImageViewer
+            imageUrls={[{ url: proofImage }]}
+            enableSwipeDown={true}
+            onSwipeDown={toggleModal}
+            renderIndicator={() => null} // Supprimer l'indicateur de pagination
+          />
+        </View>
+      </Modal>
     </View>
   );
 }

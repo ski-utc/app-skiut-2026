@@ -10,6 +10,7 @@ import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
 import { useNavigation } from '@react-navigation/native';
 
+
 const GestionDefisScreen = () => {
   const [defis, setDefis] = useState([]);
   const [filteredDefis, setFilteredDefis] = useState([]);
@@ -50,8 +51,8 @@ const GestionDefisScreen = () => {
       case 'pending':
         setFilteredDefis(defis.filter((item) => !item.valid && !item.delete));
         break;
-      case 'deleted':
-        setFilteredDefis(defis.filter((item) => item.delete));
+      case 'valid':
+        setFilteredDefis(defis.filter((item) => !item.delete && item.valid));
         break;
       default:
         setFilteredDefis(defis.filter((item) => !item.delete)); // ne montre pas les supprimés dans "tous les défis"
@@ -115,10 +116,10 @@ const GestionDefisScreen = () => {
         <BoutonMenu
           first="Tous" // non supprimés 
           second="En attente"
-          third="Supprimés"
+          third="Validés"
           onFirstClick={() => handleFilter('all')}
           onSecondClick={() => handleFilter('pending')}
-          onThirdClick={() => handleFilter('deleted')}
+          onThirdClick={() => handleFilter('valid')}
         />
       </View>
 
@@ -127,8 +128,8 @@ const GestionDefisScreen = () => {
           data={filteredDefis}
           renderItem={({ item }) => (
             <BoutonGestion
-              title={`Défi : ${item.challenge.title}`}
-              subtitle={`Auteur: ${item?.user?.firstName} ${item?.user?.lastName || 'Nom inconnu'}`}
+              title={`Défi ${item.id} : ${item.challenge.title}`}
+              subtitle={`Auteur : ${item?.user?.firstName} ${item?.user?.lastName || 'Nom inconnu'}`}
               subtitleStyle={undefined}
               nextRoute="valideDefisScreen"
               id={item.id}

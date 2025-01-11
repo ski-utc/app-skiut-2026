@@ -73,7 +73,7 @@ export default function HomeScreen() {
           justifyContent: 'center',
         }}
       >
-        <Header/>
+        <Header refreshFunction={undefined} disableRefresh={undefined}/>
         <View
           style={{
             width: '100%',

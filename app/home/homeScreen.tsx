@@ -16,10 +16,12 @@ export default function HomeScreen() {
   const { setUser } = useUser();
 
   const fetchData = async () => {
+    console.log("Fetching data...");
     setLoading(true);
 
     try {
-      const response = await apiGet("random-data"); // Récupération des données
+      const response = await apiGet("getRandomData"); // Récupération des données
+      console.log(response);
       if (response.success) {
         setData(response.data);
       } else {
@@ -50,8 +52,7 @@ export default function HomeScreen() {
         <View style={styles.container}>
           <Header refreshFunction={undefined} disableRefresh={undefined} />
           <View style={styles.errorContainer}>
-            <Text style={styles.title}>Erreur:</Text>
-            <Text style={styles.errorMessage}>{error.message || "Une erreur est survenue"}</Text>
+            <Text style={styles.title}>Bienvenue sur l'application Ski'UTC !</Text>
           </View>
           <Image
               source={require("../../assets/images/oursSki.png")}
@@ -191,12 +192,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   title: {
-    paddingTop: 40,
+    paddingTop: 60,
     paddingBottom: 15,
     paddingLeft: 21,
-    fontSize: 25,
+    lineHeight: 45,
+    fontSize: 35,
     textAlign: "left",
-    maxWidth: "90%",
+    maxWidth: "95%",
     color: Colors.white,
     fontFamily: Fonts.Text.Bold,
   },

@@ -9,11 +9,13 @@ import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiPost, apiGet } from '@/constants/api/apiCalls'; // Assurez-vous d'importer l'appel API
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
+import Toast from 'react-native-toast-message';
 
 export default function ValideAnecdotes() {
   const route = useRoute();
   const { id } = route.params; // Récupération de l'ID de l'anecdote
-  const {setUser} = useUser();
+  const { setUser } = useUser();
+  const navigation = useNavigation();
 
   const [anecdoteDetails, setAnecdoteDetails] = useState(null);
   const [nbLikes, setNbLikes] = useState(null);
@@ -52,14 +54,28 @@ export default function ValideAnecdotes() {
     try {
       const response = await apiPost(`updateAnecdoteStatus/${id}/${isValid}`);
       if (response.success) {
+        // Update the anecdote status in the state after validation
         setAnecdoteStatus(isValid);
-        setAnecdoteDetails((prevDetails) => ({
+        setAnecdoteDetails(prevDetails => ({
           ...prevDetails,
-          valid: isValid,
+          valid: isValid,  // Update valid status directly
         }));
-        await fetchAnecdoteDetails(); // Recharger les détails de l'anecdote après la mise à jour
+
+        // Show a success message based on the action
+        Toast.show({
+          type: 'success',
+          text1: isValid == 0  ? 'Anecdote désactivée !' : 'Anecdote validée !',
+          text2: response.message,
+        });
+        navigation.goBack();
       } else {
-        setError(response.message);
+        // Show error message
+        Toast.show({
+          type: 'error',
+          text1: 'Une erreur est survenue...',
+          text2: response.message,
+        });
+        setError(response.message || 'Une erreur est survenue lors de la validation de l\'anecdote.');
       }
     } catch (error) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
@@ -71,6 +87,7 @@ export default function ValideAnecdotes() {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     const loadAsyncFonts = async () => {
@@ -115,7 +132,7 @@ export default function ValideAnecdotes() {
 
   return (
     <View style={styles.container}>
-      <Header/>
+      <Header />
       <View style={styles.content}>
         <BoutonRetour previousRoute="gestionAnecdotesScreen" title={`Gérer l'anecdote ${id}`} />
         <Text style={styles.title}>Détail de l'anecdote :</Text>
@@ -145,7 +162,7 @@ export default function ValideAnecdotes() {
           <BoutonActiver
             title="Désactiver l'anecdote"
             IconComponent={X}
-            disabled={anecdoteDetails.valid == 0} 
+            disabled={anecdoteDetails.valid == 0}
             onPress={() => handleValidation(0)} // Appeler la fonction pour invalider
           />
         </View>

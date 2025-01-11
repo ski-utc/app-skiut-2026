@@ -1,16 +1,16 @@
-import { View, ScrollView } from "react-native";
-import { Text } from "react-native";
+import React, { useState } from 'react';
+import { View, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { Colors } from '@/constants/GraphSettings';
 import Header from "../../components/header";
-import React from 'react';
 import BoutonRetour from "../../components/divers/boutonRetour";
-import { Image } from "react-native";
 import BoutonLien from "../../components/divers/boutonLien";
 import { Link, Download } from 'lucide-react-native';
 import BoutonTelecharger from "@/components/divers/boutonTelecharger";
 
 export default function PlanStation() {
-    const stationImage = "../../assets/images/plan-station-les-2-alpes-1480.jpg";
+    const [loading, setLoading] = useState(true);
+    const stationImage = require("../../assets/images/plan-station-les-2-alpes-1480.jpg");
+
     return (
         <View
             style={{
@@ -31,24 +31,27 @@ export default function PlanStation() {
                 paddingBottom: 16,
             }}>
                 <BoutonRetour previousRoute={"ProfilScreen"} title={"Plan de la station"} />
-                <ScrollView 
+                <ScrollView
                     contentContainerStyle={{
                         flexGrow: 1,
                         alignItems: 'center',
                         justifyContent: 'center',
-                        overflow: 'hidden',
-                    }}>
-                    <View style={{
-                        width: '100%',
-                        height: '100%',
-                        marginBottom: 16,
-                    }}>
-                        <Image 
-                            source={require(stationImage)} style={{
+                    }}
+                    maximumZoomScale={4}
+                    minimumZoomScale={1}
+                    showsHorizontalScrollIndicator={true}
+                    showsVerticalScrollIndicator={true}
+                >
+                    {loading && <ActivityIndicator size="large" color={Colors.grey} />}
+                    <Image
+                        source={stationImage}
+                        style={{
                             width: '100%',
-                            height: '100%',
-                        }} resizeMode="contain" />
-                    </View>
+                            height: 400, // Adjust height as needed
+                        }}
+                        resizeMode="contain"
+                        onLoadEnd={() => setLoading(false)}
+                    />
                 </ScrollView>
                 <View style={{ marginBottom: 9 }}>
                     <BoutonLien

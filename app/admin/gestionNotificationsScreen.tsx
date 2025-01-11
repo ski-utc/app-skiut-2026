@@ -122,7 +122,7 @@ const GestionNotificationsScreen = () => {
               subtitleStyle={item.delete === 0 ? styles.activeSubtitle : styles.deletedSubtitle}
               nextRoute="valideNotificationsScreen"
               id={item.id}
-              valide={null}
+              valide={!item.delete}
             />
           )}
           keyExtractor={(item) => item.id.toString()}

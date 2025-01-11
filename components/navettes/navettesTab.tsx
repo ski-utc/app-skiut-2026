@@ -14,25 +14,40 @@ interface Navette {
 
 interface NavettesTabProps {
     navettesMap: { [key: string]: any[] };
-    defaultType: "aller" | "retour";
+    defaultType: "Aller" | "Retour";
+    isAllerEmpty: boolean;
+    isRetourEmpty: boolean;
 }
 
-const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap, defaultType }) => {
-    const [selectedType, setSelectedType] = useState<"aller" | "retour">(defaultType);
+const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap, defaultType, isAllerEmpty, isRetourEmpty }) => {
+    const [selectedType, setSelectedType] = useState<"Aller" | "Retour">(defaultType);
 
     useEffect(() => {
         setSelectedType(defaultType);
     }, [defaultType]);
 
-    const handlePress = (type: "aller" | "retour") => {
+    const handlePress = (type: "Aller" | "Retour") => {
         setSelectedType(type);
+    };
+
+    const getColorFromString = (colorString) => {
+        switch (colorString) {
+            case 'Blue':
+                return Colors.blue;
+            case 'Green':
+                return Colors.green;
+            case 'Red':
+                return Colors.red;
+            default:
+                return Colors.black; // Default to black if the color isn't found
+        }
     };
 
     return (
         <View style={styles.container}>
             <View style={styles.innerContainer}>
                 <View style={styles.buttonsContainer}>
-                    {["aller", "retour"].map((type, index) => {
+                    {["Aller", "Retour"].map((type, index) => {
                         const isSelected = selectedType === type;
                         return (
                             <TouchableOpacity
@@ -41,7 +56,7 @@ const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap, defaultType }) =
                                     styles.button,
                                     { backgroundColor: isSelected ? Colors.orange : Colors.white }
                                 ]}
-                                onPress={() => handlePress(type as "aller" | "retour")}
+                                onPress={() => handlePress(type as "Aller" | "Retour")}
                             >
                                 <Text style={[
                                     styles.buttonText,
@@ -68,16 +83,25 @@ const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap, defaultType }) =
                                         <Text style={styles.navetteTimeText}>
                                             Départ : {item.horaire_depart} | Arrivée : {item.horaire_arrivee}
                                         </Text>
-                                        <Text style={styles.navetteCouleurText}>
-                                            Navette {item.type} (Couleur: {item.colour})
+                                        <Text style={[styles.navetteCouleurText, { color: getColorFromString(item.colour) }]}>
+                                            Couleur : {item.colour} 
                                         </Text>
+
                                     </View>
                                 </View>
                             )}
                             style={styles.navettesList}
                         />
                     </View>
+                )} 
+                {selectedType === "Aller" && isAllerEmpty && (
+                    <Text style={styles.emptyText}>Tu ne viens pas en bus. Contacte la team log si c'est une erreur. </Text>
+
                 )}
+                {selectedType === "Retour" && isRetourEmpty && (
+                    <Text style={styles.emptyText}>Tu ne rentres pas en bus. Contacte la team log si c'est une erreur. </Text>
+                )}
+
             </View>
         </View>
     );
@@ -85,7 +109,7 @@ const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap, defaultType }) =
 
 const styles = StyleSheet.create({
     container: {
-        height: "100%",
+        height: "50%",
         width: "100%",
         backgroundColor: Colors.white
     },
@@ -164,10 +188,17 @@ const styles = StyleSheet.create({
         fontWeight: '400'
     },
     navetteCouleurText: {
-        color: Colors.gray,
         fontSize: 14,
-        fontFamily: 'Inter',
-        fontWeight: '400'
+        fontFamily: 'Bold',
+        fontWeight: '500'
+    }, 
+    emptyText: {
+        textAlign: "center",
+        color: Colors.gray,
+        fontSize: 16,
+        fontFamily: "Inter",
+        fontWeight: "600",
+        marginTop: 20
     }
 });
 

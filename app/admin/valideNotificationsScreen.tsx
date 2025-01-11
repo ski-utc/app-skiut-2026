@@ -50,12 +50,21 @@ export default function ValideNotifications() {
     try {
       const response = await apiPost(`deleteNotification/${id}/${deleteFlag}`);
       if (response.success) {
-        Toast.show({
-          type: 'success',
-          text1: 'Notification envoyée !',
-          text2: response.message,
-        });
-        navigation.goBack();
+        if (deleteFlag == 1) { // If notification is deleted
+          Toast.show({
+            type: 'success',
+            text1: 'Notification désactivée !',
+            text2: response.message,
+          });
+          navigation.goBack();
+        } else {
+          Toast.show({
+            type: 'success',
+            text1: 'Notification envoyée !',
+            text2: response.message,
+          });
+          navigation.goBack();
+        }
       } else {
         Toast.show({
           type: 'error',
@@ -119,8 +128,8 @@ export default function ValideNotifications() {
     <View style={styles.container}>
       <Header />
       <View style={styles.content}>
-        <BoutonRetour previousRoute="gestionNotificationsScreen" title={`Gérer notification ${id}`} />
-        <Text style={styles.title}>Détail de la notification :</Text>
+        <BoutonRetour previousRoute="gestionNotificationsScreen" title={`Gérer notification`} />
+        <Text style={styles.title}>Détail de la notification {id} :</Text>
         <View style={styles.textBox}>
           <Text style={styles.text}>Notification : {notificationDetails?.title || 'Pas de description'}</Text>
           <Text style={styles.text}>
@@ -144,14 +153,14 @@ export default function ValideNotifications() {
       <View style={styles.buttonContainer}>
         <View style={styles.buttonSpacing}>
           <BoutonActiver
-            title="Supprimer la notification"
+            title="Désactiver la notification"
             IconComponent={Trash}
             disabled={notificationDetails?.delete === 1} // Disable if already deleted
             onPress={() => handleDelete(1)} // Delete notification
           />
         </View>
         <BoutonActiver
-          title="Récupérer la notification"
+          title="Activer la notification"
           IconComponent={Check}
           disabled={notificationDetails?.delete === 0} // Disable if not deleted
           onPress={() => handleDelete(0)} // Recover notification

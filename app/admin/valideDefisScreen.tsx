@@ -70,7 +70,7 @@ export default function ValideDefis() {
             text1: 'Une erreur est survenue...',
             text2: response.message,
           });
-          setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
+          setError(response.message || 'Une erreur est survenue lors de la validation du défi.');
         }
       }
 

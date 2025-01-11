@@ -52,7 +52,7 @@ const GestionAnecdotesScreen = () => {
         setFilteredAnecdotes(anecdotes.filter((item) => !item.valid && !item.alert));
         break;
       case 'reported':
-        setFilteredAnecdotes(anecdotes.filter((item) => item.alert));
+        setFilteredAnecdotes(anecdotes.filter((item) => item.nbWarns > 0));
         break;
       default:
         setFilteredAnecdotes(anecdotes);

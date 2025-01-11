@@ -1,19 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Button, StyleSheet, Alert, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Alert, TouchableOpacity } from "react-native";
 import Header from "../../../components/header";
 import BoutonRetour from "../../../components/divers/boutonRetour";
-import { Colors } from '@/constants/GraphSettings';
-import { Gauge, Trophy } from 'lucide-react-native';
+import { Colors } from "@/constants/GraphSettings";
+import { Gauge, Trophy } from "lucide-react-native";
 import StatWidget from "../../../components/vitesseDeGlisse/statWidget";
 import BoutonNavigation from "@/components/divers/boutonNavigation";
 import * as Location from "expo-location";
+import { apiPost } from "@/constants/api/apiCalls";
+import { useUser } from "@/contexts/UserContext";
 
 export default function VitesseDeGlisseScreen() {
     const [isTracking, setIsTracking] = useState(false);
     const [distance, setDistance] = useState(0);
+    const [trackingTimer, setTrackingTimer] = useState(null);
     const [speed, setSpeed] = useState(0);
+    const [maxSpeed, setMaxSpeed] = useState(0); // Pour suivre la vitesse maximale atteinte
     const [prevLocation, setPrevLocation] = useState(null);
     const [subscription, setSubscription] = useState(null);
+
+    const { user } = useUser();
 
     useEffect(() => {
         return () => {
@@ -34,6 +40,7 @@ export default function VitesseDeGlisseScreen() {
         setIsTracking(true);
         setDistance(0);
         setSpeed(0);
+        setMaxSpeed(0);
         setPrevLocation(null);
 
         const locationSubscription = await Location.watchPositionAsync(
@@ -51,22 +58,66 @@ export default function VitesseDeGlisseScreen() {
                         coords.latitude,
                         coords.longitude
                     );
-                    setDistance((prev) => prev + deltaDistance);
+
+                    const currentSpeed = coords.speed * 3.6; // Convert speed from m/s to km/h
+
+                    if (deltaDistance <= 100 && currentSpeed <= 150) {
+                        setDistance((prev) => prev + deltaDistance);
+                    }
+
+                    setSpeed(currentSpeed);
+                    setMaxSpeed((prevMaxSpeed) =>
+                        currentSpeed > prevMaxSpeed ? currentSpeed : prevMaxSpeed
+                    );
                 }
-                setSpeed(coords.speed * 3.6); // Convert speed from m/s to km/h
+
                 setPrevLocation(coords);
             }
         );
 
         setSubscription(locationSubscription);
+
+        // Définir un timer pour arrêter automatiquement l'enregistrement après 2 minutes
+        const timer = setTimeout(() => {
+            stopTracking();
+        }, 2 * 60 * 1000); // 2 minutes en millisecondes
+
+        setTrackingTimer(timer);
     };
 
-    const stopTracking = () => {
+    const stopTracking = async () => {
         setIsTracking(false);
         if (subscription) {
             subscription.remove();
             setSubscription(null);
         }
+
+        if (trackingTimer) {
+            clearTimeout(trackingTimer);
+            setTrackingTimer(null);
+        }
+
+        try {
+            const response = await apiPost("update-performance", {
+                user_id: user?.id,
+                speed: maxSpeed,
+                distance: distance / 1000,
+            });
+
+            if (response.success) {
+                Alert.alert("Succès", "Votre performance a été enregistrée !");
+            } else {
+                Alert.alert("Erreur", "Une erreur est survenue lors de l'enregistrement.");
+            }
+        } catch (error) {
+            const errorMessage = error?.message || "Erreur inconnue";
+            Alert.alert("Erreur", `Impossible d'enregistrer la performance : ${errorMessage}`);
+        }
+
+        setDistance(0);
+        setSpeed(0);
+        setMaxSpeed(0);
+        setPrevLocation(null);
     };
 
     const getDistanceFromLatLonInMeters = (lat1, lon1, lat2, lon2) => {
@@ -90,27 +141,29 @@ export default function VitesseDeGlisseScreen() {
             <View style={styles.innerContainer}>
                 <BoutonRetour previousRoute={"ProfilScreen"} title={"Vitesse de glisse"} />
                 <View style={styles.card}>
-                    <StatWidget
-                        topText="Vitesse max"
-                        bottomText={`${speed.toFixed(2)} km/h`}
-                        topTextPosition={{ top: 16, left: 46 }}
-                        bottomTextPosition={{ top: 36, left: 26 }}
-                    />
-                    <StatWidget
-                        topText="Distance"
-                        bottomText={`${distance.toFixed(2)} m`}
-                        topTextPosition={{ top: 16, left: 235 }}
-                        bottomTextPosition={{ top: 36, left: 225 }}
-                    />
-                    <View style={styles.gaugeContainer}>
-                        <Gauge color={Colors.orange} size={40} />
+                    {/* Titre en haut */}
+                    <Text style={styles.title}>Enregistre ta perf!</Text>
+
+                    {/* Conteneur pour Vitesse Max */}
+                    <View style={styles.statWidgetContainer}>
+                        <StatWidget
+                            topText="Vitesse max"
+                            bottomText={`${maxSpeed.toFixed(2)} km/h`}
+                        />
                     </View>
+
+                    {/* Conteneur pour Distance */}
+                    <View style={styles.statWidgetContainer}>
+                        <StatWidget
+                            topText="Distance"
+                            bottomText={`${(distance / 1000).toFixed(2)} km`}
+                        />
+                    </View>
+
+                    {/* Boutons */}
                     <View style={styles.buttonsContainer}>
                         <TouchableOpacity
-                            style={[
-                                styles.actionButton,
-                                { backgroundColor: isTracking ? Colors.red : Colors.green },
-                            ]}
+                            style={styles.actionButton}
                             onPress={isTracking ? stopTracking : startTracking}
                         >
                             <Text style={styles.buttonText}>
@@ -135,8 +188,6 @@ const styles = StyleSheet.create({
     container: {
         height: "100%",
         width: "100%",
-        display: "flex",
-        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
     },
@@ -151,27 +202,26 @@ const styles = StyleSheet.create({
         width: "100%",
         height: "95%",
         marginBottom: 16,
-        alignSelf: "center",
         backgroundColor: Colors.orange,
         borderRadius: 12,
         padding: 16,
     },
-    gaugeContainer: {
-        top: 130,
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: Colors.white,
-        justifyContent: "center",
-        alignItems: "center",
-        alignSelf: "center",
-        marginTop: 16,
+    title: {
+        color: Colors.white,
+        top: 10,
+        fontSize: 24, // Taille du texte
+        fontWeight: "bold", // Texte en gras
+        textAlign: "center", // Centrer horizontalement
+        marginBottom: 20, // Espace sous le titre
+    },
+    statWidgetContainer: {
+        top: 40,
+        marginBottom: 40, // Espacement entre les widgets
+        alignItems: "center", // Centrage horizontal
     },
     buttonsContainer: {
         position: "absolute",
         bottom: 15,
-        flexDirection: "column",
-        justifyContent: "space-between",
         width: "90%",
         alignSelf: "center",
     },
@@ -181,9 +231,10 @@ const styles = StyleSheet.create({
         alignItems: "center",
         borderRadius: 8,
         marginBottom: 8,
+        backgroundColor: Colors.customWhite,
     },
     buttonText: {
-        color: Colors.white,
+        color: Colors.orange,
         fontSize: 16,
         fontWeight: "bold",
     },

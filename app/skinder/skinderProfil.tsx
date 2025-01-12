@@ -164,19 +164,24 @@ export default function SkinderProfil() {
           text2: response.message +' '+ response2.message,
         });
         if (response.success && response2.success) {
-          fetchProfil();
+          navigation.navigate('skinderDiscover');
         } else {
           setError(response.message || 'Erreur lors de la sauvegarde des données.');
         }
       } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Une erreur est survenue...',
-          text2: response.message,
-        });
         if (response.success) {
-          fetchProfil();
+          Toast.show({
+            type: 'success',
+            text1: 'Profil modifié !',
+            text2: response.message,
+          });
+          navigation.navigate('skinderDiscover');
         } else {
+          Toast.show({
+            type: 'error',
+            text1: 'Une erreur est survenue...',
+            text2: response.message,
+          });
           setError(response.message || 'Erreur lors de la sauvegarde des données.');
         }
       }

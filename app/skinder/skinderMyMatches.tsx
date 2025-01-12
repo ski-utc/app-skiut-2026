@@ -115,10 +115,10 @@ export default function SkinderMyMatches() {
             </Text>
             <Text
               style={{
-                color: Colors.black,
-                fontSize: 24,
+                color: Colors.gray,
+                fontSize: 18,
                 fontFamily: Fonts.Inter.Basic,
-                fontWeight: '500',
+                fontWeight: '600',
                 padding: 10,
                 textAlign: 'center',
               }}

@@ -21,9 +21,11 @@ export default function SkinderProfil() {
   const [profileImage, setProfileImage] = useState('https://pixsector.com/cache/d69e58d4/avbfe351f753bcaa24ae2.png');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [modifiedPicture, setModifiedPicture] = useState(false);
+  const [charLimits, setCharLimits] = useState(Array(6).fill(0)); 
+
   const { setUser } = useUser();
   const navigation = useNavigation();
-  const [modifiedPicture, setModifiedPicture] = useState(false);
 
   const fetchProfil = async () => {
     setLoading(true);
@@ -39,7 +41,7 @@ export default function SkinderProfil() {
           description: response.data.description,
           passions: [...Array(6)].map((_, i) => passions[i] || ''),
         });
-        setProfileImage(response.data.image);
+        setProfileImage(`${response.data.image}?timestamp=${Date.now()}`);
       } else {
         setError(response.message || "Erreur lors de la récupération du profil.");
       }
@@ -258,7 +260,7 @@ export default function SkinderProfil() {
           <View style={{ alignItems: 'center', marginVertical: 5 }}>
             <TouchableOpacity onPress={handleImagePick}>
               <Image
-                  source={{ uri: `${profileImage}?timestamp=${new Date().getTime()}` }} 
+                  source={{ uri: profileImage }} 
                   style={{ width: '90%', aspectRatio: '1/1', borderRadius: 25, borderWidth: 1, borderColor: Colors.gray }}
                   resizeMode="cover"
                   onError={() => setProfileImage("https://pixsector.com/cache/d69e58d4/avbfe351f753bcaa24ae2.png")}
@@ -283,34 +285,37 @@ export default function SkinderProfil() {
             multiline={true}
             numberOfLines={2}
             value={profile.description}
-            onChangeText={(text) => setProfile({ ...profile, description: text })}
+            onChangeText={(text) => text.length <= 100 ? setProfile({ ...profile, description: text }) : null}
           />
           <Text style={{ marginHorizontal: 20, fontSize: 18, fontWeight: '600' }}>Passions</Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginHorizontal: 20, marginTop: 10 }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', marginTop: 10, marginHorizontal: -10 }}>
             {profile.passions.map((passion, index) => (
-              <TextInput
-                key={index}
-                style={{
-                  width: '30%',
-                  padding: 10,
-                  borderRadius: 8,
-                  borderWidth: 1,
-                  borderColor: Colors.orange,
-                  fontFamily: Fonts.Inter.Basic,
-                  marginBottom: 10,
-                  fontSize: 14,
-                }}
-                placeholder={`Passion ${index + 1}`}
-                placeholderTextColor="#969696"
-                value={passion}
-                onChangeText={(text) => {
-                  if (text.length <= 16) {
-                    const newPassions = [...profile.passions];
-                    newPassions[index] = text;
-                    setProfile({ ...profile, passions: newPassions });
-                  }
-                }}
-              />
+              <View key={index} style={{ marginBottom: 10, width: '30%' }}> 
+                <TextInput
+                  style={{
+                    padding: 10,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: Colors.orange,
+                    fontFamily: Fonts.Inter.Basic,
+                    fontSize: 12,
+                  }}
+                  placeholder={`Passion ${index + 1}`}
+                  placeholderTextColor="#969696"
+                  value={passion}
+                  onChangeText={(text) => {
+                    if (text.length <= 16) {
+                      const newPassions = [...profile.passions];
+                      newPassions[index] = text;
+                      setProfile({ ...profile, passions: newPassions });
+                      const newCharLimits = [...charLimits];
+                      newCharLimits[index] = text.length;
+                      setCharLimits(newCharLimits);
+                    }
+                  }}
+                />
+                {16 - charLimits[index] === 0 ? <Text style={{ fontSize: 12, color: '#969696' }}>C'est trop long</Text> : null}
+              </View>
             ))}
           </View>
           <View

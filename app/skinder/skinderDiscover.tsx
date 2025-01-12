@@ -98,6 +98,41 @@ export default function SkinderDiscover() {
         });
     };
 
+    const handleDislikeButton = async () => {
+        Animated.timing(dislikeOpacity, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+        }).start(() => {
+            setTimeout(() => {
+                Animated.timing(dislikeOpacity, {
+                    toValue: 0,
+                    duration: 300,
+                    useNativeDriver: true,
+                }).start();
+            }, 500);
+        });
+    
+        animateCard(-600);
+    };
+
+    const handleLikeButton = async () => {
+        Animated.timing(likeOpacity, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+        }).start(() => {
+            setTimeout(() => {
+                Animated.timing(likeOpacity, {
+                    toValue: 0,
+                    duration: 300,
+                    useNativeDriver: true,
+                }).start();
+            }, 500);
+        });
+    
+        handleLike();
+    };    
 
     const resetPosition = () => {
         Animated.parallel([
@@ -302,14 +337,14 @@ export default function SkinderDiscover() {
             {!noPhoto && (
                 <View style={styles.buttonActionsContainer}>
                     <TouchableOpacity
-                        onPress={() => animateCard(-600)}
+                        onPress={handleDislikeButton}
                         disabled={disableButton}
                         style={[styles.actionButton, { opacity: disableButton ? 0.4 : 1 }]}
                     >
                         <X size={30} color={Colors.orange} />
                     </TouchableOpacity>
                     <TouchableOpacity
-                        onPress={() => { animateCard(600); handleLike(); }}
+                        onPress={handleLikeButton }
                         disabled={disableButton}
                         style={[styles.actionButton, { backgroundColor: Colors.orange, opacity: disableButton ? 0.4 : 1 }]}
                     >
@@ -463,7 +498,7 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     passionText: {
-        fontSize: 14,
+        fontSize: 12,
         fontFamily: Fonts.Inter.Basic,
         fontWeight: '500',
         color: Colors.black,

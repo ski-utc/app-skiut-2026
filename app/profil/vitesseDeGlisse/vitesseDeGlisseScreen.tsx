@@ -3,12 +3,13 @@ import { View, Text, StyleSheet, Alert, TouchableOpacity } from "react-native";
 import Header from "../../../components/header";
 import BoutonRetour from "../../../components/divers/boutonRetour";
 import { Colors } from "@/constants/GraphSettings";
-import { Gauge, Trophy } from "lucide-react-native";
+import { Trophy } from "lucide-react-native";
 import StatWidget from "../../../components/vitesseDeGlisse/statWidget";
 import BoutonNavigation from "@/components/divers/boutonNavigation";
 import * as Location from "expo-location";
 import { apiPost } from "@/constants/api/apiCalls";
 import { useUser } from "@/contexts/UserContext";
+import Toast from 'react-native-toast-message';
 
 export default function VitesseDeGlisseScreen() {
     const [isTracking, setIsTracking] = useState(false);
@@ -105,9 +106,17 @@ export default function VitesseDeGlisseScreen() {
             });
 
             if (response.success) {
-                Alert.alert("Succès", "Votre performance a été enregistrée !");
+                Toast.show({
+                    type: 'success',
+                    text1: 'Succès',
+                    text2: "Votre performance a été enregistrée !",
+                  });
             } else {
-                Alert.alert("Erreur", "Une erreur est survenue lors de l'enregistrement.");
+                Toast.show({
+                    type: 'error',
+                    text1: 'Erreur',
+                    text2: "Une erreur est survenue lors de l'enregistrement.",
+                  });
             }
         } catch (error) {
             const errorMessage = error?.message || "Erreur inconnue";

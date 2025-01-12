@@ -199,6 +199,8 @@ export default function DefisInfos() {
               if (response.success) {
                 setProofImage('https://pixsector.com/cache/d69e58d4/avbfe351f753bcaa24ae2.png');
                 setStatus('empty');
+                route.params.onUpdate(id, 'empty');
+                setChallengeSent(false);
                 Toast.show({
                   type: 'success',
                   text1: 'Défi supprimé !',
@@ -265,24 +267,18 @@ export default function DefisInfos() {
         <Text style={{ marginTop: 20, fontSize: 24, color: 'black', fontWeight: '700' }}>Points : {points}</Text>
       </View>
       <View style={{ width: '100%', height:'60%', marginTop: 10, justifyContent: 'center', alignItems:'center' }}>
-          {
-            status == 'empty' ?
-            <TouchableOpacity onPress={handleImagePick} style={{ justifyContent: 'center', alignItems:'center', width:'100%', height:'100%'}} disabled={challengeSent}>
-              <Image
-                  source={{ uri: proofImage }} 
-                  style={{ width: '90%', aspectRatio:imageAspectRatio, maxHeight:'100%', borderRadius: 25 }}
-                  resizeMode="contain"
-                  onError={() => setProofImage("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
-              />
-            </TouchableOpacity>
-            :
-            <Image
-                source={{ uri: `${proofImage}?timestamp=${new Date().getTime()}` }} 
-                style={{ width: '90%', aspectRatio:imageAspectRatio, maxHeight:'100%', borderRadius: 25 }}
-                resizeMode="contain"
-                onError={() => setProofImage("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
-            />
-          }
+      <TouchableOpacity
+        onPress={handleImagePick}
+        style={{ justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}
+        disabled={challengeSent || status !== 'empty'} // Vérifie le statut
+      >
+        <Image
+          source={{ uri: proofImage }}
+          style={{ width: '90%', aspectRatio: imageAspectRatio, maxHeight: '100%', borderRadius: 25 }}
+          resizeMode="contain"
+          onError={() => setProofImage("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
+        />
+      </TouchableOpacity>
       </View>
       <View
         style={{

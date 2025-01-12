@@ -99,7 +99,7 @@ const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap, defaultType, isA
 
                 )}
                 {selectedType === "Retour" && isRetourEmpty && (
-                    <Text style={styles.emptyText}>Tu ne rentres pas en bus. Contacte la team log si c'est une erreur. </Text>
+                    <Text style={styles.emptyText}>Les navettes retours n'ont pas encore été attribuées. </Text>
                 )}
 
             </View>

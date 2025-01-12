@@ -124,29 +124,28 @@ export default function DefisInfos() {
   const uploadImage = async (uri) => {
     try {
       const fileInfo = await fetch(uri).then((res) => res.blob());
-
+  
       if (fileInfo.size > 1 * 1024 * 1024) {
         Alert.alert('Erreur', 'L\'image dépasse la taille maximale de 1 Mo.');
         return;
       }
-
+  
       const formData = new FormData();
       formData.append('image', {
         uri,
         name: `challenge_${id}_room_${user?.room}.jpg`,
         type: 'image/jpeg',
       });
-      formData.append('defiId',id)
-
+      formData.append('defiId', id);
+  
       const response = await apiPost('challenges/uploadProofImage', formData, true);
-      if(response.success){
-        setStatus('waiting');
-        try{
-          route.params.onUpdate(id, 'waiting');
+      if (response.success) {
+        setStatus('pending');
+        try {
+          route.params.onUpdate(id, 'pending');
         } catch (error) {
           setError(error.message || 'Erreur lors de la mise à jour du défi');
         }
-        //route.params.onUpdate(id, 'waiting');
         Toast.show({
           type: 'success',
           text1: 'Défi posté !',
@@ -160,11 +159,11 @@ export default function DefisInfos() {
           text2: response.message,
         });
       }
-      return response
     } catch (error) {
       setError(error.message || "Erreur lors du téléversement de l'image");
     }
   };
+  
 
   const handleSendDefi = async () => {
     setLoading(true);

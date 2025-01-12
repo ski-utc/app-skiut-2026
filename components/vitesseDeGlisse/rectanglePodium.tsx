@@ -14,7 +14,7 @@ const RectanglePodium: React.FC<RectanglePodiumProps> = ({ height, nom, vitesse,
         <View style={[styles.container, style]}>
             <Text
                 style={styles.text}
-                numberOfLines={1} // Limite à une ligne
+                numberOfLines={2} // Limite à une ligne
                 ellipsizeMode="tail" // Ajoute des "..." si le texte est trop long
             >
                 {nom}
@@ -32,10 +32,12 @@ const styles = StyleSheet.create({
     },
     text: {
         color: Colors.white,
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: Fonts.Text.Medium,
         marginTop: 2,
         textAlign: 'center', // Centre le texte horizontalement
+        flexWrap: 'wrap', // Permet au texte de se casser en plusieurs lignes
+        lineHeight: 20, // Ajuste l'espace entre les lignes pour plus de lisibilité
     },
     speedText: {
         color: Colors.white,

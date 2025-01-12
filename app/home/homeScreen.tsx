@@ -18,12 +18,10 @@ export default function HomeScreen() {
   const { expoPushToken } = usePushNotifications();
 
   const fetchData = async () => {
-    console.log("Fetching data...");
     setLoading(true);
 
     try {
       const response = await apiGet("getRandomData"); // Récupération des données
-      console.log(response);
       if (response.success) {
         setData(response.data);
       } else {
@@ -45,7 +43,11 @@ export default function HomeScreen() {
       try {
         const res = await apiPost("save-token", {userToken:expoPushToken});
       } catch (error) {
-        console.log(error);
+        if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+          setUser(null);
+        } else {
+          setError(error.message);
+        }
       }
     };    
 

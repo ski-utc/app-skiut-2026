@@ -6,7 +6,14 @@ import { Colors, Fonts } from '@/constants/GraphSettings';
 export default function BoutonLien({ url, title, IconComponent }) {
     const onPress = () => {
         if (url) {
-            Linking.openURL(url).catch(err => console.error("Failed to open URL:", err));
+            Linking.openURL(url).catch(err => {
+                // Show a toast message on error
+                Toast.show({
+                    type: 'error',  // You can use 'success', 'error', or 'info' types based on the context
+                    text1: 'Erreur lors de l\'ouverture de l\'URL',
+                    text2: err.message,  // Display the error message from the exception
+                });
+            });
         }
     };
 

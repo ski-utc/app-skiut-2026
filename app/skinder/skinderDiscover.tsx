@@ -125,7 +125,6 @@ export default function SkinderDiscover() {
 
         try {
             const response = await apiGet('getProfilSkinder');
-            console.log(response);
             if (response.success) {
                 setProfile({
                     id: response.data.id,
@@ -137,17 +136,13 @@ export default function SkinderDiscover() {
             } else {
                 //setDisableButton(true);
                 if (response.message == "NoPhoto") {
-                    console.error("ohohoh");
                     setNoPhoto(true);
-                    console.log("No photo");
                 } else if (response.message == "TooMuch") {
                     setTooMuch(true);
-                    console.log("Too much");
                 } else {
                     setError(response.message || "Une erreur est survenue lors de la récupération du profil");
                 }
             }
-            console.log("noPhoto : ", noPhoto, "tooMuch : ", tooMuch);
         } catch (error) {
             if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
                 setUser(null);

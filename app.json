@@ -14,6 +14,7 @@
       "backgroundColor": "#aad1cd"
     },
     "ios": {
+      "bundleIdentifier": "fr.utc.assos.skiutc",
       "supportsTablet": true,
       "infoPlist": {
         "NSCameraUsageDescription": "Autoriser Ski'Ut à accéder à la Caméra.",
@@ -29,7 +30,8 @@
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.RECORD_AUDIO"
-      ]
+      ],
+      "package": "fr.utc.assos.skiutc"
     },
     "web": {
       "bundler": "metro",
@@ -60,6 +62,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "1a47d5a3-8db0-4c7c-b0d5-5cd84f660041"
+      }
     }
   }
 }

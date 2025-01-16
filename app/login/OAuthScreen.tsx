@@ -20,6 +20,7 @@ export default function OAuthScreen() {
     const url = state.url;
     const { hostname, path, queryParams } = Linking.parse(url);
 
+
     if (canEnter && hostname === config.DOMAIN && path === "skiutc/api/connected") {
       setCanEnter(false);
 
@@ -32,7 +33,6 @@ export default function OAuthScreen() {
           await SecureStore.setItemAsync("refreshToken", refreshToken);
       
           const response = await apiGet("getUserData");
-          
           if (response.success) {
             setUser({
               id: response.id,
@@ -147,7 +147,7 @@ export default function OAuthScreen() {
           originWhitelist={["*"]}
           style={{ flex: 1 }}
           onNavigationStateChange={handleNavigationStateChange}
-          incognito={true}
+          incognito={true} // true de base 
           show
         />
       )}

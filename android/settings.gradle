@@ -21,7 +21,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   }
 }
 
-rootProject.name = 'app-SkiUt-P25'
+rootProject.name = 'Ski\'UT'
 
 dependencyResolutionManagement {
   versionCatalogs {

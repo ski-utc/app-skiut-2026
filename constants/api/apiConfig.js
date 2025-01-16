@@ -1,5 +1,6 @@
 const domains = {
   prod: "assos.utc.fr",
+  //prod: "skiutc.best", 
   dev: "192.168.1.157",  // IP du serveur de développement à changer pour chaque machine
   local: "127.0.0.1"
 }
@@ -7,6 +8,7 @@ const DOMAIN = domains.prod;      // Changer ici si prod, dev ou local pour le l
 
 const urls = {
   prod: "https://assos.utc.fr/skiutc",
+  //prod: "https://skiutc.best/skiutc",
   dev: "http://192.168.1.157:8000/skiutc",  // IP du serveur de développement à changer pour chaque machine
   local: "http://127.0.0.1:8000/skiutc"
 }

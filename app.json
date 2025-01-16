@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ski'UT",
     "slug": "app-SkiUt-P25",
-    "version": "1.0.0",
+    "version": "2.0.2", 
     "orientation": "portrait",
     "newArchEnabled": true,
     "icon": "./assets/images/logo.png",
@@ -16,6 +16,7 @@
     "ios": {
       "bundleIdentifier": "fr.utc.assos.skiutc",
       "supportsTablet": true,
+      "buildNumber": "2.0.2",
       "infoPlist": {
         "NSCameraUsageDescription": "Autoriser Ski'Ut à accéder à la Caméra.",
         "NSPhotoLibraryUsageDescription": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images."

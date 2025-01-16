@@ -22,9 +22,7 @@ const Tab = createBottomTabNavigator();
 export default function RootLayout() {
   return (
     <UserProvider>
-      <NavigationContainer>
         <Content />
-      </NavigationContainer>
       <Toast config={ToastConfig} />
       </UserProvider>
   );

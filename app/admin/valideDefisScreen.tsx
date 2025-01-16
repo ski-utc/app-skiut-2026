@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator, Image, Alert, Modal, TouchableOpacity, StatusBar } from 'react-native';
+import { Text, View, StyleSheet, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { X, Check } from 'lucide-react-native';
 import Header from '../../components/header';
@@ -11,7 +11,7 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
-import ImageViewer from 'react-native-image-zoom-viewer';
+import ImageViewing from "react-native-image-viewing";
 
 export default function ValideDefis() {
   const route = useRoute();
@@ -20,7 +20,6 @@ export default function ValideDefis() {
   const navigation = useNavigation();
 
   const [challengeDetails, setChallengeDetails] = useState(null);
-  const [challengeStatus, setChallengeStatus] = useState(null); // État pour le statut de validation
   const [proofImage, setProofImage] = useState("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg");
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -273,42 +272,12 @@ export default function ValideDefis() {
           />
         </View>
       </View>
-      <Modal visible={isModalVisible} transparent={true} animationType="fade">
-        <StatusBar backgroundColor="rgba(0,0,0,0.9)" />
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-          }}
-        >
-          <TouchableOpacity
-            style={{
-              position: 'absolute',
-              top: 40,
-              right: 20,
-              backgroundColor: Colors.white,
-              padding: 10,
-              borderRadius: 8,
-              zIndex: 10,
-            }}
-            onPress={toggleModal}
-          >
-            <Text style={{
-              fontSize: 16,
-              fontWeight: '600',
-              color: Colors.black,
-            }}>
-              Fermer
-            </Text>
-          </TouchableOpacity>
-          <ImageViewer
-            imageUrls={[{ url: proofImage }]}
-            enableSwipeDown={true}
-            onSwipeDown={toggleModal}
-            renderIndicator={() => null} // Supprimer l'indicateur de pagination
-          />
-        </View>
-      </Modal>
+      <ImageViewing
+        images={[{ uri: proofImage }]}
+        imageIndex={0}
+        visible={isModalVisible}
+        onRequestClose={toggleModal}
+      />
     </View>
   );
 }

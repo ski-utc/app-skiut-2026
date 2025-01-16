@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { ActivityIndicator, View, Text, StyleSheet } from 'react-native';
+import { ActivityIndicator, View, Text, StyleSheet, Platform } from 'react-native';
 import { Colors } from '@/constants/GraphSettings';
 import { UserProvider, useUser } from '../contexts/UserContext';
 import { NavigationContainer } from '@react-navigation/native';
@@ -15,6 +15,7 @@ import CustomNavBar from '../components/navigation/customNavBar';
 import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react-native';
 import { loadFonts } from '@/constants/GraphSettings';
 import Toast from 'react-native-toast-message';
+import { Keyboard } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 
@@ -32,13 +33,18 @@ export default function RootLayout() {
 function Content() {
   const { user } = useUser();
   const [isLoading, setIsLoading] = useState(true);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
     const loadAsyncFonts = async () => {
       await loadFonts();
     };
     loadAsyncFonts();
-    
+
+    if(Platform.OS != 'ios') {
+      const showListener = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+      const hideListener = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    }
     const timer = setTimeout(() => {
       setIsLoading(false); 
     },50); 
@@ -77,7 +83,9 @@ function Content() {
       {user ? (
         <Tab.Navigator
           screenOptions={{ headerShown: false }}
-          tabBar={(props) => <CustomNavBar {...props} />}
+          tabBar={(props) => 
+            !keyboardVisible ? <CustomNavBar {...props} /> : null
+          }
         >
           <Tab.Screen
             name="homeNavigator"

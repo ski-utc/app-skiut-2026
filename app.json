@@ -63,6 +63,10 @@
     "experiments": {
       "typedRoutes": true
     },
+    "notification": {
+      "icon": "./assets/images/logo.png",
+      "color": "#FF231F7C"
+    },
     "extra": {
       "router": {
         "origin": false

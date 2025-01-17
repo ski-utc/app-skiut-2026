@@ -12,6 +12,8 @@ export const Colors = {
   blue: '#3A7CA5',
   green: '#4CAF50',
   red: '#D32F2F',
+  violet: '#7E57C2',
+  yellow: '#FFC107',
 };
 
 export const loadFonts = async () => {

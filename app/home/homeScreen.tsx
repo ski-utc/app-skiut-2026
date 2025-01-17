@@ -10,6 +10,7 @@ import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
+
 export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -258,4 +259,5 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontFamily: Fonts.Text.Medium,
   },
+
 });

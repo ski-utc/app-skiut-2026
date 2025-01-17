@@ -8,9 +8,11 @@ import { Phone, PhoneCall, Map, MapPin, Gauge, Bus, UserRoundCheck, Heart } from
 import { useUser } from "@/contexts/UserContext";
 import * as config from '../../constants/api/apiConfig';
 import WebView from "react-native-webview";
+import BoutonLien from '../../components/divers/boutonLien';
+import { Link } from 'lucide-react-native';
 
 const LogoutButton: React.FC<{ setShowLogoutWebView: React.Dispatch<React.SetStateAction<boolean>> }> = ({ setShowLogoutWebView }) => {
-    const { logout, user } = useUser();
+    const { logout } = useUser();
 
     const handleLogout = () => {
         Alert.alert(
@@ -32,27 +34,10 @@ const LogoutButton: React.FC<{ setShowLogoutWebView: React.Dispatch<React.SetSta
 
     return (
         <TouchableOpacity
-            style={{
-                backgroundColor: Colors.orange,
-                paddingVertical: 12,
-                paddingHorizontal: 16,
-                borderRadius: 8,
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginTop: 20,
-            }}
+            style={styles.logoutButton}
             onPress={handleLogout}
         >
-            <Text
-                style={{
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontFamily: Fonts.Inter.Basic,
-                    fontWeight: '600',
-                }}
-            >
-                Déconnexion
-            </Text>
+            <Text style={styles.logoutButtonText}>Déconnexion</Text>
         </TouchableOpacity>
     );
 };
@@ -64,8 +49,8 @@ export default function Profil() {
     useEffect(() => {
         const loadAsyncFonts = async () => {
             await loadFonts();
-          };
-          loadAsyncFonts();
+        };
+        loadAsyncFonts();
     }, [user]);
 
     if (showLogoutWebview) {
@@ -81,156 +66,128 @@ export default function Profil() {
     }
 
     return (
-        <View
-            style={{
-                height: "100%",
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "start",
-                backgroundColor: "white",
-                paddingBottom: 8,
-            }}
-        >
+        <View style={styles.container}>
             <Header />
-            <ScrollView
-                contentContainerStyle={{
-                    alignItems: "center",
-                    justifyContent: "start",
-                    paddingBottom: 8,
-                }}
-            >
-                <View
-                    style={{
-                        flexDirection: 'row',
-                        width: '100%',
-                        justifyContent: 'start',
-                        alignItems: 'center',
-                        paddingBottom: 8,
-                        paddingHorizontal: 20,
-                        gap: 25
-                    }}
-                >
-                    <Image source={require("../../assets/images/OursCabine.png")} style={{ height: 164, width: 164 }} />
-                    <View
-                        style={{
-                            flex: 1,
-                            justifyContent: 'center',
-                            alignItems: 'flex-start',
-                        }}
-                    >
-                        <Text
-                            style={{
-                                fontSize: 24,
-                                fontFamily: Fonts.Inter.Basic,
-                                fontWeight: '600',
-                                flexShrink: 1,
-                                flexWrap: 'wrap',
-                            }}
-                        >
-                            {user?.name} {user?.lastName}
-                        </Text>
-                        <Text
-                            style={{
-                                fontSize: 18,
-                                fontFamily: Fonts.Inter.Basic,
-                                fontWeight: '400',
-                                color: Colors.gray,
-                            }}
-                        >
-                            {`Chambre ${user?.roomName || 'Non attribuée'}`}
-
-                        </Text>
+            <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+                <View style={styles.profileContainer}>
+                    <Image source={require("../../assets/images/OursCabine.png")} style={styles.profileImage} />
+                    <View style={styles.userInfoContainer}>
+                        <Text style={styles.userName}>{user?.name} {user?.lastName}</Text>
+                        <Text style={styles.userRoom}>{`Chambre ${user?.roomName || 'Non attribuée'}`}</Text>
                     </View>
                 </View>
                 <View style={styles.navigationContainer}>
-                    <BoutonProfil
-                        nextRoute={"ContactScreen"}
-                        options={{
-                            title: 'Contact',
-                            icon: Phone,
-                        }}
-                    />
+                    <BoutonProfil nextRoute={"ContactScreen"} options={{ title: 'Contact', icon: Phone }} />
                 </View>
                 <View style={styles.navigationContainer}>
-                    <BoutonProfil
-                        nextRoute={"StopVssScreen"}
-                        options={{
-                            title: 'Stop VSS',
-                            icon: PhoneCall,
-                        }}
-                    />
-                </View>
-
-                <View style={styles.navigationContainer}>
-                    <BoutonProfil
-                        nextRoute={"PlanDesPistesScreen"}
-                        options={{
-                            title: 'Plan des pistes',
-                            icon: Map,
-                        }}
-                    />
-                </View>
-
-                <View style={styles.navigationContainer}>
-                    <BoutonProfil
-                        nextRoute={"PlanStationScreen"}
-                        options={{
-                            title: 'Plan de la station',
-                            icon: MapPin,
-                        }}
-                    />
+                    <BoutonProfil nextRoute={"StopVssScreen"} options={{ title: 'Stop VSS', icon: PhoneCall }} />
                 </View>
                 <View style={styles.navigationContainer}>
-                    <BoutonProfil
-                        nextRoute={"VitesseDeGlisseScreen"}
-                        options={{
-                            title: 'Vitesse de glisse',
-                            icon: Gauge,
-                        }}
-                    />
-                </View>
-
-                <View style={styles.navigationContainer}>
-                    <BoutonProfil 
-                        nextRoute={"SkinderNavigator"} 
-                        options={{
-                            title: 'Skinder',
-                            icon: Heart,
-                        }}
-                    />
+                    <BoutonProfil nextRoute={"PlanDesPistesScreen"} options={{ title: 'Plan des pistes', icon: Map }} />
                 </View>
                 <View style={styles.navigationContainer}>
-                    <BoutonProfil
-                        nextRoute={"NavettesScreen"}
-                        options={{
-                            title: 'Navettes',
-                            icon: Bus,
-                        }}
-                    />
+                    <BoutonProfil nextRoute={"PlanStationScreen"} options={{ title: 'Plan de la station', icon: MapPin }} />
                 </View>
-
-                {/* Afficher le bouton admin uniquement si l'utilisateur est admin */}
-                {user?.admin === 1 && ( // 1 = true (admin)
+                <View style={styles.navigationContainer}>
+                    <BoutonProfil nextRoute={"VitesseDeGlisseScreen"} options={{ title: 'Vitesse de glisse', icon: Gauge }} />
+                </View>
+                <View style={styles.navigationContainer}>
+                    <BoutonProfil nextRoute={"SkinderNavigator"} options={{ title: 'Skinder', icon: Heart }} />
+                </View>
+                <View style={styles.navigationContainer}>
+                    <BoutonProfil nextRoute={"NavettesScreen"} options={{ title: 'Navettes', icon: Bus }} />
+                </View>
+                {user?.admin === 1 && (
                     <View style={styles.navigationContainer}>
                         <BoutonProfil nextRoute={"AdminNavigator"} options={{ title: 'Contrôle Admin', icon: UserRoundCheck }} />
                     </View>
                 )}
-                {/*<View style={styles.navigationContainer}>
-                    <BoutonProfil nextRoute={"AdminNavigator"} options={{ title: 'Contrôle Admin', icon: UserRoundCheck }} />
-                </View>*/}
-                <LogoutButton setShowLogoutWebView={setShowLogoutWebView} />
+                <View style={styles.actionButtonsContainer}>
+                    <LogoutButton setShowLogoutWebView={setShowLogoutWebView} />
+                    <BoutonLien
+                        url="https://assos.utc.fr/skiutc/public/CharteRGPD.html"
+                        title="Charte RGPD"
+                        IconComponent={Link}
+                    />
+                </View>
             </ScrollView>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+    container: {
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "start",
+        backgroundColor: "white",
+        paddingBottom: 8,
+    },
+    scrollViewContainer: {
+        alignItems: "center",
+        justifyContent: "start",
+        paddingBottom: 8,
+    },
+    profileContainer: {
+        flexDirection: 'row',
+        width: '100%',
+        justifyContent: 'start',
+        alignItems: 'center',
+        paddingBottom: 8,
+        paddingHorizontal: 20,
+        gap: 25,
+    },
+    profileImage: {
+        height: 164,
+        width: 164,
+    },
+    userInfoContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+    },
+    userName: {
+        fontSize: 24,
+        fontFamily: Fonts.Inter.Basic,
+        fontWeight: '600',
+        flexShrink: 1,
+        flexWrap: 'wrap',
+    },
+    userRoom: {
+        fontSize: 18,
+        fontFamily: Fonts.Inter.Basic,
+        fontWeight: '400',
+        color: Colors.gray,
+    },
     navigationContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
         width: '100%',
+    },
+    actionButtonsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+        paddingHorizontal: 40,
+        marginTop: 20,
+    },
+    logoutButton: {
+        backgroundColor: Colors.orange,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    logoutButtonText: {
+        color: Colors.white,
+        fontSize: 16,
+        fontFamily: Fonts.Inter.Basic,
+        fontWeight: '600',
     },
 });

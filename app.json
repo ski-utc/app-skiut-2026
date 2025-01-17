@@ -5,7 +5,7 @@
     "version": "2.0.2", 
     "orientation": "portrait",
     "newArchEnabled": true,
-    "icon": "./assets/images/logo.png",
+    "icon": "./assets/images/icone.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -19,7 +19,9 @@
       "buildNumber": "2.0.2",
       "infoPlist": {
         "NSCameraUsageDescription": "Autoriser Ski'Ut à accéder à la Caméra.",
-        "NSPhotoLibraryUsageDescription": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images."
+        "NSPhotoLibraryUsageDescription": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images.", 
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Autoriser Ski'Ut à accéder à la localisation pour calculer votre vitesse de glisse.",
+        "NSLocationWhenInUseUsageDescription": "Nous utilisons votre localisation lorsque l'application est en cours d'utilisation pour calculer votre vitesse de glisse."
       }
     },
     "android": {

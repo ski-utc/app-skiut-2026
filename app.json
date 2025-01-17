@@ -2,21 +2,21 @@
   "expo": {
     "name": "Ski'UT",
     "slug": "app-SkiUt-P25",
-    "version": "2.0.2", 
+    "version": "2.0.3", 
     "orientation": "portrait",
     "newArchEnabled": true,
     "icon": "./assets/images/icone.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/logo.png",
-      "resizeMode": "cover",
+      "image": "./assets/images/icone.png",
+      "resizeMode": "contain",
       "backgroundColor": "#aad1cd"
     },
     "ios": {
       "bundleIdentifier": "fr.utc.assos.skiutc",
       "supportsTablet": true,
-      "buildNumber": "2.0.2",
+      "buildNumber": "2.0.3",
       "infoPlist": {
         "NSCameraUsageDescription": "Autoriser Ski'Ut à accéder à la Caméra.",
         "NSPhotoLibraryUsageDescription": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images.", 
@@ -47,7 +47,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/logo.png",
+          "icon": "./assets/images/icone.png",
           "color": "#aad1cd"
         }
       ],
@@ -68,12 +68,13 @@
       "typedRoutes": true
     },
     "notification": {
-      "icon": "./assets/images/logo.png",
-      "color": "#FF231F7C"
+      "icon": "./assets/images/icone.png",
+      "color": "#023c69", 
+      "iosDisplayInForeground": true
     },
     "androidStatusBar": {
-      "backgroundColor": "#FFFFFF",
-      "barStyle": "dark-content"
+      "barStyle": "dark-content",
+      "backgroundColor": "#ffffff"
     },
     "extra": {
       "router": {

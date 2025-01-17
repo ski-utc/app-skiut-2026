@@ -38,6 +38,12 @@ const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap, defaultType, isA
                 return Colors.green;
             case 'Red':
                 return Colors.red;
+            case 'Yellow':
+                return Colors.yellow;
+            case 'Violet':
+                return Colors.violet;
+            case 'Orange':
+                return Colors.lightOrange;
             default:
                 return Colors.black; // Default to black if the color isn't found
         }

@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     backgroundColor: Colors.white,
-    paddingTop: Platform.OS === 'ios' ? 60 : 20,
+    paddingTop: Platform.OS === 'ios' ? 50 : 20,
     paddingBottom: 20, 
     paddingLeft: 20,
     paddingRight: 20,

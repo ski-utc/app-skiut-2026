@@ -79,9 +79,7 @@ export default function HomeScreen() {
       } catch (error) {
         if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
           setUser(null);
-        } else {
-          setError(error.message);
-        }
+        } 
       }
     };    
 

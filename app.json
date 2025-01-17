@@ -18,7 +18,8 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSCameraUsageDescription": "Autoriser Ski'Ut à accéder à la Caméra.",
-        "NSPhotoLibraryUsageDescription": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images."
+        "NSPhotoLibraryUsageDescription": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images.",
+        "UIViewControllerBasedStatusBarAppearance": true
       }
     },
     "android": {
@@ -31,7 +32,7 @@
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "fr.utc.assos.skiutc"
+      "package": "fr.utc.assos.skiutc",
     },
     "web": {
       "bundler": "metro",
@@ -66,6 +67,10 @@
     "notification": {
       "icon": "./assets/images/logo.png",
       "color": "#FF231F7C"
+    },
+    "androidStatusBar": {
+      "backgroundColor": "#FFFFFF",
+      "barStyle": "dark-content"
     },
     "extra": {
       "router": {

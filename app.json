@@ -34,7 +34,7 @@
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "fr.utc.assos.skiutc"
+      "package": "fr.utc.assos.skiutc",
     },
     "web": {
       "bundler": "metro",
@@ -69,6 +69,10 @@
     "notification": {
       "icon": "./assets/images/logo.png",
       "color": "#FF231F7C"
+    },
+    "androidStatusBar": {
+      "backgroundColor": "#FFFFFF",
+      "barStyle": "dark-content"
     },
     "extra": {
       "router": {

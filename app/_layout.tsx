@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { ActivityIndicator, View, Text, StyleSheet, Platform } from 'react-native';
 import { Colors } from '@/constants/GraphSettings';
 import { UserProvider, useUser } from '../contexts/UserContext';
-import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeNavigator from './homeNavigator';
 import PlanningNavigator from './planningNavigator';
@@ -19,12 +18,12 @@ import { Keyboard } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 
-export default function RootLayout() {
+export default function App() {
   return (
     <UserProvider>
-        <Content />
-      <Toast config={ToastConfig} />
-      </UserProvider>
+      <Content />
+    <Toast config={ToastConfig} />
+    </UserProvider>
   );
 }
 

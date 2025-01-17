@@ -50,7 +50,7 @@ export default function Header({ refreshFunction, disableRefresh }) {
         <TouchableOpacity 
           style={{
             position: 'absolute',
-            top: Platform.OS === 'ios' ? 60 : 40,
+            top: Platform.OS === 'ios' ? 60 : 20,
             right: 70,
             width: 40,
             height: 40,
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     backgroundColor: Colors.white,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingTop: Platform.OS === 'ios' ? 60 : 20,
     paddingBottom: 20, 
     paddingLeft: 20,
     paddingRight: 20,
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   },
   bellButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 40,
+    top: Platform.OS === 'ios' ? 60 : 20,
     right: 20,
     width: 40,
     height: 40,

@@ -50,4 +50,10 @@ ApiCalls possède 3 fonctions :
 ### Architecture (cf. app/_layout.tsx)
 Comme dit précédemment, l'app est wrapped dans un UserContext (ou UserProvider).
 Dans ce user Provider on retrouve un component Toast (c'est les petits messages en verts ou en rouge qui affichent les réponses du serveur), ainsi que le Content.
-Le content c'est le contenu "utile" de l'app, mais sa structure est un peu particulière. En gros c'est un Tab.Navigator (pour naviguer via la TabBar). Chaque Tab.Screen est en réalité un Stack.Navigator de screens. par exemple, lorsque je clique sur anecote dans la tabBar, je suis dans mon Tab.Navigator, sur le Tab.Screen/Stack.Navigator anecdoteScreen. Ainsi, lorsque je clique sur "envoyer une notification", ma page sendNotification se stacke sur anecdoteScreen. Une fois ma notification envoyée, la page pop et je retourne sur anecdoteScreen
+Le content c'est le contenu "utile" de l'app, mais sa structure est un peu particulière. En gros c'est un Tab.Navigator (pour naviguer via la TabBar). Chaque Tab.Screen est en réalité un Stack.Navigator de screens. Par exemple, lorsque je clique sur anecote dans la tabBar, je suis dans mon Tab.Navigator, sur le Tab.Screen/Stack.Navigator anecdoteScreen. Ainsi, lorsque je clique sur "envoyer une notification", ma page sendNotification se stacke sur anecdoteScreen. Une fois ma notification envoyée, la page pop et je retourne sur anecdoteScreen
+
+## Points d'amélioration
+1. Les notifcations n'ont pas fonctionné en 2025 : le token expo n'était pas récupéré par les android (donc pas envoyé par save-token), et les iOS n'avaient pas de listener
+2. Défis vidéo
+3. Utiliser la lib TaskManager pour faire tourner vitesseDeGlisse en arrière-plan
+4. Ajouter un tracer de glisse avec un enregistrement de la latitute et longitude toutes les X secondes, puis un plot ainsi qu'un envoie du plot au serveur pour enregistrer la réponse.

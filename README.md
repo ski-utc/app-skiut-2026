@@ -55,5 +55,6 @@ Le content c'est le contenu "utile" de l'app, mais sa structure est un peu parti
 ## Points d'amélioration
 1. Les notifcations n'ont pas fonctionné en 2025 : le token expo n'était pas récupéré par les android (donc pas envoyé par save-token), et les iOS n'avaient pas de listener
 2. Défis vidéo
-3. Utiliser la lib TaskManager pour faire tourner vitesseDeGlisse en arrière-plan
-4. Ajouter un tracer de glisse avec un enregistrement de la latitute et longitude toutes les X secondes, puis un plot ainsi qu'un envoie du plot au serveur pour enregistrer la réponse.
+3. Ajouter un widget météo et/ou horaire des remontés sur le homeScreen
+4. Utiliser la lib TaskManager pour faire tourner vitesseDeGlisse en arrière-plan
+5. Ajouter un tracer de glisse avec un enregistrement de la latitute et longitude toutes les X secondes, puis un plot ainsi qu'un envoie du plot au serveur pour enregistrer la réponse.

@@ -36,11 +36,16 @@ Modifie l'IP dans constants/api/apiConfig pour donner celle de ton serv Laravel
 
 ## Quelques explications
 ### Authentification
+---
 Toute l'application est wrapped dans un UserProvider. Quand le userId est null, l'app n'affiche que le tuto de début. Une fois le userId défini, le user a accès à la vrai app.
+
 Ainsi du PDV du user, il fait le tuto -> va sur la webview de login -> Récupère ses acces et refreshToken stockés en secureStorage -> Le UserContext switch sur la vraie app.
+
 Lorsque le user est déconnecté (il se déconnecte ou son refreshToken est expiré), le userContext rebascule sur le tuto.
 
+
 ### Requêtes au serveur
+---
 Les requêtes au serveur sont gérées par les fonctions dans ApiCalls, qui utilise les paramètres de ApiConfig (url de domain (pour vérifier que l'auth vient bien de notre serveur) et de requête).
 ApiCalls possède 3 fonctions : 
 1. Refresh : une fonction utilisée pour requêter sur /skiutc/auth.refresh et récupérer un accessToken à partir du rereshToken
@@ -48,9 +53,15 @@ ApiCalls possède 3 fonctions :
 3. apiPost : Réalise une requête POST au serveur en passant en paramètre de la requête axios les paramètres envoyés dans le screen qui fait a requête. En cas d'erreur d'accessToken essaye de le refesh via la fonction de Refresh. Si l'erreur persiste, le user est déconnecté
 
 ### Architecture (cf. app/_layout.tsx)
+---
 Comme dit précédemment, l'app est wrapped dans un UserContext (ou UserProvider).
-Dans ce user Provider on retrouve un component Toast (c'est les petits messages en verts ou en rouge qui affichent les réponses du serveur), ainsi que le Content.
-Le content c'est le contenu "utile" de l'app, mais sa structure est un peu particulière. En gros c'est un Tab.Navigator (pour naviguer via la TabBar). Chaque Tab.Screen est en réalité un Stack.Navigator de screens. Par exemple, lorsque je clique sur anecote dans la tabBar, je suis dans mon Tab.Navigator, sur le Tab.Screen/Stack.Navigator anecdoteScreen. Ainsi, lorsque je clique sur "envoyer une notification", ma page sendNotification se stacke sur anecdoteScreen. Une fois ma notification envoyée, la page pop et je retourne sur anecdoteScreen
+Dans ce user Provider on retrouve 
+* Un component Toast (c'est les petits messages en verts ou en rouge qui affichent les réponses du serveur), 
+* Ainsi que le Content.
+
+Le content c'est le contenu "utile" de l'app, mais sa structure est un peu particulière.  En gros c'est un Tab.Navigator (pour naviguer via la TabBar) et chaque Tab.Screen (élément dans la navigation via TabBar) est en réalité lui même un autre navigator mais par empilement de pages cette fois (c'est alors un Stack.Navigator).
+
+Par exemple, lorsque je clique sur anecote dans la tabBar, je suis dans mon Tab.Navigator, sur le Tab.Screen/Stack.Navigator anecdoteNavigator et dans le Stack.Screen anecdoteScreen. Ensuite, lorsque je clique sur "envoyer une notification", ma page sendNotification se stacke sur anecdoteScreen. Une fois ma notification envoyée, la page pop et je retourne sur anecdoteScreen
 
 ## Points d'amélioration
 1. Les notifcations n'ont pas fonctionné en 2025 : le token expo n'était pas récupéré par les android (donc pas envoyé par save-token), et les iOS n'avaient pas de listener

@@ -75,14 +75,6 @@
     "androidStatusBar": {
       "barStyle": "dark-content",
       "backgroundColor": "#ffffff"
-    },
-    "extra": {
-      "router": {
-        "origin": false
-      },
-      "eas": {
-        "projectId": "1a47d5a3-8db0-4c7c-b0d5-5cd84f660041"
-      }
     }
   }
 }

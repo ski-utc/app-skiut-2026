@@ -5,6 +5,12 @@ on:
   pull_request:
   workflow_dispatch:
 
+inputs:
+  build-ios:
+    description: "Build iOS"
+    required: false
+    default: false
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -68,6 +74,7 @@ jobs:
         run: eas build --platform android --non-interactive --profile preview
 
       - name: Run EAS Build (iOS)
+        if: inputs.build-ios == true
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: eas build --platform ios --non-interactive --profile preview

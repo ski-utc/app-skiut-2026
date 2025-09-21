@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 18
           cache: npm
-      - run: npm install
+      - run: npm install --legacy-peer-deps
       - run: npm run lint
 
   expo-build-check:
@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: 18
           cache: npm
-      - run: npm install
+      - run: npm install --legacy-peer-deps
       - run: npx expo-doctor
       - run: CI=1 npx expo prebuild
 
@@ -48,7 +48,7 @@ jobs:
         with:
           node-version: 18
           cache: npm
-      - run: npm install
+      - run: npm install --legacy-peer-deps
       - run: npm install -g eas-cli
 
       - name: Run EAS Build (Android)

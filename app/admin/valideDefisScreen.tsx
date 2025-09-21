@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Text, View, StyleSheet, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { X, Check } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, loadFonts } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiPost, apiGet } from '@/constants/api/apiCalls'; // Import the API calls
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
-import ImageViewing from "react-native-image-viewing";
+import ImageViewer from "react-native-image-zoom-viewer";
 
 export default function ValideDefis() {
   const route = useRoute();
@@ -27,7 +27,7 @@ export default function ValideDefis() {
   const [error, setError] = useState('');
 
   // Fetch challenge details
-  const fetchChallengeDetails = async () => {
+  const fetchChallengeDetails = useCallback(async () => {
     setLoading(true);
     try {
       const response = await apiGet(`getChallengeDetails/${id}`);
@@ -37,7 +37,7 @@ export default function ValideDefis() {
       } else {
         setError('Erreur lors de la récupération des détails du défi');
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -46,7 +46,7 @@ export default function ValideDefis() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, setUser]);
 
   // Handle challenge validation (approve or disapprove)
   const handleValidation = async (isValid, isDelete) => {
@@ -110,7 +110,7 @@ export default function ValideDefis() {
           setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
         }
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -150,7 +150,7 @@ export default function ValideDefis() {
                 });
                 setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
               }
-            } catch (error) {
+            } catch (error : any) {
               if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
                 setUser(null);
               } else {
@@ -178,9 +178,9 @@ export default function ValideDefis() {
     loadAsyncFonts();
 
     fetchChallengeDetails();
-  }, []);
+  }, [fetchChallengeDetails]);
 
-  if (error != '') {
+  if (error !== '') {
     return <ErrorScreen error={error} />;
   }
 
@@ -196,7 +196,7 @@ export default function ValideDefis() {
           justifyContent: 'center',
         }}
       >
-        <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
         <View
           style={{
             width: '100%',
@@ -214,7 +214,7 @@ export default function ValideDefis() {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Header refreshFunction={null} disableRefresh={true} />
       <View style={styles.content}>
         <BoutonRetour previousRoute="gestionDefisScreen" title="Gestion défis " />
         <Text style={styles.title}>Détails du défi : {challengeDetails?.id}</Text>
@@ -246,7 +246,7 @@ export default function ValideDefis() {
           <BoutonActiver
             title="Désactiver le défi"
             IconComponent={X}
-            disabled={challengeDetails.valid == 0}
+            disabled={challengeDetails.valid === 0}
             onPress={() => handleValidation(0, 0)}
           />
         </View>
@@ -261,20 +261,20 @@ export default function ValideDefis() {
           <BoutonActiver
             title="Refuser le défi"
             IconComponent={X}
-            disabled={challengeDetails.valid == 1}
+            disabled={challengeDetails.valid === 1}
             onPress={() => handleValidation(1, 1)}
           />
           <BoutonActiver
             title="Valider le défi"
             IconComponent={Check}
-            disabled={challengeDetails.valid == 1}
+            disabled={challengeDetails.valid === 1}
             onPress={() => handleValidation(1, 0)}
           />
         </View>
       </View>
-      <ImageViewing
-        images={[{ uri: proofImage }]}
-        imageIndex={0}
+      <ImageViewer
+        imageUrls={[{ url: proofImage }]}
+        index={0}
         visible={isModalVisible}
         onRequestClose={toggleModal}
       />

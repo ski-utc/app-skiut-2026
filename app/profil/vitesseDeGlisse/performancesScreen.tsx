@@ -1,7 +1,7 @@
-import { Text, View, ScrollView, ActivityIndicator, Alert } from "react-native";
+import { Text, View, ScrollView, ActivityIndicator } from "react-native";
 import Header from "@/components/header";
 import React, { useState, useEffect } from "react";
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, loadFonts } from '@/constants/GraphSettings';
 import { Crown } from "lucide-react-native";
 import BoutonRetour from '@/components/divers/boutonRetour';
 import RectanglePodium from '@/components/vitesseDeGlisse/rectanglePodium';
@@ -35,7 +35,7 @@ export default function PerformancesScreen() {
             } else {
                 setError(response.message);
             }
-        } catch (error) {
+        } catch (error : any) {
             if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
                 setPodium([]);
                 setRest([]);
@@ -50,7 +50,7 @@ export default function PerformancesScreen() {
         }
     };
 
-    if (error != '') {
+    if (error !== '') {
         return <ErrorScreen error={error} />;
     }
 

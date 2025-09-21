@@ -46,7 +46,7 @@ export default function Header({ refreshFunction, disableRefresh }) {
         </View>
         </TouchableOpacity>
       </View>
-      {refreshFunction == null ? null :
+      {refreshFunction === null ? null :
         <TouchableOpacity 
           style={{
             position: 'absolute',

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Text, View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { Trash, Check } from 'lucide-react-native'; // Import Check icon
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, loadFonts } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
@@ -24,7 +24,7 @@ export default function ValideNotifications() {
   const [error, setError] = useState('');
 
   // Fetch notification details
-  const fetchNotificationDetails = async () => {
+  const fetchNotificationDetails = useCallback(async () => {
     setLoading(true);
     try {
       const response = await apiGet(`getNotificationDetails/${id}`);
@@ -33,7 +33,7 @@ export default function ValideNotifications() {
       } else {
         setError('Erreur lors de la récupération des détails de la notification');
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -42,7 +42,7 @@ export default function ValideNotifications() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, setUser]);
 
   // Handle notification deletion or recovery
   const handleDelete = async (deleteFlag) => {
@@ -50,7 +50,7 @@ export default function ValideNotifications() {
     try {
       const response = await apiPost(`deleteNotification/${id}/${deleteFlag}`);
       if (response.success) {
-        if (deleteFlag == 1) { // If notification is deleted
+        if (deleteFlag === 1) { // If notification is deleted
           Toast.show({
             type: 'success',
             text1: 'Notification désactivée !',
@@ -72,7 +72,7 @@ export default function ValideNotifications() {
           text2: response.message,
         });
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -90,9 +90,9 @@ export default function ValideNotifications() {
     loadAsyncFonts();
 
     fetchNotificationDetails();
-  }, []);
+  }, [fetchNotificationDetails]);
 
-  if (error != '') {
+  if (error !== '') {
     return <ErrorScreen error={error} />;
   }
 
@@ -108,7 +108,7 @@ export default function ValideNotifications() {
           justifyContent: 'center',
         }}
       >
-        <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
         <View
           style={{
             width: '100%',
@@ -126,7 +126,7 @@ export default function ValideNotifications() {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Header refreshFunction={null} disableRefresh={true} />
       <View style={styles.content}>
         <BoutonRetour previousRoute="gestionNotificationsScreen" title={`Gérer notification`} />
         <Text style={styles.title}>Détail de la notification {id} :</Text>

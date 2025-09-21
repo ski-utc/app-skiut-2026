@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, FlatList, ActivityIndicator, Text } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, FlatList, ActivityIndicator } from 'react-native';
 import { apiGet } from '@/constants/api/apiCalls'; // API pour récupérer les infos utilisateur
 import BoutonRetour from '@/components/divers/boutonRetour';
 import BoutonAdmin from '@/components/admins/boutonAdmin';
@@ -7,7 +7,7 @@ import Header from '../../components/header';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '@/contexts/UserContext';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, loadFonts } from '@/constants/GraphSettings';
 
 const adminControls = [
   { title: 'Gestion des défis', nextRoute: 'gestionDefisScreen' },
@@ -22,7 +22,7 @@ export default function Admin() {
   const navigation = useNavigation();
   const { setUser } = useUser();
 
-  const fetchAdmin = async () => {
+  const fetchAdmin = useCallback(async () => {
     setLoading(true);
 
     try {
@@ -31,7 +31,7 @@ export default function Admin() {
         navigation.goBack();
         return null;
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -40,7 +40,7 @@ export default function Admin() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigation, setUser]);
 
   useEffect(() => {
     const loadAsyncFonts = async () => {
@@ -49,9 +49,9 @@ export default function Admin() {
     loadAsyncFonts();
 
     fetchAdmin();
-  }, []);
+  }, [fetchAdmin]);
 
-  if (error != '') {
+  if (error !== '') {
     return <ErrorScreen error={error} />;
   }
 
@@ -67,7 +67,7 @@ export default function Admin() {
           justifyContent: 'center',
         }}
       >
-        <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
         <View
           style={{
             width: '100%',
@@ -85,7 +85,7 @@ export default function Admin() {
 
   return (
     <View style={{ height: '100%', width: '100%', flex: 1, backgroundColor: 'white', paddingBottom: 8 }}>
-      <Header />
+      <Header refreshFunction={null} disableRefresh={true} />
       <View style={{ width: '100%', paddingHorizontal: 20, paddingBottom: 16 }}>
         <BoutonRetour previousRoute="profilNavigator" title="Contrôle Admin" />
       </View>

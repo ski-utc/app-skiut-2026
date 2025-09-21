@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert, TextInput, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from "expo-image-manipulator";
@@ -27,7 +27,7 @@ export default function SkinderProfil() {
   const { setUser } = useUser();
   const navigation = useNavigation();
 
-  const fetchProfil = async () => {
+  const fetchProfil = useCallback(async () => {
     setLoading(true);
     try {
       const response = await apiGet('getMyProfilSkinder');
@@ -45,7 +45,7 @@ export default function SkinderProfil() {
       } else {
         setError(response.message || "Erreur lors de la récupération du profil.");
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -54,11 +54,11 @@ export default function SkinderProfil() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setUser]);
 
   useEffect(() => {
     fetchProfil();
-  }, []);
+  }, [fetchProfil]);
 
   const handleImagePick = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -97,7 +97,7 @@ export default function SkinderProfil() {
         if (getTailleMax.success) {
           maxFileSize = getTailleMax.data;
         }
-      } catch (error) {
+      } catch (error : any) {
         if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
           setUser(null);
         } else {
@@ -124,7 +124,7 @@ export default function SkinderProfil() {
   
       setModifiedPicture(true);
       setProfileImage(compressedImage.uri);
-    } catch (error) {
+    } catch {
       setError('Erreur lors de la compression de l\'image.');
     }
   };  
@@ -147,7 +147,7 @@ export default function SkinderProfil() {
 
       const response = await apiPost('uploadRoomImage', formData, true);
       return response;
-    } catch (error) {
+    } catch (error : any) {
       setError(error.message || "Erreur lors du téléversement de l'image");
     }
   };
@@ -187,7 +187,7 @@ export default function SkinderProfil() {
           setError(response.message || 'Erreur lors de la sauvegarde des données.');
         }
       }
-    } catch (error) {
+    } catch (error : any) {
         if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
             setUser(null);
         } else {
@@ -214,7 +214,7 @@ export default function SkinderProfil() {
                   justifyContent: 'center',
               }}
           >
-              <Header />
+              <Header refreshFunction={null} disableRefresh={true} />
               <View
                   style={{
                       width: '100%',
@@ -246,7 +246,7 @@ export default function SkinderProfil() {
           justifyContent: 'center',
         }}
       >
-        <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
         <View
           style={{
             width: '100%',

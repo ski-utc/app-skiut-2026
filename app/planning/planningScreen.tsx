@@ -1,6 +1,6 @@
 import { View, StyleSheet, Text, FlatList, ActivityIndicator, TouchableOpacity } from "react-native";
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Header from "@/components/header";
 import ErrorScreen from "@/components/pages/errorPage";
 import BoutonRetour from "@/components/divers/boutonRetour";
@@ -16,20 +16,20 @@ export default function PlanningScreen() {
   const [disableRefresh, setDisableRefresh] = useState(false);
   const { setUser } = useUser();
 
-  const dayMap = useMemo(
-    () => ({
-      "S": "Samedi",
-      "D": "Dimanche",
-      "L": "Lundi",
-      "Ma": "Mardi",
-      "Me": "Mercredi",
-      "J": "Jeudi",
-      "V": "Vendredi",
-    }),
-    []
-  );
+  const dayMap = {
+    "S": "Samedi",
+    "D": "Dimanche",
+    "L": "Lundi",
+    "Ma": "Mardi",
+    "Me": "Mercredi",
+    "J": "Jeudi",
+    "V": "Vendredi",
+  } as const;
 
-  const fetchPlanning = async () => {
+  // Suppress unused variable warning for dayMap as it's used as a type
+  void dayMap;
+
+  const fetchPlanning = useCallback(async () => {
     setLoading(true);
     setDisableRefresh(true);
     try {
@@ -39,7 +39,7 @@ export default function PlanningScreen() {
       } else {
         setError("Une erreur est survenue lors de la récupération du planning");
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -51,7 +51,7 @@ export default function PlanningScreen() {
         setDisableRefresh(false);
       }, 5000);
     }
-  };
+  }, [setUser]);
 
   const getTodayKey = () => {
     const today = new Date();
@@ -68,13 +68,13 @@ export default function PlanningScreen() {
     const todayKey = getTodayKey();
     setSelectedDate(todayKey);
     fetchPlanning();
-  }, []);
+  }, [fetchPlanning]);
 
   const handlePress = useCallback(
     (day: keyof typeof dayMap, number: string) => {
       setSelectedDate(`2025-01-${number}`);
     },
-    [dayMap]
+    []
   );
 
   const selectedActivities = activitiesMap[selectedDate] || [];
@@ -241,7 +241,7 @@ export default function PlanningScreen() {
           justifyContent: 'center',
         }}
       >
-        <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
         <View
           style={{
             width: '100%',

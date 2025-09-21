@@ -20,7 +20,7 @@ export default function Banner({ message, success, show }) {
         useNativeDriver: true,
       }).start();
     }
-  }, [show]);
+  }, [show, translateY]);
 
   if (!message) return null;
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Fonts } from '@/constants/GraphSettings';
 
 export default function LaunchScreen3() {
   const navigation = useNavigation();

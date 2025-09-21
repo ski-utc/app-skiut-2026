@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, FlatList, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import Header from '../../components/header';
@@ -7,7 +7,7 @@ import { apiGet } from '@/constants/api/apiCalls';
 import { useNavigation } from '@react-navigation/native';
 import ErrorScreen from '@/components/pages/errorPage';
 import { PenLine } from 'lucide-react-native';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, loadFonts } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
 
 const GestionNotificationsScreen = () => {
@@ -20,7 +20,7 @@ const GestionNotificationsScreen = () => {
   const [disableRefresh, setDisableRefresh] = useState(false);
 
   // Fetch notifications from the API
-  const fetchAdminNotifications = async () => {
+  const fetchAdminNotifications = useCallback(async () => {
     setLoading(true);
     setDisableRefresh(true);
     try {
@@ -30,7 +30,7 @@ const GestionNotificationsScreen = () => {
       } else {
         setError('Erreur lors de la récupération des notifications');
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -42,7 +42,7 @@ const GestionNotificationsScreen = () => {
         setDisableRefresh(false);
       }, 5000);
     }
-  };
+  }, [setUser]);
 
   useEffect(() => {
     const loadAsyncFonts = async () => {
@@ -55,9 +55,9 @@ const GestionNotificationsScreen = () => {
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, fetchAdminNotifications]);
 
-  if (error != '') {
+  if (error !== '') {
     return <ErrorScreen error={error} />;
   }
 
@@ -73,7 +73,7 @@ const GestionNotificationsScreen = () => {
           justifyContent: 'center',
         }}
       >
-        <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
         <View
           style={{
             width: '100%',

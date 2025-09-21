@@ -43,7 +43,7 @@ export default function NotificationsForm() {
           text2: response.message,
         });
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -64,7 +64,7 @@ export default function NotificationsForm() {
     loadAsyncFonts();
   }, []);
 
-  if (error != '') {
+  if (error !== '') {
     return <ErrorScreen error={error} />;
   }
 

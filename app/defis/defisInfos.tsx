@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from "expo-image-manipulator";
 import { useRoute } from '@react-navigation/native';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Colors } from '@/constants/GraphSettings';
 import { LandPlot, Trash, Check, Hourglass, X } from 'lucide-react-native';
 import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
-import { useNavigation } from '@react-navigation/native';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
@@ -22,14 +21,13 @@ export default function DefisInfos() {
   const [error, setError] = useState('');
 
   const { setUser, user } = useUser();
-  const navigation = useNavigation();
 
   const [modifiedPicture, setModifiedPicture] = useState(false);
   const [challengeSent, setChallengeSent] = useState(false);
   const [dynamicStatus, setStatus] = useState(status);
-  const [imageAspectRatio, setImageAspectRatio] = useState(1.0);
+  const [imageAspectRatio] = useState(1.0);
 
-  const fetchProof = async () => {
+  const fetchProof = useCallback(async () => {
     setLoading(true);
     try {
       const response = await apiPost('challenges/getProofImage', { defiId:id });
@@ -38,7 +36,7 @@ export default function DefisInfos() {
       } else {
         setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -47,13 +45,13 @@ export default function DefisInfos() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [id, setUser]);
 
   useEffect(() => {
-    if(status!='empty') {
+    if(status!=='empty') {
       fetchProof();
     }
-  }, [status]);
+  }, [status, fetchProof]);
 
   const handleImagePick = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -90,7 +88,7 @@ export default function DefisInfos() {
         if (getTailleMax.success) {
           maxFileSize = getTailleMax.data;
         }
-      } catch (error) {
+      } catch (error : any) {
         if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
           setUser(null);
         } else {
@@ -116,7 +114,7 @@ export default function DefisInfos() {
       }
       setModifiedPicture(true);
       setProofImage(compressedImage.uri);
-    } catch (error) {
+    } catch (error : any) {
       setError('Erreur lors de la compression de l\'image :', error);
     }
   };
@@ -143,7 +141,7 @@ export default function DefisInfos() {
         setStatus('pending');
         try {
           route.params.onUpdate(id, 'pending');
-        } catch (error) {
+        } catch (error : any) {
           setError(error.message || 'Erreur lors de la mise à jour du défi');
         }
         Toast.show({
@@ -159,7 +157,7 @@ export default function DefisInfos() {
           text2: response.message,
         });
       }
-    } catch (error) {
+    } catch (error : any) {
       setError(error.message || "Erreur lors du téléversement de l'image");
     }
   };
@@ -169,8 +167,8 @@ export default function DefisInfos() {
     setLoading(true);
 
     try {
-      const response = await uploadImage(proofImage);
-    } catch (error) {
+      await uploadImage(proofImage);
+    } catch (error : any) {
         if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
             setUser(null);
         } else {
@@ -195,7 +193,7 @@ export default function DefisInfos() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const response = await apiPost('challenges/deleteproofImage', { defiId:id });
+              await apiPost('challenges/deleteproofImage', { defiId:id });
               if (response.success) {
                 setProofImage('https://pixsector.com/cache/d69e58d4/avbfe351f753bcaa24ae2.png');
                 setStatus('empty');
@@ -209,7 +207,7 @@ export default function DefisInfos() {
               } else {
                 setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
               }
-            } catch (error) {
+            } catch (error : any) {
               if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
                 setUser(null);
               } else {
@@ -287,7 +285,7 @@ export default function DefisInfos() {
           bottom:0
         }}
       >
-        {dynamicStatus!='empty' ? (dynamicStatus!='done' ? (
+        {dynamicStatus!=='empty' ? (dynamicStatus!=='done' ? (
           <View style={{ width: '100%', alignItems: 'center' }}>
             <View
               style={{
@@ -301,7 +299,7 @@ export default function DefisInfos() {
                 justifyContent: 'center',
               }}
             >
-              {dynamicStatus!='pending' ?
+              {dynamicStatus!=='pending' ?
               <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
                 Défi refusé
               </Text>
@@ -311,7 +309,7 @@ export default function DefisInfos() {
               </Text>
               }
 
-              {dynamicStatus!='pending' ?
+              {dynamicStatus!=='pending' ?
               <X color="white" size={20} />
               :
               <Hourglass color="white" size={20} />

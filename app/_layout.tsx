@@ -38,9 +38,9 @@ function Content() {
     };
     loadAsyncFonts();
 
-    if(Platform.OS != 'ios') {
-      const showListener = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
-      const hideListener = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    if(Platform.OS !== 'ios') {
+      Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+      Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
     }
     const timer = setTimeout(() => {
       setIsLoading(false); 

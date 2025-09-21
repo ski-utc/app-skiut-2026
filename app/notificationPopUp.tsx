@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ActivityIndicator, Modal, FlatList, Statu
 import { Fonts, Colors } from "@/constants/GraphSettings";
 import { BlurView } from "expo-blur";
 import { CircleX } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { apiGet } from "@/constants/api/apiCalls";
 import { useUser } from "@/contexts/UserContext";
 
@@ -15,7 +15,7 @@ export default function NotificationPopup({ visible, onClose }) {
 
   const { setUser } = useUser();
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     setLoading(true);
     try {
       const response = await apiGet('getNotifications');
@@ -24,7 +24,7 @@ export default function NotificationPopup({ visible, onClose }) {
       } else {
         setError('Une erreur est survenue lors de la récupération des notifications');
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -33,16 +33,16 @@ export default function NotificationPopup({ visible, onClose }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setUser]);
 
   useEffect(() => {
     if (visible) {
       fetchNotifications();
     }
-  }, [visible]);
+  }, [visible, fetchNotifications]);
   
 
-  if (error!='') {
+  if (error!=='') {
     return (
       <Modal
         transparent={true}

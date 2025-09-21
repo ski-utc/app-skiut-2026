@@ -1,16 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Text, View, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
 import { Colors } from '@/constants/GraphSettings';
 
-interface Navette {
-    id: number;
-    departure: string;
-    arrival: string;
-    colour: string;
-    type: string;
-    horaire_depart: string;
-    horaire_arrivee: string;
-}
 
 interface NavettesTabProps {
     navettesMap: { [key: string]: any[] };

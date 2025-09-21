@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { StyleSheet, View, Image, Text, ActivityIndicator, Animated, TouchableOpacity } from 'react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import { Colors, Fonts } from '@/constants/GraphSettings';
@@ -134,7 +134,7 @@ export default function SkinderDiscover() {
         handleLike();
     };    
 
-    const resetPosition = () => {
+    const resetPosition = useCallback(() => {
         Animated.parallel([
             Animated.timing(translateX, {
                 toValue: 0,
@@ -152,9 +152,9 @@ export default function SkinderDiscover() {
                 useNativeDriver: false,
             }),
         ]).start();
-    };
+    }, [translateX, translateY, cardOpacity]);
 
-    const fetchProfil = async () => {
+    const fetchProfil = useCallback(async () => {
         setDisableRefresh(true);
         setLoading(true);
 
@@ -170,15 +170,15 @@ export default function SkinderDiscover() {
                 setImageProfil(response.data.image);
             } else {
                 //setDisableButton(true);
-                if (response.message == "NoPhoto") {
+                if (response.message === "NoPhoto") {
                     setNoPhoto(true);
-                } else if (response.message == "TooMuch") {
+                } else if (response.message === "TooMuch") {
                     setTooMuch(true);
                 } else {
                     setError(response.message || "Une erreur est survenue lors de la récupération du profil");
                 }
             }
-        } catch (error) {
+        } catch (error : any) {
             if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
                 setUser(null);
             } else {
@@ -192,7 +192,7 @@ export default function SkinderDiscover() {
                 setDisableRefresh(false); // Re-enable refresh after 5 seconds
             }, 5000);
         }
-    };
+    }, [setUser, resetPosition]);
 
 
     const handleLike = async () => {
@@ -214,7 +214,7 @@ export default function SkinderDiscover() {
                 setDisableButton(true);
                 setError(response.message || 'Une erreur est survenue lors de la récupération du like');
             }
-        } catch (error) {
+        } catch (error : any) {
             if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
                 setUser(null);
             } else {
@@ -230,7 +230,7 @@ export default function SkinderDiscover() {
         });
 
         return unsubscribe;
-    }, [navigation]);
+    }, [navigation, fetchProfil]);
 
     if (error !== '') {
         return <ErrorScreen error={error} />;
@@ -248,7 +248,7 @@ export default function SkinderDiscover() {
                     justifyContent: 'center',
                 }}
             >
-                <Header />
+                <Header refreshFunction={null} disableRefresh={true} />
                 <View
                     style={{
                         width: '100%',

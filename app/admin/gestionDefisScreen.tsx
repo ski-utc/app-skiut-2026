@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, FlatList, ActivityIndicator, Text } from 'react-native';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import Header from '../../components/header';
@@ -6,7 +6,7 @@ import BoutonMenu from '@/components/admins/boutonMenu';
 import BoutonGestion from '@/components/admins/boutonGestion';
 import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, loadFonts } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
 import { useNavigation } from '@react-navigation/native';
 
@@ -21,7 +21,7 @@ const GestionDefisScreen = () => {
   const { setUser } = useUser();
   const navigation = useNavigation();
 
-  const fetchAdminDefis = async () => {
+  const fetchAdminDefis = useCallback(async () => {
     setLoading(true);
     setDisableRefresh(true);
     try {
@@ -32,7 +32,7 @@ const GestionDefisScreen = () => {
       } else {
         setError('Erreur lors de la récupération des défis');
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -44,7 +44,7 @@ const GestionDefisScreen = () => {
         setDisableRefresh(false); 
       }, 5000);
     }
-    }; 
+  }, [setUser]); 
    
   const handleFilter = (filter) => {
     switch (filter) {
@@ -71,9 +71,9 @@ const GestionDefisScreen = () => {
       });
   
     return unsubscribe;
-}, [navigation]);
+}, [navigation, fetchAdminDefis]);
 
-  if (error != '') {
+  if (error !== '') {
     return <ErrorScreen error={error} />;
   }
 
@@ -89,7 +89,7 @@ const GestionDefisScreen = () => {
           justifyContent: 'center',
         }}
       >
-        <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
         <View
           style={{
             width: '100%',

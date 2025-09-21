@@ -15,7 +15,7 @@ export default function VitesseDeGlisseScreen() {
     const [isTracking, setIsTracking] = useState(false);
     const [distance, setDistance] = useState(0);
     const [trackingTimer, setTrackingTimer] = useState(null);
-    const [speed, setSpeed] = useState(0);
+    const [, setSpeed] = useState(0);
     const [maxSpeed, setMaxSpeed] = useState(0); // Pour suivre la vitesse maximale atteinte
     const [prevLocation, setPrevLocation] = useState(null);
     const [subscription, setSubscription] = useState(null);
@@ -118,7 +118,7 @@ export default function VitesseDeGlisseScreen() {
                     text2: "Une erreur est survenue lors de l'enregistrement.",
                   });
             }
-        } catch (error) {
+        } catch (error : any) {
             const errorMessage = error?.message || "Erreur inconnue";
             Alert.alert("Erreur", `Impossible d'enregistrer la performance : ${errorMessage}`);
         }

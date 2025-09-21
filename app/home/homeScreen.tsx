@@ -1,7 +1,7 @@
 import { Text, View, ActivityIndicator, Image, StyleSheet } from "react-native";
 import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
 import Header from "../../components/header";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import WidgetBanal from "@/components/home/WidgetBanal";
 import {useNavigation} from "@react-navigation/native";
@@ -27,7 +27,7 @@ export default function HomeScreen() {
     }),
   });
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const response = await apiGet("getRandomData"); // Récupération des données
@@ -36,7 +36,7 @@ export default function HomeScreen() {
       } else {
         setError(response.message);
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -45,7 +45,7 @@ export default function HomeScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setUser]);
 
   useEffect(() => {
     const registerForPushNotifications = async () => {        
@@ -64,7 +64,7 @@ export default function HomeScreen() {
           }
       
           const token = (await Notifications.getExpoPushTokenAsync()).data; 
-          const res = await apiPost("save-token", {userToken:token});
+          await apiPost("save-token", {userToken:token});
         } else {
           alert("Doit être utilisé sur un appareil physique pour les notifications push");
         }
@@ -77,7 +77,7 @@ export default function HomeScreen() {
             lightColor: "#FF231F7C",
           });
         }
-      } catch (error) {
+      } catch (error : any) {
         if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
           setUser(null);
         } 
@@ -92,9 +92,9 @@ export default function HomeScreen() {
     loadAsyncFonts();
 
     fetchData();
-  }, []);
+  }, [fetchData, setUser]);
 
-  if (error!='') {
+  if (error !== '') {
     return (
         <View style={styles.container}>
           <Header refreshFunction={undefined} disableRefresh={undefined} />

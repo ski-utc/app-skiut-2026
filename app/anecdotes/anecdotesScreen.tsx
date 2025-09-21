@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, FlatList, ActivityIndicator } from 'react-native';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, loadFonts } from '@/constants/GraphSettings';
 import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import Anecdote from '../../components/anecdotes/anecdote';
@@ -21,7 +21,7 @@ export default function AnecdotesScreen() {
 
   const { setUser } = useUser();
 
-  const fetchAnecdotes = async (incrementalLoad = false) => {
+  const fetchAnecdotes = useCallback(async (incrementalLoad = false) => {
     if (!incrementalLoad) setLoading(true);
     else setLoadingMore(true);
     setDisableRefresh(true);
@@ -36,7 +36,7 @@ export default function AnecdotesScreen() {
       } else {
         setError('Une erreur est survenue lors de la récupération des anecdotes');
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -49,7 +49,7 @@ export default function AnecdotesScreen() {
         setDisableRefresh(false); 
       }, 5000); 
     }
-  };
+  }, [quantity, setUser]);
 
   useEffect(() => {
     const loadAsyncFonts = async () => {
@@ -58,7 +58,7 @@ export default function AnecdotesScreen() {
     loadAsyncFonts();
 
     fetchAnecdotes();
-  }, []);
+  }, [fetchAnecdotes]);
 
   const handleLoadMore = () => {
     if (hasMoreData && !loading && !loadingMore) {
@@ -67,7 +67,7 @@ export default function AnecdotesScreen() {
     }
   };
 
-  if (error != '') {
+  if (error !== '') {
     return <ErrorScreen error={error} />;
   }
 
@@ -83,7 +83,7 @@ export default function AnecdotesScreen() {
           justifyContent: 'center',
         }}
       >
-        <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
         <View
           style={{
             width: '100%',

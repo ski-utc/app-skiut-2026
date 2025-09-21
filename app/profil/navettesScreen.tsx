@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet, Text } from "react-native";
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { Colors, loadFonts } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import BoutonRetour from "../../components/divers/boutonRetour";
@@ -17,7 +17,7 @@ export default function NavettesScreen() {
 
   const { setUser } = useUser();
 
-  const fetchNavettes = async () => {
+  const fetchNavettes = useCallback(async () => {
     setLoading(true);
     setDisableRefresh(true);
     try {
@@ -43,7 +43,7 @@ export default function NavettesScreen() {
       } else {
         setError(response.message);
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -55,7 +55,7 @@ export default function NavettesScreen() {
         setDisableRefresh(false);
       }, 5000);
     }
-  };
+  }, [setUser]);
 
   useEffect(() => {
     const loadAsyncFonts = async () => {
@@ -73,9 +73,9 @@ export default function NavettesScreen() {
     }
 
     fetchNavettes();
-  }, []);
+  }, [fetchNavettes]);
 
-  if (error != '') {
+  if (error !== '') {
     return <ErrorScreen error={error} />;
   }
 
@@ -91,7 +91,7 @@ export default function NavettesScreen() {
           justifyContent: 'center',
         }}
       >
-        <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
         <View
           style={{
             width: '100%',

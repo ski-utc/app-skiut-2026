@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Text, View, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Text, View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { X, Check } from 'lucide-react-native';
 import Header from '../../components/header';
@@ -22,10 +22,9 @@ export default function ValideAnecdotes() {
   const [nbWarns, setNbWarns] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [anecdoteStatus, setAnecdoteStatus] = useState(null); // État pour le statut de validation
 
   // Fonction pour récupérer les détails de l'anecdote
-  const fetchAnecdoteDetails = async () => {
+  const fetchAnecdoteDetails = useCallback(async () => {
     setLoading(true);
     try {
       const response = await apiGet(`getAnecdoteDetails/${id}`);
@@ -33,11 +32,10 @@ export default function ValideAnecdotes() {
         setAnecdoteDetails(response.data);
         setNbLikes(response.nbLikes);
         setNbWarns(response.nbWarns);
-        setAnecdoteStatus(response.data.valid); // Assurez-vous de récupérer et stocker le statut
       } else {
         setError('Erreur lors de la récupération des détails de l\'anecdote');
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -46,7 +44,7 @@ export default function ValideAnecdotes() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, setUser]);
 
   // Fonction pour valider ou invalider l'anecdote
   const handleValidation = async (isValid) => {
@@ -55,7 +53,6 @@ export default function ValideAnecdotes() {
       const response = await apiPost(`updateAnecdoteStatus/${id}/${isValid}`);
       if (response.success) {
         // Update the anecdote status in the state after validation
-        setAnecdoteStatus(isValid);
         setAnecdoteDetails(prevDetails => ({
           ...prevDetails,
           valid: isValid,  // Update valid status directly
@@ -64,7 +61,7 @@ export default function ValideAnecdotes() {
         // Show a success message based on the action
         Toast.show({
           type: 'success',
-          text1: isValid == 0  ? 'Anecdote désactivée !' : 'Anecdote validée !',
+          text1: isValid === 0  ? 'Anecdote désactivée !' : 'Anecdote validée !',
           text2: response.message,
         });
         navigation.goBack();
@@ -77,7 +74,7 @@ export default function ValideAnecdotes() {
         });
         setError(response.message || 'Une erreur est survenue lors de la validation de l\'anecdote.');
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -96,9 +93,9 @@ export default function ValideAnecdotes() {
     loadAsyncFonts();
 
     fetchAnecdoteDetails();
-  }, []);
+  }, [fetchAnecdoteDetails]);
 
-  if (error != '') {
+  if (error !== '') {
     return <ErrorScreen error={error} />;
   }
 
@@ -114,7 +111,7 @@ export default function ValideAnecdotes() {
           justifyContent: 'center',
         }}
       >
-        <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
         <View
           style={{
             width: '100%',
@@ -132,7 +129,7 @@ export default function ValideAnecdotes() {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Header refreshFunction={null} disableRefresh={true} />
       <View style={styles.content}>
         <BoutonRetour previousRoute="gestionAnecdotesScreen" title={`Gérer l'anecdote ${id}`} />
         <Text style={styles.title}>Détail de l'anecdote :</Text>
@@ -162,14 +159,14 @@ export default function ValideAnecdotes() {
           <BoutonActiver
             title="Désactiver l'anecdote"
             IconComponent={X}
-            disabled={anecdoteDetails.valid == 0}
+            disabled={anecdoteDetails.valid === 0}
             onPress={() => handleValidation(0)} // Appeler la fonction pour invalider
           />
         </View>
         <BoutonActiver
           title="Valider l'anecdote"
           IconComponent={Check}
-          disabled={anecdoteDetails.valid == 1}
+          disabled={anecdoteDetails.valid === 1}
           onPress={() => handleValidation(1)} // Appeler la fonction pour valider
         />
       </View>

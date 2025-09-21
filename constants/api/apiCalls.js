@@ -15,7 +15,7 @@ const refreshTokens = async () => {
     const res = await axios.get(`${config.API_BASE_URL}/auth/refresh`, apiConfig);      
     await SecureStore.setItemAsync("accessToken", res.data.access_token);
     return true;
-  } catch (e) {
+    } catch (_e) {
     await SecureStore.setItemAsync("accessToken", "");
     Alert.alert("Déconnexion", "Vous avez été déconnecté.", [{ text: "Ok" }]);
     throw new Error('NoRefreshTokenError');

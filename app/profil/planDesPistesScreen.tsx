@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import ImageViewing from "react-native-image-viewing";
+import ImageViewer from "react-native-image-zoom-viewer";
 import { Colors } from '@/constants/GraphSettings';
 import Header from '../../components/header';
 import BoutonRetour from '../../components/divers/boutonRetour';
@@ -72,9 +72,9 @@ export default function PlanStation() {
         </View>
       </View>
 
-      <ImageViewing
-        images={[{ uri: Image.resolveAssetSource(pisteImage).uri }]}
-        imageIndex={0}
+      <ImageViewer
+        imageUrls={[{ url: Image.resolveAssetSource(pisteImage).uri }]}
+        index={0}
         visible={isModalVisible}
         onRequestClose={toggleModal}
       />

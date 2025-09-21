@@ -1,5 +1,4 @@
-import { SafeAreaView, StyleSheet, Text, View } from "react-native";
-import { Colors, Fonts } from "@/constants/GraphSettings"
+import { SafeAreaView, StyleSheet } from "react-native";
 import React from "react";
 import OAuthScreen from "./OAuthScreen";
 

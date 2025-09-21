@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, StyleSheet, Linking, TouchableOpacity} from 'react-native';
+import {Text, StyleSheet, Linking, TouchableOpacity} from 'react-native';
 
 const WidgetBanal = ({ title, subtitles, backgroundColor, textColor, onPress }) => {
     return (

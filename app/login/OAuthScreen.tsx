@@ -66,7 +66,7 @@ export default function OAuthScreen() {
     }
   };
 
-  if(error!='') {
+  if(error!=='') {
     return(
       <View
       style={{

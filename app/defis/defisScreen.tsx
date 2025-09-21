@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator } from "react-native";
 import Header from "../../components/header";
 import { Trophy } from 'lucide-react-native';
 import BoutonNavigation from "@/components/divers/boutonNavigation";
 import BoutonRetour from "@/components/divers/boutonRetour";
 import BoutonDefi from "@/components/defis/boutonDefi";
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, loadFonts } from '@/constants/GraphSettings';
 import { apiGet } from "@/constants/api/apiCalls";
 import ErrorScreen from '@/components/pages/errorPage';
 import { useNavigation } from 'expo-router';
@@ -21,7 +21,7 @@ export default function Defis() {
   const navigation = useNavigation();
   const { setUser } = useUser();
 
-  const fetchChallenges = async () => {
+  const fetchChallenges = useCallback(async () => {
     setLoading(true);
     setDisableRefresh(true);
 
@@ -32,7 +32,7 @@ export default function Defis() {
       } else {
         setError(response.message);
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -44,7 +44,7 @@ export default function Defis() {
         setDisableRefresh(false);
       }, 5000);
     }
-  };
+  }, [setUser]);
 
   const onUpdateDefiStatus = (updatedDefiId, newStatus) => {
     setChallenges((prevChallenges) =>
@@ -67,9 +67,9 @@ export default function Defis() {
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, fetchChallenges]);
 
-  if (error != '') {
+  if (error !== '') {
     return <ErrorScreen error={error} />;
   }
 
@@ -85,7 +85,7 @@ export default function Defis() {
           justifyContent: 'center',
         }}
       >
-        <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
         <View
           style={{
             width: '100%',

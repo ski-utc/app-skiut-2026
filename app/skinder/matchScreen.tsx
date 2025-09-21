@@ -12,13 +12,13 @@ export default function MatchScreen() {
 
     const { myImage, roomImage, roomNumber, roomResp } = route.params || {};
 
+    const [myRoomImage, setMyRoomImage] = useState(myImage);
+    const [otherRoomImage, setOtherRoomImage] = useState(roomImage);
+
     if (!myImage || !roomImage || !roomNumber) {
         navigation.goBack();
         return null;
     }
-
-    const [myRoomImage, setMyRoomImage] = useState(myImage);
-    const [otherRoomImage, setOtherRoomImage] = useState(roomImage);
 
     return (        
     <View

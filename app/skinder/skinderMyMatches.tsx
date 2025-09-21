@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, ActivityIndicator, ScrollView } from 'react-native';
 import { Colors, Fonts } from '@/constants/GraphSettings';
 import Header from '../../components/header';
@@ -13,7 +13,7 @@ export default function SkinderMyMatches() {
   const [matchedRooms, setMatchedRooms] = useState([]);
   const { setUser } = useUser();
 
-  const fetchMatches = async () => {
+  const fetchMatches = useCallback(async () => {
     setLoading(true);
     try {
       const response = await apiGet('getMySkinderMatches');
@@ -22,7 +22,7 @@ export default function SkinderMyMatches() {
       } else {
         setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -31,11 +31,11 @@ export default function SkinderMyMatches() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setUser]);
 
   useEffect(() => {
     fetchMatches();
-  }, []);
+  }, [fetchMatches]);
 
   if (error !== '') {
     return <ErrorScreen error={error} />;
@@ -53,7 +53,7 @@ export default function SkinderMyMatches() {
           justifyContent: 'center',
         }}
       >
-        <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
         <View
           style={{
             width: '100%',
@@ -80,7 +80,7 @@ export default function SkinderMyMatches() {
         justifyContent: 'center',
       }}
     >
-      <Header />
+      <Header refreshFunction={null} disableRefresh={true} />
       <View
         style={{
           width: '100%',

@@ -28,7 +28,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
           text2: response.message,
         });
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -49,7 +49,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
           text2: response.message,
         });
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -87,7 +87,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
                   text2: response.message,
                 });
               }
-            } catch (error) {
+            } catch (error : any) {
               if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
                 setUser(null);
               } else {

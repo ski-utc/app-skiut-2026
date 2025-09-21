@@ -2,17 +2,17 @@ import {  View, StyleSheet, FlatList, Text, TouchableOpacity } from "react-nativ
 import Header from "../../components/header";
 import React from 'react';
 import * as Linking from 'expo-linking';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Colors } from '@/constants/GraphSettings';
 import BoutonRetour from "../../components/divers/boutonRetour";
 import { Phone } from "lucide-react-native";
 
-interface Contact{
+interface ContactInterface{
     name: string;
     phone: string;
 }
 
 // structure de données avec les nums  
-const contacts: Contact[] = [
+const contacts: ContactInterface[] = [
 { name: "Juliette - Présidente", phone: "07 82 11 19 78" },
 { name: "Nicolas - Président", phone: "07 89 49 06 99" },
 { name: "Secours des deux Alpes", phone: "04 76 79 75 01"},
@@ -27,7 +27,7 @@ export default function Contact() {
     };
 
     // Rendu d'un contact
-    const renderItem = ({ item }: {item: Contact}) => (
+    const renderItem = ({ item }: {item: ContactInterface}) => (
         <TouchableOpacity style={styles.phoneContainer} onPress={() => makeCall(item.phone)}>
         <View style={styles.icon}>
             <Phone size={20} color={Colors.gray}/>

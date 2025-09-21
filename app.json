@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "Ski'UT",
-    "slug": "app-SkiUt-P25",
-    "version": "2.0.3", 
+    "slug": "app-skiut-2026",
+    "version": "1.0.0",
     "orientation": "portrait",
     "newArchEnabled": true,
     "icon": "./assets/images/icone.png",
@@ -16,10 +16,10 @@
     "ios": {
       "bundleIdentifier": "fr.utc.assos.skiutc",
       "supportsTablet": true,
-      "buildNumber": "2.0.3",
+      "buildNumber": "1.0.0",
       "infoPlist": {
         "NSCameraUsageDescription": "Autoriser Ski'Ut à accéder à la Caméra.",
-        "NSPhotoLibraryUsageDescription": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images.", 
+        "NSPhotoLibraryUsageDescription": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Autoriser Ski'Ut à accéder à la localisation pour calculer votre vitesse de glisse.",
         "NSLocationWhenInUseUsageDescription": "Nous utilisons votre localisation lorsque l'application est en cours d'utilisation pour calculer votre vitesse de glisse."
       }
@@ -69,12 +69,21 @@
     },
     "notification": {
       "icon": "./assets/images/icone.png",
-      "color": "#023c69", 
+      "color": "#023c69",
       "iosDisplayInForeground": true
     },
     "androidStatusBar": {
       "barStyle": "dark-content",
-      "backgroundColor": "#ffffff"
-    }
+      "backgroundColor": "#aad1cd"
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "f03f1a56-74c7-4c87-a0b2-60b420f7de94"
+      }
+    },
+    "owner": "skiutcapp"
   }
 }

@@ -41,7 +41,7 @@ export default function AnecdotesForm() {
           text2: response.message,
         });
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -62,7 +62,7 @@ export default function AnecdotesForm() {
     Keyboard.dismiss(); // Dismiss the keyboard when the checkbox is clicked
   };
 
-  if (error != '') {
+  if (error !== '') {
     return (
       <ErrorScreen error={error} />
     );
@@ -71,7 +71,7 @@ export default function AnecdotesForm() {
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
         <View style={{ width: '100%', flex: 1, backgroundColor: Colors.white, justifyContent: "center", alignItems: "center" }}>
           <ActivityIndicator size="large" color={Colors.gray} />
         </View>
@@ -85,7 +85,7 @@ export default function AnecdotesForm() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
         <View style={{ width: '100%', flex: 1, backgroundColor: Colors.white, paddingHorizontal: 20, paddingBottom: 16 }}>
           <BoutonRetour previousRoute={"anecdotesScreen"} title={"Raconte nous ta meilleure anecdote !"} />
           <Pressable

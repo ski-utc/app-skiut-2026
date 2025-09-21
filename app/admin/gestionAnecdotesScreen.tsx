@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, FlatList, ActivityIndicator, Text } from 'react-native';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import Header from '../../components/header';
@@ -7,7 +7,7 @@ import BoutonGestion from '@/components/admins/boutonGestion';
 import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, loadFonts } from '@/constants/GraphSettings';
 import { useNavigation } from '@react-navigation/native';
 
 const GestionAnecdotesScreen = () => {
@@ -20,7 +20,7 @@ const GestionAnecdotesScreen = () => {
   const { setUser } = useUser();
   const navigation = useNavigation();
 
-  const fetchAdminAnecdotes = async () => {
+  const fetchAdminAnecdotes = useCallback(async () => {
     setLoading(true);
     setDisableRefresh(true);
 
@@ -32,7 +32,7 @@ const GestionAnecdotesScreen = () => {
       } else {
         setError(response.message);
       }
-    } catch (error) {
+    } catch (error : any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -44,7 +44,7 @@ const GestionAnecdotesScreen = () => {
         setDisableRefresh(false); 
       }, 5000);
     }
-  };
+  }, [setUser]);
 
   const handleFilter = (filter) => {
     switch (filter) {
@@ -71,9 +71,9 @@ const GestionAnecdotesScreen = () => {
       });
   
     return unsubscribe;
-}, [navigation]);
+}, [navigation, fetchAdminAnecdotes]);
 
-  if (error != '') {
+  if (error !== '') {
     return <ErrorScreen error={error} />;
   }
 
@@ -89,7 +89,7 @@ const GestionAnecdotesScreen = () => {
           justifyContent: 'center',
         }}
       >
-        <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
         <View
           style={{
             width: '100%',

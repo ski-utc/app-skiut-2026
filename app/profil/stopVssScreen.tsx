@@ -2,7 +2,7 @@ import { View, StyleSheet, FlatList, Text, TouchableOpacity } from "react-native
 import Header from "../../components/header";
 import React from 'react';
 import * as Linking from 'expo-linking';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Colors } from '@/constants/GraphSettings';
 import BoutonRetour from "../../components/divers/boutonRetour";
 import { PhoneCall } from "lucide-react-native";
 
@@ -17,7 +17,7 @@ const contacts: Contact[] = [
     { name: "Téléphone VSS", phone: "07 83 09 12 39" },
 ];
 
-export default function Contact() {
+export default function StopVssContact() {
     // Fonction pour appeler un numéro
     const makeCall = (phoneNumber: string) => {
         Linking.openURL(`tel:${phoneNumber}`);

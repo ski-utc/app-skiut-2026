@@ -1,6 +1,6 @@
 import { SafeAreaView, StyleSheet } from "react-native";
-import React from "react";
 import OAuthScreen from "./OAuthScreen";
+import { Colors } from "@/constants/GraphSettings";
 
 export default function LoginScreen() {
     return (

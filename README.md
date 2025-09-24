@@ -4,21 +4,19 @@ Cette aplication est faite pour fonctionner avec le serveur Laravel de Ski'UT d�
 
 ## Pour commencer :
 1. Installer les dépendances
-
-   ```bash
-   npm install
-   ```
+```bash
+npm install --legacy-peer-deps
+```
    
 2. Lancer expo
+```bash
+   npx expo start
+```
 
-   ```bash
-    npx expo start
-   ```
+3. Lance le serveur Laravel en parallèle
 
-3. Lance le serveur Laravel sur l'IP de ta machine (php artisan serve --host=Ip.De.Ton.Pc)
-
-4. Route les requêtes de ton App vers ton serveur
-Modifie l'IP dans constants/api/apiConfig pour donner celle de ton serv Laravel
+4. Route les requêtes de ton Application vers ton serveur
+Modifie l'IP dans `constants/api/apiConfig` pour donner celle de ton serveur Laravel (donc celle de ton PC, obtenable avec `ip address` ou `ifconfig`)
 **Attention : Il faut que ton téléphone et ton PC soit sur le même réseau (l'IP c'est propre à un réseau)**
 
 ## Une fois expo lancé, 2 possibilités
@@ -62,10 +60,3 @@ Dans ce user Provider on retrouve
 Le content c'est le contenu "utile" de l'app, mais sa structure est un peu particulière.  En gros c'est un Tab.Navigator (pour naviguer via la TabBar) et chaque Tab.Screen (élément dans la navigation via TabBar) est en réalité lui même un autre navigator mais par empilement de pages cette fois (c'est alors un Stack.Navigator).
 
 Par exemple, lorsque je clique sur anecote dans la tabBar, je suis dans mon Tab.Navigator, sur le Tab.Screen/Stack.Navigator anecdoteNavigator et dans le Stack.Screen anecdoteScreen. Ensuite, lorsque je clique sur "envoyer une notification", ma page sendNotification se stacke sur anecdoteScreen. Une fois ma notification envoyée, la page pop et je retourne sur anecdoteScreen
-
-## Points d'amélioration
-1. Les notifcations n'ont pas fonctionné en 2025 : le token expo n'était pas récupéré par les android (donc pas envoyé par save-token), et les iOS n'avaient pas de listener
-2. Défis vidéo
-3. Ajouter un widget météo et/ou horaire des remontés sur le homeScreen
-4. Utiliser la lib TaskManager pour faire tourner vitesseDeGlisse en arrière-plan
-5. Ajouter un tracer de glisse avec un enregistrement de la latitute et longitude toutes les X secondes, puis un plot ainsi qu'un envoie du plot au serveur pour enregistrer la réponse.

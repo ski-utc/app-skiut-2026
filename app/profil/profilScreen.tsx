@@ -3,7 +3,7 @@ import { Text, Image } from "react-native";
 import Header from "../../components/header";
 import React, { useState, useEffect } from "react";
 import BoutonProfil from "../../components/profil/boutonProfil";
-import { Fonts, Colors, loadFonts } from "@/constants/GraphSettings";
+import { Fonts, Colors, TextStyles, loadFonts } from "@/constants/GraphSettings";
 import { Phone, PhoneCall, Map, MapPin, Gauge, Bus, UserRoundCheck, Heart } from 'lucide-react-native';
 import { useUser } from "@/contexts/UserContext";
 import * as config from '../../constants/api/apiConfig';

@@ -6,7 +6,7 @@ import * as SecureStore from "expo-secure-store";
 import { useUser } from "@/contexts/UserContext";
 import * as config from "../../constants/api/apiConfig";
 import { apiGet } from "@/constants/api/apiCalls";
-import { Colors, Fonts } from "@/constants/GraphSettings";
+import { Colors, Fonts, TextStyles } from "@/constants/GraphSettings";
 import { useNavigation } from '@react-navigation/native';
 
 export default function OAuthScreen() {
@@ -80,10 +80,8 @@ export default function OAuthScreen() {
     >
       <Text
         style={{
-          color: Colors.black,
-          fontSize: 32,
-          fontFamily: Fonts.Inter.Basic,
-          fontWeight: "800",
+          ...TextStyles.h1,
+          color: Colors.error,
           padding: 10,
           textAlign: "center",
         }}
@@ -92,10 +90,8 @@ export default function OAuthScreen() {
       </Text>
       <Text
         style={{
-          color: Colors.black,
-          fontSize: 20,
-          fontFamily: Fonts.Inter.Basic,
-          fontWeight: "400",
+          ...TextStyles.h3,
+          color: Colors.primaryBorder,
           padding: 10,
           paddingBottom: 32,
           textAlign: "center",
@@ -105,10 +101,8 @@ export default function OAuthScreen() {
       </Text>
       <Text
         style={{
-          color: Colors.black,
-          fontSize: 16,
-          fontFamily: Fonts.Inter.Italic,
-          fontWeight: "400",
+          ...TextStyles.body,
+          color: Colors.gray,
           padding: 16,
           textAlign: "center",
         }}
@@ -120,16 +114,15 @@ export default function OAuthScreen() {
           style={{
             width: '90%',
             alignSelf: 'center',
-            backgroundColor: Colors.orange,
+            backgroundColor: Colors.accent,
             paddingVertical: 15,
             marginVertical: 16,
-            borderRadius: 8,
+            borderRadius: 10,
             alignItems: 'center',
           }}
         >
           <Text style={{
-            fontSize: 16,
-            fontWeight: '600',
+            ...TextStyles.buttonLarge,
             color: Colors.white,
           }}>
             Retour

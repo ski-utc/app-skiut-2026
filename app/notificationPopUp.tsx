@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ActivityIndicator, Modal, FlatList, StatusBar } from "react-native";
-import { Fonts, Colors } from "@/constants/GraphSettings";
+import { Fonts, Colors, TextStyles } from "@/constants/GraphSettings";
 import { BlurView } from "expo-blur";
 import { CircleX } from "lucide-react-native";
 import { useEffect, useState, useCallback } from "react";
@@ -83,7 +83,7 @@ export default function NotificationPopup({ visible, onClose }) {
                 justifyContent: "center",
                 alignItems: "center",
                 borderBottomWidth: 1,
-                borderBottomColor: "#EAEAEA",
+                borderBottomColor: Colors.primary,
                 paddingBottom: 10,
                 marginBottom: 15,
               }}
@@ -222,7 +222,7 @@ export default function NotificationPopup({ visible, onClose }) {
                 justifyContent: "center",
                 alignItems: "center",
                 borderBottomWidth: 1,
-                borderBottomColor: "#EAEAEA",
+                borderBottomColor: Colors.primary,
                 paddingBottom: 10,
                 marginBottom: 15,
               }}

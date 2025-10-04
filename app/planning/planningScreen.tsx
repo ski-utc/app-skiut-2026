@@ -1,5 +1,5 @@
 import { View, StyleSheet, Text, FlatList, ActivityIndicator, TouchableOpacity } from "react-native";
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, Fonts, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import React, { useState, useCallback, useEffect } from 'react';
 import Header from "@/components/header";
 import ErrorScreen from "@/components/pages/errorPage";
@@ -95,7 +95,7 @@ export default function PlanningScreen() {
           height: 60,
           borderRadius: 12,
           borderWidth: 2,
-          borderColor: Colors.orange,
+          borderColor: Colors.accent,
           alignSelf: "center",
         }}>
           {item.days.map((day: string, index: number) => {
@@ -113,7 +113,7 @@ export default function PlanningScreen() {
                   flexDirection: "column",
                   justifyContent: "flex-start",
                   alignItems: "center",
-                  backgroundColor: isSelected ? Colors.orange : Colors.white
+                  backgroundColor: isSelected ? Colors.accent : Colors.white
                 }}
                 onPress={() => handlePress(letter as keyof typeof dayMap, number)}
               >
@@ -144,17 +144,17 @@ export default function PlanningScreen() {
           </Text>
 
           <Text style={{
-            fontFamily: Fonts.Title.Light,
+            fontFamily: Fonts.title.regular,
             fontSize: 16,
             fontWeight: "600",
-            color: Colors.black,
+            color: Colors.primaryBorder,
             marginTop: 20,
           }}>
             {formattedDate || "Sélectionnez une date"}
           </Text>
           {item.activities.length > 0 ? (
             item.activities.map((activity: Activity, index: number) => {
-              const titleColor = activity.payant ? Colors.orange : Colors.black; // Définir la couleur en fonction de 'payant'
+              const titleColor = activity.payant ? Colors.accent : Colors.primaryBorder; // Définir la couleur en fonction de 'payant'
               return (
                 <View
                   key={index}
@@ -189,7 +189,7 @@ export default function PlanningScreen() {
                   >
                     <Text
                       style={{
-                        fontFamily: Fonts.Text.Bold,
+                        fontFamily: Fonts.text.bold,
                         fontWeight: '600',
                         fontSize: 16,
                         color: titleColor,
@@ -199,7 +199,7 @@ export default function PlanningScreen() {
                     </Text>
                     <Text
                       style={{
-                        fontFamily: Fonts.Text.Bold,
+                        fontFamily: Fonts.text.bold,
                         fontWeight: '600',
                         fontSize: 14,
                         color: Colors.gray
@@ -292,15 +292,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dayLetter: {
-    fontSize: 14,
+    ...TextStyles.small,
     fontWeight: '600',
-    fontFamily: Fonts.Text.Medium,
     paddingBottom: 6,
   },
   dayNumber: {
-    fontSize: 16,
+    ...TextStyles.body,
     fontWeight: '700',
-    fontFamily: Fonts.Text.Bold,
   },
   noActivitiesContainer: {
     justifyContent: 'center',
@@ -308,28 +306,24 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   noActivitiesText: {
-    fontFamily: Fonts.Text.Medium,
-    fontSize: 18,
+    ...TextStyles.bodyLarge,
     textAlign: 'center',
     color: Colors.gray,
   },
   infoText: {
-    fontFamily: Fonts.Text.Light,
-    fontSize: 14,
-    color: Colors.black, // Default color for the whole text
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
     marginTop: 16,
     textAlign: 'center',
     zIndex: 1,
   },
   orangeText: {
-    fontFamily: Fonts.Text.Light,
-    fontSize: 14,
-    color: Colors.orange, // Only the word "orange" will be in orange
+    ...TextStyles.body,
+    color: Colors.accent,
   },
   subInfoText: {
-    fontFamily: Fonts.Text.Light,
-    fontSize: 14,
-    color: Colors.black,
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
     textAlign: 'center',
     zIndex: 1,
   },

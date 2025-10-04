@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react-native';
 
 // @ts-ignore
@@ -16,7 +16,7 @@ export default function CustomNavBar({ state, navigation }) {
     loadAsyncFonts();
   }, []);
 
-  const activeColor = Colors.orange;
+  const activeColor = Colors.accent;
   const unactiveColor = Colors.gray;
 
   const tabs = [
@@ -51,7 +51,7 @@ export default function CustomNavBar({ state, navigation }) {
           marginHorizontal: 15,
           backgroundColor: Colors.white,
           borderTopWidth: 1,
-          borderTopColor: Colors.customWhite,
+          borderTopColor: Colors.primary,
           justifyContent: 'flex-start',
           alignItems: 'center',
           flexDirection: 'row',
@@ -99,10 +99,8 @@ export default function CustomNavBar({ state, navigation }) {
               />
               <Text
                 style={{
+                  ...TextStyles.small,
                   color: isFocused ? activeColor : unactiveColor,
-                  fontSize: 14,
-                  fontFamily: Fonts.Inter.Basic,
-                  fontWeight: '500',
                   textAlign: 'center',
                   marginBottom: 2, // monte un peu le texte
                 }}

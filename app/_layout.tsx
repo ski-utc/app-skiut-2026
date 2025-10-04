@@ -1,7 +1,7 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { ActivityIndicator, View, Text, StyleSheet, Platform } from 'react-native';
-import { Colors } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { UserProvider, useUser } from '../contexts/UserContext';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeNavigator from './homeNavigator';
@@ -161,15 +161,15 @@ function Content() {
 
 const ToastConfig = {
   success: ({ text1, text2, ...rest }) => (
-    <View style={[styles.toastContainer, { backgroundColor: '#4CAF50' }]}>
-      <Text style={[styles.text, { fontSize: 18, fontWeight: 'bold' }]}>{text1}</Text>
-      <Text style={[styles.text, { fontSize: 14 }]}>{text2}</Text>
+    <View style={[styles.toastContainer, { backgroundColor: Colors.success }]}>
+      <Text style={[styles.toastText, TextStyles.bodyBold]}>{text1}</Text>
+      <Text style={[styles.toastText, TextStyles.body]}>{text2}</Text>
     </View>
   ),
   error: ({ text1, text2, ...rest }) => (
-    <View style={[styles.toastContainer, { backgroundColor: '#F44336' }]}>
-      <Text style={[styles.text, { fontSize: 18, fontWeight: 'bold' }]}>{text1}</Text>
-      <Text style={[styles.text, { fontSize: 14 }]}>{text2}</Text>
+    <View style={[styles.toastContainer, { backgroundColor: Colors.error }]}>
+      <Text style={[styles.toastText, TextStyles.bodyBold]}>{text1}</Text>
+      <Text style={[styles.toastText, TextStyles.body]}>{text2}</Text>
     </View>
   ),
 };
@@ -178,16 +178,16 @@ const styles = StyleSheet.create({
   toastContainer: {
     width: '90%',
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'flex-start',
-    shadowColor: '#000',
+    shadowColor: Colors.primaryBorder,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
   },
-  text: {
-    color: '#fff',
+  toastText: {
+    color: Colors.white,
   },
 });

@@ -3,7 +3,7 @@ import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert } from 'r
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from "expo-image-manipulator";
 import { useRoute } from '@react-navigation/native';
-import { Colors } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { LandPlot, Trash, Check, Hourglass, X } from 'lucide-react-native';
 import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
@@ -239,7 +239,7 @@ export default function DefisInfos() {
                   justifyContent: 'center',
               }}
           >
-              <Header />
+              <Header refreshFunction={null} disableRefresh={true} />
               <View
                   style={{
                       width: '100%',
@@ -256,13 +256,13 @@ export default function DefisInfos() {
   }
 
   return(
-    <View style={{ flex: 1, backgroundColor: 'white' }}>
+      <View style={{ flex: 1, backgroundColor: Colors.white }}>
       <Header refreshFunction={undefined} disableRefresh={undefined} />
       <View style={{ width: '100%', paddingHorizontal: 20 }}>
         <BoutonRetour previousRoute="defisScreen" title={title} />
       </View>
       <View style={{ width: '100%', paddingHorizontal: 20, paddingBottom: 16 }}>
-        <Text style={{ marginTop: 20, fontSize: 24, color: 'black', fontWeight: '700' }}>Points : {points}</Text>
+        <Text style={{ ...TextStyles.h2, marginTop: 20, color: Colors.primaryBorder, fontWeight: '700' }}>Points : {points}</Text>
       </View>
       <View style={{ width: '100%', height:'60%', marginTop: 10, justifyContent: 'center', alignItems:'center' }}>
       <TouchableOpacity
@@ -291,7 +291,7 @@ export default function DefisInfos() {
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                backgroundColor: 'grey',
+                backgroundColor: Colors.gray,
                 borderRadius: 8,
                 padding: 10,
                 marginBottom: 16,
@@ -319,7 +319,7 @@ export default function DefisInfos() {
                 style={{
                   width: '90%',
                   padding: 10,
-                  backgroundColor: 'red',
+                  backgroundColor: Colors.error,
                   borderRadius: 8,
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -339,7 +339,7 @@ export default function DefisInfos() {
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: 'green',
+                backgroundColor: Colors.success,
               borderRadius: 8,
               padding: 10,
               marginBottom: 16,
@@ -359,7 +359,7 @@ export default function DefisInfos() {
               style={{
                 width: '90%',
                 padding: 10,
-                backgroundColor: Colors.orange,
+                backgroundColor: Colors.accent,
                 borderRadius: 8,
                 flexDirection: 'row',
                 alignItems: 'center',

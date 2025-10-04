@@ -106,10 +106,10 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
       style={{
         width: '100%',
         padding: 14,
-        backgroundColor: '#F8F8F8',
+        backgroundColor: Colors.white,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#EAEAEA',
+        borderColor: Colors.primary,
         flexDirection: 'column',
         justifyContent: 'flex-start',
         alignItems: 'flex-start',
@@ -127,9 +127,9 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
       >
         <Text
           style={{
-            color: 'black',
+            color: Colors.primaryBorder,
             fontSize: 12,
-            fontFamily: 'Inter',
+            fontFamily: 'ProximaNova-Regular',
             fontWeight: '500',
           }}
         >
@@ -140,9 +140,9 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
           style={{
             alignSelf: 'stretch',
             textAlign: 'right',
-            color: '#737373',
+            color: Colors.gray,
             fontSize: 12,
-            fontFamily: 'Inter',
+            fontFamily: 'ProximaNova-Regular',
             fontStyle: 'italic',
             fontWeight: '300',
           }}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, FlatList, ActivityIndicator } from 'react-native';
-import { Colors, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import Anecdote from '../../components/anecdotes/anecdote';

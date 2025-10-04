@@ -1,14 +1,100 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, FlatList, ActivityIndicator, Text } from 'react-native';
+import { View, StyleSheet, FlatList, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import Header from '../../components/header';
-import BoutonMenu from '@/components/admins/boutonMenu';
 import BoutonGestion from '@/components/admins/boutonGestion';
 import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
-import { Colors, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
 import { useNavigation } from '@react-navigation/native';
+
+// Composant BoutonMenu - utilisé dans gestionAnecdotesScreen et gestionDefisScreen
+interface ButtonMenuProps {
+    first: string;
+    second: string;
+    third: string;
+    onFirstClick: () => void;
+    onSecondClick: () => void;
+    onThirdClick: () => void;
+}
+
+const BoutonMenu: React.FC<ButtonMenuProps> = ({
+    first,
+    second,
+    third,
+    onFirstClick,
+    onSecondClick,
+    onThirdClick,
+}) => {
+    const [activeButton, setActiveButton] = useState<string>('first');
+
+    const handleButtonClick = (button: string, onClick: () => void) => {
+        setActiveButton(button);
+        onClick();
+    };
+
+    return (
+        <View style={menuStyles.container}>
+            <TouchableOpacity
+                style={[
+                    menuStyles.button,
+                    activeButton === 'first' && menuStyles.activeButton,
+                ]}
+                onPress={() => handleButtonClick('first', onFirstClick)}
+            >
+                <Text style={menuStyles.text}>{first}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+                style={[
+                    menuStyles.button,
+                    activeButton === 'second' && menuStyles.activeButton,
+                ]}
+                onPress={() => handleButtonClick('second', onSecondClick)}
+            >
+                <Text style={menuStyles.text}>{second}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+                style={[
+                    menuStyles.button,
+                    activeButton === 'third' && menuStyles.activeButton,
+                ]}
+                onPress={() => handleButtonClick('third', onThirdClick)}
+            >
+                <Text style={menuStyles.text}>{third}</Text>
+            </TouchableOpacity>
+        </View>
+    );
+};
+
+// Styles pour BoutonMenu
+const menuStyles = StyleSheet.create({
+    container: {
+        flexDirection: 'row',
+        width: '100%',
+        borderBottomWidth: 2,
+        borderBottomColor: Colors.primary,
+        backgroundColor: Colors.white,
+    },
+    button: {
+        flex: 1,
+        paddingVertical: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+    },
+    activeButton: {
+        borderBottomWidth: 2,
+        borderBottomColor: Colors.accent,
+        backgroundColor: Colors.customGray,
+    },
+    text: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+        fontWeight: '500',
+        textAlign: 'center',
+    },
+});
 
 
 const GestionDefisScreen = () => {

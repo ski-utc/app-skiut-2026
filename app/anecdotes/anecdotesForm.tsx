@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard, Pressable } from 'react-native';
 import Checkbox from 'expo-checkbox';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, Fonts, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '@/contexts/UserContext';
@@ -90,12 +90,12 @@ export default function AnecdotesForm() {
           <BoutonRetour previousRoute={"anecdotesScreen"} title={"Raconte nous ta meilleure anecdote !"} />
           <Pressable
             onPress={() => Keyboard.dismiss()}
-            style={{ padding: 14, marginBottom: 8, height: 268, backgroundColor: '#F8F8F8', borderRadius: 12, borderWidth: 1, borderColor: '#EAEAEA' }}
+            style={{ padding: 16, marginBottom: 8, height: 268, backgroundColor: Colors.white, borderRadius: 12, borderWidth: 2, borderColor: Colors.primary, shadowColor: Colors.primaryBorder, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 2 }}
           >
             <TextInput
-              style={{ color: Colors.black, fontFamily: Fonts.Inter.Basic, fontWeight: '500', width: '100%', fontSize: 14 }}
+              style={{ ...TextStyles.body, color: Colors.primaryBorder, width: '100%' }}
               placeholder="Aujourd'hui..."
-              placeholderTextColor={'#969696'}
+              placeholderTextColor={Colors.gray}
               multiline
               numberOfLines={15}
               onChangeText={setText}
@@ -107,20 +107,20 @@ export default function AnecdotesForm() {
               style={{ width: 24, height: 24 }}
               value={isChecked}
               onValueChange={handleCheckboxPress}
-              color={isChecked ? Colors.orange : undefined}
+              color={isChecked ? Colors.accent : undefined}
             />
-            <Text style={{ color: Colors.black, fontSize: 12, fontFamily: Fonts.Inter.Basic, fontWeight: '500', paddingRight: 20 }}>
+            <Text style={{ ...TextStyles.small, color: Colors.primaryBorder, paddingRight: 20 }}>
               En postant cette anecdote, je certifie qu’il respecte les autres participant.e.s du voyage
             </Text>
           </View>
         </View>
         <View style={{ width: '100%', position: 'absolute', right: 0, bottom: 16, paddingHorizontal: 20 }}>
           <TouchableOpacity
-            style={{ padding: 10, backgroundColor: '#E64034', opacity: isChecked && text.trim().length > 5 ? 1 : 0.5, borderRadius: 8, justifyContent: 'center', alignItems: 'center', flexDirection: 'row', gap: 10 }}
+            style={{ padding: 12, backgroundColor: Colors.accent, opacity: isChecked && text.trim().length > 5 ? 1 : 0.5, borderRadius: 10, justifyContent: 'center', alignItems: 'center', flexDirection: 'row', gap: 10, shadowColor: Colors.primaryBorder, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3 }}
             disabled={!isChecked || loading || text.trim().length <= 5}
             onPress={handleSendAnecdote}
           >
-            <Text style={{ color: 'white', fontSize: 14, fontFamily: Fonts.Inter.Basic, fontWeight: '600' }}>Poster mon anecdote</Text>
+            <Text style={{ ...TextStyles.button, color: Colors.white }}>Poster mon anecdote</Text>
             <Send size={20} color={Colors.white} />
           </TouchableOpacity>
         </View>

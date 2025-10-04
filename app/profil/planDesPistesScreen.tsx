@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import ImageViewer from "react-native-image-zoom-viewer";
-import { Colors } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '../../components/header';
 import BoutonRetour from '../../components/divers/boutonRetour';
 import BoutonLien from '../../components/divers/boutonLien';
@@ -27,7 +27,7 @@ export default function PlanStation() {
         justifyContent: "center",
       }}
     >
-      <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
       <View
         style={{
           width: '100%',
@@ -97,6 +97,6 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: 400,
-    borderRadius: 8,
+    borderRadius: 12,
   },
 });

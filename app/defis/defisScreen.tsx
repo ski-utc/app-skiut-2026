@@ -1,15 +1,94 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, FlatList, StyleSheet, ActivityIndicator } from "react-native";
+import { View, FlatList, StyleSheet, ActivityIndicator, Text, TouchableOpacity } from "react-native";
 import Header from "../../components/header";
-import { Trophy } from 'lucide-react-native';
+import { Trophy, ChevronRight, Check } from 'lucide-react-native';
 import BoutonNavigation from "@/components/divers/boutonNavigation";
 import BoutonRetour from "@/components/divers/boutonRetour";
-import BoutonDefi from "@/components/defis/boutonDefi";
-import { Colors, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import { apiGet } from "@/constants/api/apiCalls";
 import ErrorScreen from '@/components/pages/errorPage';
 import { useNavigation } from 'expo-router';
 import { useUser } from '@/contexts/UserContext';
+
+// Composant BoutonDefi - utilisé uniquement dans cette page
+interface BoutonDefiProps {
+    defi: {
+        id: number,
+        title: string,
+        points: number,
+        status: string,
+        [key: string]: any;
+    };
+    onUpdate: (id: number, status: string) => void;
+}
+
+const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
+    const navigation = useNavigation();
+
+    const onPress = () => {
+        (navigation as any).navigate("defisInfos", {
+            id: defi.id,
+            title: defi.title,
+            points: defi.points,
+            status: defi.status,
+            onUpdate
+        });
+    };
+
+    const getStatusColor = (status: string) => {
+        switch(status) {
+            case 'done': return Colors.success;
+            case 'refused': return Colors.error;
+            case 'pending': return Colors.accent;
+            default: return Colors.gray;
+        }
+    };
+
+    return (
+        <TouchableOpacity
+            onPress={onPress}
+            style={{
+                width: "100%",
+                paddingHorizontal: 20,
+                paddingVertical: 16,
+                borderBottomWidth: 1,
+                borderBottomColor: Colors.primary,
+                justifyContent: "space-between",
+                alignItems: "center",
+                display: "flex",
+                flexDirection: "row",
+                backgroundColor: Colors.white,
+            }}
+        >
+            <View
+                style={{
+                    justifyContent: "flex-start",
+                    alignItems: "center",
+                    display: "flex",
+                    flexDirection: "row",
+                    width: '85%',
+                }}
+            >
+                <Check
+                    color={getStatusColor(defi.status)}
+                    size={25}
+                    strokeWidth={3}
+                />
+                <Text
+                    style={{
+                        ...TextStyles.body,
+                        color: Colors.primaryBorder,
+                        fontWeight: "500",
+                        marginLeft: 12,
+                    }}
+                >
+                    {defi.title}
+                </Text>
+            </View>
+            <ChevronRight size={20} color={Colors.primaryBorder} />
+        </TouchableOpacity>
+    );
+};
 
 // @ts-ignore
 export default function Defis() {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, Fonts, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import { GanttChart, Bell, RotateCcw } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import NotificationPopup from '@/app/notificationPopUp';
@@ -35,7 +35,7 @@ export default function Header({ refreshFunction, disableRefresh }) {
     <View style={styles.container}>
       <View style={styles.leftContainer}>
         <TouchableOpacity onPress={handleGanttChartPress} style={{flexDirection: 'row', gap:8, justifyContent:'center',alignItems:'center'}}>
-          <GanttChart size={24} color={Colors.black} />
+          <GanttChart size={24} color={Colors.primaryBorder} />
         <View style={styles.textContainer}>
           <Text style={styles.nameText} numberOfLines={1}>
             {user?.name} {user?.lastName}
@@ -57,18 +57,18 @@ export default function Header({ refreshFunction, disableRefresh }) {
             borderRadius: 8,
             borderWidth: 1,
             opacity: disableRefresh ? 0.4 : 1,
-            borderColor: '#EAEAEA',
+            borderColor: Colors.primaryBorder,
             justifyContent: 'center',
             alignItems: 'center',
           }} 
           onPress={refreshFunction} 
           disabled={disableRefresh}
         >
-          <RotateCcw size={20} color={Colors.black} />
+          <RotateCcw size={20} color={Colors.primaryBorder} />
         </TouchableOpacity>
       }
       <TouchableOpacity style={styles.bellButton} onPress={() => setIsPopupVisible(true)}>
-        <Bell size={20} color={Colors.black} />
+        <Bell size={20} color={Colors.primaryBorder} />
       </TouchableOpacity>
       <NotificationPopup visible={isPopupVisible} onClose={() => setIsPopupVisible(false)} />
     </View>
@@ -103,16 +103,12 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   nameText: {
-    color: Colors.black,
-    fontSize: 14,
-    fontFamily: Fonts.Inter.Basic,
-    fontWeight: '600',
+    ...TextStyles.bodyBold,
+    color: Colors.primaryBorder,
   },
   roomText: {
-    color: '#9D9D9D',
-    fontSize: 12,
-    fontFamily: Fonts.Inter.Basic,
-    fontWeight: '600',
+    ...TextStyles.small,
+    color: Colors.gray,
   },
   bellButton: {
     position: 'absolute',

@@ -1,13 +1,131 @@
-import { Text, View, ScrollView, ActivityIndicator } from "react-native";
+import { Text, View, ScrollView, ActivityIndicator, Dimensions, StyleSheet } from "react-native";
 import Header from "@/components/header";
 import React, { useState, useEffect } from "react";
-import { Colors, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles, Fonts, loadFonts } from '@/constants/GraphSettings';
 import { Crown } from "lucide-react-native";
 import BoutonRetour from '@/components/divers/boutonRetour';
-import RectanglePodium from '@/components/vitesseDeGlisse/rectanglePodium';
-import RectangleReste from '@/components/vitesseDeGlisse/rectangleReste';
 import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from "@/components/pages/errorPage";
+
+const screenWidth = Dimensions.get('window').width;
+const containerWidth = screenWidth / 3 - 10;
+
+// Composants RectanglePodium et RectangleReste - pour les performances de vitesse
+interface RectanglePodiumProps {
+    height: number;
+    num: string;
+    nb_likes: number;
+    style?: any;
+}
+
+const RectanglePodium: React.FC<RectanglePodiumProps> = ({ height, num, nb_likes, style }) => {
+    const isLongName = num.length > 9;
+    const textStyle = isLongName ? podiumStyles.longText : podiumStyles.text;
+
+    return (
+        <View style={[podiumStyles.container, style]}>
+            <Text style={textStyle} numberOfLines={2}>{num}</Text>
+            <Text style={podiumStyles.likesText}>{nb_likes} km/h</Text>
+            <View style={[podiumStyles.rectangle, { height }]} />
+        </View>
+    );
+};
+
+interface RectangleResteProps {
+    number: number;
+    num: string;
+    nb_likes: number;
+    style?: any;
+}
+
+const RectangleReste: React.FC<RectangleResteProps> = ({ number, num, nb_likes, style }) => {
+    const marginRight = number < 10 ? 30 : 16;
+
+    return (
+        <View style={[resteStyles.rectangle, style]}>
+            <Text style={[resteStyles.bigNumber, { marginRight }]}>
+                {number}
+            </Text>
+            <View style={resteStyles.textContainer}>
+                <Text style={resteStyles.chambreText}>{num}</Text>
+                <Text style={resteStyles.likesText}>{nb_likes} km/h</Text>
+            </View>
+        </View>
+    );
+};
+
+// Styles pour RectanglePodium
+const podiumStyles = StyleSheet.create({
+    container: {
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        width: containerWidth,
+        paddingHorizontal: 10,
+        marginHorizontal: 5,
+    },
+    text: {
+        color: Colors.white,
+        fontSize: 16,
+        fontFamily: Fonts.text.medium,
+        textAlign: 'center',
+        width: '100%',
+        flexWrap: 'wrap',
+        marginVertical: 4,
+    },
+    longText: {
+        color: Colors.white,
+        fontSize: 12,
+        fontFamily: Fonts.Text.medium,
+        textAlign: 'center',
+        width: '100%',
+        flexWrap: 'wrap',
+        marginVertical: 4,
+    },
+    likesText: {
+        color: Colors.white,
+        fontSize: 14,
+        fontFamily: Fonts.text.light,
+    },
+    rectangle: {
+        width: '100%',
+        backgroundColor: Colors.accent,
+        borderTopLeftRadius: 8,
+        borderTopRightRadius: 8,
+        marginHorizontal: 4,
+        marginTop: 4,
+    },
+});
+
+// Styles pour RectangleReste
+const resteStyles = StyleSheet.create({
+    rectangle: {
+        width: '100%',
+        height: 50,
+        borderWidth: 2,
+        borderColor: Colors.primary,
+        backgroundColor: Colors.white,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 10,
+        borderRadius: 8,
+    },
+    bigNumber: {
+        ...TextStyles.h2,
+        color: Colors.primaryBorder,
+    },
+    textContainer: {
+        flexDirection: 'column',
+    },
+    chambreText: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+        marginBottom: 4,
+    },
+    likesText: {
+        ...TextStyles.small,
+        color: Colors.gray,
+    },
+});
 
 export default function PerformancesScreen() {
     const [loading, setLoading] = useState<boolean>(false);

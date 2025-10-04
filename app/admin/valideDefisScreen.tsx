@@ -4,7 +4,7 @@ import { useRoute } from '@react-navigation/native';
 import { X, Check } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiPost, apiGet } from '@/constants/api/apiCalls'; // Import the API calls
 import ErrorScreen from '@/components/pages/errorPage';
@@ -295,26 +295,28 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   title: {
+    ...TextStyles.body,
     marginTop: 20,
-    fontSize: 16,
-    color: Colors.black,
-    fontFamily: 'Inter',
+    color: Colors.primaryBorder,
     fontWeight: '600',
   },
   textBox: {
     marginTop: 8,
-    borderWidth: 1,
-    borderColor: Colors.gray,
-    borderRadius: 8,
-    padding: 10,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderRadius: 10,
+    padding: 12,
     backgroundColor: Colors.white,
     marginBottom: 20,
+    shadowColor: Colors.primaryBorder,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   text: {
-    fontSize: 14,
-    color: Colors.black,
-    fontFamily: 'Inter',
-    fontWeight: '400',
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
     lineHeight: 20,
   },
   buttonContainer: {

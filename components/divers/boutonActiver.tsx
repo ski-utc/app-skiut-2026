@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, TouchableOpacity } from 'react-native';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 // @ts-ignore
 export default function BoutonActiver({ 
@@ -16,7 +16,7 @@ export default function BoutonActiver({
             style={[
                 {
                     padding: 10,
-                    backgroundColor: disabled ? '#B0B0B0' : '#E64034', // Couleur grise si désactivé
+                    backgroundColor: disabled ? Colors.gray : Colors.error, // Couleur grise si désactivé
                     borderRadius: 8,
                     justifyContent: 'center',
                     alignItems: 'center',
@@ -31,10 +31,8 @@ export default function BoutonActiver({
         >
             <Text
                 style={{
-                    color: 'white',
-                    fontSize: 14,
-                    fontFamily: Fonts.Inter.Basic,
-                    fontWeight: '600',
+                    ...TextStyles.button,
+                    color: Colors.white,
                 }}
             >
                 {title}

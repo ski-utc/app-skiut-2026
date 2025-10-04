@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
         paddingBottom: 16,
     },
     explanatoryText: {
-        color: Colors.orange,
+        color: Colors.accent,
         fontSize: 14,
         lineHeight: 20,
         textAlign: 'justify',

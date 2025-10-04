@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Image, Text, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Colors, Fonts, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 
@@ -31,7 +31,7 @@ export default function MatchScreen() {
             justifyContent: 'center',
         }}
     >
-        <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
         <View
             style={{
                 width: '100%',
@@ -55,9 +55,8 @@ export default function MatchScreen() {
             >
                 <Text 
                     style={{
-                        fontSize: 24,
-                        fontFamily: Fonts.Text.Bold,
-                        color: Colors.black,
+                        ...TextStyles.h2,
+                        color: Colors.accent,
                     }}
                 >
                     🎉 It's a Match! 🎉
@@ -85,8 +84,8 @@ export default function MatchScreen() {
                 </View>
                 <View
                     style={{
-                        backgroundColor: '#F8F8F8',
-                        borderColor: Colors.gray,
+                        backgroundColor: Colors.customGray,
+                        borderColor: Colors.primary,
                         borderWidth: 1,
                         borderRadius: 12,
                         padding: 14,
@@ -97,9 +96,9 @@ export default function MatchScreen() {
                 >
                     <Text
                         style={{
-                            fontSize: 18,
-                            fontFamily: Fonts.Text.Bold,
-                            color: Colors.black,
+                            ...TextStyles.body,
+                            color: Colors.primaryBorder,
+                            fontWeight: '600',
                         }}
                     >
                         Allez toquer à la chambre {roomNumber}{roomResp ? ` (ou contactez ${roomResp}) pour vous rencontrer en vrai !` : ' pour vous rencontrer en vrai !'}
@@ -110,17 +109,16 @@ export default function MatchScreen() {
                   style={{
                       paddingHorizontal: 16,
                       paddingVertical: 8,
-                      backgroundColor: Colors.orange,
-                      borderRadius: 8,
+                      backgroundColor: Colors.accent,
+                      borderRadius: 10,
                       justifyContent: 'center',
                       alignItems: 'center',
                     }}
               >
                   <Text
                       style={{
+                          ...TextStyles.buttonLarge,
                           color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: '600',
                       }}
                   >
                       Trop cool !

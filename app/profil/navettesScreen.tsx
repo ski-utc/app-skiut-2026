@@ -1,12 +1,191 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, ActivityIndicator, StyleSheet } from "react-native";
-import { Colors, loadFonts } from '@/constants/GraphSettings';
+import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity, FlatList } from "react-native";
+import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import BoutonRetour from "../../components/divers/boutonRetour";
-import NavettesTab from "../../components/navettes/navettesTab";
 import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
+
+// Composant NavettesTab - utilisé uniquement dans cette page
+interface NavettesTabProps {
+    navettesMap: { [key: string]: any[] };
+    defaultType: "Aller" | "Retour";
+    isAllerEmpty: boolean;
+    isRetourEmpty: boolean;
+}
+
+const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap, defaultType, isAllerEmpty, isRetourEmpty }) => {
+    const [selectedType, setSelectedType] = useState<"Aller" | "Retour">(defaultType);
+
+    useEffect(() => {
+        setSelectedType(defaultType);
+    }, [defaultType]);
+
+    const handlePress = (type: "Aller" | "Retour") => {
+        setSelectedType(type);
+    };
+
+    const getColorFromString = (colorString: string) => {
+        switch (colorString) {
+            case 'Blue':
+                return Colors.primary;
+            case 'Green':
+                return Colors.success;
+            case 'Red':
+                return Colors.error;
+            case 'Yellow':
+                return Colors.yellow;
+            case 'Violet':
+                return Colors.violet;
+            case 'Orange':
+                return Colors.accent;
+            default:
+                return Colors.primaryBorder;
+        }
+    };
+
+    return (
+        <View style={navettesStyles.container}>
+            <View style={navettesStyles.innerContainer}>
+                <View style={navettesStyles.buttonsContainer}>
+                    {["Aller", "Retour"].map((type, index) => {
+                        const isSelected = selectedType === type;
+                        return (
+                            <TouchableOpacity
+                                key={index}
+                                style={[
+                                    navettesStyles.button,
+                                    { backgroundColor: isSelected ? Colors.accent : Colors.white }
+                                ]}
+                                onPress={() => handlePress(type as "Aller" | "Retour")}
+                            >
+                                <Text style={[
+                                    navettesStyles.buttonText,
+                                    { color: isSelected ? Colors.white : Colors.primaryBorder }
+                                ]}>
+                                    {type.toUpperCase()}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
+                {selectedType && (
+                    <View style={navettesStyles.navettesContainer}>
+                        <FlatList
+                            data={navettesMap[selectedType] || []}
+                            keyExtractor={(item) => item.id.toString()}
+                            renderItem={({ item }) => (
+                                <View style={navettesStyles.navetteContainer}>
+                                    <View style={[navettesStyles.navetteIndicator, { backgroundColor: getColorFromString(item.colour) }]} />
+                                    <View style={navettesStyles.navetteDetails}>
+                                        <Text style={navettesStyles.navetteText}>
+                                            {item.departure} → {item.arrival}
+                                        </Text>
+                                        <Text style={navettesStyles.navetteTimeText}>
+                                            {item.horaire_depart} - {item.horaire_arrivee}
+                                        </Text>
+                                        <Text style={navettesStyles.navetteCouleurText}>
+                                            Ligne {item.colour}
+                                        </Text>
+                                    </View>
+                                </View>
+                            )}
+                            ListEmptyComponent={
+                                <Text style={navettesStyles.emptyText}>
+                                    {selectedType === "Aller" && isAllerEmpty
+                                        ? "Aucune navette aller disponible."
+                                        : selectedType === "Retour" && isRetourEmpty
+                                        ? "Aucune navette retour disponible."
+                                        : "Chargement des navettes..."}
+                                </Text>
+                            }
+                        />
+                    </View>
+                )}
+            </View>
+        </View>
+    );
+};
+
+// Syles pour NavettesTab
+const navettesStyles = StyleSheet.create({
+    container: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingBottom: 16,
+    },
+    innerContainer: {
+        flex: 1,
+    },
+    buttonsContainer: {
+        flexDirection: 'row',
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: Colors.accent,
+        overflow: 'hidden',
+        marginBottom: 16,
+    },
+    button: {
+        flex: 1,
+        paddingVertical: 12,
+        alignItems: 'center',
+    },
+    buttonText: {
+        ...TextStyles.body,
+        fontWeight: '600',
+    },
+    navettesContainer: {
+        flex: 1,
+    },
+    navetteContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.white,
+        marginBottom: 12,
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: Colors.primary,
+        shadowColor: Colors.primaryBorder,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
+    },
+    navetteIndicator: {
+        width: 4,
+        height: '100%',
+        borderRadius: 2,
+        marginRight: 12,
+        minHeight: 40,
+    },
+    navetteDetails: {
+        flex: 1,
+    },
+    navetteText: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+        fontWeight: '600',
+        marginBottom: 4,
+    },
+    navetteTimeText: {
+        ...TextStyles.small,
+        color: Colors.gray,
+        marginBottom: 2,
+    },
+    navetteCouleurText: {
+        ...TextStyles.small,
+        color: Colors.accent,
+        fontWeight: '500',
+    },
+    emptyText: {
+        ...TextStyles.bodyLarge,
+        color: Colors.gray,
+        textAlign: 'center',
+        marginTop: 40,
+    },
+});
 
 export default function NavettesScreen() {
   const [navettesMap, setNavettesMap] = useState<{ [key: string]: any[] }>({});

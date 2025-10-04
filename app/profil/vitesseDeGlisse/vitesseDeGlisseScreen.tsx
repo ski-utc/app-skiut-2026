@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Alert, TouchableOpacity } from "react-native";
 import Header from "../../../components/header";
 import BoutonRetour from "../../../components/divers/boutonRetour";
-import { Colors } from "@/constants/GraphSettings";
+import { Colors, TextStyles } from "@/constants/GraphSettings";
 import { Trophy } from "lucide-react-native";
 import StatWidget from "../../../components/vitesseDeGlisse/statWidget";
 import BoutonNavigation from "@/components/divers/boutonNavigation";
@@ -211,17 +211,16 @@ const styles = StyleSheet.create({
         width: "100%",
         height: "95%",
         marginBottom: 16,
-        backgroundColor: Colors.orange,
+        backgroundColor: Colors.accent,
         borderRadius: 12,
         padding: 16,
     },
     title: {
+        ...TextStyles.h2,
         color: Colors.white,
         top: 10,
-        fontSize: 24, // Taille du texte
-        fontWeight: "bold", // Texte en gras
-        textAlign: "center", // Centrer horizontalement
-        marginBottom: 20, // Espace sous le titre
+        textAlign: "center",
+        marginBottom: 20,
     },
     statWidgetContainer: {
         top: 40,
@@ -238,19 +237,23 @@ const styles = StyleSheet.create({
         height: 50,
         justifyContent: "center",
         alignItems: "center",
-        borderRadius: 8,
+        borderRadius: 10,
         marginBottom: 8,
-        backgroundColor: Colors.customWhite,
+        backgroundColor: Colors.white,
+        shadowColor: Colors.primaryBorder,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
     },
     buttonText: {
-        color: Colors.orange,
-        fontSize: 16,
-        fontWeight: "bold",
+        ...TextStyles.button,
+        color: Colors.accent,
     },
     navigationButton: {
         marginBottom: 8,
         borderWidth: 2,
         borderColor: Colors.white,
-        borderRadius: 8,
+        borderRadius: 10,
     },
 });

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard, Pressable } from 'react-native';
 import Checkbox from 'expo-checkbox';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, Fonts, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '@/contexts/UserContext';
@@ -80,7 +80,7 @@ export default function NotificationsForm() {
           justifyContent: 'center',
         }}
       >
-        <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
         <View
           style={{
             width: '100%',
@@ -102,7 +102,7 @@ export default function NotificationsForm() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Header />
+        <Header refreshFunction={null} disableRefresh={true} />
         <View style={{ width: '100%', flex: 1, backgroundColor: Colors.white, paddingHorizontal: 20, paddingBottom: 16 }}>
           <BoutonRetour previousRoute={"gestionNotificationsScreen"} title={"Ecris la notification à publier"} />
           <TextInput
@@ -110,11 +110,11 @@ export default function NotificationsForm() {
               padding: 14,
               marginBottom: 8,
               height: 50,
-              backgroundColor: '#F8F8F8',
+              backgroundColor: Colors.white,
               borderRadius: 12,
               borderWidth: 1,
-              borderColor: '#EAEAEA',
-              color: Colors.black,
+              borderColor: Colors.primary,
+              color: Colors.primaryBorder,
               fontFamily: Fonts.Inter.Basic,
               fontWeight: '500',
               fontSize: 14,
@@ -131,7 +131,7 @@ export default function NotificationsForm() {
             <TextInput
               style={{ color: Colors.black, fontFamily: Fonts.Inter.Basic, fontWeight: '500', width: '100%', fontSize: 14 }}
               placeholder="Aujourd'hui..."
-              placeholderTextColor={'#969696'}
+              placeholderTextColor={Colors.gray}
               multiline
               numberOfLines={15}
               onChangeText={setText}
@@ -143,7 +143,7 @@ export default function NotificationsForm() {
               style={{ width: 24, height: 24 }}
               value={isChecked}
               onValueChange={handleCheckboxPress}
-              color={isChecked ? Colors.orange : undefined}
+              color={isChecked ? Colors.accent : undefined}
             />
             <Text style={{ color: Colors.black, fontSize: 12, fontFamily: Fonts.Inter.Basic, fontWeight: '500', paddingRight: 20 }}>
               En publiant cette notification, je certifie qu’il respecte les autres participant.e.s du voyage
@@ -154,9 +154,9 @@ export default function NotificationsForm() {
           <TouchableOpacity
             style={{
               padding: 10,
-              backgroundColor: '#E64034',
+              backgroundColor: Colors.accent,
               opacity: isChecked && title.trim().length > 0 && text.trim().length > 5 ? 1 : 0.5,
-              borderRadius: 8,
+              borderRadius: 10,
               justifyContent: 'center',
               alignItems: 'center',
               flexDirection: 'row',
@@ -165,7 +165,7 @@ export default function NotificationsForm() {
             disabled={!isChecked || loading || title.trim().length === 0 || text.trim().length <= 5}
             onPress={handleSendNotification}
           >
-            <Text style={{ color: 'white', fontSize: 14, fontFamily: Fonts.Inter.Basic, fontWeight: '600' }}>Poster la notification</Text>
+            <Text style={{ ...TextStyles.button, color: Colors.white }}>Poster la notification</Text>
             <Send size={20} color={Colors.white} />
           </TouchableOpacity>
         </View>

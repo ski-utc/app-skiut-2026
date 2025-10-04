@@ -2,7 +2,7 @@ import {  View, StyleSheet, FlatList, Text, TouchableOpacity } from "react-nativ
 import Header from "../../components/header";
 import React from 'react';
 import * as Linking from 'expo-linking';
-import { Colors } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonRetour from "../../components/divers/boutonRetour";
 import { Phone } from "lucide-react-native";
 
@@ -41,7 +41,7 @@ export default function Contact() {
 
     return (
         <View style={styles.container}>
-            <Header />
+            <Header refreshFunction={null} disableRefresh={true} />
             <View style={styles.screencontainer}>
             <View style={{paddingHorizontal: 20}}>
                 <BoutonRetour
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
         height: '100%',
         width: '100%',
         flex: 1,
-        backgroundColor: 'white',
+        backgroundColor: Colors.white,
         paddingBottom: 8,  
     },
     screencontainer: {
@@ -96,14 +96,13 @@ const styles = StyleSheet.create({
         alignItems: "flex-start",
     },
     phoneName: {
-        color: Colors.black, // Noir pour le nom
-        fontSize: 16,
-        fontWeight: "600",
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+        fontWeight: '600',
     },
     phoneNumber: {
-        color: Colors.gray, // Gris pour le numéro
-        fontSize: 14,
-        fontWeight: "400",
+        ...TextStyles.small,
+        color: Colors.gray,
         marginTop: 4,
     },
 });

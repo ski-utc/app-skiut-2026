@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, ActivityIndicator, ScrollView } from 'react-native';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Colors, Fonts, TextStyles } from '@/constants/GraphSettings';
 import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
@@ -140,20 +140,16 @@ export default function SkinderMyMatches() {
               >
                 <Text
                   style={{
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontFamily: Fonts.Inter.Basic,
-                    fontWeight: '600',
+                    ...TextStyles.body,
+                    color: Colors.primaryBorder,
                   }}
                 >
                   Chambre : {room.roomNumber}
                 </Text>
                 <Text
                   style={{
-                    color: Colors.black,
-                    fontSize: 14,
-                    fontFamily: Fonts.Inter.Basic,
-                    fontWeight: '400',
+                    ...TextStyles.small,
+                    color: Colors.gray,
                     marginTop: 4,
                   }}
                 >

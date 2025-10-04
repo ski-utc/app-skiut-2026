@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { StyleSheet, View, Image, Text, ActivityIndicator, Animated, TouchableOpacity } from 'react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Colors, Fonts, TextStyles } from '@/constants/GraphSettings';
 import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
@@ -455,7 +455,7 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-start',
     },
     descriptionContainer: {
-        backgroundColor: '#F8F8F8',
+        backgroundColor: Colors.white,
         borderColor: Colors.gray,
         borderWidth: 1,
         borderRadius: 10,

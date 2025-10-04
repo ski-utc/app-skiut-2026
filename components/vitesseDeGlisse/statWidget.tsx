@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, View, StyleSheet } from 'react-native';
-import { Colors } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 interface StatWidgetProps {
     topText: string;
@@ -20,23 +20,27 @@ const styles = StyleSheet.create({
     container: {
         alignItems: 'center', // Centrer horizontalement les textes
         justifyContent: 'center', // Centrer verticalement si nécessaire
-        backgroundColor: Colors.orange, // Fond orange
-        borderWidth: 2, // Bordure blanche
+        backgroundColor: Colors.accent, // Fond orange selon la nouvelle charte
+        borderWidth: 2, // Bordure
         borderColor: Colors.white,
-        borderRadius: 10, // Coins arrondis
+        borderRadius: 12, // Coins arrondis améliorés
         paddingVertical: 20, // Espacement vertical interne
         paddingHorizontal: 40, // Espacement horizontal interne
         marginVertical: 10, // Espacement externe entre widgets
+        shadowColor: Colors.primaryBorder,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
     },
     topText: {
+        ...TextStyles.body,
         color: Colors.white,
-        fontSize: 16,
-        fontWeight: '400',
         marginBottom: 4, // Espace entre le texte supérieur et inférieur
     },
     bottomText: {
+        ...TextStyles.h2,
         color: Colors.white,
-        fontSize: 24,
         fontWeight: '700',
     },
 });

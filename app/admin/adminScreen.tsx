@@ -1,13 +1,67 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, FlatList, ActivityIndicator } from 'react-native';
-import { apiGet } from '@/constants/api/apiCalls'; // API pour récupérer les infos utilisateur
+import { View, FlatList, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
+import { apiGet } from '@/constants/api/apiCalls';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import BoutonAdmin from '@/components/admins/boutonAdmin';
 import Header from '../../components/header';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '@/contexts/UserContext';
-import { Colors, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { ChevronRight } from 'lucide-react-native';
+
+// Composant BoutonAdmin - utilisé uniquement dans cette page
+interface BoutonAdminProps {
+    nextRoute: string;
+    title: string;
+}
+
+const BoutonAdmin: React.FC<BoutonAdminProps> = ({ nextRoute, title }) => {
+    const navigation = useNavigation();
+
+    const onPress = () => {
+        (navigation as any).navigate(nextRoute);
+    };
+
+    return (
+        <TouchableOpacity
+            onPress={onPress}
+            style={{
+                width: "100%",
+                paddingHorizontal: 20,
+                paddingVertical: 16,
+                borderBottomWidth: 1,
+                borderBottomColor: Colors.primary,
+                justifyContent: "space-between",
+                alignItems: "center",
+                display: "flex",
+                flexDirection: "row",
+                backgroundColor: Colors.white,
+            }}
+        >
+            <View
+                style={{
+                    justifyContent: "flex-start",
+                    alignItems: "center",
+                    display: "flex",
+                    flexDirection: "row",
+                    width: '85%',
+                }}
+            >
+                <Text
+                    style={{
+                        ...TextStyles.body,
+                        color: Colors.primaryBorder,
+                        fontWeight: "600",
+                        marginLeft: 10,
+                    }}
+                >
+                    {title}
+                </Text>
+            </View>
+            <ChevronRight size={20} color={Colors.primaryBorder} />
+        </TouchableOpacity>
+    );
+};
 
 const adminControls = [
   { title: 'Gestion des défis', nextRoute: 'gestionDefisScreen' },

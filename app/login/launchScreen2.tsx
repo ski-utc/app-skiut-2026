@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Fonts } from '@/constants/GraphSettings';
+import { Fonts, Colors, TextStyles } from '@/constants/GraphSettings';
 
 export default function LaunchScreen2() {
   const navigation = useNavigation();
@@ -55,7 +55,7 @@ export default function LaunchScreen2() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: Colors.white,
   },
   image: {
     height: '40%',
@@ -88,54 +88,56 @@ const styles = StyleSheet.create({
   dotInactive: {
     width: 13,
     height: 13,
-    backgroundColor: 'rgba(230, 64, 52, 0.20)',
+    backgroundColor: Colors.accent + '33', // 20% opacity
     borderRadius: 61,
   },
   dotActive: {
     width: 37.47,
     height: 13,
-    backgroundColor: '#E64034',
+    backgroundColor: Colors.accent,
     borderRadius: 61,
   },
   title: {
-    fontFamily: Fonts.Text.Bold, // was Fonts.Title.Bold
+    ...TextStyles.h1,
     fontSize: 32,
-    fontWeight: '500',
-    color: 'black',
+    color: Colors.primaryBorder,
     marginBottom: 16,
   },
   description: {
-    fontFamily: Fonts.Text.Medium,
-    fontSize: 16,
-    fontWeight: '400',
-    color: '#737373',
+    ...TextStyles.bodyLarge,
+    color: Colors.gray,
     lineHeight: 24,
     marginBottom: 40,
   },
   nextButton: {
     alignSelf: 'stretch',
-    backgroundColor: '#E64034',
+    backgroundColor: Colors.accent,
     paddingVertical: 15,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: 'center',
     marginBottom: 16,
+    shadowColor: Colors.primaryBorder,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
   },
   nextButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
+    ...TextStyles.buttonLarge,
+    color: Colors.white,
   },
   backButton: {
     alignSelf: 'stretch',
-    backgroundColor: '#F2F2F2',
-    opacity: 0.6,
+    backgroundColor: Colors.customGray,
+    opacity: 0.8,
     paddingVertical: 15,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.primary,
   },
   backButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'black',
+    ...TextStyles.buttonLarge,
+    color: Colors.primaryBorder,
   },
 });

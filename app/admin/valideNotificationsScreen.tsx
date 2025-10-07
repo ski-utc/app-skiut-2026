@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Text, View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { Trash, Check } from 'lucide-react-native'; // Import Check icon
+import { Trash, Check } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, loadFonts } from '@/constants/GraphSettings';
@@ -15,15 +15,14 @@ import Toast from 'react-native-toast-message';
 export default function ValideNotifications() {
   const route = useRoute();
   const navigation = useNavigation();
-  
-  const { id } = route.params; // Get the notification ID from route params
+
+  const { id } = route.params;
   const { setUser } = useUser();
 
   const [notificationDetails, setNotificationDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Fetch notification details
   const fetchNotificationDetails = useCallback(async () => {
     setLoading(true);
     try {
@@ -33,7 +32,7 @@ export default function ValideNotifications() {
       } else {
         setError('Erreur lors de la récupération des détails de la notification');
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -44,13 +43,12 @@ export default function ValideNotifications() {
     }
   }, [id, setUser]);
 
-  // Handle notification deletion or recovery
   const handleDelete = async (deleteFlag) => {
     setLoading(true);
     try {
       const response = await apiPost(`deleteNotification/${id}/${deleteFlag}`);
       if (response.success) {
-        if (deleteFlag === 1) { // If notification is deleted
+        if (deleteFlag === 1) {
           Toast.show({
             type: 'success',
             text1: 'Notification désactivée !',
@@ -72,7 +70,7 @@ export default function ValideNotifications() {
           text2: response.message,
         });
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -118,7 +116,7 @@ export default function ValideNotifications() {
             alignItems: 'center',
           }}
         >
-          <ActivityIndicator size="large" color={Colors.gray} />
+          <ActivityIndicator size="large" color={Colors.muted} />
         </View>
       </View>
     );
@@ -155,15 +153,15 @@ export default function ValideNotifications() {
           <BoutonActiver
             title="Désactiver la notification"
             IconComponent={Trash}
-            disabled={notificationDetails?.delete === 1} // Disable if already deleted
-            onPress={() => handleDelete(1)} // Delete notification
+            disabled={notificationDetails?.delete === 1}
+            onPress={() => handleDelete(1)}
           />
         </View>
         <BoutonActiver
           title="Activer la notification"
           IconComponent={Check}
-          disabled={notificationDetails?.delete === 0} // Disable if not deleted
-          onPress={() => handleDelete(0)} // Recover notification
+          disabled={notificationDetails?.delete === 0}
+          onPress={() => handleDelete(0)}
         />
       </View>
     </View>
@@ -185,14 +183,14 @@ const styles = StyleSheet.create({
   title: {
     marginTop: 20,
     fontSize: 16,
-    color: Colors.black,
+    color: '#000000',
     fontFamily: 'Inter',
     fontWeight: '600',
   },
   textBox: {
     marginTop: 8,
     borderWidth: 1,
-    borderColor: Colors.gray,
+    borderColor: Colors.muted,
     borderRadius: 8,
     padding: 10,
     backgroundColor: Colors.white,
@@ -215,7 +213,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 14,
-    color: Colors.black,
+    color: '#000000',
     fontFamily: 'Inter',
     fontWeight: '400',
     lineHeight: 20,

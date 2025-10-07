@@ -8,7 +8,6 @@ export default function CustomNavBar({ state, navigation }) {
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
-    // Load fonts asynchronously
     const loadAsyncFonts = async () => {
       await loadFonts();
       setFontsLoaded(true);
@@ -16,8 +15,8 @@ export default function CustomNavBar({ state, navigation }) {
     loadAsyncFonts();
   }, []);
 
-  const activeColor = Colors.accent;
-  const unactiveColor = Colors.gray;
+  const activeColor = Colors.primary
+  const unactiveColor = Colors.muted;
 
   const tabs = [
     { name: 'homeNavigator', label: 'Home', Icon: Home },
@@ -51,7 +50,7 @@ export default function CustomNavBar({ state, navigation }) {
           marginHorizontal: 15,
           backgroundColor: Colors.white,
           borderTopWidth: 1,
-          borderTopColor: Colors.primary,
+          borderTopColor: Colors.lightMuted,
           justifyContent: 'flex-start',
           alignItems: 'center',
           flexDirection: 'row',
@@ -99,10 +98,10 @@ export default function CustomNavBar({ state, navigation }) {
               />
               <Text
                 style={{
-                  ...TextStyles.small,
+                  ...TextStyles.bodyBold,
                   color: isFocused ? activeColor : unactiveColor,
                   textAlign: 'center',
-                  marginBottom: 2, // monte un peu le texte
+                  marginBottom: 2,
                 }}
                 numberOfLines={1}
                 adjustsFontSizeToFit

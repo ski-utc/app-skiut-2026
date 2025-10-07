@@ -31,7 +31,7 @@ export default function OAuthScreen() {
         try {
           await SecureStore.setItemAsync("accessToken", accessToken);
           await SecureStore.setItemAsync("refreshToken", refreshToken);
-      
+
           const response = await apiGet("getUserData");
           if (response.success) {
             setUser({
@@ -66,50 +66,50 @@ export default function OAuthScreen() {
     }
   };
 
-  if(error!=='') {
-    return(
+  if (error !== '') {
+    return (
       <View
-      style={{
-        height: "100%",
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Text
         style={{
-          ...TextStyles.h1,
-          color: Colors.error,
-          padding: 10,
-          textAlign: "center",
+          height: "100%",
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        Une erreur est survenue...
-      </Text>
-      <Text
-        style={{
-          ...TextStyles.h3,
-          color: Colors.primaryBorder,
-          padding: 10,
-          paddingBottom: 32,
-          textAlign: "center",
-        }}
-      >
-        {error}
-      </Text>
-      <Text
-        style={{
-          ...TextStyles.body,
-          color: Colors.gray,
-          padding: 16,
-          textAlign: "center",
-        }}
-      >
-        Si l'erreur persiste, merci de contacter Louise Caignaert ou Mathis Delmaere
-      </Text>
-      <TouchableOpacity
+        <Text
+          style={{
+            ...TextStyles.h1,
+            color: Colors.error,
+            padding: 10,
+            textAlign: "center",
+          }}
+        >
+          Une erreur est survenue...
+        </Text>
+        <Text
+          style={{
+            ...TextStyles.h3,
+            color: Colors.primaryBorder,
+            padding: 10,
+            paddingBottom: 32,
+            textAlign: "center",
+          }}
+        >
+          {error}
+        </Text>
+        <Text
+          style={{
+            ...TextStyles.body,
+            color: Colors.muted,
+            padding: 16,
+            textAlign: "center",
+          }}
+        >
+          Si l'erreur persiste, merci de contacter Mathis Delmaere
+        </Text>
+        <TouchableOpacity
           onPress={() => { navigation.goBack(); }}
           style={{
             width: '90%',
@@ -127,8 +127,8 @@ export default function OAuthScreen() {
           }}>
             Retour
           </Text>
-      </TouchableOpacity>
-    </View>
+        </TouchableOpacity>
+      </View>
     )
   }
 
@@ -140,7 +140,7 @@ export default function OAuthScreen() {
           originWhitelist={["*"]}
           style={{ flex: 1 }}
           onNavigationStateChange={handleNavigationStateChange}
-          incognito={true} // true de base 
+          incognito={true}
           show
         />
       )}

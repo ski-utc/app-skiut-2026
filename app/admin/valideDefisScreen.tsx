@@ -6,7 +6,7 @@ import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
-import { apiPost, apiGet } from '@/constants/api/apiCalls'; // Import the API calls
+import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 import Toast from 'react-native-toast-message';
@@ -15,7 +15,7 @@ import ImageViewer from "react-native-image-zoom-viewer";
 
 export default function ValideDefis() {
   const route = useRoute();
-  const { id } = route.params; // récupère l'id du challengeProof
+  const { id } = route.params;
   const { setUser } = useUser();
   const navigation = useNavigation();
 
@@ -26,7 +26,6 @@ export default function ValideDefis() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Fetch challenge details
   const fetchChallengeDetails = useCallback(async () => {
     setLoading(true);
     try {
@@ -37,7 +36,7 @@ export default function ValideDefis() {
       } else {
         setError('Erreur lors de la récupération des détails du défi');
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -48,15 +47,13 @@ export default function ValideDefis() {
     }
   }, [id, setUser]);
 
-  // Handle challenge validation (approve or disapprove)
   const handleValidation = async (isValid, isDelete) => {
     setLoading(true);
     try {
       const response = await apiPost(`updateChallengeStatus/${id}/${isValid}/${isDelete}`);
 
-      // Veut refuser le défi
-      if(isValid && isDelete) {
-        if(response.success) {
+      if (isValid && isDelete) {
+        if (response.success) {
           Toast.show({
             type: 'success',
             text1: 'Défi supprimé !',
@@ -73,9 +70,8 @@ export default function ValideDefis() {
         }
       }
 
-      // Veut valider le défis 
-      if(isValid && !isDelete) {
-        if(response.success) {
+      if (isValid && !isDelete) {
+        if (response.success) {
           Toast.show({
             type: 'success',
             text1: 'Défi validé !',
@@ -92,9 +88,8 @@ export default function ValideDefis() {
         }
       }
 
-      // Veut mettre en attente le défis (pour revenir sur sa décision)
-      if(!isValid) {
-        if(response.success) {
+      if (!isValid) {
+        if (response.success) {
           Toast.show({
             type: 'success',
             text1: 'Défis en attente !',
@@ -110,7 +105,7 @@ export default function ValideDefis() {
           setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
         }
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -206,7 +201,7 @@ export default function ValideDefis() {
             alignItems: 'center',
           }}
         >
-          <ActivityIndicator size="large" color={Colors.gray} />
+          <ActivityIndicator size="large" color={Colors.muted} />
         </View>
       </View>
     );
@@ -221,13 +216,13 @@ export default function ValideDefis() {
         <View style={styles.textBox}>
           <Text style={styles.text}>Status : {challengeDetails?.valid ? 'Validée' : 'En attente de validation'}</Text>
           <Text style={styles.text}>Date : {challengeDetails?.created_at ? new Date(challengeDetails.created_at).toLocaleString('fr-FR', {
-            weekday: 'long', // Jour de la semaine complet
-            month: 'long', // Mois complet
-            day: 'numeric', // Jour
-            hour: '2-digit', // Heure sur 2 chiffres
-            minute: '2-digit', // Minute sur 2 chiffres
-            second: '2-digit', // Seconde sur 2 chiffres
-            hour12: false, // Utiliser l'heure 24h (optionnel)
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
           }) : 'Date non disponible'}</Text>
           <Text style={styles.text}>Auteur : {challengeDetails?.user?.firstName} {challengeDetails?.user?.lastName || 'Auteur inconnu'}</Text>
           <Text style={styles.text}>Défi : {challengeDetails?.challenge.title || 'Pas de description'}</Text>
@@ -321,12 +316,12 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     position: 'absolute',
-    bottom: 20, // Adjust the distance from the bottom as needed
+    bottom: 20,
     width: '100%',
     paddingHorizontal: 20,
   },
   buttonSpacing: {
-    marginBottom: 16, // Add spacing between the buttons
+    marginBottom: 16,
   },
   loadingContainer: {
     flex: 1,

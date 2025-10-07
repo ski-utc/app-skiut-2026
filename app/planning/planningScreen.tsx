@@ -26,7 +26,6 @@ export default function PlanningScreen() {
     "V": "Vendredi",
   } as const;
 
-  // Suppress unused variable warning for dayMap as it's used as a type
   void dayMap;
 
   const fetchPlanning = useCallback(async () => {
@@ -39,7 +38,7 @@ export default function PlanningScreen() {
       } else {
         setError("Une erreur est survenue lors de la récupération du planning");
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -95,7 +94,7 @@ export default function PlanningScreen() {
           height: 60,
           borderRadius: 12,
           borderWidth: 2,
-          borderColor: Colors.accent,
+          borderColor: Colors.primary,
           alignSelf: "center",
         }}>
           {item.days.map((day: string, index: number) => {
@@ -113,14 +112,14 @@ export default function PlanningScreen() {
                   flexDirection: "column",
                   justifyContent: "flex-start",
                   alignItems: "center",
-                  backgroundColor: isSelected ? Colors.accent : Colors.white
+                  backgroundColor: isSelected ? Colors.primary : Colors.white
                 }}
                 onPress={() => handlePress(letter as keyof typeof dayMap, number)}
               >
-                <Text style={[styles.dayLetter, { color: isSelected ? Colors.white : Colors.gray }]}>
+                <Text style={[styles.dayLetter, { color: isSelected ? Colors.white : '#000000' }]}>
                   {letter}
                 </Text>
-                <Text style={[styles.dayNumber, { color: isSelected ? Colors.white : Colors.black }]}>
+                <Text style={[styles.dayNumber, { color: isSelected ? Colors.white : '#000000' }]}>
                   {number}
                 </Text>
               </TouchableOpacity>
@@ -139,7 +138,7 @@ export default function PlanningScreen() {
         <>
           <Text style={styles.infoText}>
             Les animations déjà réservées sont indiquées en{" "}
-            <Text style={styles.orangeText}>orange</Text>.
+            <Text style={styles.primaryText}>bleu</Text>.
             Vas-y seulement si tu as pris ta place !
           </Text>
 
@@ -154,7 +153,7 @@ export default function PlanningScreen() {
           </Text>
           {item.activities.length > 0 ? (
             item.activities.map((activity: Activity, index: number) => {
-              const titleColor = activity.payant ? Colors.accent : Colors.primaryBorder; // Définir la couleur en fonction de 'payant'
+              const titleColor = activity.payant ? Colors.primary : Colors.primaryBorder;
               return (
                 <View
                   key={index}
@@ -163,7 +162,7 @@ export default function PlanningScreen() {
                     flexDirection: 'row',
                     justifyContent: 'flex-start',
                     alignItems: 'center',
-                    borderBottomColor: Colors.customGray,
+                    borderBottomColor: Colors.lightMuted,
                     borderBottomWidth: 1,
                     opacity: (activity.status === "past") ? 0.4 : 1
                   }}
@@ -177,7 +176,7 @@ export default function PlanningScreen() {
                       alignItems: 'center'
                     }}
                   >
-                    <View style={{ height: '100%', width: '100%', borderRadius: 61, backgroundColor: (activity.status === "current") ? 'green' : 'white' }}></View>
+                    <View style={{ height: '100%', width: '100%', borderRadius: 61, backgroundColor: (activity.status === "current") ? Colors.success : 'white' }}></View>
                   </View>
                   <View
                     style={{
@@ -202,7 +201,7 @@ export default function PlanningScreen() {
                         fontFamily: Fonts.text.bold,
                         fontWeight: '600',
                         fontSize: 14,
-                        color: Colors.gray
+                        color: Colors.muted
                       }}
                     >
 
@@ -226,32 +225,29 @@ export default function PlanningScreen() {
   };
 
   if (error) {
-    return <ErrorScreen error={error} />;
+    return (
+      <ErrorScreen error={error} />
+    );
   }
 
   if (loading) {
     return (
-      <View
-        style={{
-          height: '100%',
+      <View style={{
+        flex: 1,
+        backgroundColor: Colors.white,
+      }}>
+        <Header refreshFunction={undefined} disableRefresh={true} />
+        <View style={{
           width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          flex: 1,
+          backgroundColor: Colors.white,
           justifyContent: 'center',
-        }}
-      >
-        <Header refreshFunction={null} disableRefresh={true} />
-        <View
-          style={{
-            width: '100%',
-            flex: 1,
-            backgroundColor: Colors.white,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <ActivityIndicator size="large" color={Colors.gray} />
+          alignItems: 'center',
+        }}>
+          <ActivityIndicator size="large" color={Colors.primaryBorder} />
+          <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+            Chargement...
+          </Text>
         </View>
       </View>
     );
@@ -308,7 +304,7 @@ const styles = StyleSheet.create({
   noActivitiesText: {
     ...TextStyles.bodyLarge,
     textAlign: 'center',
-    color: Colors.gray,
+    color: Colors.muted,
   },
   infoText: {
     ...TextStyles.body,
@@ -317,9 +313,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     zIndex: 1,
   },
-  orangeText: {
+  primaryText: {
     ...TextStyles.body,
-    color: Colors.accent,
+    color: Colors.primary,
   },
   subInfoText: {
     ...TextStyles.body,
@@ -327,5 +323,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     zIndex: 1,
   },
-  
+
 });

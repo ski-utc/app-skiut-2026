@@ -9,91 +9,89 @@ import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
 import { useNavigation } from '@react-navigation/native';
 
-// Composant BoutonMenu - utilisé dans gestionAnecdotesScreen et gestionDefisScreen
 interface ButtonMenuProps {
-    first: string;
-    second: string;
-    third: string;
-    onFirstClick: () => void;
-    onSecondClick: () => void;
-    onThirdClick: () => void;
+  first: string;
+  second: string;
+  third: string;
+  onFirstClick: () => void;
+  onSecondClick: () => void;
+  onThirdClick: () => void;
 }
 
 const BoutonMenu: React.FC<ButtonMenuProps> = ({
-    first,
-    second,
-    third,
-    onFirstClick,
-    onSecondClick,
-    onThirdClick,
+  first,
+  second,
+  third,
+  onFirstClick,
+  onSecondClick,
+  onThirdClick,
 }) => {
-    const [activeButton, setActiveButton] = useState<string>('first');
+  const [activeButton, setActiveButton] = useState<string>('first');
 
-    const handleButtonClick = (button: string, onClick: () => void) => {
-        setActiveButton(button);
-        onClick();
-    };
+  const handleButtonClick = (button: string, onClick: () => void) => {
+    setActiveButton(button);
+    onClick();
+  };
 
-    return (
-        <View style={menuStyles.container}>
-            <TouchableOpacity
-                style={[
-                    menuStyles.button,
-                    activeButton === 'first' && menuStyles.activeButton,
-                ]}
-                onPress={() => handleButtonClick('first', onFirstClick)}
-            >
-                <Text style={menuStyles.text}>{first}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={[
-                    menuStyles.button,
-                    activeButton === 'second' && menuStyles.activeButton,
-                ]}
-                onPress={() => handleButtonClick('second', onSecondClick)}
-            >
-                <Text style={menuStyles.text}>{second}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={[
-                    menuStyles.button,
-                    activeButton === 'third' && menuStyles.activeButton,
-                ]}
-                onPress={() => handleButtonClick('third', onThirdClick)}
-            >
-                <Text style={menuStyles.text}>{third}</Text>
-            </TouchableOpacity>
-        </View>
-    );
+  return (
+    <View style={menuStyles.container}>
+      <TouchableOpacity
+        style={[
+          menuStyles.button,
+          activeButton === 'first' && menuStyles.activeButton,
+        ]}
+        onPress={() => handleButtonClick('first', onFirstClick)}
+      >
+        <Text style={menuStyles.text}>{first}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          menuStyles.button,
+          activeButton === 'second' && menuStyles.activeButton,
+        ]}
+        onPress={() => handleButtonClick('second', onSecondClick)}
+      >
+        <Text style={menuStyles.text}>{second}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          menuStyles.button,
+          activeButton === 'third' && menuStyles.activeButton,
+        ]}
+        onPress={() => handleButtonClick('third', onThirdClick)}
+      >
+        <Text style={menuStyles.text}>{third}</Text>
+      </TouchableOpacity>
+    </View>
+  );
 };
 
-// Styles pour BoutonMenu
 const menuStyles = StyleSheet.create({
-    container: {
-        flexDirection: 'row',
-        width: '100%',
-        borderBottomWidth: 2,
-        borderBottomColor: Colors.primary,
-        backgroundColor: Colors.white,
-    },
-    button: {
-        flex: 1,
-        paddingVertical: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'transparent',
-    },
-    activeButton: {
-        borderBottomWidth: 2,
-        borderBottomColor: Colors.accent,
-        backgroundColor: Colors.customGray,
-    },
-    text: {
-        ...TextStyles.body,
-        color: Colors.primaryBorder,
-        fontWeight: '500',
-        textAlign: 'center',
-    },
+  container: {
+    flexDirection: 'row',
+    width: '100%',
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.primary,
+    backgroundColor: Colors.white,
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  activeButton: {
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.accent,
+    backgroundColor: Colors.lightMuted,
+  },
+  text: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
 });
 
 
@@ -118,7 +116,7 @@ const GestionDefisScreen = () => {
       } else {
         setError('Erreur lors de la récupération des défis');
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -127,11 +125,11 @@ const GestionDefisScreen = () => {
     } finally {
       setLoading(false);
       setTimeout(() => {
-        setDisableRefresh(false); 
+        setDisableRefresh(false);
       }, 5000);
     }
-  }, [setUser]); 
-   
+  }, [setUser]);
+
   const handleFilter = (filter) => {
     switch (filter) {
       case 'pending':
@@ -141,7 +139,7 @@ const GestionDefisScreen = () => {
         setFilteredDefis(defis.filter((item) => !item.delete && item.valid));
         break;
       default:
-        setFilteredDefis(defis.filter((item) => !item.delete)); // ne montre pas les supprimés dans "tous les défis"
+        setFilteredDefis(defis.filter((item) => !item.delete));
         break;
     }
   };
@@ -153,11 +151,11 @@ const GestionDefisScreen = () => {
     loadAsyncFonts();
     fetchAdminDefis();
     const unsubscribe = navigation.addListener('focus', () => {
-        fetchAdminDefis();
-      });
-  
+      fetchAdminDefis();
+    });
+
     return unsubscribe;
-}, [navigation, fetchAdminDefis]);
+  }, [navigation, fetchAdminDefis]);
 
   if (error !== '') {
     return <ErrorScreen error={error} />;
@@ -185,7 +183,7 @@ const GestionDefisScreen = () => {
             alignItems: 'center',
           }}
         >
-          <ActivityIndicator size="large" color={Colors.gray} />
+          <ActivityIndicator size="large" color={Colors.muted} />
         </View>
       </View>
     );
@@ -193,14 +191,14 @@ const GestionDefisScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Header refreshFunction={fetchAdminDefis} disableRefresh={disableRefresh}/>
+      <Header refreshFunction={fetchAdminDefis} disableRefresh={disableRefresh} />
       <View style={styles.headerContainer}>
         <BoutonRetour previousRoute="adminScreen" title="Gestion des défis" />
       </View>
 
       <View>
         <BoutonMenu
-          first="Tous" // non supprimés 
+          first="Tous"
           second="En attente"
           third="Validés"
           onFirstClick={() => handleFilter('all')}
@@ -258,7 +256,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: 'gray',
     fontSize: 16,
-    marginTop:20
+    marginTop: 20
   },
 });
 

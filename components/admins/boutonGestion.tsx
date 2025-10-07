@@ -1,23 +1,23 @@
 import React from 'react';
 import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Colors, Fonts, TextStyles } from '@/constants/GraphSettings';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronRight } from 'lucide-react-native';
 
 interface BoutonGestionProps {
     title: string;
     subtitle: string;
-    subtitleStyle?: object; // Allow custom styles for subtitle
+    subtitleStyle?: object;
     nextRoute: string;
     id: Int16Array;
-    valide:boolean;
+    valide: boolean;
 }
 
 const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, subtitleStyle, nextRoute, id, valide }) => {
     const navigation = useNavigation();
 
     const handleGestionClick = () => {
-        navigation.navigate(nextRoute, { id });  // Pass only the ID
+        navigation.navigate(nextRoute, { id });
     };
 
     return (
@@ -28,8 +28,8 @@ const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, subtitle
                     <Text style={[styles.subtitleText, subtitleStyle]}>{subtitle}</Text>
                 </View>
             </View>
-            {valide!=null ? <View style={{height:8, width:8, borderRadius:100, backgroundColor: valide? 'green' : 'orange'}}></View> : null}
-            <ChevronRight size={20} color={Colors.black} />
+            {valide != null ? <View style={{ height: 8, width: 8, borderRadius: 100, backgroundColor: valide ? 'green' : 'orange' }}></View> : null}
+            <ChevronRight size={20} color={'#000000'} />
         </TouchableOpacity>
     );
 };
@@ -61,15 +61,13 @@ const styles = StyleSheet.create({
     },
     titleText: {
         color: "#1E1E1E",
-        fontSize: 16,
-        fontFamily: Fonts.Inter.Basic,
+        ...TextStyles.bodyLarge,
         fontWeight: "600",
         wordWrap: 'break-word',
     },
     subtitleText: {
         color: "#737373",
-        fontSize: 14,
-        fontFamily: Fonts.Inter.Basic,
+        ...TextStyles.body,
         fontStyle: "italic",
         fontWeight: "400",
         wordWrap: 'break-word',

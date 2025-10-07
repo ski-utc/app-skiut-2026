@@ -34,11 +34,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const saveUser = async (newUser: User | null) => {
     if (newUser) {
-      await AsyncStorage.setItem('user', JSON.stringify(newUser)); // Stocke dans AsyncStorage
+      await AsyncStorage.setItem('user', JSON.stringify(newUser));
     } else {
-      await AsyncStorage.removeItem('user'); // Supprime si déconnexion
+      await AsyncStorage.removeItem('user');
     }
-    setUser(newUser); // Met à jour l'état utilisateur dans le contexte
+    setUser(newUser);
   };
 
   const logout = async () => {

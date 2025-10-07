@@ -43,7 +43,7 @@ export default function NotificationsForm() {
           text2: response.message,
         });
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -54,7 +54,7 @@ export default function NotificationsForm() {
 
   const handleCheckboxPress = () => {
     setChecked(!isChecked);
-    Keyboard.dismiss(); // Dismiss the keyboard when the checkbox is clicked
+    Keyboard.dismiss();
   };
 
   useEffect(() => {
@@ -90,7 +90,7 @@ export default function NotificationsForm() {
             alignItems: 'center',
           }}
         >
-          <ActivityIndicator size="large" color={Colors.gray} />
+          <ActivityIndicator size="large" color={Colors.muted} />
         </View>
       </View>
     );
@@ -115,9 +115,8 @@ export default function NotificationsForm() {
               borderWidth: 1,
               borderColor: Colors.primary,
               color: Colors.primaryBorder,
-              fontFamily: Fonts.Inter.Basic,
+              ...TextStyles.bodyLarge,
               fontWeight: '500',
-              fontSize: 14,
             }}
             placeholder="Titre de la notification"
             placeholderTextColor={'#969696'}
@@ -129,9 +128,9 @@ export default function NotificationsForm() {
             style={{ padding: 14, marginBottom: 8, height: 268, backgroundColor: '#F8F8F8', borderRadius: 12, borderWidth: 1, borderColor: '#EAEAEA' }}
           >
             <TextInput
-              style={{ color: Colors.black, fontFamily: Fonts.Inter.Basic, fontWeight: '500', width: '100%', fontSize: 14 }}
+              style={{ color: '#000000', ...TextStyles.bodyLarge, fontWeight: '500', width: '100%' }}
               placeholder="Aujourd'hui..."
-              placeholderTextColor={Colors.gray}
+              placeholderTextColor={Colors.muted}
               multiline
               numberOfLines={15}
               onChangeText={setText}
@@ -145,7 +144,7 @@ export default function NotificationsForm() {
               onValueChange={handleCheckboxPress}
               color={isChecked ? Colors.accent : undefined}
             />
-            <Text style={{ color: Colors.black, fontSize: 12, fontFamily: Fonts.Inter.Basic, fontWeight: '500', paddingRight: 20 }}>
+            <Text style={{ color: '#000000', ...TextStyles.small, fontWeight: '500', paddingRight: 20 }}>
               En publiant cette notification, je certifie qu’il respecte les autres participant.e.s du voyage
             </Text>
           </View>

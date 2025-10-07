@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, FlatList, ActivityIndicator } from 'react-native';
+import { View, FlatList, ActivityIndicator, Text } from 'react-native';
 import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
@@ -10,33 +10,43 @@ import { MessageCirclePlus } from 'lucide-react-native';
 import { apiPost } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 
+interface AnecdoteType {
+  id: string;
+  text: string;
+  room: string;
+  nbLikes: number;
+  liked: boolean;
+  warned: boolean;
+  authorId: string;
+}
+
 export default function AnecdotesScreen() {
-  const [anecdotes, setAnecdotes] = useState([]);
+  const [anecdotes, setAnecdotes] = useState<AnecdoteType[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [quantity, setQuantity] = useState(10);
-  const [hasMoreData, setHasMoreData] = useState(true); 
+  const [hasMoreData, setHasMoreData] = useState(true);
   const [disableRefresh, setDisableRefresh] = useState(false);
 
   const { setUser } = useUser();
 
-  const fetchAnecdotes = useCallback(async (incrementalLoad = false) => {
+  const fetchAnecdotes = useCallback(async (requestedQuantity = 10, incrementalLoad = false) => {
     if (!incrementalLoad) setLoading(true);
     else setLoadingMore(true);
     setDisableRefresh(true);
 
     try {
-      const response = await apiPost('getAnecdotes', { 'quantity': quantity });
+      const response = await apiPost('getAnecdotes', { 'quantity': requestedQuantity });
       if (response.success) {
-        if (response.data.length < quantity) {
-          setHasMoreData(false); 
+        if (response.data.length < requestedQuantity) {
+          setHasMoreData(false);
         }
-        setAnecdotes(response.data); 
+        setAnecdotes(response.data);
       } else {
         setError('Une erreur est survenue lors de la récupération des anecdotes');
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -46,10 +56,14 @@ export default function AnecdotesScreen() {
       setLoading(false);
       setLoadingMore(false);
       setTimeout(() => {
-        setDisableRefresh(false); 
-      }, 5000); 
+        setDisableRefresh(false);
+      }, 5000);
     }
-  }, [quantity, setUser]);
+  }, [setUser]);
+
+  const refreshAnecdotes = useCallback(() => {
+    fetchAnecdotes(quantity, false);
+  }, [fetchAnecdotes, quantity]);
 
   useEffect(() => {
     const loadAsyncFonts = async () => {
@@ -57,43 +71,41 @@ export default function AnecdotesScreen() {
     };
     loadAsyncFonts();
 
-    fetchAnecdotes();
-  }, [fetchAnecdotes]);
+    fetchAnecdotes(10, false);
+  }, []);
 
   const handleLoadMore = () => {
     if (hasMoreData && !loading && !loadingMore) {
-      setQuantity(prev => prev + 10);
-      fetchAnecdotes(true);
+      const newQuantity = quantity + 10;
+      setQuantity(newQuantity);
+      fetchAnecdotes(newQuantity, true);
     }
   };
 
-  if (error !== '') {
-    return <ErrorScreen error={error} />;
+  if (error) {
+    return (
+      <ErrorScreen error={error} />
+    );
   }
 
   if (loading) {
     return (
-      <View
-        style={{
-          height: '100%',
+      <View style={{
+        flex: 1,
+        backgroundColor: Colors.white,
+      }}>
+        <Header refreshFunction={undefined} disableRefresh={true} />
+        <View style={{
           width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          flex: 1,
+          backgroundColor: Colors.white,
           justifyContent: 'center',
-        }}
-      >
-        <Header refreshFunction={null} disableRefresh={true} />
-        <View
-          style={{
-            width: '100%',
-            flex: 1,
-            backgroundColor: Colors.white,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <ActivityIndicator size="large" color={Colors.gray} />
+          alignItems: 'center',
+        }}>
+          <ActivityIndicator size="large" color={Colors.primaryBorder} />
+          <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+            Chargement...
+          </Text>
         </View>
       </View>
     );
@@ -110,14 +122,13 @@ export default function AnecdotesScreen() {
         justifyContent: 'center',
       }}
     >
-      <Header refreshFunction={fetchAnecdotes} disableRefresh={disableRefresh}/>
+      <Header refreshFunction={refreshAnecdotes} disableRefresh={disableRefresh} />
       <View
         style={{
           width: '100%',
           flex: 1,
           backgroundColor: Colors.white,
           paddingHorizontal: 20,
-          paddingBottom: 16,
         }}
       >
         <BoutonRetour previousRoute={'homeNavigator'} title={'Anecdotes'} />
@@ -132,15 +143,15 @@ export default function AnecdotesScreen() {
               liked={item.liked}
               warned={item.warned}
               authorId={item.authorId}
-              refresh={fetchAnecdotes}
+              refresh={refreshAnecdotes}
               setError={setError}
             />
           )}
           keyExtractor={item => item.id}
           ItemSeparatorComponent={() => <View style={{ height: 36 }} />}
-          onEndReached={handleLoadMore} 
+          onEndReached={handleLoadMore}
           ListFooterComponent={() =>
-            loadingMore ? <ActivityIndicator size="large" color={Colors.gray} /> : <View style={{height:25}}/>
+            loadingMore ? <ActivityIndicator size="large" color={Colors.primaryBorder} /> : <View style={{ height: 80 }} />
           }
         />
         <BoutonNavigation

@@ -9,91 +9,89 @@ import { useUser } from '@/contexts/UserContext';
 import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import { useNavigation } from '@react-navigation/native';
 
-// Composant BoutonMenu - utilisé dans gestionAnecdotesScreen et gestionDefisScreen
 interface ButtonMenuProps {
-    first: string;
-    second: string;
-    third: string;
-    onFirstClick: () => void;
-    onSecondClick: () => void;
-    onThirdClick: () => void;
+  first: string;
+  second: string;
+  third: string;
+  onFirstClick: () => void;
+  onSecondClick: () => void;
+  onThirdClick: () => void;
 }
 
 const BoutonMenu: React.FC<ButtonMenuProps> = ({
-    first,
-    second,
-    third,
-    onFirstClick,
-    onSecondClick,
-    onThirdClick,
+  first,
+  second,
+  third,
+  onFirstClick,
+  onSecondClick,
+  onThirdClick,
 }) => {
-    const [activeButton, setActiveButton] = useState<string>('first');
+  const [activeButton, setActiveButton] = useState<string>('first');
 
-    const handleButtonClick = (button: string, onClick: () => void) => {
-        setActiveButton(button);
-        onClick();
-    };
+  const handleButtonClick = (button: string, onClick: () => void) => {
+    setActiveButton(button);
+    onClick();
+  };
 
-    return (
-        <View style={menuStyles.container}>
-            <TouchableOpacity
-                style={[
-                    menuStyles.button,
-                    activeButton === 'first' && menuStyles.activeButton,
-                ]}
-                onPress={() => handleButtonClick('first', onFirstClick)}
-            >
-                <Text style={menuStyles.text}>{first}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={[
-                    menuStyles.button,
-                    activeButton === 'second' && menuStyles.activeButton,
-                ]}
-                onPress={() => handleButtonClick('second', onSecondClick)}
-            >
-                <Text style={menuStyles.text}>{second}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={[
-                    menuStyles.button,
-                    activeButton === 'third' && menuStyles.activeButton,
-                ]}
-                onPress={() => handleButtonClick('third', onThirdClick)}
-            >
-                <Text style={menuStyles.text}>{third}</Text>
-            </TouchableOpacity>
-        </View>
-    );
+  return (
+    <View style={menuStyles.container}>
+      <TouchableOpacity
+        style={[
+          menuStyles.button,
+          activeButton === 'first' && menuStyles.activeButton,
+        ]}
+        onPress={() => handleButtonClick('first', onFirstClick)}
+      >
+        <Text style={menuStyles.text}>{first}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          menuStyles.button,
+          activeButton === 'second' && menuStyles.activeButton,
+        ]}
+        onPress={() => handleButtonClick('second', onSecondClick)}
+      >
+        <Text style={menuStyles.text}>{second}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          menuStyles.button,
+          activeButton === 'third' && menuStyles.activeButton,
+        ]}
+        onPress={() => handleButtonClick('third', onThirdClick)}
+      >
+        <Text style={menuStyles.text}>{third}</Text>
+      </TouchableOpacity>
+    </View>
+  );
 };
 
-// Styles pour BoutonMenu
 const menuStyles = StyleSheet.create({
-    container: {
-        flexDirection: 'row',
-        width: '100%',
-        borderBottomWidth: 2,
-        borderBottomColor: Colors.primary,
-        backgroundColor: Colors.white,
-    },
-    button: {
-        flex: 1,
-        paddingVertical: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'transparent',
-    },
-    activeButton: {
-        borderBottomWidth: 2,
-        borderBottomColor: Colors.accent,
-        backgroundColor: Colors.customGray,
-    },
-    text: {
-        ...TextStyles.body,
-        color: Colors.primaryBorder,
-        fontWeight: '500',
-        textAlign: 'center',
-    },
+  container: {
+    flexDirection: 'row',
+    width: '100%',
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.primary,
+    backgroundColor: Colors.white,
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  activeButton: {
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.accent,
+    backgroundColor: Colors.lightMuted,
+  },
+  text: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
 });
 
 const GestionAnecdotesScreen = () => {
@@ -118,7 +116,7 @@ const GestionAnecdotesScreen = () => {
       } else {
         setError(response.message);
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -127,7 +125,7 @@ const GestionAnecdotesScreen = () => {
     } finally {
       setLoading(false);
       setTimeout(() => {
-        setDisableRefresh(false); 
+        setDisableRefresh(false);
       }, 5000);
     }
   }, [setUser]);
@@ -153,11 +151,11 @@ const GestionAnecdotesScreen = () => {
     loadAsyncFonts();
     fetchAdminAnecdotes();
     const unsubscribe = navigation.addListener('focus', () => {
-        fetchAdminAnecdotes();
-      });
-  
+      fetchAdminAnecdotes();
+    });
+
     return unsubscribe;
-}, [navigation, fetchAdminAnecdotes]);
+  }, [navigation, fetchAdminAnecdotes]);
 
   if (error !== '') {
     return <ErrorScreen error={error} />;
@@ -185,7 +183,7 @@ const GestionAnecdotesScreen = () => {
             alignItems: 'center',
           }}
         >
-          <ActivityIndicator size="large" color={Colors.gray} />
+          <ActivityIndicator size="large" color={Colors.muted} />
         </View>
       </View>
     );
@@ -193,7 +191,7 @@ const GestionAnecdotesScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Header refreshFunction={fetchAdminAnecdotes} disableRefresh={disableRefresh}/>
+      <Header refreshFunction={fetchAdminAnecdotes} disableRefresh={disableRefresh} />
       <View style={styles.headerContainer}>
         <BoutonRetour previousRoute="adminScreen" title="Gestion des anecdotes" />
       </View>
@@ -210,22 +208,22 @@ const GestionAnecdotesScreen = () => {
       </View>
 
       <View style={styles.list}>
-      <FlatList
-        data={filteredAnecdotes}
-        renderItem={({ item }) => (
+        <FlatList
+          data={filteredAnecdotes}
+          renderItem={({ item }) => (
             <BoutonGestion
-              title={`Anecdote: ${item.id}`}  // Afficher le titre de l'anecdote
+              title={`Anecdote: ${item.id}`}
               subtitle={`Auteur: ${item?.user?.firstName} ${item?.user?.lastName || 'Nom inconnu'}`}
               subtitleStyle={undefined}
               nextRoute="valideAnecdotesScreen"
-              id={item.id}  // Passer l'ID de l'anecdote
+              id={item.id}
               valide={item.valid}
             />
-        )}
-        keyExtractor={(item) => item.id.toString()}
-        ListEmptyComponent={
+          )}
+          keyExtractor={(item) => item.id.toString()}
+          ListEmptyComponent={
             <Text style={styles.emptyListText}>Aucune anecdote correspondante</Text>
-        }
+          }
         />
       </View>
     </View>
@@ -247,7 +245,7 @@ const styles = StyleSheet.create({
   },
   list: {
     width: '100%',
-    flex: 1,  // Important pour permettre le défilement de la liste
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,
@@ -257,7 +255,7 @@ const styles = StyleSheet.create({
   emptyListText: {
     ...TextStyles.body,
     textAlign: 'center',
-    color: Colors.gray,
+    color: Colors.muted,
     marginTop: 20
   },
 });

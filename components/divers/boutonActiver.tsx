@@ -3,31 +3,31 @@ import { Text, TouchableOpacity } from 'react-native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 // @ts-ignore
-export default function BoutonActiver({ 
-    title, 
-    IconComponent, 
-    onPress = () => {}, 
-    disabled = false, 
-    customStyles = {} 
+export default function BoutonActiver({
+    title,
+    IconComponent,
+    onPress = () => { },
+    disabled = false,
+    customStyles = {}
 }) {
     return (
         <TouchableOpacity
-            onPress={disabled ? () => {} : onPress} // Désactive l'action si `disabled`
+            onPress={disabled ? () => { } : onPress}
             style={[
                 {
                     padding: 10,
-                    backgroundColor: disabled ? Colors.gray : Colors.error, // Couleur grise si désactivé
+                    backgroundColor: disabled ? Colors.muted : Colors.error,
                     borderRadius: 8,
                     justifyContent: 'center',
                     alignItems: 'center',
                     flexDirection: 'row',
                     gap: 10,
-                    opacity: disabled ? 0.5 : 1, // Réduit l'opacité si désactivé
+                    opacity: disabled ? 0.5 : 1,
                 },
-                customStyles, // Styles supplémentaires
+                customStyles,
             ]}
-            activeOpacity={disabled ? 1 : 0.7} // Aucun effet de clic si désactivé
-            disabled={disabled} // Empêche le clic
+            activeOpacity={disabled ? 1 : 0.7}
+            disabled={disabled}
         >
             <Text
                 style={{

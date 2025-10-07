@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, TouchableOpacity } from 'react-native';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Colors, Fonts, TextStyles } from '@/constants/GraphSettings';
 import { ChevronLeft } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
@@ -31,15 +31,13 @@ export default function BoutonRetour({ previousRoute, title }) {
             }}
         >
             <ChevronLeft
-                size={20}
+                size={24}
                 color={'#8A8A8A'}
-            />         
+            />
             <Text
                 style={{
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontFamily: Fonts.Inter.Basic,
-                    fontWeight: '600',
+                    color: '#000000',
+                    ...TextStyles.bodyLarge,
                 }}
             >
                 {title}

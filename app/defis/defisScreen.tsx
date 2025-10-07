@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator, Text, TouchableOpacity } from "react-native";
 import Header from "../../components/header";
-import { Trophy, ChevronRight, Check } from 'lucide-react-native';
+import { Trophy, ChevronRight, Check, X, ListTodo, Hourglass } from 'lucide-react-native';
 import BoutonNavigation from "@/components/divers/boutonNavigation";
 import BoutonRetour from "@/components/divers/boutonRetour";
 import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
@@ -10,84 +10,70 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { useNavigation } from 'expo-router';
 import { useUser } from '@/contexts/UserContext';
 
-// Composant BoutonDefi - utilisé uniquement dans cette page
 interface BoutonDefiProps {
-    defi: {
-        id: number,
-        title: string,
-        points: number,
-        status: string,
-        [key: string]: any;
-    };
-    onUpdate: (id: number, status: string) => void;
+  defi: {
+    id: number,
+    title: string,
+    points: number,
+    status: string,
+  };
+  onUpdate: (id: number, status: string) => void;
 }
 
 const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
-    const navigation = useNavigation();
+  const navigation = useNavigation();
 
-    const onPress = () => {
-        (navigation as any).navigate("defisInfos", {
-            id: defi.id,
-            title: defi.title,
-            points: defi.points,
-            status: defi.status,
-            onUpdate
-        });
-    };
+  const onPress = () => {
+    (navigation as any).navigate("defisInfos", {
+      id: defi.id,
+      title: defi.title,
+      points: defi.points,
+      status: defi.status,
+      onUpdate
+    });
+  };
 
-    const getStatusColor = (status: string) => {
-        switch(status) {
-            case 'done': return Colors.success;
-            case 'refused': return Colors.error;
-            case 'pending': return Colors.accent;
-            default: return Colors.gray;
-        }
-    };
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'done':
+        return <Check size={22} color={Colors.success} strokeWidth={3} />;
+      case 'refused':
+        return <X size={22} color={Colors.error} strokeWidth={3} />;
+      case 'pending':
+        return <Hourglass size={22} color={Colors.primary} strokeWidth={3} />;
+      default:
+        return <ListTodo size={22} color={Colors.muted} strokeWidth={3} />;
+    }
+  };
 
-    return (
-        <TouchableOpacity
-            onPress={onPress}
-            style={{
-                width: "100%",
-                paddingHorizontal: 20,
-                paddingVertical: 16,
-                borderBottomWidth: 1,
-                borderBottomColor: Colors.primary,
-                justifyContent: "space-between",
-                alignItems: "center",
-                display: "flex",
-                flexDirection: "row",
-                backgroundColor: Colors.white,
-            }}
-        >
-            <View
-                style={{
-                    justifyContent: "flex-start",
-                    alignItems: "center",
-                    display: "flex",
-                    flexDirection: "row",
-                    width: '85%',
-                }}
-            >
-                <Check
-                    color={getStatusColor(defi.status)}
-                    size={25}
-                    strokeWidth={3}
-                />
-                <Text
-                    style={{
-                        ...TextStyles.body,
-                        color: Colors.primaryBorder,
-                        fontWeight: "500",
-                        marginLeft: 12,
-                    }}
-                >
-                    {defi.title}
-                </Text>
-            </View>
-            <ChevronRight size={20} color={Colors.primaryBorder} />
-        </TouchableOpacity>
-    );
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'done': return 'Validé';
+      case 'refused': return 'Refusé';
+      case 'pending': return 'En attente';
+      default: return 'À faire';
+    }
+  };
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.85}
+      style={[
+        styles.defiCard,
+        { backgroundColor: Colors.white }
+      ]}
+    >
+      <View style={styles.defiLeft}>
+        <View style={styles.statusIcon}>{getStatusIcon(defi.status)}</View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.defiTitle}>{defi.title}</Text>
+          <Text style={styles.defiSubtitle}>{getStatusText(defi.status)} • {defi.points} pts</Text>
+        </View>
+      </View>
+      <ChevronRight size={22} color={Colors.primaryBorder} />
+    </TouchableOpacity>
+  );
 };
 
 // @ts-ignore
@@ -111,7 +97,7 @@ export default function Defis() {
       } else {
         setError(response.message);
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -125,7 +111,7 @@ export default function Defis() {
     }
   }, [setUser]);
 
-  const onUpdateDefiStatus = (updatedDefiId, newStatus) => {
+  const onUpdateDefiStatus = (updatedDefiId: number, newStatus: string) => {
     setChallenges((prevChallenges) =>
       prevChallenges.map((challenge) =>
         challenge.id === updatedDefiId
@@ -148,33 +134,30 @@ export default function Defis() {
     return unsubscribe;
   }, [navigation, fetchChallenges]);
 
-  if (error !== '') {
-    return <ErrorScreen error={error} />;
+  if (error) {
+    return (
+      <ErrorScreen error={error} />
+    );
   }
 
   if (loading) {
     return (
-      <View
-        style={{
-          height: '100%',
+      <View style={{
+        flex: 1,
+        backgroundColor: Colors.white,
+      }}>
+        <Header refreshFunction={undefined} disableRefresh={true} />
+        <View style={{
           width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          flex: 1,
+          backgroundColor: Colors.white,
           justifyContent: 'center',
-        }}
-      >
-        <Header refreshFunction={null} disableRefresh={true} />
-        <View
-          style={{
-            width: '100%',
-            flex: 1,
-            backgroundColor: Colors.white,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <ActivityIndicator size="large" color={Colors.gray} />
+          alignItems: 'center',
+        }}>
+          <ActivityIndicator size="large" color={Colors.primaryBorder} />
+          <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+            Chargement...
+          </Text>
         </View>
       </View>
     );
@@ -188,8 +171,9 @@ export default function Defis() {
       </View>
       <FlatList
         data={challenges}
-        keyExtractor={(item) => item.id.toString()} // Use unique challenge ID
+        keyExtractor={(item) => item.id.toString()}
         extraData={challenges}
+        ListFooterComponent={<View style={{ height: 60 }} />}
         renderItem={({ item }) => (
           <View>
             <BoutonDefi
@@ -240,6 +224,43 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: Colors.white,
     paddingHorizontal: 20,
-    paddingBottom: 16,
+  },
+  defiCard: {
+    width: "94%",
+    alignSelf: "center",
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.06)",
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 2, height: 3 },
+    shadowRadius: 5,
+    elevation: 3,
+    backgroundColor: Colors.white,
+  },
+  defiLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  statusIcon: {
+    marginRight: 14,
+  },
+  defiTitle: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  defiSubtitle: {
+    color: Colors.muted,
+    fontSize: 13,
+    marginTop: 2,
   },
 });

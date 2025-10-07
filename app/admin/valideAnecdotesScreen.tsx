@@ -6,14 +6,14 @@ import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, Fonts, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
-import { apiPost, apiGet } from '@/constants/api/apiCalls'; // Assurez-vous d'importer l'appel API
+import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 import Toast from 'react-native-toast-message';
 
 export default function ValideAnecdotes() {
   const route = useRoute();
-  const { id } = route.params; // Récupération de l'ID de l'anecdote
+  const { id } = route.params;
   const { setUser } = useUser();
   const navigation = useNavigation();
 
@@ -23,7 +23,6 @@ export default function ValideAnecdotes() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Fonction pour récupérer les détails de l'anecdote
   const fetchAnecdoteDetails = useCallback(async () => {
     setLoading(true);
     try {
@@ -35,7 +34,7 @@ export default function ValideAnecdotes() {
       } else {
         setError('Erreur lors de la récupération des détails de l\'anecdote');
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -46,27 +45,23 @@ export default function ValideAnecdotes() {
     }
   }, [id, setUser]);
 
-  // Fonction pour valider ou invalider l'anecdote
   const handleValidation = async (isValid) => {
     setLoading(true);
     try {
       const response = await apiPost(`updateAnecdoteStatus/${id}/${isValid}`);
       if (response.success) {
-        // Update the anecdote status in the state after validation
         setAnecdoteDetails(prevDetails => ({
           ...prevDetails,
-          valid: isValid,  // Update valid status directly
+          valid: isValid,
         }));
 
-        // Show a success message based on the action
         Toast.show({
           type: 'success',
-          text1: isValid === 0  ? 'Anecdote désactivée !' : 'Anecdote validée !',
+          text1: isValid === 0 ? 'Anecdote désactivée !' : 'Anecdote validée !',
           text2: response.message,
         });
         navigation.goBack();
       } else {
-        // Show error message
         Toast.show({
           type: 'error',
           text1: 'Une erreur est survenue...',
@@ -74,7 +69,7 @@ export default function ValideAnecdotes() {
         });
         setError(response.message || 'Une erreur est survenue lors de la validation de l\'anecdote.');
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -121,7 +116,7 @@ export default function ValideAnecdotes() {
             alignItems: 'center',
           }}
         >
-          <ActivityIndicator size="large" color={Colors.gray} />
+          <ActivityIndicator size="large" color={Colors.muted} />
         </View>
       </View>
     );
@@ -136,13 +131,13 @@ export default function ValideAnecdotes() {
         <View style={styles.textBox}>
           <Text style={styles.text}>Status : {anecdoteDetails?.valid ? 'Validée' : 'En attente de validation'}</Text>
           <Text style={styles.text}>Date : {anecdoteDetails?.created_at ? new Date(anecdoteDetails.created_at).toLocaleString('fr-FR', {
-            weekday: 'long', // Jour de la semaine complet
-            month: 'long', // Mois complet
-            day: 'numeric', // Jour
-            hour: '2-digit', // Heure sur 2 chiffres
-            minute: '2-digit', // Minute sur 2 chiffres
-            second: '2-digit', // Seconde sur 2 chiffres
-            hour12: false, // Utiliser l'heure 24h (optionnel)
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
           }) : 'Date non disponible'}
           </Text>
           <Text style={styles.text}>Auteur : {anecdoteDetails?.user?.firstName} {anecdoteDetails?.user?.lastName || 'Auteur inconnu'}</Text>
@@ -160,14 +155,14 @@ export default function ValideAnecdotes() {
             title="Désactiver l'anecdote"
             IconComponent={X}
             disabled={anecdoteDetails.valid === 0}
-            onPress={() => handleValidation(0)} // Appeler la fonction pour invalider
+            onPress={() => handleValidation(0)}
           />
         </View>
         <BoutonActiver
           title="Valider l'anecdote"
           IconComponent={Check}
           disabled={anecdoteDetails.valid === 1}
-          onPress={() => handleValidation(1)} // Appeler la fonction pour valider
+          onPress={() => handleValidation(1)}
         />
       </View>
     </View>
@@ -225,7 +220,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   buttonSpacing: {
-    marginBottom: 16, // Ajout d'un espace entre les boutons
+    marginBottom: 16,
   },
   text: {
     ...TextStyles.body,
@@ -234,7 +229,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     position: 'absolute',
-    bottom: 20, // Adjust the distance from the bottom as needed
+    bottom: 20,
     width: '100%',
     paddingHorizontal: 20,
   },

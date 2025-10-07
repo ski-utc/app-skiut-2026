@@ -19,7 +19,6 @@ const GestionNotificationsScreen = () => {
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);
 
-  // Fetch notifications from the API
   const fetchAdminNotifications = useCallback(async () => {
     setLoading(true);
     setDisableRefresh(true);
@@ -30,7 +29,7 @@ const GestionNotificationsScreen = () => {
       } else {
         setError('Erreur lors de la récupération des notifications');
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -83,7 +82,7 @@ const GestionNotificationsScreen = () => {
             alignItems: 'center',
           }}
         >
-          <ActivityIndicator size="large" color={Colors.gray} />
+          <ActivityIndicator size="large" color={Colors.muted} />
         </View>
       </View>
     );
@@ -97,7 +96,7 @@ const GestionNotificationsScreen = () => {
       </View>
 
       <TouchableOpacity
-        style={[styles.button, styles.deleteButton]} // Reuse deleteButton positioning
+        style={[styles.button, styles.deleteButton]}
         onPress={() => navigation.navigate('notificationsForm')}
       >
         <Text style={styles.buttonText}>Ecrire une nouvelle notification</Text>
@@ -110,13 +109,13 @@ const GestionNotificationsScreen = () => {
             <BoutonGestion
               title={item.title}
               subtitle={`Date : ${item?.created_at ? new Date(item.created_at).toLocaleDateString('fr-FR', {
-                weekday: 'long', // Jour de la semaine complet
-                month: 'long', // Mois complet
-                day: 'numeric', // Jour
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
               }) + ' ' + new Date(item.created_at).toLocaleTimeString('fr-FR', {
-                hour: '2-digit', // Heure sur 2 chiffres
-                minute: '2-digit', // Minute sur 2 chiffres
-                hour12: false, // Utiliser l'heure 24h
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
               }) : 'Date non disponible'} | Statut : ${item.delete === 0 ? 'Active' : 'Supprimée'}`}
 
               subtitleStyle={item.delete === 0 ? styles.activeSubtitle : styles.deletedSubtitle}
@@ -164,20 +163,20 @@ const styles = StyleSheet.create({
   },
   activeSubtitle: {
     color: 'green',
-    backgroundColor: '#DFF0D8', // Light green background for active
+    backgroundColor: '#DFF0D8',
     padding: 8,
     borderRadius: 4,
   },
   deletedSubtitle: {
     color: 'red',
-    backgroundColor: '#F8D7DA', // Light red background for deleted
+    backgroundColor: '#F8D7DA',
     padding: 8,
     borderRadius: 4,
   },
   button: {
     width: '90%',
     padding: 10,
-    backgroundColor: Colors.orange,
+    backgroundColor: Colors.accent,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
@@ -197,7 +196,7 @@ const styles = StyleSheet.create({
     bottom: 16,
     width: '90%',
     padding: 10,
-    backgroundColor: Colors.orange,
+    backgroundColor: Colors.accent,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
@@ -212,7 +211,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   flatListContent: {
-    paddingBottom: 80, // This will add space at the bottom of the list
+    paddingBottom: 80,
   },
 });
 

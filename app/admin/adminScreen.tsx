@@ -9,58 +9,57 @@ import { useUser } from '@/contexts/UserContext';
 import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import { ChevronRight } from 'lucide-react-native';
 
-// Composant BoutonAdmin - utilisé uniquement dans cette page
 interface BoutonAdminProps {
-    nextRoute: string;
-    title: string;
+  nextRoute: string;
+  title: string;
 }
 
 const BoutonAdmin: React.FC<BoutonAdminProps> = ({ nextRoute, title }) => {
-    const navigation = useNavigation();
+  const navigation = useNavigation();
 
-    const onPress = () => {
-        (navigation as any).navigate(nextRoute);
-    };
+  const onPress = () => {
+    (navigation as any).navigate(nextRoute);
+  };
 
-    return (
-        <TouchableOpacity
-            onPress={onPress}
-            style={{
-                width: "100%",
-                paddingHorizontal: 20,
-                paddingVertical: 16,
-                borderBottomWidth: 1,
-                borderBottomColor: Colors.primary,
-                justifyContent: "space-between",
-                alignItems: "center",
-                display: "flex",
-                flexDirection: "row",
-                backgroundColor: Colors.white,
-            }}
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={{
+        width: "100%",
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.primary,
+        justifyContent: "space-between",
+        alignItems: "center",
+        display: "flex",
+        flexDirection: "row",
+        backgroundColor: Colors.white,
+      }}
+    >
+      <View
+        style={{
+          justifyContent: "flex-start",
+          alignItems: "center",
+          display: "flex",
+          flexDirection: "row",
+          width: '85%',
+        }}
+      >
+        <Text
+          style={{
+            ...TextStyles.body,
+            color: Colors.primaryBorder,
+            fontWeight: "600",
+            marginLeft: 10,
+          }}
         >
-            <View
-                style={{
-                    justifyContent: "flex-start",
-                    alignItems: "center",
-                    display: "flex",
-                    flexDirection: "row",
-                    width: '85%',
-                }}
-            >
-                <Text
-                    style={{
-                        ...TextStyles.body,
-                        color: Colors.primaryBorder,
-                        fontWeight: "600",
-                        marginLeft: 10,
-                    }}
-                >
-                    {title}
-                </Text>
-            </View>
-            <ChevronRight size={20} color={Colors.primaryBorder} />
-        </TouchableOpacity>
-    );
+          {title}
+        </Text>
+      </View>
+      <ChevronRight size={20} color={Colors.primaryBorder} />
+    </TouchableOpacity>
+  );
 };
 
 const adminControls = [
@@ -80,12 +79,12 @@ export default function Admin() {
     setLoading(true);
 
     try {
-      const response = await apiGet("admin"); // Récupération des données
+      const response = await apiGet("admin");
       if (!response.success) {
         navigation.goBack();
         return null;
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -131,7 +130,7 @@ export default function Admin() {
             alignItems: 'center',
           }}
         >
-          <ActivityIndicator size="large" color={Colors.gray} />
+          <ActivityIndicator size="large" color={Colors.muted} />
         </View>
       </View>
     );
@@ -141,7 +140,7 @@ export default function Admin() {
     <View style={{ height: '100%', width: '100%', flex: 1, backgroundColor: 'white', paddingBottom: 8 }}>
       <Header refreshFunction={null} disableRefresh={true} />
       <View style={{ width: '100%', paddingHorizontal: 20, paddingBottom: 16 }}>
-        <BoutonRetour previousRoute="profilNavigator" title="Contrôle Admin" />
+        <BoutonRetour previousRoute="homeNavigator" title="Contrôle Admin" />
       </View>
 
       {/* Using BoutonAdmin for navigation */}

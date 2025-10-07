@@ -1,54 +1,97 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Fonts, Colors, TextStyles } from '@/constants/GraphSettings';
+import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { ChevronLeft, Calendar, Map, LogIn, PartyPopper, Cookie } from 'lucide-react-native';
 
 export default function LaunchScreen3() {
   const navigation = useNavigation();
 
-  const screenHeight = Dimensions.get("window").height;
-  const imageWidth = 0.4 * screenHeight;
+  useEffect(() => {
+    const loadAsyncFonts = async () => {
+      await loadFonts();
+    };
+    loadAsyncFonts();
+  }, []);
 
   return (
-    <View style={styles.container}>
-      {/* Image */}
-      <Image
-        source={require('../../assets/images/OursCabine.png')}
-        style={[styles.image, { width: imageWidth }]}
-      />
-      <View style={styles.innerContainer}>
-        <View style={styles.spacer} />
-        <View style={styles.contentContainer}>
-          <View style={styles.dotsContainer}>
-            <View style={styles.dotInactive} />
-            <View style={styles.dotInactive} />
-            <View style={styles.dotActive} />
+    <SafeAreaView style={styles.container}>
+      {/* Background avec dégradé visuel */}
+      <View style={styles.backgroundDecoration} />
+
+      {/* Illustration des fonctionnalités */}
+      <View style={styles.illustrationContainer}>
+        <View style={styles.featureCard}>
+          <View style={styles.featureIconContainer}>
+            <Map size={32} color={Colors.primary} />
           </View>
-          <Text style={styles.title}>
-            L'emploi du temps et + encore
-          </Text>
-          <Text style={styles.description}>
-            Retrouve l’emplois du temps de la semaine, partage tes meilleures anecdotes du voyage et télécharge le plan des pistes !  
-          </Text>
+          <Text style={styles.featureTitle}>Plans</Text>
+          <Text style={styles.featureDescription}>Ne soyez pas paumé.e.s</Text>
+        </View>
+
+        <View style={[styles.featureCard, styles.featureCardSecondary]}>
+          <View style={styles.featureIconContainer}>
+            <PartyPopper size={32} color={Colors.primary} />
+          </View>
+          <Text style={styles.featureTitle}>Skinder</Text>
+          <Text style={styles.featureDescription}>Rencontrez d'autres chambres</Text>
+        </View>
+
+        <View style={styles.featureCard}>
+          <View style={styles.featureIconContainer}>
+            <Cookie size={32} color={Colors.primary} />
+          </View>
+          <Text style={styles.featureTitle}>Monopr'ut</Text>
+          <Text style={styles.featureDescription}>Limitez le gaspillage</Text>
+        </View>
+      </View>
+
+      {/* Contenu principal */}
+      <View style={styles.contentContainer}>
+        {/* Indicateurs de progression */}
+        <View style={styles.progressContainer}>
+          <View style={styles.dotsContainer}>
+            <View style={[styles.dot, styles.dotInactive]} />
+            <View style={[styles.dot, styles.dotInactive]} />
+            <View style={[styles.dot, styles.dotActive]} />
+          </View>
+          <Text style={styles.progressText}>3 / 3</Text>
+        </View>
+
+        {/* Titre avec icône */}
+        <View style={styles.titleContainer}>
+          <Calendar size={28} color={Colors.primary} />
+          <Text style={styles.title}>Et bien plus encore !</Text>
+        </View>
+
+        {/* Description */}
+        <Text style={styles.description}>
+          Consultez l'emploi du temps de la semaine, partagez vos meilleures anecdotes
+          du voyage et téléchargez le plan des pistes pour ne rien manquer !
+        </Text>
+
+        {/* Boutons d'action */}
+        <View style={styles.buttonsContainer}>
           <TouchableOpacity
-            onPress={() => { navigation.navigate("loginScreen") }}
-            style={styles.nextButton}
+            onPress={() => (navigation as any).navigate("loginScreen")}
+            style={styles.loginButton}
+            activeOpacity={0.8}
           >
-            <Text style={styles.nextButtonText}>
-              Se connecter
-            </Text>
+            <LogIn size={20} color={Colors.white} />
+            <Text style={styles.loginButtonText}>Se connecter</Text>
           </TouchableOpacity>
+
           <TouchableOpacity
-            onPress={() => { navigation.goBack(); }}
+            onPress={() => navigation.goBack()}
             style={styles.backButton}
+            activeOpacity={0.8}
           >
-            <Text style={styles.backButtonText}>
-              Retour
-            </Text>
+            <ChevronLeft size={20} color={Colors.primary} />
+            <Text style={styles.backButtonText}>Retour</Text>
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </SafeAreaView >
   );
 }
 
@@ -57,87 +100,165 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.white,
   },
-  image: {
-    height: '40%',
+  backgroundDecoration: {
     position: 'absolute',
-    right: 0,
     top: 0,
+    right: 0,
+    width: '50%',
+    height: '45%',
+    backgroundColor: Colors.primary,
+    opacity: 0.05,
+    borderBottomLeftRadius: 100,
   },
-  innerContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
+  illustrationContainer: {
+    flex: 1,
+    paddingHorizontal: 32,
+    paddingTop: 40,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 16,
   },
-  spacer: {
-    height: '50%',
+  featureCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    padding: 10,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
+    minWidth: 140,
+  },
+  featureCardSecondary: {
+    backgroundColor: Colors.lightMuted,
+    transform: [{ scale: 1.1 }],
+  },
+  featureIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.lightMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  featureTitle: {
+    ...TextStyles.bodyBold,
+    color: Colors.primaryBorder,
+    marginBottom: 6,
+  },
+  featureDescription: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    textAlign: 'center',
+    lineHeight: 18,
   },
   contentContainer: {
-    paddingHorizontal: 24,
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
+    paddingHorizontal: 32,
+    paddingBottom: 40,
+    gap: 24,
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   dotsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 20,
+    gap: 12,
   },
-  dotInactive: {
-    width: 13,
-    height: 13,
-    backgroundColor: Colors.accent + '33', // 20% opacity
-    borderRadius: 61,
+  dot: {
+    height: 8,
+    borderRadius: 4,
   },
   dotActive: {
-    width: 37.47,
-    height: 13,
-    backgroundColor: Colors.accent,
-    borderRadius: 61,
+    width: 32,
+    backgroundColor: Colors.primary,
+  },
+  dotInactive: {
+    width: 8,
+    backgroundColor: Colors.lightMuted,
+  },
+  progressText: {
+    ...TextStyles.small,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   title: {
     ...TextStyles.h1,
-    fontSize: 32,
     color: Colors.primaryBorder,
-    marginBottom: 8,
+    fontWeight: '700',
+    flex: 1,
   },
   description: {
-    ...TextStyles.bodyLarge,
-    color: Colors.gray,
+    ...TextStyles.body,
+    color: Colors.muted,
     lineHeight: 24,
-    marginBottom: 12,
+    textAlign: 'left',
   },
-  nextButton: {
-    alignSelf: 'stretch',
-    backgroundColor: Colors.accent,
-    paddingVertical: 15,
-    borderRadius: 10,
+  buttonsContainer: {
+    gap: 12,
+    marginTop: 8,
+  },
+  loginButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-    shadowColor: Colors.primaryBorder,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.primary,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  nextButtonText: {
-    ...TextStyles.buttonLarge,
+  loginButtonText: {
+    ...TextStyles.button,
     color: Colors.white,
+    fontWeight: '600',
   },
   backButton: {
-    alignSelf: 'stretch',
-    backgroundColor: Colors.customGray,
-    opacity: 0.8,
-    paddingVertical: 15,
-    borderRadius: 10,
+    flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Colors.white,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    borderWidth: 2,
     borderColor: Colors.primary,
   },
   backButtonText: {
-    ...TextStyles.buttonLarge,
-    color: Colors.primaryBorder,
+    ...TextStyles.button,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  encouragementContainer: {
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 16,
+    marginTop: 8,
+  },
+  encouragementText: {
+    ...TextStyles.body,
+    color: Colors.primary,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });

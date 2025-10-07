@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Alert, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView } from "react-native";
+import { useNavigation } from '@react-navigation/native';
 import Header from "../../../components/header";
 import BoutonRetour from "../../../components/divers/boutonRetour";
-import { Colors, TextStyles } from "@/constants/GraphSettings";
-import { Trophy } from "lucide-react-native";
-import StatWidget from "../../../components/vitesseDeGlisse/statWidget";
-import BoutonNavigation from "@/components/divers/boutonNavigation";
+import { Colors, TextStyles, loadFonts } from "@/constants/GraphSettings";
+import { Trophy, Play, Square, Zap, MapPin, Timer } from "lucide-react-native";
 import * as Location from "expo-location";
 import { apiPost } from "@/constants/api/apiCalls";
 import { useUser } from "@/contexts/UserContext";
@@ -14,19 +13,41 @@ import Toast from 'react-native-toast-message';
 export default function VitesseDeGlisseScreen() {
     const [isTracking, setIsTracking] = useState(false);
     const [distance, setDistance] = useState(0);
-    const [trackingTimer, setTrackingTimer] = useState(null);
-    const [, setSpeed] = useState(0);
-    const [maxSpeed, setMaxSpeed] = useState(0); // Pour suivre la vitesse maximale atteinte
-    const [prevLocation, setPrevLocation] = useState(null);
-    const [subscription, setSubscription] = useState(null);
+    const [trackingTimer, setTrackingTimer] = useState<number | null>(null);
+    const [maxSpeed, setMaxSpeed] = useState(0);
+    const [prevLocation, setPrevLocation] = useState<Location.LocationObjectCoords | null>(null);
+    const [subscription, setSubscription] = useState<Location.LocationSubscription | null>(null);
+    const [trackingTime, setTrackingTime] = useState(0);
 
     const { user } = useUser();
+    const navigation = useNavigation();
+
+    useEffect(() => {
+        const loadAsyncFonts = async () => {
+            await loadFonts();
+        };
+        loadAsyncFonts();
+    }, []);
 
     useEffect(() => {
         return () => {
             if (subscription) subscription.remove();
         };
     }, [subscription]);
+
+    useEffect(() => {
+        let interval = null;
+        if (isTracking) {
+            interval = setInterval(() => {
+                setTrackingTime(time => time + 1);
+            }, 1000);
+        } else {
+            setTrackingTime(0);
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [isTracking]);
 
     const startTracking = async () => {
         const { status } = await Location.requestForegroundPermissionsAsync();
@@ -40,7 +61,6 @@ export default function VitesseDeGlisseScreen() {
 
         setIsTracking(true);
         setDistance(0);
-        setSpeed(0);
         setMaxSpeed(0);
         setPrevLocation(null);
 
@@ -60,13 +80,12 @@ export default function VitesseDeGlisseScreen() {
                         coords.longitude
                     );
 
-                    const currentSpeed = coords.speed * 3.6; // Convert speed from m/s to km/h
+                    const currentSpeed = (coords.speed || 0) * 3.6;
 
                     if (deltaDistance <= 100 && currentSpeed <= 150) {
                         setDistance((prev) => prev + deltaDistance);
                     }
 
-                    setSpeed(currentSpeed);
                     setMaxSpeed((prevMaxSpeed) =>
                         currentSpeed > prevMaxSpeed ? currentSpeed : prevMaxSpeed
                     );
@@ -78,10 +97,9 @@ export default function VitesseDeGlisseScreen() {
 
         setSubscription(locationSubscription);
 
-        // Définir un timer pour arrêter automatiquement l'enregistrement après 2 minutes
         const timer = setTimeout(() => {
             stopTracking();
-        }, 2 * 60 * 1000); // 2 minutes en millisecondes
+        }, 2 * 60 * 1000);
 
         setTrackingTimer(timer);
     };
@@ -110,28 +128,80 @@ export default function VitesseDeGlisseScreen() {
                     type: 'success',
                     text1: 'Succès',
                     text2: "Votre performance a été enregistrée !",
-                  });
+                });
             } else {
                 Toast.show({
                     type: 'error',
                     text1: 'Erreur',
                     text2: "Une erreur est survenue lors de l'enregistrement.",
-                  });
+                });
             }
-        } catch (error : any) {
+        } catch (error: any) {
             const errorMessage = error?.message || "Erreur inconnue";
             Alert.alert("Erreur", `Impossible d'enregistrer la performance : ${errorMessage}`);
         }
 
         setDistance(0);
-        setSpeed(0);
         setMaxSpeed(0);
         setPrevLocation(null);
     };
 
-    const getDistanceFromLatLonInMeters = (lat1, lon1, lat2, lon2) => {
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const StatCard = ({ icon: IconComponent, title, value, unit, color = Colors.primary }: {
+        icon: any;
+        title: string;
+        value: string;
+        unit: string;
+        color?: string;
+    }) => (
+        <View style={styles.statCard}>
+            <View style={[styles.statIcon, { backgroundColor: color }]}>
+                <IconComponent size={24} color={Colors.white} />
+            </View>
+            <View style={styles.statContent}>
+                <Text style={styles.statTitle}>{title}</Text>
+                <View style={styles.statValueContainer}>
+                    <Text style={styles.statValue}>{value}</Text>
+                    <Text style={styles.statUnit}>{unit}</Text>
+                </View>
+            </View>
+        </View>
+    );
+
+    const ActionButton = ({ onPress, title, icon: IconComponent, variant = 'primary', disabled = false }: {
+        onPress: () => void;
+        title: string;
+        icon: any;
+        variant?: 'primary' | 'secondary';
+        disabled?: boolean;
+    }) => (
+        <TouchableOpacity
+            style={[
+                styles.actionButton,
+                variant === 'secondary' && styles.actionButtonSecondary,
+                disabled && styles.actionButtonDisabled
+            ]}
+            onPress={onPress}
+            activeOpacity={0.7}
+            disabled={disabled}
+        >
+            <View style={[styles.actionButtonIcon, variant === 'secondary' && styles.actionButtonIconSecondary]}>
+                <IconComponent size={20} color={variant === 'primary' ? Colors.primary : Colors.primaryBorder} />
+            </View>
+            <Text style={[styles.actionButtonText, variant === 'secondary' && styles.actionButtonTextSecondary]}>
+                {title}
+            </Text>
+        </TouchableOpacity>
+    );
+
+    const getDistanceFromLatLonInMeters = (lat1: number, lon1: number, lat2: number, lon2: number) => {
         const R = 6371e3;
-        const toRad = (value) => (value * Math.PI) / 180;
+        const toRad = (value: number) => (value * Math.PI) / 180;
         const dLat = toRad(lat2 - lat1);
         const dLon = toRad(lon2 - lon1);
         const a =
@@ -146,114 +216,229 @@ export default function VitesseDeGlisseScreen() {
 
     return (
         <View style={styles.container}>
-            <Header refreshFunction={undefined} disableRefresh={undefined} />
-            <View style={styles.innerContainer}>
-                <BoutonRetour previousRoute={"ProfilScreen"} title={"Vitesse de glisse"} />
-                <View style={styles.card}>
-                    {/* Titre en haut */}
-                    <Text style={styles.title}>Enregistre ta perf!</Text>
+            <Header refreshFunction={null} disableRefresh={null} />
+            <View style={styles.headerContainer}>
+                <BoutonRetour previousRoute={"homeNavigator"} title={"Vitesse de glisse"} />
+            </View>
 
-                    {/* Conteneur pour Vitesse Max */}
-                    <View style={styles.statWidgetContainer}>
-                        <StatWidget
-                            topText="Vitesse max"
-                            bottomText={`${maxSpeed.toFixed(2)} km/h`}
-                        />
+            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+                <View style={styles.heroSection}>
+                    <View style={styles.heroIcon}>
+                        <Zap size={32} color={Colors.primary} />
                     </View>
+                    <Text style={styles.heroTitle}>Enregistre ta performance</Text>
+                </View>
 
-                    {/* Conteneur pour Distance */}
-                    <View style={styles.statWidgetContainer}>
-                        <StatWidget
-                            topText="Distance"
-                            bottomText={`${(distance / 1000).toFixed(2)} km`}
-                        />
-                    </View>
+                <View style={styles.statsSection}>
+                    <StatCard
+                        icon={Zap}
+                        title="Vitesse maximale"
+                        value={maxSpeed.toFixed(1)}
+                        unit="km/h"
+                        color={Colors.primary}
+                    />
 
-                    {/* Boutons */}
-                    <View style={styles.buttonsContainer}>
-                        <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={isTracking ? stopTracking : startTracking}
-                        >
-                            <Text style={styles.buttonText}>
-                                {isTracking ? "Arrêter" : "Lancer"}
+                    <StatCard
+                        icon={MapPin}
+                        title="Distance parcourue"
+                        value={(distance / 1000).toFixed(2)}
+                        unit="km"
+                        color={Colors.primaryBorder}
+                    />
+
+                    <StatCard
+                        icon={Timer}
+                        title="Temps d'enregistrement"
+                        value={formatTime(trackingTime)}
+                        unit="min"
+                        color={Colors.accent}
+                    />
+                </View>
+
+                <View style={styles.controlsSection}>
+                    <Text style={styles.sectionTitle}>Contrôles</Text>
+
+                    <ActionButton
+                        title={isTracking ? "Arrêter l'enregistrement" : "Démarrer l'enregistrement"}
+                        icon={isTracking ? Square : Play}
+                        onPress={isTracking ? stopTracking : startTracking}
+                        variant="primary"
+                    />
+
+                    <ActionButton
+                        title="Voir mes performances"
+                        icon={Trophy}
+                        onPress={() => {
+                            (navigation as any).navigate('PerformancesScreen');
+                        }}
+                        variant="secondary"
+                    />
+                </View>
+
+                {isTracking && (
+                    <View style={styles.infoSection}>
+                        <View style={styles.infoCard}>
+                            <Text style={styles.infoTitle}>📱 Enregistrement en cours</Text>
+                            <Text style={styles.infoText}>
+                                L'enregistrement s'arrêtera automatiquement après 2 minutes ou lorsque vous appuyez sur "Arrêter".
                             </Text>
-                        </TouchableOpacity>
-                        <View style={styles.navigationButton}>
-                            <BoutonNavigation
-                                nextRoute={"PerformancesScreen"}
-                                title="Performances"
-                                IconComponent={Trophy}
-                            />
                         </View>
                     </View>
-                </View>
-            </View>
+                )}
+            </ScrollView>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        height: "100%",
-        width: "100%",
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    innerContainer: {
-        width: "100%",
         flex: 1,
         backgroundColor: Colors.white,
+    },
+    headerContainer: {
+        width: '100%',
         paddingHorizontal: 20,
-        paddingBottom: 16,
+        paddingBottom: 8,
     },
-    card: {
-        width: "100%",
-        height: "95%",
+    content: {
+        flex: 1,
+        paddingHorizontal: 20,
+    },
+    heroSection: {
+        alignItems: 'center',
+        paddingVertical: 24,
         marginBottom: 16,
-        backgroundColor: Colors.accent,
-        borderRadius: 12,
-        padding: 16,
     },
-    title: {
+    heroIcon: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: Colors.lightMuted,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    heroTitle: {
         ...TextStyles.h2,
-        color: Colors.white,
-        top: 10,
-        textAlign: "center",
-        marginBottom: 20,
+        color: Colors.primaryBorder,
+        fontWeight: '700',
+        textAlign: 'center',
     },
-    statWidgetContainer: {
-        top: 40,
-        marginBottom: 40, // Espacement entre les widgets
-        alignItems: "center", // Centrage horizontal
+    statsSection: {
+        marginBottom: 24,
     },
-    buttonsContainer: {
-        position: "absolute",
-        bottom: 15,
-        width: "90%",
-        alignSelf: "center",
+    statCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.white,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.06)',
+        shadowColor: '#000',
+        shadowOpacity: 0.08,
+        shadowOffset: { width: 2, height: 3 },
+        shadowRadius: 5,
+        elevation: 3,
+        padding: 16,
+        marginBottom: 12,
+    },
+    statIcon: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 16,
+    },
+    statContent: {
+        flex: 1,
+    },
+    statTitle: {
+        ...TextStyles.body,
+        color: Colors.muted,
+        marginBottom: 4,
+    },
+    statValueContainer: {
+        flexDirection: 'row',
+        alignItems: 'baseline',
+    },
+    statValue: {
+        ...TextStyles.h3,
+        color: Colors.primaryBorder,
+        fontWeight: '700',
+        marginRight: 4,
+    },
+    statUnit: {
+        ...TextStyles.body,
+        color: Colors.primary,
+        fontWeight: '600',
+    },
+    controlsSection: {
+        marginBottom: 24,
+    },
+    sectionTitle: {
+        ...TextStyles.h3,
+        color: Colors.primaryBorder,
+        fontWeight: '700',
+        marginBottom: 16,
     },
     actionButton: {
-        height: 50,
-        justifyContent: "center",
-        alignItems: "center",
-        borderRadius: 10,
-        marginBottom: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.primary,
+        borderRadius: 12,
+        paddingVertical: 16,
+        paddingHorizontal: 20,
+        marginBottom: 12,
+    },
+    actionButtonSecondary: {
         backgroundColor: Colors.white,
-        shadowColor: Colors.primaryBorder,
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 2,
-    },
-    buttonText: {
-        ...TextStyles.button,
-        color: Colors.accent,
-    },
-    navigationButton: {
-        marginBottom: 8,
         borderWidth: 2,
-        borderColor: Colors.white,
-        borderRadius: 10,
+        borderColor: Colors.primaryBorder,
+    },
+    actionButtonDisabled: {
+        opacity: 0.6,
+    },
+    actionButtonIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 16,
+    },
+    actionButtonIconSecondary: {
+        backgroundColor: Colors.lightMuted,
+    },
+    actionButtonText: {
+        ...TextStyles.button,
+        color: Colors.white,
+        fontWeight: '600',
+        flex: 1,
+    },
+    actionButtonTextSecondary: {
+        color: Colors.primaryBorder,
+    },
+    infoSection: {
+        marginBottom: 24,
+    },
+    infoCard: {
+        backgroundColor: Colors.lightMuted,
+        borderRadius: 12,
+        padding: 16,
+        borderLeftWidth: 4,
+        borderLeftColor: Colors.primary,
+    },
+    infoTitle: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+        fontWeight: '600',
+        marginBottom: 8,
+    },
+    infoText: {
+        ...TextStyles.small,
+        color: Colors.muted,
+        lineHeight: 20,
     },
 });

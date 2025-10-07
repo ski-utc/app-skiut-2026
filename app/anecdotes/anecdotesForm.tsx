@@ -41,7 +41,7 @@ export default function AnecdotesForm() {
           text2: response.message,
         });
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -59,10 +59,10 @@ export default function AnecdotesForm() {
 
   const handleCheckboxPress = () => {
     setChecked(!isChecked);
-    Keyboard.dismiss(); // Dismiss the keyboard when the checkbox is clicked
+    Keyboard.dismiss();
   };
 
-  if (error !== '') {
+  if (error) {
     return (
       <ErrorScreen error={error} />
     );
@@ -70,10 +70,22 @@ export default function AnecdotesForm() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Header refreshFunction={null} disableRefresh={true} />
-        <View style={{ width: '100%', flex: 1, backgroundColor: Colors.white, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={Colors.gray} />
+      <View style={{
+        flex: 1,
+        backgroundColor: Colors.white,
+      }}>
+        <Header refreshFunction={undefined} disableRefresh={true} />
+        <View style={{
+          width: '100%',
+          flex: 1,
+          backgroundColor: Colors.white,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+          <ActivityIndicator size="large" color={Colors.primaryBorder} />
+          <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+            Chargement...
+          </Text>
         </View>
       </View>
     );
@@ -90,12 +102,12 @@ export default function AnecdotesForm() {
           <BoutonRetour previousRoute={"anecdotesScreen"} title={"Raconte nous ta meilleure anecdote !"} />
           <Pressable
             onPress={() => Keyboard.dismiss()}
-            style={{ padding: 16, marginBottom: 8, height: 268, backgroundColor: Colors.white, borderRadius: 12, borderWidth: 2, borderColor: Colors.primary, shadowColor: Colors.primaryBorder, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 2 }}
+            style={{ padding: 16, marginBottom: 8, height: 268, backgroundColor: '#F8F8F8', borderRadius: 12, borderWidth: 1, borderColor: '#EAEAEA' }}
           >
             <TextInput
-              style={{ ...TextStyles.body, color: Colors.primaryBorder, width: '100%' }}
+              style={{ ...TextStyles.bodyLarge, color: Colors.primaryBorder, width: '100%', fontSize: 18 }}
               placeholder="Aujourd'hui..."
-              placeholderTextColor={Colors.gray}
+              placeholderTextColor={Colors.muted}
               multiline
               numberOfLines={15}
               onChangeText={setText}
@@ -107,16 +119,16 @@ export default function AnecdotesForm() {
               style={{ width: 24, height: 24 }}
               value={isChecked}
               onValueChange={handleCheckboxPress}
-              color={isChecked ? Colors.accent : undefined}
+              color={isChecked ? Colors.success : undefined}
             />
-            <Text style={{ ...TextStyles.small, color: Colors.primaryBorder, paddingRight: 20 }}>
-              En postant cette anecdote, je certifie qu’il respecte les autres participant.e.s du voyage
+            <Text style={{ ...TextStyles.body, color: Colors.primaryBorder, paddingRight: 20 }}>
+              En postant cette anecdote, je certifie qu’elle respecte les autres participant.e.s du voyage
             </Text>
           </View>
         </View>
         <View style={{ width: '100%', position: 'absolute', right: 0, bottom: 16, paddingHorizontal: 20 }}>
           <TouchableOpacity
-            style={{ padding: 12, backgroundColor: Colors.accent, opacity: isChecked && text.trim().length > 5 ? 1 : 0.5, borderRadius: 10, justifyContent: 'center', alignItems: 'center', flexDirection: 'row', gap: 10, shadowColor: Colors.primaryBorder, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3 }}
+            style={{ padding: 12, backgroundColor: Colors.primary, opacity: isChecked && text.trim().length > 5 ? 1 : 0.5, borderRadius: 10, justifyContent: 'center', alignItems: 'center', flexDirection: 'row', gap: 10, shadowColor: Colors.primaryBorder, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3 }}
             disabled={!isChecked || loading || text.trim().length <= 5}
             onPress={handleSendAnecdote}
           >

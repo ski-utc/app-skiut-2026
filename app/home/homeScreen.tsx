@@ -9,7 +9,7 @@ import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import ErrorScreen from "@/components/pages/errorPage";
-import { Calendar, Trophy, MessageCircle, Bug, ChevronRight, MapPin, Thermometer, Wind, Droplets, Sun, Cloud, CloudRain, CloudSnow } from 'lucide-react-native';
+import { Calendar, Trophy, MessageCircle, Bug, ChevronRight, MapPin, Thermometer, Wind, Droplets, Sun, Cloud, CloudRain, CloudSnow, Moon, CloudMoon, CloudLightning, CloudDrizzle, Eye, Zap, CloudFog, CloudMoonRain } from 'lucide-react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 
 interface WeatherWidgetProps {
@@ -39,14 +39,28 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
       iconProps.color = Colors.muted;
     }
 
-    if (conditionCode === 1000) {
-      return isDay ? <Sun {...iconProps} /> : <Sun {...iconProps} />;
-    } else if (conditionCode >= 1063 && conditionCode <= 1072) {
-      return <CloudRain {...iconProps} />;
-    } else if (conditionCode >= 1210 && conditionCode <= 1225) {
+    const isDayTime = isDay === 1;
+
+    if (conditionCode === 1000 || conditionCode === 1003) {
+      return isDayTime ? <Sun {...iconProps} /> : <Moon {...iconProps} />;
+    } else if (conditionCode === 1006 || conditionCode === 1009) {
+      return isDayTime ? <Cloud {...iconProps} /> : <CloudMoon {...iconProps} />;
+    } else if (conditionCode === 1030 || conditionCode === 1135 || conditionCode === 1147) {
+      return <CloudFog {...iconProps} />;
+    } else if (conditionCode >= 1063 && conditionCode <= 1066) {
+      return <CloudDrizzle {...iconProps} />;
+    } else if (conditionCode >= 1069 && conditionCode <= 1198) {
+      return isDayTime ? <CloudRain {...iconProps} /> : <CloudMoonRain {...iconProps} />;
+    } else if (conditionCode >= 1201 && conditionCode <= 1204) {
+      return <CloudDrizzle {...iconProps} />;
+    } else if (conditionCode >= 1207 && conditionCode <= 1207) {
+      return isDayTime ? <CloudRain {...iconProps} /> : <CloudMoonRain {...iconProps} />;
+    } else if (conditionCode >= 1210 && conditionCode <= 1252) {
       return <CloudSnow {...iconProps} />;
+    } else if (conditionCode >= 1255 && conditionCode <= 1306) {
+      return <CloudLightning {...iconProps} />;
     } else {
-      return <Cloud {...iconProps} />;
+      return isDayTime ? <Cloud {...iconProps} /> : <CloudMoon {...iconProps} />;
     }
   };
 

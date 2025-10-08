@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
+import { Text, View, StyleSheet, ActivityIndicator, Image, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { X, Check } from 'lucide-react-native';
+import { X, Check, Trophy, Calendar, User, Image as ImageIcon } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
@@ -181,99 +181,127 @@ export default function ValideDefis() {
 
   if (loading) {
     return (
-      <View
-        style={{
-          height: '100%',
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
+      <SafeAreaView style={styles.container}>
         <Header refreshFunction={null} disableRefresh={true} />
-        <View
-          style={{
-            width: '100%',
-            flex: 1,
-            backgroundColor: Colors.white,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <ActivityIndicator size="large" color={Colors.muted} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Chargement des détails...</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Header refreshFunction={null} disableRefresh={true} />
-      <View style={styles.content}>
-        <BoutonRetour previousRoute="gestionDefisScreen" title="Gestion défis " />
-        <Text style={styles.title}>Détails du défi : {challengeDetails?.id}</Text>
-        <View style={styles.textBox}>
-          <Text style={styles.text}>Status : {challengeDetails?.valid ? 'Validée' : 'En attente de validation'}</Text>
-          <Text style={styles.text}>Date : {challengeDetails?.created_at ? new Date(challengeDetails.created_at).toLocaleString('fr-FR', {
-            weekday: 'long',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false,
-          }) : 'Date non disponible'}</Text>
-          <Text style={styles.text}>Auteur : {challengeDetails?.user?.firstName} {challengeDetails?.user?.lastName || 'Auteur inconnu'}</Text>
-          <Text style={styles.text}>Défi : {challengeDetails?.challenge.title || 'Pas de description'}</Text>
+      <View style={styles.headerContainer}>
+        <BoutonRetour previousRoute="gestionDefisScreen" title="Gestion défis" />
+      </View>
+
+      {/* Hero Section */}
+      <View style={styles.heroSection}>
+        <View style={styles.heroIcon}>
+          <Trophy size={24} color={Colors.primary} />
         </View>
-        <TouchableOpacity onPress={toggleModal}>
-          <Image
-            source={{ uri: `${proofImage}?timestamp=${new Date().getTime()}` }}
-            style={{ width: '90%', aspectRatio: 1, maxHeight: '100%', borderRadius: 25 }}
-            resizeMode="contain"
-            onError={() => setProofImage("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
-          />
-        </TouchableOpacity>
+        <Text style={styles.heroTitle}>Détail du défi #{challengeDetails?.id}</Text>
+        <Text style={styles.heroSubtitle}>
+          Validez ou refusez ce défi soumis
+        </Text>
+      </View>
+
+      <View style={styles.content}>
+        {/* Info Card */}
+        <View style={styles.infoCard}>
+          <View style={styles.infoRow}>
+            <Trophy size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Status :</Text>
+            <Text style={[styles.infoValue, challengeDetails?.valid ? styles.validStatus : styles.pendingStatus]}>
+              {challengeDetails?.valid ? 'Validé' : 'En attente de validation'}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Calendar size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Date :</Text>
+            <Text style={styles.infoValue}>
+              {challengeDetails?.created_at ? new Date(challengeDetails.created_at).toLocaleString('fr-FR', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+              }) : 'Date non disponible'}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <User size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Auteur :</Text>
+            <Text style={styles.infoValue}>{challengeDetails?.user?.firstName} {challengeDetails?.user?.lastName || 'Auteur inconnu'}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Trophy size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Défi :</Text>
+            <Text style={styles.infoValue}>{challengeDetails?.challenge?.title || 'Pas de description'}</Text>
+          </View>
+        </View>
+
+        {/* Image Card */}
+        <View style={styles.imageCard}>
+          <View style={styles.imageHeader}>
+            <ImageIcon size={20} color={Colors.primary} />
+            <Text style={styles.imageTitle}>Preuve soumise</Text>
+          </View>
+          <TouchableOpacity onPress={toggleModal} style={styles.imageContainer}>
+            <Image
+              source={{ uri: `${proofImage}?timestamp=${new Date().getTime()}` }}
+              style={styles.proofImage}
+              resizeMode="cover"
+              onError={() => setProofImage("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
+            />
+            <View style={styles.imageOverlay}>
+              <Text style={styles.imageOverlayText}>Appuyez pour agrandir</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
       <View style={styles.buttonContainer}>
         <View style={styles.buttonSpacing}>
           <BoutonActiver
             title="Désactiver le défi"
             IconComponent={X}
-            disabled={challengeDetails.valid === 0}
+            disabled={challengeDetails?.valid === 0}
             onPress={() => handleValidation(0, 0)}
           />
         </View>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-evenly',
-            alignItems: 'center',
-            width: '100%'
-          }}
-        >
-          <BoutonActiver
-            title="Refuser le défi"
-            IconComponent={X}
-            disabled={challengeDetails.valid === 1}
-            onPress={() => handleValidation(1, 1)}
-          />
-          <BoutonActiver
-            title="Valider le défi"
-            IconComponent={Check}
-            disabled={challengeDetails.valid === 1}
-            onPress={() => handleValidation(1, 0)}
-          />
+        <View style={styles.buttonRow}>
+          <View style={styles.buttonHalf}>
+            <BoutonActiver
+              title="Refuser"
+              IconComponent={X}
+              disabled={challengeDetails?.valid === 1}
+              onPress={() => handleValidation(1, 1)}
+            />
+          </View>
+          <View style={styles.buttonHalf}>
+            <BoutonActiver
+              title="Valider"
+              IconComponent={Check}
+              disabled={challengeDetails?.valid === 1}
+              onPress={() => handleValidation(1, 0)}
+            />
+          </View>
         </View>
       </View>
-      <ImageViewer
-        imageUrls={[{ url: proofImage }]}
-        index={0}
-        visible={isModalVisible}
-        onRequestClose={toggleModal}
-      />
-    </View>
+
+      {isModalVisible && (
+        <ImageViewer
+          imageUrls={[{ url: proofImage }]}
+          index={0}
+          visible={isModalVisible}
+          onCancel={toggleModal}
+        />
+      )}
+    </SafeAreaView>
   );
 }
 
@@ -282,50 +310,156 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.white,
   },
-  content: {
-    width: '100%',
-    flex: 1,
-    backgroundColor: Colors.white,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  title: {
-    ...TextStyles.body,
-    marginTop: 20,
-    color: Colors.primaryBorder,
-    fontWeight: '600',
-  },
-  textBox: {
-    marginTop: 8,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    borderRadius: 10,
-    padding: 12,
-    backgroundColor: Colors.white,
-    marginBottom: 20,
-    shadowColor: Colors.primaryBorder,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  text: {
-    ...TextStyles.body,
-    color: Colors.primaryBorder,
-    lineHeight: 20,
-  },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 20,
-    width: '100%',
-    paddingHorizontal: 20,
-  },
-  buttonSpacing: {
-    marginBottom: 16,
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: Colors.white,
+  },
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  headerContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
+  heroSection: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+  },
+  heroIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.lightMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  heroTitle: {
+    ...TextStyles.h2,
+    color: Colors.primaryBorder,
+    fontWeight: '700',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  heroSubtitle: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 140,
+  },
+  infoCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 2, height: 3 },
+    shadowRadius: 5,
+    elevation: 3,
+    padding: 16,
+    marginBottom: 16,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    flexWrap: 'wrap',
+  },
+  infoLabel: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    fontWeight: '600',
+    marginLeft: 8,
+    marginRight: 8,
+    minWidth: 80,
+  },
+  infoValue: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    flex: 1,
+    lineHeight: 20,
+  },
+  validStatus: {
+    color: Colors.success,
+    fontWeight: '600',
+  },
+  pendingStatus: {
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  imageCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 2, height: 3 },
+    shadowRadius: 5,
+    elevation: 3,
+    padding: 16,
+  },
+  imageHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  imageTitle: {
+    ...TextStyles.h3,
+    color: Colors.primaryBorder,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  imageContainer: {
+    position: 'relative',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  proofImage: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: 12,
+  },
+  imageOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 8,
+    alignItems: 'center',
+  },
+  imageOverlayText: {
+    ...TextStyles.body,
+    color: Colors.white,
+    fontSize: 12,
+  },
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+  },
+  buttonSpacing: {
+    marginBottom: 16,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  buttonHalf: {
+    flex: 1,
   },
 });

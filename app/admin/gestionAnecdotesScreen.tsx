@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, FlatList, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, FlatList, ActivityIndicator, Text, TouchableOpacity, SafeAreaView } from 'react-native';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import Header from '../../components/header';
 import BoutonGestion from '@/components/admins/boutonGestion';
@@ -8,91 +8,37 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import { useNavigation } from '@react-navigation/native';
+import { MessageSquare, AlertTriangle, Clock, CheckCircle } from 'lucide-react-native';
 
-interface ButtonMenuProps {
-  first: string;
-  second: string;
-  third: string;
-  onFirstClick: () => void;
-  onSecondClick: () => void;
-  onThirdClick: () => void;
+interface FilterButtonProps {
+  label: string;
+  icon: React.ReactNode;
+  isActive: boolean;
+  onPress: () => void;
+  count?: number;
 }
 
-const BoutonMenu: React.FC<ButtonMenuProps> = ({
-  first,
-  second,
-  third,
-  onFirstClick,
-  onSecondClick,
-  onThirdClick,
-}) => {
-  const [activeButton, setActiveButton] = useState<string>('first');
-
-  const handleButtonClick = (button: string, onClick: () => void) => {
-    setActiveButton(button);
-    onClick();
-  };
-
+const FilterButton: React.FC<FilterButtonProps> = ({ label, icon, isActive, onPress, count }) => {
   return (
-    <View style={menuStyles.container}>
-      <TouchableOpacity
-        style={[
-          menuStyles.button,
-          activeButton === 'first' && menuStyles.activeButton,
-        ]}
-        onPress={() => handleButtonClick('first', onFirstClick)}
-      >
-        <Text style={menuStyles.text}>{first}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          menuStyles.button,
-          activeButton === 'second' && menuStyles.activeButton,
-        ]}
-        onPress={() => handleButtonClick('second', onSecondClick)}
-      >
-        <Text style={menuStyles.text}>{second}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          menuStyles.button,
-          activeButton === 'third' && menuStyles.activeButton,
-        ]}
-        onPress={() => handleButtonClick('third', onThirdClick)}
-      >
-        <Text style={menuStyles.text}>{third}</Text>
-      </TouchableOpacity>
-    </View>
+    <TouchableOpacity
+      style={[styles.filterButton, isActive && styles.filterButtonActive]}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <View style={styles.filterButtonContent}>
+        {icon}
+        <Text style={[styles.filterButtonText, isActive && styles.filterButtonTextActive]}>
+          {label}
+        </Text>
+        {count !== undefined && count > 0 && (
+          <View style={styles.filterBadge}>
+            <Text style={styles.filterBadgeText}>{count}</Text>
+          </View>
+        )}
+      </View>
+    </TouchableOpacity>
   );
 };
-
-const menuStyles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    width: '100%',
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.primary,
-    backgroundColor: Colors.white,
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-  },
-  activeButton: {
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.accent,
-    backgroundColor: Colors.lightMuted,
-  },
-  text: {
-    ...TextStyles.body,
-    color: Colors.primaryBorder,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-});
 
 const GestionAnecdotesScreen = () => {
   const [anecdotes, setAnecdotes] = useState([]);
@@ -100,6 +46,7 @@ const GestionAnecdotesScreen = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('all');
 
   const { setUser } = useUser();
   const navigation = useNavigation();
@@ -130,18 +77,25 @@ const GestionAnecdotesScreen = () => {
     }
   }, [setUser]);
 
-  const handleFilter = (filter) => {
+  const handleFilter = (filter: string) => {
+    setActiveFilter(filter);
     switch (filter) {
       case 'pending':
-        setFilteredAnecdotes(anecdotes.filter((item) => !item.valid && !item.alert));
+        setFilteredAnecdotes(anecdotes.filter((item: any) => !item.valid && !item.alert));
         break;
       case 'reported':
-        setFilteredAnecdotes(anecdotes.filter((item) => item.nbWarns > 0));
+        setFilteredAnecdotes(anecdotes.filter((item: any) => item.nbWarns > 0));
         break;
       default:
         setFilteredAnecdotes(anecdotes);
         break;
     }
+  };
+
+  const getFilterCounts = () => {
+    const pending = anecdotes.filter((item: any) => !item.valid && !item.alert).length;
+    const reported = anecdotes.filter((item: any) => item.nbWarns > 0).length;
+    return { pending, reported, all: anecdotes.length };
   };
 
   useEffect(() => {
@@ -163,100 +117,222 @@ const GestionAnecdotesScreen = () => {
 
   if (loading) {
     return (
-      <View
-        style={{
-          height: '100%',
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
+      <SafeAreaView style={styles.container}>
         <Header refreshFunction={null} disableRefresh={true} />
-        <View
-          style={{
-            width: '100%',
-            flex: 1,
-            backgroundColor: Colors.white,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <ActivityIndicator size="large" color={Colors.muted} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Chargement des anecdotes...</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
+  const counts = getFilterCounts();
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Header refreshFunction={fetchAdminAnecdotes} disableRefresh={disableRefresh} />
       <View style={styles.headerContainer}>
         <BoutonRetour previousRoute="adminScreen" title="Gestion des anecdotes" />
       </View>
 
-      <View>
-        <BoutonMenu
-          first="Toutes"
-          second="En attente"
-          third="Signalées"
-          onFirstClick={() => handleFilter('all')}
-          onSecondClick={() => handleFilter('pending')}
-          onThirdClick={() => handleFilter('reported')}
+      <View style={styles.heroSection}>
+        <View style={styles.heroIcon}>
+          <MessageSquare size={24} color={Colors.primary} />
+        </View>
+        <Text style={styles.heroTitle}>Modération des anecdotes</Text>
+        <Text style={styles.heroSubtitle}>
+          Gérez et validez les anecdotes partagées par les utilisateurs
+        </Text>
+      </View>
+
+      <View style={styles.filtersContainer}>
+        <FilterButton
+          label="Toutes"
+          icon={<CheckCircle size={16} color={activeFilter === 'all' ? Colors.white : Colors.primary} />}
+          isActive={activeFilter === 'all'}
+          onPress={() => handleFilter('all')}
+        // count={counts.all}
+        />
+        <FilterButton
+          label="En attente"
+          icon={<Clock size={16} color={activeFilter === 'pending' ? Colors.white : Colors.primary} />}
+          isActive={activeFilter === 'pending'}
+          onPress={() => handleFilter('pending')}
+          count={counts.pending}
+        />
+        <FilterButton
+          label="Signalées"
+          icon={<AlertTriangle size={16} color={activeFilter === 'reported' ? Colors.white : Colors.error} />}
+          isActive={activeFilter === 'reported'}
+          onPress={() => handleFilter('reported')}
+          count={counts.reported}
         />
       </View>
 
-      <View style={styles.list}>
+      <View style={styles.listContainer}>
         <FlatList
           data={filteredAnecdotes}
           renderItem={({ item }) => (
             <BoutonGestion
-              title={`Anecdote: ${item.id}`}
-              subtitle={`Auteur: ${item?.user?.firstName} ${item?.user?.lastName || 'Nom inconnu'}`}
+              title={`Anecdote #${item.id}`}
+              subtitle={`Par ${item?.user?.firstName} ${item?.user?.lastName || 'Utilisateur inconnu'}`}
               subtitleStyle={undefined}
               nextRoute="valideAnecdotesScreen"
               id={item.id}
               valide={item.valid}
             />
           )}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item: any) => item.id.toString()}
           ListEmptyComponent={
-            <Text style={styles.emptyListText}>Aucune anecdote correspondante</Text>
+            <View style={styles.emptyContainer}>
+              <MessageSquare size={48} color={Colors.lightMuted} />
+              <Text style={styles.emptyTitle}>Aucune anecdote</Text>
+              <Text style={styles.emptyText}>
+                Aucune anecdote ne correspond aux critères sélectionnés
+              </Text>
+            </View>
           }
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    height: '100%',
-    width: '100%',
     flex: 1,
     backgroundColor: Colors.white,
-    paddingBottom: 8,
   },
   headerContainer: {
     width: '100%',
     paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  list: {
-    width: '100%',
-    flex: 1,
+    paddingBottom: 8,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
-  emptyListText: {
+  loadingText: {
     ...TextStyles.body,
-    textAlign: 'center',
     color: Colors.muted,
-    marginTop: 20
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  heroSection: {
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 24,
+    marginBottom: 16,
+  },
+  heroIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.lightMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  heroTitle: {
+    ...TextStyles.h3,
+    color: Colors.primaryBorder,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+  heroSubtitle: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  filtersContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    gap: 8,
+  },
+  filterButton: {
+    flex: 1,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 2, height: 3 },
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  filterButtonActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  filterButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    position: 'relative',
+  },
+  filterIcon: {
+    marginRight: 8,
+  },
+  filterButtonText: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  filterButtonTextActive: {
+    color: Colors.white,
+  },
+  filterBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: Colors.error,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  filterBadgeText: {
+    color: Colors.white,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  listContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  listContent: {
+    paddingBottom: 20,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyTitle: {
+    ...TextStyles.bodyBold,
+    color: Colors.primaryBorder,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
 

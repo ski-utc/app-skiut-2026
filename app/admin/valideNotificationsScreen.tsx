@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator } from 'react-native';
+import { Text, View, StyleSheet, ActivityIndicator, SafeAreaView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { Trash, Check } from 'lucide-react-native';
+import { Trash, Check, Bell, Calendar, Users } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
@@ -96,55 +96,67 @@ export default function ValideNotifications() {
 
   if (loading) {
     return (
-      <View
-        style={{
-          height: '100%',
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
+      <SafeAreaView style={styles.container}>
         <Header refreshFunction={null} disableRefresh={true} />
-        <View
-          style={{
-            width: '100%',
-            flex: 1,
-            backgroundColor: Colors.white,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <ActivityIndicator size="large" color={Colors.muted} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Chargement des détails...</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Header refreshFunction={null} disableRefresh={true} />
-      <View style={styles.content}>
+      <View style={styles.headerContainer}>
         <BoutonRetour previousRoute="gestionNotificationsScreen" title={`Gérer notification`} />
-        <Text style={styles.title}>Détail de la notification {id} :</Text>
-        <View style={styles.textBox}>
-          <Text style={styles.text}>Notification : {notificationDetails?.title || 'Pas de description'}</Text>
-          <Text style={styles.text}>
-            Date : {notificationDetails?.created_at ? new Date(notificationDetails.created_at).toLocaleString('fr-FR', {
-              weekday: 'long',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-              hour12: false,
-            }) : 'Date non disponible'}
-          </Text>
-          <Text style={styles.text}>S'applique à : {notificationDetails?.general ? 'Tout le monde' : 'Individuel'}</Text>
+      </View>
+
+      {/* Hero Section */}
+      <View style={styles.heroSection}>
+        <View style={styles.heroIcon}>
+          <Bell size={24} color={Colors.primary} />
         </View>
-        <View style={styles.anecdoteBox}>
-          <Text style={styles.text}>{notificationDetails?.description}</Text>
+        <Text style={styles.heroTitle}>Détail de la notification #{id}</Text>
+        <Text style={styles.heroSubtitle}>
+          Gérez l'état de cette notification
+        </Text>
+      </View>
+
+      <View style={styles.content}>
+        {/* Info Card */}
+        <View style={styles.infoCard}>
+          <View style={styles.infoRow}>
+            <Bell size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Notification :</Text>
+            <Text style={styles.infoValue}>{notificationDetails?.title || 'Pas de titre'}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Calendar size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Date :</Text>
+            <Text style={styles.infoValue}>
+              {notificationDetails?.created_at ? new Date(notificationDetails.created_at).toLocaleString('fr-FR', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+              }) : 'Date non disponible'}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Users size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>S'applique à :</Text>
+            <Text style={styles.infoValue}>{notificationDetails?.general ? 'Tout le monde' : 'Individuel'}</Text>
+          </View>
+        </View>
+
+        {/* Content Card */}
+        <View style={styles.contentCard}>
+          <Text style={styles.contentTitle}>Contenu de la notification</Text>
+          <Text style={styles.contentText}>{notificationDetails?.description}</Text>
         </View>
       </View>
 
@@ -164,7 +176,7 @@ export default function ValideNotifications() {
           onPress={() => handleDelete(0)}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -173,63 +185,118 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.white,
   },
-  content: {
-    width: '100%',
-    flex: 1,
-    backgroundColor: Colors.white,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  title: {
-    marginTop: 20,
-    fontSize: 16,
-    color: '#000000',
-    fontFamily: 'Inter',
-    fontWeight: '600',
-  },
-  textBox: {
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: Colors.muted,
-    borderRadius: 8,
-    padding: 10,
-    backgroundColor: Colors.white,
-    marginBottom: 20,
-  },
-  anecdoteBox: {
-    padding: 14,
-    minHeight: 200,
-    marginTop: 8,
-    marginBottom: 8,
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#EAEAEA',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-    gap: 8,
-    width: '100%',
-  },
-  text: {
-    fontSize: 14,
-    color: '#000000',
-    fontFamily: 'Inter',
-    fontWeight: '400',
-    lineHeight: 20,
-  },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 20,
-    width: '100%',
-    paddingHorizontal: 20,
-  },
-  buttonSpacing: {
-    marginBottom: 16,
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: Colors.white,
+  },
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  headerContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
+  heroSection: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+  },
+  heroIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.lightMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  heroTitle: {
+    ...TextStyles.h2,
+    color: Colors.primaryBorder,
+    fontWeight: '700',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  heroSubtitle: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 120,
+  },
+  infoCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 2, height: 3 },
+    shadowRadius: 5,
+    elevation: 3,
+    padding: 16,
+    marginBottom: 16,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    flexWrap: 'wrap',
+  },
+  infoLabel: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    fontWeight: '600',
+    marginLeft: 8,
+    marginRight: 8,
+    minWidth: 80,
+  },
+  infoValue: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    flex: 1,
+    lineHeight: 20,
+  },
+  contentCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 2, height: 3 },
+    shadowRadius: 5,
+    elevation: 3,
+    padding: 16,
+    minHeight: 150,
+  },
+  contentTitle: {
+    ...TextStyles.h3,
+    color: Colors.primaryBorder,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  contentText: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    lineHeight: 22,
+  },
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+  },
+  buttonSpacing: {
+    marginBottom: 16,
   },
 });

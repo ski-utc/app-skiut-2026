@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard, Pressable } from 'react-native';
+import { View, Text, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard, Pressable, StyleSheet } from 'react-native';
 import Checkbox from 'expo-checkbox';
-import { Colors, Fonts, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import BoutonActiverLarge from '@/components/divers/boutonActiverLarge';
-import { Send } from 'lucide-react-native';
+import { Send, PenTool, Shield } from 'lucide-react-native';
 import { apiPost } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import Toast from 'react-native-toast-message';
@@ -94,40 +94,68 @@ export default function AnecdotesForm() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.content}>
         <Header refreshFunction={null} disableRefresh={true} />
-        <View style={{ width: '100%', flex: 1, backgroundColor: Colors.white, paddingHorizontal: 20, paddingBottom: 16 }}>
+
+        <View style={styles.headerContainer}>
           <BoutonRetour previousRoute={"anecdotesScreen"} title={"Raconte nous ta meilleure anecdote !"} />
-          <Pressable
-            onPress={() => Keyboard.dismiss()}
-            style={{ padding: 16, marginBottom: 8, height: 268, backgroundColor: '#F8F8F8', borderRadius: 12, borderWidth: 1, borderColor: '#EAEAEA' }}
-          >
-            <TextInput
-              style={{ ...TextStyles.bodyLarge, color: Colors.primaryBorder, width: '100%', fontSize: 18 }}
-              placeholder="Aujourd'hui..."
-              placeholderTextColor={Colors.muted}
-              multiline
-              numberOfLines={15}
-              onChangeText={setText}
-              value={text}
-            />
-          </Pressable>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 11 }}>
-            <Checkbox
-              style={{ width: 24, height: 24 }}
-              value={isChecked}
-              onValueChange={handleCheckboxPress}
-              color={isChecked ? Colors.success : undefined}
-            />
-            <Text style={{ ...TextStyles.body, color: Colors.primaryBorder, paddingRight: 20 }}>
-              En postant cette anecdote, je certifie qu’elle respecte les autres participant.e.s du voyage
-            </Text>
+        </View>
+
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <View style={styles.heroIcon}>
+            <PenTool size={24} color={Colors.primary} />
+          </View>
+          <Text style={styles.heroTitle}>Partage ton anecdote</Text>
+          <Text style={styles.heroSubtitle}>
+            Raconte-nous ce qui t'a marqué aujourd'hui !
+          </Text>
+        </View>
+
+        <View style={styles.formContainer}>
+          {/* Text Input */}
+          <View style={styles.inputSection}>
+            <Pressable
+              onPress={() => Keyboard.dismiss()}
+              style={styles.textAreaContainer}
+            >
+              <TextInput
+                style={styles.textAreaInput}
+                placeholder="Aujourd'hui..."
+                placeholderTextColor={Colors.muted}
+                multiline
+                numberOfLines={12}
+                onChangeText={setText}
+                value={text}
+                textAlignVertical="top"
+              />
+            </Pressable>
+          </View>
+
+          {/* Terms Checkbox */}
+          <View style={styles.termsSection}>
+            <View style={styles.termsRow}>
+              <Checkbox
+                style={styles.checkbox}
+                value={isChecked}
+                onValueChange={handleCheckboxPress}
+                color={isChecked ? Colors.primary : undefined}
+              />
+              <View style={styles.termsTextContainer}>
+                <Shield size={16} color={Colors.primary} />
+                <Text style={styles.termsText}>
+                  En postant cette anecdote, je certifie qu'elle respecte les autres participant.e.s du voyage
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
-        <View style={{ width: '100%', position: 'absolute', right: 0, bottom: 16, paddingHorizontal: 20 }}>
+
+        {/* Send Button */}
+        <View style={styles.buttonContainer}>
           <BoutonActiverLarge
             title="Poster mon anecdote"
             IconComponent={Send}
@@ -139,3 +167,99 @@ export default function AnecdotesForm() {
     </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.white,
+  },
+  content: {
+    flex: 1,
+  },
+  headerContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
+  heroSection: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+  },
+  heroIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.lightMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  heroTitle: {
+    ...TextStyles.h2,
+    color: Colors.primaryBorder,
+    fontWeight: '700',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  heroSubtitle: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  formContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 100,
+  },
+  inputSection: {
+    marginBottom: 20,
+  },
+  textAreaContainer: {
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    minHeight: 200,
+  },
+  textAreaInput: {
+    ...TextStyles.bodyLarge,
+    color: Colors.primaryBorder,
+    padding: 16,
+    flex: 1,
+    textAlignVertical: 'top',
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  termsSection: {
+    marginTop: 10,
+  },
+  termsRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    marginTop: 2,
+  },
+  termsTextContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  termsText: {
+    ...TextStyles.small,
+    color: Colors.primaryBorder,
+    lineHeight: 18,
+    flex: 1,
+  },
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+  },
+});

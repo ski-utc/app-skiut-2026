@@ -12,7 +12,7 @@ export default function PlanScreen() {
   const [isMapModalVisible, setIsMapModalVisible] = useState(false);
   const pisteImage = require("../../assets/images/plan-grandvalira.jpg");
 
-  const openStreetMapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=1.7233%2C42.5342%2C1.7433%2C42.5542&layer=mapnik&marker=42.5442%2C1.7333`;
+  const openStreetMapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=1.7233%2C42.5342%2C1.7433%2C42.5542&layer=mapnik&marker=42.5442%2C1.7333&zoom=17`;
 
   useEffect(() => {
     const loadAsyncFonts = async () => {

@@ -113,7 +113,6 @@ export default function ValideNotifications() {
         <BoutonRetour previousRoute="gestionNotificationsScreen" title={`Gérer notification`} />
       </View>
 
-      {/* Hero Section */}
       <View style={styles.heroSection}>
         <View style={styles.heroIcon}>
           <Bell size={24} color={Colors.primary} />
@@ -125,7 +124,6 @@ export default function ValideNotifications() {
       </View>
 
       <View style={styles.content}>
-        {/* Info Card */}
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <Bell size={16} color={Colors.primary} />
@@ -153,7 +151,6 @@ export default function ValideNotifications() {
           </View>
         </View>
 
-        {/* Content Card */}
         <View style={styles.contentCard}>
           <Text style={styles.contentTitle}>Contenu de la notification</Text>
           <Text style={styles.contentText}>{notificationDetails?.description}</Text>

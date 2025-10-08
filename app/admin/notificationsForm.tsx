@@ -93,7 +93,6 @@ export default function NotificationsForm() {
           <BoutonRetour previousRoute={"gestionNotificationsScreen"} title={"Créer une notification"} />
         </View>
 
-        {/* Hero Section */}
         <View style={styles.heroSection}>
           <View style={styles.heroIcon}>
             <PenTool size={24} color={Colors.primary} />
@@ -105,7 +104,6 @@ export default function NotificationsForm() {
         </View>
 
         <View style={styles.content}>
-          {/* Title Input */}
           <View style={styles.inputSection}>
             <View style={styles.inputHeader}>
               <FileText size={16} color={Colors.primary} />
@@ -120,7 +118,6 @@ export default function NotificationsForm() {
             />
           </View>
 
-          {/* Content Input */}
           <View style={styles.inputSection}>
             <View style={styles.inputHeader}>
               <FileText size={16} color={Colors.primary} />
@@ -140,7 +137,6 @@ export default function NotificationsForm() {
             </Pressable>
           </View>
 
-          {/* Terms Checkbox */}
           <View style={styles.termsSection}>
             <View style={styles.termsRow}>
               <Checkbox
@@ -159,7 +155,6 @@ export default function NotificationsForm() {
           </View>
         </View>
 
-        {/* Send Button */}
         <View style={styles.buttonContainer}>
           <BoutonActiverLarge
             title="Envoyer la notification"

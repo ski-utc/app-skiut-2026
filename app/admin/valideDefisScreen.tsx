@@ -198,7 +198,6 @@ export default function ValideDefis() {
         <BoutonRetour previousRoute="gestionDefisScreen" title="Gestion défis" />
       </View>
 
-      {/* Hero Section */}
       <View style={styles.heroSection}>
         <View style={styles.heroIcon}>
           <Trophy size={24} color={Colors.primary} />
@@ -210,7 +209,6 @@ export default function ValideDefis() {
       </View>
 
       <View style={styles.content}>
-        {/* Info Card */}
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <Trophy size={16} color={Colors.primary} />
@@ -245,7 +243,6 @@ export default function ValideDefis() {
           </View>
         </View>
 
-        {/* Image Card */}
         <View style={styles.imageCard}>
           <View style={styles.imageHeader}>
             <ImageIcon size={20} color={Colors.primary} />

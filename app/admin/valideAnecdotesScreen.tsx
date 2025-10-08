@@ -113,7 +113,6 @@ export default function ValideAnecdotes() {
         <BoutonRetour previousRoute="gestionAnecdotesScreen" title={`Gérer l'anecdote ${id}`} />
       </View>
 
-      {/* Hero Section */}
       <View style={styles.heroSection}>
         <View style={styles.heroIcon}>
           <MessageSquare size={24} color={Colors.primary} />
@@ -125,7 +124,6 @@ export default function ValideAnecdotes() {
       </View>
 
       <View style={styles.content}>
-        {/* Info Card */}
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <MessageSquare size={16} color={Colors.primary} />
@@ -165,7 +163,6 @@ export default function ValideAnecdotes() {
           </View>
         </View>
 
-        {/* Content Card */}
         <View style={styles.contentCard}>
           <Text style={styles.contentTitle}>Contenu de l'anecdote</Text>
           <Text style={styles.contentText}>{anecdoteDetails?.text}</Text>

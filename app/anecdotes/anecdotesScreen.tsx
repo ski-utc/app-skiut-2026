@@ -5,7 +5,7 @@ import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import Anecdote from '../../components/anecdotes/anecdote';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import BoutonNavigation from '@/components/divers/boutonNavigation';
+import BoutonNavigationLarge from '@/components/divers/boutonNavigationLarge';
 import { MessageCirclePlus } from 'lucide-react-native';
 import { apiPost } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
@@ -151,10 +151,10 @@ export default function AnecdotesScreen() {
           ItemSeparatorComponent={() => <View style={{ height: 36 }} />}
           onEndReached={handleLoadMore}
           ListFooterComponent={() =>
-            loadingMore ? <ActivityIndicator size="large" color={Colors.primaryBorder} /> : <View style={{ height: 80 }} />
+            loadingMore ? <ActivityIndicator size="large" color={Colors.primaryBorder} /> : <View style={{ height: 90 }} />
           }
         />
-        <BoutonNavigation
+        <BoutonNavigationLarge
           nextRoute={'anecdotesForm'}
           title={'Rédiger un potin'}
           IconComponent={MessageCirclePlus}

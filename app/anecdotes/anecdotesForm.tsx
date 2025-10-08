@@ -6,6 +6,7 @@ import Header from "../../components/header";
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
+import BoutonActiverLarge from '@/components/divers/boutonActiverLarge';
 import { Send } from 'lucide-react-native';
 import { apiPost } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
@@ -127,14 +128,12 @@ export default function AnecdotesForm() {
           </View>
         </View>
         <View style={{ width: '100%', position: 'absolute', right: 0, bottom: 16, paddingHorizontal: 20 }}>
-          <TouchableOpacity
-            style={{ padding: 12, backgroundColor: Colors.primary, opacity: isChecked && text.trim().length > 5 ? 1 : 0.5, borderRadius: 10, justifyContent: 'center', alignItems: 'center', flexDirection: 'row', gap: 10, shadowColor: Colors.primaryBorder, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 3, elevation: 3 }}
+          <BoutonActiverLarge
+            title="Poster mon anecdote"
+            IconComponent={Send}
             disabled={!isChecked || loading || text.trim().length <= 5}
             onPress={handleSendAnecdote}
-          >
-            <Text style={{ ...TextStyles.button, color: Colors.white }}>Poster mon anecdote</Text>
-            <Send size={20} color={Colors.white} />
-          </TouchableOpacity>
+          />
         </View>
       </View>
     </KeyboardAvoidingView>

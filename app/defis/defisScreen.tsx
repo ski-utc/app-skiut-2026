@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator, Text, TouchableOpacity } from "react-native";
 import Header from "../../components/header";
 import { Trophy, ChevronRight, Check, X, ListTodo, Hourglass } from 'lucide-react-native';
-import BoutonNavigation from "@/components/divers/boutonNavigation";
+import BoutonNavigationLarge from "@/components/divers/boutonNavigationLarge";
 import BoutonRetour from "@/components/divers/boutonRetour";
 import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import { apiGet } from "@/constants/api/apiCalls";
@@ -173,7 +173,7 @@ export default function Defis() {
         data={challenges}
         keyExtractor={(item) => item.id.toString()}
         extraData={challenges}
-        ListFooterComponent={<View style={{ height: 60 }} />}
+        ListFooterComponent={<View style={{ height: 70 }} />}
         renderItem={({ item }) => (
           <View>
             <BoutonDefi
@@ -190,7 +190,7 @@ export default function Defis() {
         style={styles.list}
       />
       <View style={styles.navigationContainer}>
-        <BoutonNavigation nextRoute={"defisClassement"} title={"Classement"} IconComponent={Trophy} />
+        <BoutonNavigationLarge nextRoute={"defisClassement"} title={"Classement"} IconComponent={Trophy} />
       </View>
     </View>
   );

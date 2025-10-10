@@ -100,7 +100,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
       toValue,
       useNativeDriver: false,
       tension: 100,
-      friction: 8,
+      friction: 16,
     }).start();
 
     gestureX.setValue(0);

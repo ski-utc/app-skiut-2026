@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     width: '60%',
     height: '40%',
     backgroundColor: Colors.primary,
-    opacity: 0.05,
+    opacity: 0.1,
     borderBottomRightRadius: 80,
   },
   illustrationContainer: {

@@ -9,10 +9,12 @@ on:
         description: "Build Android"
         required: false
         default: "false"
+        type: boolean
       build-ios:
         description: "Build iOS"
         required: false
         default: "false"
+        type: boolean
 
 jobs:
   lint:
@@ -39,7 +41,7 @@ jobs:
       - run: CI=1 npx expo prebuild
 
   eas-build:
-    if: github.ref == 'refs/heads/main' || github.event.inputs.build-android == 'true' || github.event.inputs.build-ios == 'true'
+    if: github.ref == 'refs/heads/main' || github.event.inputs.build-android || github.event.inputs.build-ios
     runs-on: ubuntu-latest
     needs: expo-build-check
     steps:
@@ -52,13 +54,13 @@ jobs:
       - run: npm install -g eas-cli
 
       - name: Run EAS Build (Android)
-        if: ${{ github.event.inputs.build-android == 'true' }}
+        if: ${{ github.event.inputs.build-android }}
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: eas build --platform android --non-interactive --profile preview
 
       - name: Run EAS Build (iOS)
-        if: ${{ github.event.inputs.build-ios == 'true' }}
+        if: ${{ github.event.inputs.build-ios }}
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: eas build --platform ios --non-interactive --profile preview

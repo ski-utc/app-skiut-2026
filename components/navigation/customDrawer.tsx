@@ -9,7 +9,8 @@ import {
     ChevronRight,
     Gauge,
     Heart,
-    UserRoundCheck
+    UserRoundCheck,
+    Shield
 } from 'lucide-react-native';
 import { useUser } from '@/contexts/UserContext';
 
@@ -65,6 +66,11 @@ export default function CustomDrawer({ navigation }: CustomDrawerProps) {
             label: 'Navettes',
             icon: Bus,
             onPress: () => navigateToScreen('NavettesScreen')
+        },
+        {
+            label: 'RGPD & Données',
+            icon: Shield,
+            onPress: () => navigateToScreen('RGPDScreen')
         }
     ];
 

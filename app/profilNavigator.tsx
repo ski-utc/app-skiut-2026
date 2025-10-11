@@ -6,6 +6,7 @@ import VitesseDeGlisseScreen from './profil/vitesseDeGlisse/vitesseDeGlisseScree
 import PerformancesScreen from './profil/vitesseDeGlisse/performancesScreen';
 import SkinderNavigator from './skinder/skinderNavigator';
 import NavettesScreen from './profil/navettesScreen';
+import RGPDScreen from './profil/rgpdScreen';
 import AdminNavigator from './adminNavigator';
 
 const Stack = createStackNavigator();
@@ -56,6 +57,11 @@ export default function ProfilNavigator() {
             <Stack.Screen
                 name="NavettesScreen"
                 component={NavettesScreen}
+                listeners={getScreenListeners}
+            />
+            <Stack.Screen
+                name="RGPDScreen"
+                component={RGPDScreen}
                 listeners={getScreenListeners}
             />
             <Stack.Screen

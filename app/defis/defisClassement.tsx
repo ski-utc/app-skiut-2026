@@ -327,7 +327,6 @@ const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: Colors.white,
         paddingHorizontal: 20,
-        paddingBottom: 12,
         shadowColor: Colors.primaryBorder,
         shadowOffset: {
             width: 0,
@@ -348,7 +347,6 @@ const styles = StyleSheet.create({
         paddingTop: 24,
         paddingBottom: 16,
         marginHorizontal: 16,
-        marginTop: 16,
         borderRadius: 16,
         shadowColor: Colors.primaryBorder,
         shadowOffset: {
@@ -368,7 +366,7 @@ const styles = StyleSheet.create({
     },
     rankingSection: {
         flex: 1,
-        marginTop: 12,
+        marginTop: 8,
         paddingTop: 16,
     },
     rankingScrollView: {

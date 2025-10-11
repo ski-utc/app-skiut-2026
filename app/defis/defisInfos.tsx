@@ -1,16 +1,17 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert, Modal, StatusBar } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from "expo-image-manipulator";
 import { useRoute } from '@react-navigation/native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { LandPlot, Trash, Check, Hourglass, X, Upload, CloudOff } from 'lucide-react-native';
+import { LandPlot, Trash, Check, Hourglass, X, Upload, CloudOff, Maximize } from 'lucide-react-native';
 import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import Toast from 'react-native-toast-message';
+import ImageViewer from "react-native-image-zoom-viewer";
 
 export default function DefisInfos() {
   const route = useRoute();
@@ -27,6 +28,13 @@ export default function DefisInfos() {
   const [dynamicStatus, setStatus] = useState(status);
   const [imageAspectRatio] = useState(1.0);
   const [networkError, setNetworkError] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const toggleModal = () => {
+    setIsModalVisible(!isModalVisible);
+  };
 
   const fetchProof = useCallback(async () => {
     setLoading(true);
@@ -73,6 +81,7 @@ export default function DefisInfos() {
     }
 
     try {
+      setIsCompressing(true);
       const { uri, width } = result.assets[0];
       let compressQuality = 1;
 
@@ -109,20 +118,25 @@ export default function DefisInfos() {
 
       if (fileInfo.size > 1 * 1024 * 1024) {
         Alert.alert('Erreur', 'Image trop lourde même après compression :(');
+        setIsCompressing(false);
         return;
       }
       setModifiedPicture(true);
       setProofImage(compressedImage.uri);
     } catch (error: any) {
       setError('Erreur lors de la compression de l\'image :', error);
+    } finally {
+      setIsCompressing(false);
     }
   };
 
   const uploadImage = async (uri) => {
     try {
+      setIsUploading(true);
       const fileInfo = await fetch(uri).then((res) => res.blob());
       if (fileInfo.size > 1 * 1024 * 1024) {
         Alert.alert('Erreur', 'L\'image dépasse la taille maximale de 1 Mo.');
+        setIsUploading(false);
         return;
       }
 
@@ -157,11 +171,12 @@ export default function DefisInfos() {
       }
     } catch (error: any) {
       setError(error.message || "Erreur lors du téléversement de l'image");
+    } finally {
+      setIsUploading(false);
     }
   };
 
   const handleSendDefi = async () => {
-    setLoading(true);
     try {
       await uploadImage(proofImage);
     } catch (error: any) {
@@ -170,8 +185,6 @@ export default function DefisInfos() {
       } else {
         setError(error.message || 'Erreur réseau ou serveur.');
       }
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -251,34 +264,152 @@ export default function DefisInfos() {
       <View style={{ width: '100%', paddingHorizontal: 20 }}>
         <BoutonRetour previousRoute="defisScreen" title={title} />
       </View>
-      <View style={{ width: '100%', paddingHorizontal: 20, paddingBottom: 16 }}>
-        <Text style={{ ...TextStyles.h2, marginTop: 20, color: Colors.primaryBorder, fontWeight: '700' }}>
+      <View style={{ width: '100%', paddingHorizontal: 20 }}>
+        <Text style={{ ...TextStyles.h2Bold, color: Colors.primaryBorder }}>
           Points : {points}
         </Text>
       </View>
 
-      <View style={{ width: '100%', height: '60%', marginTop: 10, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ width: '100%', height: '60%', justifyContent: 'center', alignItems: 'center' }}>
         <TouchableOpacity
-          onPress={handleImagePick}
-          style={{ justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}
-          disabled={challengeSent || status !== 'empty'}
+          onPress={status === 'empty' ? handleImagePick : toggleModal}
+          style={{ justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%', position: 'relative' }}
+          disabled={(challengeSent && status === 'empty') || isCompressing || isUploading}
+          activeOpacity={0.8}
         >
           {networkError ? (
-            <CloudOff size={80} color={Colors.muted} />
+            <View style={{
+              width: '90%',
+              aspectRatio: 1,
+              borderWidth: 2,
+              borderColor: Colors.primaryBorder,
+              borderRadius: 20,
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: 40,
+            }}>
+              <CloudOff size={80} color={Colors.muted} />
+              <Text style={{
+                ...TextStyles.body,
+                color: Colors.muted,
+                marginTop: 16,
+                textAlign: 'center',
+                fontWeight: '600',
+              }}>
+                Problème de connexion
+              </Text>
+              <Text style={{
+                ...TextStyles.small,
+                color: Colors.muted,
+                marginTop: 8,
+                textAlign: 'center',
+              }}>
+                Impossible de charger l'image
+              </Text>
+            </View>
           ) : proofImage ? (
-            <Image
-              source={{ uri: proofImage }}
-              style={{ width: '90%', aspectRatio: imageAspectRatio, maxHeight: '100%', borderRadius: 25 }}
-              resizeMode="contain"
-              onError={() => setNetworkError(true)}
-            />
+            <View style={{ width: '90%', height: '100%', position: 'relative', justifyContent: 'center', alignItems: 'center' }}>
+              <Image
+                source={{ uri: proofImage }}
+                style={{ width: '100%', aspectRatio: imageAspectRatio, maxHeight: '100%', borderRadius: 25 }}
+                resizeMode="contain"
+                onError={() => setNetworkError(true)}
+              />
+              {status !== 'empty' && !isCompressing && !isUploading && (
+                <View style={{
+                  position: 'absolute',
+                  bottom: 20,
+                  left: 0,
+                  right: 0,
+                  backgroundColor: 'rgba(0,0,0,0.5)',
+                  paddingVertical: 8,
+                  paddingHorizontal: 12,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 8,
+                  marginHorizontal: 20,
+                }}>
+                  <Maximize size={16} color={Colors.white} />
+                  <Text style={{
+                    ...TextStyles.small,
+                    color: Colors.white,
+                    textAlign: 'center',
+                    fontWeight: '500',
+                    marginLeft: 6,
+                  }}>Appuyez pour agrandir</Text>
+                </View>
+              )}
+              {(isCompressing || isUploading) && (
+                <View style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(0,0,0,0.6)',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderRadius: 25,
+                }}>
+                  <ActivityIndicator size="large" color={Colors.white} />
+                  <Text style={{
+                    ...TextStyles.body,
+                    color: Colors.white,
+                    marginTop: 12,
+                    fontWeight: '600',
+                  }}>
+                    {isCompressing ? 'Compression...' : 'Upload en cours...'}
+                  </Text>
+                </View>
+              )}
+            </View>
+          ) : (isCompressing || isUploading) ? (
+            <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+              <ActivityIndicator size="large" color={Colors.primaryBorder} />
+              <Text style={{
+                ...TextStyles.body,
+                color: Colors.muted,
+                marginTop: 12,
+              }}>
+                {isCompressing ? 'Compression...' : 'Upload en cours...'}
+              </Text>
+            </View>
           ) : (
-            <Upload size={80} color={Colors.muted} />
+            <View style={{
+              width: '90%',
+              aspectRatio: 1,
+              borderWidth: 2,
+              borderColor: Colors.primaryBorder,
+              borderRadius: 20,
+              borderStyle: 'dashed',
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: 40,
+            }}>
+              <Upload size={80} color={Colors.primary} />
+              <Text style={{
+                ...TextStyles.h3Bold,
+                color: Colors.primaryBorder,
+                marginTop: 16,
+                textAlign: 'center',
+              }}>
+                Ajouter une photo
+              </Text>
+              <Text style={{
+                ...TextStyles.body,
+                color: Colors.muted,
+                marginTop: 8,
+                textAlign: 'center',
+              }}>
+                Appuyez pour sélectionner un média
+              </Text>
+            </View>
           )}
         </TouchableOpacity>
       </View>
 
-      <View style={{ position: 'absolute', width: '100%', bottom: 10 }}>
+      <View style={{ position: 'absolute', width: '100%', bottom: 0 }}>
         {dynamicStatus !== 'empty' ? (
           dynamicStatus !== 'done' ? (
             <View style={{ width: '100%', alignItems: 'center' }}>
@@ -289,7 +420,7 @@ export default function DefisInfos() {
                   backgroundColor: Colors.muted,
                   borderRadius: 8,
                   padding: 10,
-                  marginBottom: 16,
+                  marginBottom: 8,
                   width: '90%',
                   justifyContent: 'center',
                 }}
@@ -343,30 +474,74 @@ export default function DefisInfos() {
           <View style={{ width: '100%', alignItems: 'center' }}>
             <TouchableOpacity
               style={{
-                padding: 12,
+                paddingVertical: 16,
+                paddingHorizontal: 20,
                 backgroundColor: Colors.primary,
                 borderRadius: 10,
                 justifyContent: 'center',
                 alignItems: 'center',
                 flexDirection: 'row',
                 width: '90%',
-                marginBottom: 10,
+                marginBottom: 20,
                 gap: 10,
                 shadowColor: Colors.primaryBorder,
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.2,
                 shadowRadius: 3,
                 elevation: 3,
-                opacity: modifiedPicture ? 1 : 0.4
+                opacity: (modifiedPicture && !isUploading && !isCompressing) ? 1 : 0.4
               }}
               onPress={handleSendDefi}
-              disabled={!modifiedPicture}
+              disabled={!modifiedPicture || isUploading || isCompressing}
             >
               <Text style={{ ...TextStyles.button, color: Colors.white }}> Publier mon défi </Text> <LandPlot color="white" size={20} />
             </TouchableOpacity>
           </View>
         )}
       </View>
+
+      {proofImage && (
+        <Modal
+          visible={isModalVisible}
+          transparent={false}
+          animationType="fade"
+          onRequestClose={toggleModal}
+        >
+          <StatusBar hidden />
+          <View style={{
+            flex: 1,
+            backgroundColor: Colors.primaryBorder,
+            position: 'relative',
+          }}>
+            <TouchableOpacity
+              style={{
+                position: 'absolute',
+                top: 50,
+                right: 20,
+                zIndex: 1000,
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                backgroundColor: 'rgba(0,0,0,0.6)',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+              onPress={toggleModal}
+              activeOpacity={0.7}
+            >
+              <X size={24} color={Colors.white} />
+            </TouchableOpacity>
+
+            <ImageViewer
+              imageUrls={[{ url: proofImage }]}
+              index={0}
+              backgroundColor="transparent"
+              enableSwipeDown={true}
+              onSwipeDown={toggleModal}
+            />
+          </View>
+        </Modal>
+      )}
     </View>
   );
 }

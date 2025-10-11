@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, FlatList, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import Header from "../../components/header";
 import * as Linking from 'expo-linking';
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonRetour from "../../components/divers/boutonRetour";
 import { Phone } from "lucide-react-native";
 import { apiGet } from '@/constants/api/apiCalls';
@@ -43,10 +43,6 @@ export default function Contact() {
     }, [setUser]);
 
     useEffect(() => {
-        const loadAsyncFonts = async () => {
-            await loadFonts();
-        };
-        loadAsyncFonts();
         fetchContacts();
     }, [fetchContacts]);
 
@@ -112,7 +108,7 @@ export default function Contact() {
 
     return (
         <View style={styles.container}>
-            <Header refreshFunction={null} disableRefresh={null} />
+            <Header refreshFunction={null} disableRefresh={true} />
             <View style={styles.content}>
                 <BoutonRetour
                     previousRoute={"homeNavigator"}

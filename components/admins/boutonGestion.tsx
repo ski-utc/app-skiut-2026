@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
-import { Colors, Fonts, TextStyles } from '@/constants/GraphSettings';
+import { TextStyles } from '@/constants/GraphSettings';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronRight } from 'lucide-react-native';
 
@@ -9,12 +9,12 @@ interface BoutonGestionProps {
     subtitle: string;
     subtitleStyle?: object;
     nextRoute: string;
-    id: Int16Array;
+    id: number;
     valide: boolean;
 }
 
 const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, subtitleStyle, nextRoute, id, valide }) => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
 
     const handleGestionClick = () => {
         navigation.navigate(nextRoute, { id });

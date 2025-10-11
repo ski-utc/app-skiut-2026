@@ -4,7 +4,7 @@ import { useRoute } from '@react-navigation/native';
 import { X, Check, Trophy, Calendar, User, Image as ImageIcon, Maximize } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
@@ -13,13 +13,31 @@ import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 import ImageViewer from "react-native-image-zoom-viewer";
 
+interface ChallengeDetails {
+  id: number;
+  valid: number;
+  created_at: string;
+  user: {
+    firstName: string;
+    lastName: string;
+  };
+  challenge: {
+    title: string;
+    points: number;
+  };
+}
+
+interface RouteParams {
+  id: number;
+}
+
 export default function ValideDefis() {
   const route = useRoute();
-  const { id } = route.params;
+  const { id } = (route.params as RouteParams) || { id: 0 };
   const { setUser } = useUser();
   const navigation = useNavigation();
 
-  const [challengeDetails, setChallengeDetails] = useState(null);
+  const [challengeDetails, setChallengeDetails] = useState<ChallengeDetails | null>(null);
   const [proofImage, setProofImage] = useState("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg");
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -47,7 +65,7 @@ export default function ValideDefis() {
     }
   }, [id, setUser]);
 
-  const handleValidation = async (isValid, isDelete) => {
+  const handleValidation = async (isValid: number, isDelete: number) => {
     setLoading(true);
     try {
       const response = await apiPost(`updateChallengeStatus/${id}/${isValid}/${isDelete}`);
@@ -167,11 +185,6 @@ export default function ValideDefis() {
   };
 
   useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-
     fetchChallengeDetails();
   }, [fetchChallengeDetails]);
 

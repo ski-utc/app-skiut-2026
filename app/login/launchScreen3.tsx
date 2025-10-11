@@ -1,19 +1,11 @@
-import React, { useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet, SafeAreaView } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { ChevronLeft, Calendar, Map, LogIn, PartyPopper, Cookie } from 'lucide-react-native';
 
 export default function LaunchScreen3() {
   const navigation = useNavigation();
-
-  useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-  }, []);
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.backgroundDecoration} />

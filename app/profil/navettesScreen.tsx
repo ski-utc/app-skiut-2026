@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity, FlatList } from "react-native";
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { View, ActivityIndicator, StyleSheet, Text, FlatList } from "react-native";
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import BoutonRetour from "../../components/divers/boutonRetour";
 import { apiGet } from '@/constants/api/apiCalls';
@@ -175,11 +175,6 @@ export default function NavettesScreen() {
   }, [setUser]);
 
   useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-
     fetchNavettes();
   }, [fetchNavettes]);
 
@@ -214,7 +209,7 @@ export default function NavettesScreen() {
 
   return (
     <View style={styles.container}>
-      <Header refreshFunction={null} disableRefresh={null} />
+      <Header refreshFunction={null} disableRefresh={true} />
       <View style={styles.headerContainer}>
         <BoutonRetour previousRoute="homeNavigator" title="Vos Navettes" />
       </View>

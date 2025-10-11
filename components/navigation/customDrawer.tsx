@@ -1,25 +1,17 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, Image } from 'react-native';
-import { Colors, TextStyles, FontSizes, Fonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles, FontSizes } from '@/constants/GraphSettings';
 import {
-    User,
-    MapPin,
     Bus,
     Map,
-    Mountain,
-    X,
     Phone,
-    Zap,
-    Settings,
     LogOut,
     ChevronRight,
-    PhoneCall,
     Gauge,
     Heart,
     UserRoundCheck
 } from 'lucide-react-native';
 import { useUser } from '@/contexts/UserContext';
-import { DrawerContentScrollView } from '@react-navigation/drawer';
 
 interface CustomDrawerProps {
     navigation: any;

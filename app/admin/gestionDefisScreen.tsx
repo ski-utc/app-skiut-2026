@@ -5,7 +5,7 @@ import Header from '../../components/header';
 import BoutonGestion from '@/components/admins/boutonGestion';
 import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
 import { useNavigation } from '@react-navigation/native';
 import { Trophy, Clock, CheckCircle } from 'lucide-react-native';
@@ -100,11 +100,7 @@ const GestionDefisScreen = () => {
   };
 
   useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-    fetchAdminDefis();
+fetchAdminDefis();
     const unsubscribe = navigation.addListener('focus', () => {
       fetchAdminDefis();
     });

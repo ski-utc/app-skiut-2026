@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Image, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Heart, Sparkles, MapPin, MessageCircle } from 'lucide-react-native';
@@ -15,14 +15,6 @@ export default function MatchScreen() {
 
     const [myRoomImage, setMyRoomImage] = useState(myImage);
     const [otherRoomImage, setOtherRoomImage] = useState(roomImage);
-
-    useEffect(() => {
-        const loadAsyncFonts = async () => {
-            await loadFonts();
-        };
-        loadAsyncFonts();
-    }, []);
-
     if (!myImage || !roomImage || !roomNumber) {
         navigation.goBack();
         return null;

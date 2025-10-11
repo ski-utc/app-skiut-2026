@@ -1,33 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { Text, View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { Colors, Fonts, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import React, { useState, useCallback } from 'react';
+import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { GanttChart, Bell, RotateCcw } from 'lucide-react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import NotificationPopup from '@/app/notificationPopUp';
 import { useUser } from '@/contexts/UserContext';
 
-//@ts-ignore
-export default function Header({ refreshFunction, disableRefresh }) {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
+interface HeaderProps {
+  refreshFunction?: (() => void) | null;
+  disableRefresh?: boolean;
+}
+
+const Header: React.FC<HeaderProps> = React.memo(({ refreshFunction, disableRefresh = false }) => {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const { user } = useUser();
   const navigation = useNavigation();
 
-  useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-      setFontsLoaded(true);
-    };
-    loadAsyncFonts();
+  const handleMenuPress = useCallback(() => {
+    navigation.dispatch(DrawerActions.openDrawer());
+  }, [navigation]);
+
+  const handleBellPress = useCallback(() => {
+    setIsPopupVisible(true);
   }, []);
 
-  const handleMenuPress = () => {
-    navigation.dispatch(DrawerActions.openDrawer());
-  };
-
-  if (!fontsLoaded) {
-    return null;
-  }
+  const handleClosePopup = useCallback(() => {
+    setIsPopupVisible(false);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -66,13 +65,17 @@ export default function Header({ refreshFunction, disableRefresh }) {
           <RotateCcw size={20} color={Colors.primaryBorder} />
         </TouchableOpacity>
       }
-      <TouchableOpacity style={styles.bellButton} onPress={() => setIsPopupVisible(true)}>
+      <TouchableOpacity style={styles.bellButton} onPress={handleBellPress}>
         <Bell size={20} color={Colors.primaryBorder} />
       </TouchableOpacity>
-      <NotificationPopup visible={isPopupVisible} onClose={() => setIsPopupVisible(false)} />
+      <NotificationPopup visible={isPopupVisible} onClose={handleClosePopup} />
     </View>
   );
-}
+});
+
+Header.displayName = 'Header';
+
+export default Header;
 
 const styles = StyleSheet.create({
   container: {

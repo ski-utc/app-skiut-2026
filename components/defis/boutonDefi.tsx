@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { Colors, Fonts, TextStyles } from '@/constants/GraphSettings';
+import { TextStyles } from '@/constants/GraphSettings';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronRight, Check } from 'lucide-react-native';
 

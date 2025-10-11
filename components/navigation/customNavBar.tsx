@@ -1,19 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react-native';
 
 // @ts-ignore
 export default function CustomNavBar({ state, navigation }) {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
-
-  useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-      setFontsLoaded(true);
-    };
-    loadAsyncFonts();
-  }, []);
 
   const activeColor = Colors.primary
   const unactiveColor = Colors.muted;
@@ -24,18 +15,6 @@ export default function CustomNavBar({ state, navigation }) {
     { name: 'defisNavigator', label: 'Défi', Icon: LandPlot },
     { name: 'anecdotesNavigator', label: 'Anecdotes', Icon: MessageSquareText },
   ];
-
-  if (!fontsLoaded) {
-    return (
-      <View
-        style={{
-          width: '100%',
-          height: 70,
-          backgroundColor: Colors.white,
-        }}
-      />
-    );
-  }
 
   return (
     <View

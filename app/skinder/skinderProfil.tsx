@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert, TextInput, KeyboardAvoidingView, ScrollView, Platform, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from "expo-image-manipulator";
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import { useNavigation } from '@react-navigation/native';
@@ -10,7 +10,7 @@ import BoutonRetour from '@/components/divers/boutonRetour';
 import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import Toast from 'react-native-toast-message';
-import { Camera, User, Heart, Save, X } from 'lucide-react-native';
+import { Camera, Save, X } from 'lucide-react-native';
 
 export default function SkinderProfil() {
   const [profile, setProfile] = useState({
@@ -27,15 +27,7 @@ export default function SkinderProfil() {
 
   const { setUser } = useUser();
   const navigation = useNavigation();
-
-  useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-  }, []);
-
-  const fetchProfil = useCallback(async () => {
+const fetchProfil = useCallback(async () => {
     setLoading(true);
     try {
       const response = await apiGet('getMyProfilSkinder');

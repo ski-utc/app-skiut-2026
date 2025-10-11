@@ -6,7 +6,7 @@ import BoutonGestion from '@/components/admins/boutonGestion';
 import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useNavigation } from '@react-navigation/native';
 import { MessageSquare, AlertTriangle, Clock, CheckCircle } from 'lucide-react-native';
 
@@ -99,11 +99,7 @@ const GestionAnecdotesScreen = () => {
   };
 
   useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-    fetchAdminAnecdotes();
+fetchAdminAnecdotes();
     const unsubscribe = navigation.addListener('focus', () => {
       fetchAdminAnecdotes();
     });

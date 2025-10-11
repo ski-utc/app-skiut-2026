@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView } from "rea
 import { useNavigation } from '@react-navigation/native';
 import Header from "../../../components/header";
 import BoutonRetour from "../../../components/divers/boutonRetour";
-import { Colors, TextStyles, loadFonts } from "@/constants/GraphSettings";
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { Trophy, Play, Square, Zap, MapPin, Timer } from "lucide-react-native";
 import * as Location from "expo-location";
 import { apiPost } from "@/constants/api/apiCalls";
@@ -21,14 +21,6 @@ export default function VitesseDeGlisseScreen() {
 
     const { user } = useUser();
     const navigation = useNavigation();
-
-    useEffect(() => {
-        const loadAsyncFonts = async () => {
-            await loadFonts();
-        };
-        loadAsyncFonts();
-    }, []);
-
     useEffect(() => {
         return () => {
             if (subscription) subscription.remove();
@@ -216,7 +208,7 @@ export default function VitesseDeGlisseScreen() {
 
     return (
         <View style={styles.container}>
-            <Header refreshFunction={null} disableRefresh={null} />
+            <Header refreshFunction={null} disableRefresh={true} />
             <View style={styles.headerContainer}>
                 <BoutonRetour previousRoute={"homeNavigator"} title={"Vitesse de glisse"} />
             </View>

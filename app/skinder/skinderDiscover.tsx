@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { StyleSheet, View, Image, Text, ActivityIndicator, Animated, TouchableOpacity, ScrollView } from 'react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Heart, X, HeartCrack, User, MessageCircle, Settings, Sparkles } from 'lucide-react-native';
+import { Heart, X, User, MessageCircle, Settings } from 'lucide-react-native';
 import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useNavigation } from '@react-navigation/native';
@@ -28,15 +28,7 @@ export default function SkinderDiscover() {
     const cardOpacity = useRef(new Animated.Value(1)).current;
     const likeOpacity = useRef(new Animated.Value(0)).current;
     const dislikeOpacity = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-        const loadAsyncFonts = async () => {
-            await loadFonts();
-        };
-        loadAsyncFonts();
-    }, []);
-
-    const handleGesture = Animated.event(
+const handleGesture = Animated.event(
         [{ nativeEvent: { translationX: translateX } }],
         { useNativeDriver: false }
     );

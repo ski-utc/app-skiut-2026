@@ -4,22 +4,38 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { X, Check, MessageSquare, Calendar, User, Heart, AlertTriangle } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 import Toast from 'react-native-toast-message';
 
+interface AnecdoteDetails {
+  id: number;
+  text: string;
+  valid: number;
+  created_at: string;
+  user: {
+    firstName: string;
+    lastName: string;
+    room: string;
+  };
+}
+
+interface RouteParams {
+  id: number;
+}
+
 export default function ValideAnecdotes() {
   const route = useRoute();
-  const { id } = route.params;
+  const { id } = (route.params as RouteParams) || { id: 0 };
   const { setUser } = useUser();
   const navigation = useNavigation();
 
-  const [anecdoteDetails, setAnecdoteDetails] = useState(null);
-  const [nbLikes, setNbLikes] = useState(null);
-  const [nbWarns, setNbWarns] = useState(null);
+  const [anecdoteDetails, setAnecdoteDetails] = useState<AnecdoteDetails | null>(null);
+  const [nbLikes, setNbLikes] = useState<number | null>(null);
+  const [nbWarns, setNbWarns] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -45,15 +61,15 @@ export default function ValideAnecdotes() {
     }
   }, [id, setUser]);
 
-  const handleValidation = async (isValid) => {
+  const handleValidation = async (isValid: number) => {
     setLoading(true);
     try {
       const response = await apiPost(`updateAnecdoteStatus/${id}/${isValid}`);
       if (response.success) {
-        setAnecdoteDetails(prevDetails => ({
+        setAnecdoteDetails(prevDetails => prevDetails ? ({
           ...prevDetails,
           valid: isValid,
-        }));
+        }) : null);
 
         Toast.show({
           type: 'success',
@@ -82,11 +98,6 @@ export default function ValideAnecdotes() {
 
 
   useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-
     fetchAnecdoteDetails();
   }, [fetchAnecdoteDetails]);
 
@@ -159,7 +170,7 @@ export default function ValideAnecdotes() {
           <View style={styles.infoRow}>
             <AlertTriangle size={16} color={Colors.error} />
             <Text style={styles.infoLabel}>Signalements :</Text>
-            <Text style={[styles.infoValue, nbWarns > 0 && styles.warningText]}>{nbWarns}</Text>
+            <Text style={[styles.infoValue, (nbWarns ?? 0) > 0 && styles.warningText]}>{nbWarns}</Text>
           </View>
         </View>
 
@@ -174,7 +185,6 @@ export default function ValideAnecdotes() {
           <BoutonActiver
             title="Désactiver l'anecdote"
             IconComponent={X}
-            disabled={anecdoteDetails?.valid === 0}
             color={Colors.error}
             onPress={() => handleValidation(0)}
           />

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard, Pressable, StyleSheet } from 'react-native';
 import Checkbox from 'expo-checkbox';
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '@/contexts/UserContext';
@@ -50,14 +50,6 @@ export default function AnecdotesForm() {
       }
     }
   };
-
-  useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-  }, []);
-
   const handleCheckboxPress = () => {
     setChecked(!isChecked);
     Keyboard.dismiss();

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { Colors, TextStyles } from '@/constants/GraphSettings';
+import { TextStyles } from '@/constants/GraphSettings';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronRight } from 'lucide-react-native';
 
@@ -10,7 +10,7 @@ interface BoutonAdminProps {
 }
 
 const BoutonAdmin: React.FC<BoutonAdminProps> = ({ nextRoute, title }) => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
 
     const onPress = () => {
         navigation.navigate(nextRoute);

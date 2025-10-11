@@ -1,8 +1,8 @@
-import { Text, View, ScrollView, ActivityIndicator, Dimensions, StyleSheet, FlatList } from "react-native";
+import { Text, View, ActivityIndicator, Dimensions, StyleSheet, FlatList } from "react-native";
 import Header from "../../components/header";
 import React, { useState, useEffect } from "react";
-import { Colors, TextStyles, Fonts, loadFonts } from '@/constants/GraphSettings';
-import { Crown, Trophy, Medal, Award } from "lucide-react-native";
+import { Colors, TextStyles, Fonts } from '@/constants/GraphSettings';
+import { Crown, Trophy, Medal } from "lucide-react-native";
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from "@/components/pages/errorPage";
@@ -187,11 +187,7 @@ export default function DefisClassement() {
 
     useEffect(() => {
         fetchClassement();
-        const loadAsyncFonts = async () => {
-            await loadFonts();
-        };
-        loadAsyncFonts();
-    }, []);
+}, []);
 
     const fetchClassement = async () => {
         setLoading(true);

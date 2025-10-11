@@ -1,32 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet, ActivityIndicator, SafeAreaView } from 'react-native';
+import React from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Colors, loadFonts, TextStyles } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { ChevronRight, Sparkles } from 'lucide-react-native';
 
 export default function LaunchScreen1() {
   const navigation = useNavigation();
-
-  const screenHeight = Dimensions.get("window").height;
-  const imageWidth = 0.4 * screenHeight;
-
-  const [fontsLoaded, setFontsLoaded] = useState(false);
-
-  useEffect(() => {
-    async function load() {
-      await loadFonts();
-      setFontsLoaded(true);
-    }
-    load();
-  }, []);
-
-  if (!fontsLoaded) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -86,12 +65,6 @@ export default function LaunchScreen1() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: Colors.white,
   },
   backgroundDecoration: {

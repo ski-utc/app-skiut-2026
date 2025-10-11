@@ -26,17 +26,64 @@ function MainTabs() {
 
   useEffect(() => {
     if (Platform.OS !== 'ios') {
-      Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
-      Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+      const showListener = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+      const hideListener = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+
+      return () => {
+        showListener.remove();
+        hideListener.remove();
+      };
     }
   }, []);
+
+  const tabBarComponent = React.useCallback(
+    (props: any) => (!keyboardVisible ? <CustomNavBar {...props} /> : null),
+    [keyboardVisible]
+  );
+
+  const planningListeners = React.useMemo(
+    () => ({
+      tabPress: (e: any, navigation: any) => {
+        e.preventDefault();
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'planningNavigator' }],
+        });
+      },
+    }),
+    []
+  );
+
+  const defisListeners = React.useMemo(
+    () => ({
+      tabPress: (e: any, navigation: any) => {
+        e.preventDefault();
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'defisNavigator' }],
+        });
+      },
+    }),
+    []
+  );
+
+  const anecdotesListeners = React.useMemo(
+    () => ({
+      tabPress: (e: any, navigation: any) => {
+        e.preventDefault();
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'anecdotesNavigator' }],
+        });
+      },
+    }),
+    []
+  );
 
   return (
     <Tab.Navigator
       screenOptions={{ headerShown: false }}
-      tabBar={(props) =>
-        !keyboardVisible ? <CustomNavBar {...props} /> : null
-      }
+      tabBar={tabBarComponent}
     >
       <Tab.Screen
         name="homeNavigator"
@@ -51,13 +98,7 @@ function MainTabs() {
           tabBarIcon: CalendarFold,
         }}
         listeners={({ navigation }) => ({
-          tabPress: (e) => {
-            e.preventDefault();
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'planningNavigator' }],
-            });
-          },
+          tabPress: (e) => planningListeners.tabPress(e, navigation),
         })}
       />
       <Tab.Screen
@@ -68,13 +109,7 @@ function MainTabs() {
           tabBarIcon: LandPlot,
         }}
         listeners={({ navigation }) => ({
-          tabPress: (e) => {
-            e.preventDefault();
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'defisNavigator' }],
-            });
-          },
+          tabPress: (e) => defisListeners.tabPress(e, navigation),
         })}
       />
       <Tab.Screen
@@ -82,13 +117,7 @@ function MainTabs() {
         component={AnecdotesNavigator}
         options={{ tabBarLabel: 'Anecdotes', tabBarIcon: MessageSquareText }}
         listeners={({ navigation }) => ({
-          tabPress: (e) => {
-            e.preventDefault();
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'anecdotesNavigator' }],
-            });
-          },
+          tabPress: (e) => anecdotesListeners.tabPress(e, navigation),
         })}
       />
       <Tab.Screen

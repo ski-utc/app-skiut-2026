@@ -4,7 +4,7 @@ import Header from "../../components/header";
 import { Trophy, ChevronRight, Check, X, ListTodo, Hourglass } from 'lucide-react-native';
 import BoutonNavigationLarge from "@/components/divers/boutonNavigationLarge";
 import BoutonRetour from "@/components/divers/boutonRetour";
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { apiGet } from "@/constants/api/apiCalls";
 import ErrorScreen from '@/components/pages/errorPage';
 import { useNavigation } from 'expo-router';
@@ -122,11 +122,7 @@ export default function Defis() {
   };
 
   useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-    fetchChallenges();
+fetchChallenges();
     const unsubscribe = navigation.addListener('focus', () => {
       fetchChallenges();
     });

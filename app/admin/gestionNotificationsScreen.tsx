@@ -7,7 +7,7 @@ import { apiGet } from '@/constants/api/apiCalls';
 import { useNavigation } from '@react-navigation/native';
 import ErrorScreen from '@/components/pages/errorPage';
 import { Bell, PenLine, Send, CheckCircle, Clock, AlertTriangle } from 'lucide-react-native';
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
 
 interface FilterButtonProps {
@@ -99,11 +99,7 @@ const GestionNotificationsScreen = () => {
   }, [setUser]);
 
   useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-    fetchAdminNotifications();
+fetchAdminNotifications();
     const unsubscribe = navigation.addListener('focus', () => {
       fetchAdminNotifications();
     });

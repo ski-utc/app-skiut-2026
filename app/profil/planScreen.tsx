@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Image, StyleSheet, TouchableOpacity, Text, ScrollView, Linking, Modal, StatusBar } from 'react-native';
 import { WebView } from 'react-native-webview';
 import ImageViewer from "react-native-image-zoom-viewer";
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '../../components/header';
 import BoutonRetour from '../../components/divers/boutonRetour';
 import { Link, Download, Webcam, Map, Mountain, MapPin, Navigation, X, Maximize } from 'lucide-react-native';
@@ -13,14 +13,6 @@ export default function PlanScreen() {
   const pisteImage = require("../../assets/images/plan-grandvalira.jpg");
 
   const openStreetMapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=1.7233%2C42.5342%2C1.7433%2C42.5542&layer=mapnik&marker=42.5442%2C1.7333&zoom=17`;
-
-  useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-  }, []);
-
   const toggleImageModal = () => {
     setIsImageModalVisible(!isImageModalVisible);
   };

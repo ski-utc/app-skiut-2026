@@ -1,5 +1,5 @@
 import { View, StyleSheet, Text, FlatList, ActivityIndicator, TouchableOpacity } from "react-native";
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import React, { useState, useCallback, useEffect } from 'react';
 import Header from "@/components/header";
 import ErrorScreen from "@/components/pages/errorPage";
@@ -117,11 +117,7 @@ export default function PlanningScreen() {
   }, [setUser, selectedDate]);
 
   useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-    fetchPlanning();
+fetchPlanning();
   }, [fetchPlanning]);
 
   const handleDatePress = useCallback(

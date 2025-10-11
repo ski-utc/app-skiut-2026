@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, ActivityIndicator, FlatList, TouchableOpacity, StyleSheet, Modal, ScrollView, Image, StatusBar } from 'react-native';
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
-import { MessageCircle, Heart, User, Sparkles, Eye, X, Trophy } from 'lucide-react-native';
+import { Heart, User, Sparkles, Eye, X, Trophy } from 'lucide-react-native';
 
 export default function SkinderMyMatches() {
   const [loading, setLoading] = useState(false);
@@ -14,7 +14,8 @@ export default function SkinderMyMatches() {
   const [matchedRooms, setMatchedRooms] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_selectedRoom, setSelectedRoom] = useState<any>(null);
   const [roomDetails, setRoomDetails] = useState({
     id: null,
     roomNumber: '',
@@ -32,15 +33,7 @@ export default function SkinderMyMatches() {
     }
   });
   const { setUser } = useUser();
-
-  useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-  }, []);
-
-  const fetchMatches = useCallback(async () => {
+const fetchMatches = useCallback(async () => {
     setLoading(true);
     try {
       const response = await apiGet('getMySkinderMatches');

@@ -6,7 +6,7 @@ import * as SecureStore from "expo-secure-store";
 import { useUser } from "@/contexts/UserContext";
 import * as config from "../../constants/api/apiConfig";
 import { apiGet } from "@/constants/api/apiCalls";
-import { Colors, Fonts, TextStyles } from "@/constants/GraphSettings";
+import { Colors, TextStyles } from "@/constants/GraphSettings";
 import { useNavigation } from '@react-navigation/native';
 
 export default function OAuthScreen() {
@@ -24,8 +24,12 @@ export default function OAuthScreen() {
     if (canEnter && hostname === config.DOMAIN && path === "skiutc/api/connected") {
       setCanEnter(false);
 
-      const accessToken = queryParams?.access_token;
-      const refreshToken = queryParams?.refresh_token;
+      const accessToken = Array.isArray(queryParams?.access_token)
+        ? queryParams.access_token[0]
+        : queryParams?.access_token;
+      const refreshToken = Array.isArray(queryParams?.refresh_token)
+        ? queryParams.refresh_token[0]
+        : queryParams?.refresh_token;
 
       if (accessToken && refreshToken) {
         try {
@@ -46,12 +50,12 @@ export default function OAuthScreen() {
             setWebViewVisible(false);
             setError(`Une erreur est survenue lors de la récupération du user : ${response.message}`);
           }
-        } catch (err) {
-          if (err.JWT_ERROR) {
+        } catch (err: any) {
+          if (err?.JWT_ERROR) {
             setUser(null);
           } else {
             setWebViewVisible(false);
-            setError(err.message);
+            setError(err?.message || 'Une erreur est survenue');
           }
         }
       } else {
@@ -61,8 +65,10 @@ export default function OAuthScreen() {
       }
     } else if (hostname === config.DOMAIN && path === "skiutc/api/notConnected") {
       setWebViewVisible(false);
-      const message = queryParams?.message;
-      setError(message);
+      const message = Array.isArray(queryParams?.message)
+        ? queryParams.message[0]
+        : queryParams?.message;
+      setError(message || 'Erreur de connexion');
     }
   };
 

@@ -1,12 +1,16 @@
 import React from 'react';
 import { Text, TouchableOpacity } from 'react-native';
-import { Colors, Fonts, TextStyles } from '@/constants/GraphSettings';
+import { TextStyles } from '@/constants/GraphSettings';
 import { ChevronLeft } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
-// @ts-ignore
-export default function BoutonRetour({ previousRoute, title }) {
-    const navigation = useNavigation();
+interface BoutonRetourProps {
+    previousRoute?: string;
+    title: string;
+}
+
+export default function BoutonRetour({ previousRoute, title }: BoutonRetourProps) {
+    const navigation = useNavigation<any>();
     const route = useRoute();
 
     const onPress = () => {
@@ -14,6 +18,7 @@ export default function BoutonRetour({ previousRoute, title }) {
     };
 
     const onLongPress = () => {
+        // @ts-ignore - Navigation emit is not typed
         navigation.emit({
             type: 'tabLongPress',
             target: route.key,

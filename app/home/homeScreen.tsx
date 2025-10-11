@@ -1,5 +1,5 @@
 import { Text, View, ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, Linking, Dimensions, Animated } from "react-native";
-import { Colors, FontSizes, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, FontSizes, TextStyles } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { apiPost, apiGet } from '@/constants/api/apiCalls';
@@ -9,7 +9,7 @@ import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import ErrorScreen from "@/components/pages/errorPage";
-import { Calendar, Trophy, MessageCircle, Bug, ChevronRight, MapPin, Thermometer, Wind, Droplets, Sun, Cloud, CloudRain, CloudSnow, Moon, CloudMoon, CloudLightning, CloudDrizzle, Eye, Zap, CloudFog, CloudMoonRain } from 'lucide-react-native';
+import { Calendar, Trophy, MessageCircle, Bug, ChevronRight, MapPin, Thermometer, Wind, Droplets, Sun, Cloud, CloudRain, CloudSnow, Moon, CloudMoon, CloudLightning, CloudDrizzle, CloudFog, CloudMoonRain } from 'lucide-react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 
 interface WeatherWidgetProps {
@@ -246,10 +246,10 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
 
 interface WidgetCardProps {
   title: string;
-  subtitles: Array<{
+  subtitles: {
     text: string;
     link?: string;
-  }>;
+  }[];
   icon: React.ComponentType<any>;
   onPress?: () => void;
   variant?: 'primary' | 'secondary' | 'white';
@@ -420,13 +420,7 @@ export default function HomeScreen() {
     };
 
     registerForPushNotifications();
-
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-
-    fetchData();
+fetchData();
   }, [fetchData, setUser]);
 
   if (error) {

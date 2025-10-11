@@ -4,7 +4,7 @@ import { useRoute } from '@react-navigation/native';
 import { Trash, Check, Bell, Calendar, Users } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
@@ -12,14 +12,27 @@ import { useUser } from '@/contexts/UserContext';
 import { useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 
+interface NotificationDetails {
+  id: number;
+  title: string;
+  description: string;
+  created_at: string;
+  general: number;
+  display: number;
+}
+
+interface RouteParams {
+  id: number;
+}
+
 export default function ValideNotifications() {
   const route = useRoute();
   const navigation = useNavigation();
 
-  const { id } = route.params;
+  const { id } = (route.params as RouteParams) || { id: 0 };
   const { setUser } = useUser();
 
-  const [notificationDetails, setNotificationDetails] = useState(null);
+  const [notificationDetails, setNotificationDetails] = useState<NotificationDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -43,7 +56,7 @@ export default function ValideNotifications() {
     }
   }, [id, setUser]);
 
-  const handleDelete = async (displayFlag) => {
+  const handleDelete = async (displayFlag: number) => {
     setLoading(true);
     try {
       const response = await apiPost(`displayNotification/${id}/${displayFlag}`);
@@ -82,11 +95,6 @@ export default function ValideNotifications() {
   };
 
   useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-
     fetchNotificationDetails();
   }, [fetchNotificationDetails]);
 
@@ -162,7 +170,6 @@ export default function ValideNotifications() {
           <BoutonActiver
             title="Désactiver la notification"
             IconComponent={Trash}
-            disabled={notificationDetails?.display === 1}
             color={Colors.error}
             onPress={() => handleDelete(1)}
           />

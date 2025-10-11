@@ -6,7 +6,7 @@ import Header from '../../components/header';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '@/contexts/UserContext';
-import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { ChevronRight, Shield, MessageSquare, Trophy, Bell } from 'lucide-react-native';
 
 interface BoutonAdminProps {
@@ -88,12 +88,7 @@ export default function Admin() {
   }, [navigation, setUser]);
 
   useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-
-    fetchAdmin();
+fetchAdmin();
   }, [fetchAdmin]);
 
   if (error !== '') {

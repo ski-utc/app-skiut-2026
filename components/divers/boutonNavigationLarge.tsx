@@ -3,9 +3,14 @@ import { Text, TouchableOpacity } from 'react-native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
-// @ts-ignore
-export default function BoutonNavigationLarge({ nextRoute, title, IconComponent }) {
-    const navigation = useNavigation();
+interface BoutonNavigationLargeProps {
+    nextRoute?: string;
+    title: string;
+    IconComponent?: any;
+}
+
+export default function BoutonNavigationLarge({ nextRoute, title, IconComponent }: BoutonNavigationLargeProps) {
+    const navigation = useNavigation<any>();
     const route = useRoute();
 
     const onPress = () => {
@@ -17,6 +22,7 @@ export default function BoutonNavigationLarge({ nextRoute, title, IconComponent 
     };
 
     const onLongPress = () => {
+        // @ts-ignore - Navigation emit is not typed
         navigation.emit({
             type: 'tabLongPress',
             target: route.key,

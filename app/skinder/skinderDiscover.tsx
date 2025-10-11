@@ -164,6 +164,9 @@ export default function SkinderDiscover() {
     const fetchProfil = useCallback(async () => {
         setDisableRefresh(true);
         setLoading(true);
+        setNoPhoto(false);
+        setTooMuch(false);
+        setDisableButton(false);
 
         try {
             const response = await apiGet('getProfilSkinder');
@@ -460,7 +463,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     card: {
-        width: '90%',
+        width: '95%',
         height: '90%',
         backgroundColor: Colors.white,
         borderRadius: 20,
@@ -489,7 +492,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
     },
     profileName: {
-        ...TextStyles.h2Bold,
+        ...TextStyles.h3Bold,
         color: Colors.white,
     },
     profileInfo: {

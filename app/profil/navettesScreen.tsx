@@ -140,7 +140,6 @@ export default function NavettesScreen() {
     setLoading(true);
     try {
       const response = await apiGet('getNavettes');
-      console.log(response.data);
       if (response.success) {
         const map: { [key: string]: any[] } = {
           Aller: [],

@@ -252,7 +252,7 @@ interface WidgetCardProps {
   }>;
   icon: React.ComponentType<any>;
   onPress?: () => void;
-  variant?: 'primary' | 'white';
+  variant?: 'primary' | 'secondary' | 'white';
 }
 
 const WidgetCard: React.FC<WidgetCardProps> = ({
@@ -262,12 +262,31 @@ const WidgetCard: React.FC<WidgetCardProps> = ({
   onPress,
   variant = 'primary'
 }) => {
-  const backgroundColor = variant === 'primary' ? Colors.primary : Colors.white;
-  const textColor = variant === 'primary' ? Colors.white : Colors.primaryBorder;
-  const borderColor = variant === 'primary' ? Colors.primaryBorder : Colors.lightMuted;
-  const iconContainerBg = variant === 'primary'
+  const backgroundColor = variant === 'primary'
+    ? Colors.primary
+    : variant === 'secondary'
+      ? Colors.secondary
+      : Colors.white;
+
+  const textColor = variant === 'primary'
+    ? Colors.white
+    : variant === 'secondary'
+      ? Colors.white
+      : Colors.primaryBorder;
+
+  const borderColor = variant === 'primary'
+    ? Colors.primaryBorder
+    : variant === 'secondary'
+      ? Colors.secondaryBorder
+      : Colors.lightMuted;
+
+  const iconContainerBg = variant === 'primary' || variant === 'secondary'
     ? 'rgba(255, 255, 255, 0.2)'
     : Colors.lightMuted;
+
+  const iconColor = variant === 'primary' || variant === 'secondary'
+    ? Colors.white
+    : Colors.primary;
 
   return (
     <TouchableOpacity
@@ -276,7 +295,7 @@ const WidgetCard: React.FC<WidgetCardProps> = ({
         {
           backgroundColor,
           borderColor,
-          borderWidth: variant === 'primary' ? 0 : 1
+          borderWidth: variant === 'primary' || variant === 'secondary' ? 0 : 1
         }
       ]}
       onPress={onPress}
@@ -287,7 +306,7 @@ const WidgetCard: React.FC<WidgetCardProps> = ({
         <View style={[styles.widgetIconContainer, { backgroundColor: iconContainerBg }]}>
           <IconComponent
             size={24}
-            color={variant === 'primary' ? Colors.white : Colors.primary}
+            color={iconColor}
             strokeWidth={2}
           />
         </View>
@@ -581,11 +600,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   weatherTemp: {
-    ...TextStyles.h1,
+    ...TextStyles.h1Bold,
     color: Colors.primaryBorder,
     marginBottom: 6,
     fontSize: 32,
-    fontWeight: '700',
   },
   weatherCondition: {
     ...TextStyles.bodyLarge,
@@ -632,11 +650,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   weatherHourlyTitle: {
-    ...TextStyles.h4,
+    ...TextStyles.h4Bold,
     color: Colors.primaryBorder,
     marginBottom: 8,
     fontSize: FontSizes.large,
-    fontWeight: '600',
   },
   weatherHourlyGrid: {
     flexDirection: 'row',

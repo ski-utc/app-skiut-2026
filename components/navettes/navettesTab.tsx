@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
-import { Colors } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 
 interface NavettesTabProps {
@@ -24,19 +24,19 @@ const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap, defaultType, isA
     const getColorFromString = (colorString) => {
         switch (colorString) {
             case 'Blue':
-                return Colors.blue;
+                return Colors.primary;
             case 'Green':
-                return Colors.green;
+                return Colors.success;
             case 'Red':
-                return Colors.red;
+                return Colors.error;
             case 'Yellow':
-                return Colors.yellow;
+                return '#FFC107';
             case 'Violet':
-                return Colors.violet;
+                return '#7E57C2';
             case 'Orange':
-                return Colors.lightOrange;
+                return Colors.accent;
             default:
-                return Colors.black; // Default to black if the color isn't found
+                return Colors.primaryBorder;
         }
     };
 
@@ -51,13 +51,13 @@ const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap, defaultType, isA
                                 key={index}
                                 style={[
                                     styles.button,
-                                    { backgroundColor: isSelected ? Colors.orange : Colors.white }
+                                    { backgroundColor: isSelected ? Colors.accent : Colors.white }
                                 ]}
                                 onPress={() => handlePress(type as "Aller" | "Retour")}
                             >
                                 <Text style={[
                                     styles.buttonText,
-                                    { color: isSelected ? Colors.white : Colors.black }
+                                    { color: isSelected ? Colors.white : Colors.primaryBorder }
                                 ]}>
                                     {type.toUpperCase()}
                                 </Text>
@@ -81,7 +81,7 @@ const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap, defaultType, isA
                                             Départ : {item.horaire_depart} | Arrivée : {item.horaire_arrivee}
                                         </Text>
                                         <Text style={[styles.navetteCouleurText, { color: getColorFromString(item.colour) }]}>
-                                            Couleur : {item.colour} 
+                                            Couleur : {item.colour}
                                         </Text>
 
                                     </View>
@@ -90,7 +90,7 @@ const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap, defaultType, isA
                             style={styles.navettesList}
                         />
                     </View>
-                )} 
+                )}
                 {selectedType === "Aller" && isAllerEmpty && (
                     <Text style={styles.emptyText}>Tu ne viens pas en bus. Contacte la team log si c'est une erreur. </Text>
 
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
         height: 60,
         borderRadius: 12,
         borderWidth: 2,
-        borderColor: Colors.orange,
+        borderColor: Colors.accent,
         alignSelf: "center"
     },
     button: {
@@ -135,9 +135,8 @@ const styles = StyleSheet.create({
         alignItems: "center"
     },
     buttonText: {
-        fontSize: 16,
-        fontFamily: "Inter",
-        fontWeight: "600"
+        ...TextStyles.body,
+        fontWeight: '600',
     },
     navettesContainer: {
         flex: 1,
@@ -155,7 +154,7 @@ const styles = StyleSheet.create({
         paddingTop: 12,
         paddingBottom: 12,
         borderBottomWidth: 1,
-        borderBottomColor: Colors.customGray,
+        borderBottomColor: Colors.lightMuted,
         justifyContent: 'center',
         alignItems: 'flex-start',
         flexDirection: 'row'
@@ -173,27 +172,22 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start'
     },
     navetteText: {
-        color: Colors.black,
-        fontSize: 16,
-        fontFamily: 'Inter',
-        fontWeight: '600'
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+        fontWeight: '600',
     },
     navetteTimeText: {
-        color: Colors.gray,
-        fontSize: 14,
-        fontFamily: 'Inter',
-        fontWeight: '400'
+        ...TextStyles.small,
+        color: Colors.muted,
     },
     navetteCouleurText: {
-        fontSize: 14,
-        fontFamily: 'Bold',
-        fontWeight: '500'
-    }, 
+        ...TextStyles.small,
+        fontWeight: '500',
+    },
     emptyText: {
+        ...TextStyles.body,
         textAlign: "center",
-        color: Colors.gray,
-        fontSize: 16,
-        fontFamily: "Inter",
+        color: Colors.muted,
         fontWeight: "600",
         marginTop: 20
     }

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator } from 'react-native';
+import { Text, View, StyleSheet, ActivityIndicator, ScrollView, SafeAreaView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { Trash, Check } from 'lucide-react-native'; // Import Check icon
+import { Trash, Check, Bell, Calendar, Users } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
@@ -12,18 +12,30 @@ import { useUser } from '@/contexts/UserContext';
 import { useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 
+interface NotificationDetails {
+  id: number;
+  title: string;
+  description: string;
+  created_at: string;
+  general: number;
+  display: number;
+}
+
+interface RouteParams {
+  id: number;
+}
+
 export default function ValideNotifications() {
   const route = useRoute();
   const navigation = useNavigation();
-  
-  const { id } = route.params; // Get the notification ID from route params
+
+  const { id } = (route.params as RouteParams) || { id: 0 };
   const { setUser } = useUser();
 
-  const [notificationDetails, setNotificationDetails] = useState(null);
+  const [notificationDetails, setNotificationDetails] = useState<NotificationDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Fetch notification details
   const fetchNotificationDetails = useCallback(async () => {
     setLoading(true);
     try {
@@ -33,7 +45,7 @@ export default function ValideNotifications() {
       } else {
         setError('Erreur lors de la récupération des détails de la notification');
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -44,13 +56,12 @@ export default function ValideNotifications() {
     }
   }, [id, setUser]);
 
-  // Handle notification deletion or recovery
-  const handleDelete = async (deleteFlag) => {
+  const handleDelete = async (displayFlag: number) => {
     setLoading(true);
     try {
-      const response = await apiPost(`deleteNotification/${id}/${deleteFlag}`);
+      const response = await apiPost(`displayNotification/${id}/${displayFlag}`);
       if (response.success) {
-        if (deleteFlag === 1) { // If notification is deleted
+        if (displayFlag === 1) {
           Toast.show({
             type: 'success',
             text1: 'Notification désactivée !',
@@ -60,7 +71,7 @@ export default function ValideNotifications() {
         } else {
           Toast.show({
             type: 'success',
-            text1: 'Notification envoyée !',
+            text1: 'Notification réactivée !',
             text2: response.message,
           });
           navigation.goBack();
@@ -72,7 +83,7 @@ export default function ValideNotifications() {
           text2: response.message,
         });
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -84,11 +95,6 @@ export default function ValideNotifications() {
   };
 
   useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-
     fetchNotificationDetails();
   }, [fetchNotificationDetails]);
 
@@ -98,75 +104,86 @@ export default function ValideNotifications() {
 
   if (loading) {
     return (
-      <View
-        style={{
-          height: '100%',
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
+      <SafeAreaView style={styles.container}>
         <Header refreshFunction={null} disableRefresh={true} />
-        <View
-          style={{
-            width: '100%',
-            flex: 1,
-            backgroundColor: Colors.white,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <ActivityIndicator size="large" color={Colors.gray} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Chargement des détails...</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Header refreshFunction={null} disableRefresh={true} />
-      <View style={styles.content}>
+      <View style={styles.headerContainer}>
         <BoutonRetour previousRoute="gestionNotificationsScreen" title={`Gérer notification`} />
-        <Text style={styles.title}>Détail de la notification {id} :</Text>
-        <View style={styles.textBox}>
-          <Text style={styles.text}>Notification : {notificationDetails?.title || 'Pas de description'}</Text>
-          <Text style={styles.text}>
-            Date : {notificationDetails?.created_at ? new Date(notificationDetails.created_at).toLocaleString('fr-FR', {
-              weekday: 'long',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-              hour12: false,
-            }) : 'Date non disponible'}
-          </Text>
-          <Text style={styles.text}>S'applique à : {notificationDetails?.general ? 'Tout le monde' : 'Individuel'}</Text>
-        </View>
-        <View style={styles.anecdoteBox}>
-          <Text style={styles.text}>{notificationDetails?.description}</Text>
-        </View>
       </View>
 
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.heroSection}>
+          <View style={styles.heroIcon}>
+            <Bell size={24} color={Colors.primary} />
+          </View>
+          <Text style={styles.heroTitle}>Détail de la notification #{id}</Text>
+          <Text style={styles.heroSubtitle}>
+            Gérez l'état de cette notification
+          </Text>
+        </View>
+
+        <View style={styles.infoCard}>
+          <View style={styles.infoRow}>
+            <Bell size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Notification :</Text>
+            <Text style={styles.infoValue}>{notificationDetails?.title || 'Pas de titre'}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Calendar size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Date :</Text>
+            <Text style={styles.infoValue}>
+              {notificationDetails?.created_at ? new Date(notificationDetails.created_at).toLocaleString('fr-FR', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+              }) : 'Date non disponible'}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Users size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>S'applique à :</Text>
+            <Text style={styles.infoValue}>{notificationDetails?.general ? 'Tout le monde' : 'Individuel'}</Text>
+          </View>
+        </View>
+
+        <View style={styles.contentCard}>
+          <Text style={styles.contentTitle}>Contenu de la notification</Text>
+          <Text style={styles.contentText}>{notificationDetails?.description}</Text>
+        </View>
+      </ScrollView>
+
       <View style={styles.buttonContainer}>
-        <View style={styles.buttonSpacing}>
+        {notificationDetails?.display === 0 ? (
           <BoutonActiver
             title="Désactiver la notification"
             IconComponent={Trash}
-            disabled={notificationDetails?.delete === 1} // Disable if already deleted
-            onPress={() => handleDelete(1)} // Delete notification
+            color={Colors.error}
+            onPress={() => handleDelete(1)}
           />
-        </View>
-        <BoutonActiver
-          title="Activer la notification"
-          IconComponent={Check}
-          disabled={notificationDetails?.delete === 0} // Disable if not deleted
-          onPress={() => handleDelete(0)} // Recover notification
-        />
+        ) : (
+          <BoutonActiver
+            title="Activer la notification"
+            IconComponent={Check}
+            disabled={notificationDetails?.display === 0}
+            color={Colors.success}
+            onPress={() => handleDelete(0)}
+          />
+        )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -175,63 +192,114 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.white,
   },
-  content: {
-    width: '100%',
-    flex: 1,
-    backgroundColor: Colors.white,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  title: {
-    marginTop: 20,
-    fontSize: 16,
-    color: Colors.black,
-    fontFamily: 'Inter',
-    fontWeight: '600',
-  },
-  textBox: {
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: Colors.gray,
-    borderRadius: 8,
-    padding: 10,
-    backgroundColor: Colors.white,
-    marginBottom: 20,
-  },
-  anecdoteBox: {
-    padding: 14,
-    minHeight: 200,
-    marginTop: 8,
-    marginBottom: 8,
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#EAEAEA',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-    gap: 8,
-    width: '100%',
-  },
-  text: {
-    fontSize: 14,
-    color: Colors.black,
-    fontFamily: 'Inter',
-    fontWeight: '400',
-    lineHeight: 20,
-  },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 20,
-    width: '100%',
-    paddingHorizontal: 20,
-  },
-  buttonSpacing: {
-    marginBottom: 16,
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: Colors.white,
+  },
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  headerContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
+  heroSection: {
+    alignItems: 'center',
+    paddingBottom: 24,
+    paddingHorizontal: 20,
+  },
+  heroIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.lightMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  heroTitle: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  heroSubtitle: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  content: {
+    flex: 1,
+  },
+  infoCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 2, height: 3 },
+    shadowRadius: 5,
+    elevation: 3,
+    padding: 16,
+    marginBottom: 16,
+    marginHorizontal: 20,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    flexWrap: 'wrap',
+  },
+  infoLabel: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    fontWeight: '600',
+    marginLeft: 8,
+    marginRight: 8,
+    minWidth: 80,
+  },
+  infoValue: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    flex: 1,
+    lineHeight: 20,
+  },
+  contentCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 2, height: 3 },
+    shadowRadius: 5,
+    elevation: 3,
+    padding: 16,
+    minHeight: 150,
+    marginBottom: 88,
+    marginHorizontal: 20,
+  },
+  contentTitle: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 12,
+  },
+  contentText: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    lineHeight: 22,
+  },
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
   },
 });

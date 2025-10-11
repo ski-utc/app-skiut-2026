@@ -1,29 +1,44 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator } from 'react-native';
+import { Text, View, StyleSheet, ActivityIndicator, ScrollView, SafeAreaView } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { X, Check } from 'lucide-react-native';
+import { X, Check, MessageSquare, Calendar, User, Heart, AlertTriangle } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
-import { apiPost, apiGet } from '@/constants/api/apiCalls'; // Assurez-vous d'importer l'appel API
+import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 import Toast from 'react-native-toast-message';
 
+interface AnecdoteDetails {
+  id: number;
+  text: string;
+  valid: number;
+  created_at: string;
+  user: {
+    firstName: string;
+    lastName: string;
+    room: string;
+  };
+}
+
+interface RouteParams {
+  id: number;
+}
+
 export default function ValideAnecdotes() {
   const route = useRoute();
-  const { id } = route.params; // Récupération de l'ID de l'anecdote
+  const { id } = (route.params as RouteParams) || { id: 0 };
   const { setUser } = useUser();
   const navigation = useNavigation();
 
-  const [anecdoteDetails, setAnecdoteDetails] = useState(null);
-  const [nbLikes, setNbLikes] = useState(null);
-  const [nbWarns, setNbWarns] = useState(null);
+  const [anecdoteDetails, setAnecdoteDetails] = useState<AnecdoteDetails | null>(null);
+  const [nbLikes, setNbLikes] = useState<number | null>(null);
+  const [nbWarns, setNbWarns] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Fonction pour récupérer les détails de l'anecdote
   const fetchAnecdoteDetails = useCallback(async () => {
     setLoading(true);
     try {
@@ -35,7 +50,7 @@ export default function ValideAnecdotes() {
       } else {
         setError('Erreur lors de la récupération des détails de l\'anecdote');
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -46,27 +61,23 @@ export default function ValideAnecdotes() {
     }
   }, [id, setUser]);
 
-  // Fonction pour valider ou invalider l'anecdote
-  const handleValidation = async (isValid) => {
+  const handleValidation = async (isValid: number) => {
     setLoading(true);
     try {
       const response = await apiPost(`updateAnecdoteStatus/${id}/${isValid}`);
       if (response.success) {
-        // Update the anecdote status in the state after validation
-        setAnecdoteDetails(prevDetails => ({
+        setAnecdoteDetails(prevDetails => prevDetails ? ({
           ...prevDetails,
-          valid: isValid,  // Update valid status directly
-        }));
+          valid: isValid,
+        }) : null);
 
-        // Show a success message based on the action
         Toast.show({
           type: 'success',
-          text1: isValid === 0  ? 'Anecdote désactivée !' : 'Anecdote validée !',
+          text1: isValid === 0 ? 'Anecdote désactivée !' : 'Anecdote validée !',
           text2: response.message,
         });
         navigation.goBack();
       } else {
-        // Show error message
         Toast.show({
           type: 'error',
           text1: 'Une erreur est survenue...',
@@ -74,7 +85,7 @@ export default function ValideAnecdotes() {
         });
         setError(response.message || 'Une erreur est survenue lors de la validation de l\'anecdote.');
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -87,11 +98,6 @@ export default function ValideAnecdotes() {
 
 
   useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-
     fetchAnecdoteDetails();
   }, [fetchAnecdoteDetails]);
 
@@ -101,76 +107,98 @@ export default function ValideAnecdotes() {
 
   if (loading) {
     return (
-      <View
-        style={{
-          height: '100%',
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
+      <SafeAreaView style={styles.container}>
         <Header refreshFunction={null} disableRefresh={true} />
-        <View
-          style={{
-            width: '100%',
-            flex: 1,
-            backgroundColor: Colors.white,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <ActivityIndicator size="large" color={Colors.gray} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Chargement des détails...</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Header refreshFunction={null} disableRefresh={true} />
-      <View style={styles.content}>
+      <View style={styles.headerContainer}>
         <BoutonRetour previousRoute="gestionAnecdotesScreen" title={`Gérer l'anecdote ${id}`} />
-        <Text style={styles.title}>Détail de l'anecdote :</Text>
-        <View style={styles.textBox}>
-          <Text style={styles.text}>Status : {anecdoteDetails?.valid ? 'Validée' : 'En attente de validation'}</Text>
-          <Text style={styles.text}>Date : {anecdoteDetails?.created_at ? new Date(anecdoteDetails.created_at).toLocaleString('fr-FR', {
-            weekday: 'long', // Jour de la semaine complet
-            month: 'long', // Mois complet
-            day: 'numeric', // Jour
-            hour: '2-digit', // Heure sur 2 chiffres
-            minute: '2-digit', // Minute sur 2 chiffres
-            second: '2-digit', // Seconde sur 2 chiffres
-            hour12: false, // Utiliser l'heure 24h (optionnel)
-          }) : 'Date non disponible'}
-          </Text>
-          <Text style={styles.text}>Auteur : {anecdoteDetails?.user?.firstName} {anecdoteDetails?.user?.lastName || 'Auteur inconnu'}</Text>
-          <Text style={styles.text}>Nombre de likes : {nbLikes}</Text>
-          <Text style={styles.text}>Nombre de signalements : {nbWarns}</Text>
-        </View>
-        <View style={styles.anecdoteBox}>
-          <Text style={styles.text}>{anecdoteDetails.text}</Text>
-        </View>
       </View>
 
+      <View style={styles.heroSection}>
+        <View style={styles.heroIcon}>
+          <MessageSquare size={24} color={Colors.primary} />
+        </View>
+        <Text style={styles.heroTitle}>Détail de l'anecdote #{id}</Text>
+        <Text style={styles.heroSubtitle}>
+          Validez ou modérez cette anecdote
+        </Text>
+      </View>
+
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.infoCard}>
+          <View style={styles.infoRow}>
+            <MessageSquare size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Status :</Text>
+            <Text style={[styles.infoValue, anecdoteDetails?.valid ? styles.validStatus : styles.pendingStatus]}>
+              {anecdoteDetails?.valid ? 'Validée' : 'En attente de validation'}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Calendar size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Date :</Text>
+            <Text style={styles.infoValue}>
+              {anecdoteDetails?.created_at ? new Date(anecdoteDetails.created_at).toLocaleString('fr-FR', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+              }) : 'Date non disponible'}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <User size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Auteur :</Text>
+            <Text style={styles.infoValue}>{anecdoteDetails?.user?.firstName} {anecdoteDetails?.user?.lastName || 'Auteur inconnu'}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Heart size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Likes :</Text>
+            <Text style={styles.infoValue}>{nbLikes}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <AlertTriangle size={16} color={Colors.error} />
+            <Text style={styles.infoLabel}>Signalements :</Text>
+            <Text style={[styles.infoValue, (nbWarns ?? 0) > 0 && styles.warningText]}>{nbWarns}</Text>
+          </View>
+        </View>
+
+        <View style={styles.contentCard}>
+          <Text style={styles.contentTitle}>Contenu de l'anecdote</Text>
+          <Text style={styles.contentText}>{anecdoteDetails?.text}</Text>
+        </View>
+      </ScrollView>
+
       <View style={styles.buttonContainer}>
-        <View style={styles.buttonSpacing}>
+        {anecdoteDetails?.valid === 1 ? (
           <BoutonActiver
             title="Désactiver l'anecdote"
             IconComponent={X}
-            disabled={anecdoteDetails.valid === 0}
-            onPress={() => handleValidation(0)} // Appeler la fonction pour invalider
+            color={Colors.error}
+            onPress={() => handleValidation(0)}
           />
-        </View>
-        <BoutonActiver
-          title="Valider l'anecdote"
-          IconComponent={Check}
-          disabled={anecdoteDetails.valid === 1}
-          onPress={() => handleValidation(1)} // Appeler la fonction pour valider
-        />
+        ) : (
+          <BoutonActiver
+            title="Valider l'anecdote"
+            IconComponent={Check}
+            disabled={anecdoteDetails?.valid === 1}
+            color={Colors.success}
+            onPress={() => handleValidation(1)}
+          />
+        )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -179,81 +207,126 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.white,
   },
-  content: {
-    width: '100%',
-    flex: 1,
-    backgroundColor: Colors.white,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  title: {
-    marginTop: 20,
-    fontSize: 16,
-    color: Colors.black,
-    fontFamily: 'Inter',
-    fontWeight: '600',
-  },
-  textBox: {
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: Colors.gray,
-    borderRadius: 8,
-    padding: 10,
-    backgroundColor: Colors.white,
-    marginBottom: 20,
-  },
-  anecdoteBox: {
-    padding: 14,
-    minHeight: 200,
-    marginBottom: 8,
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#EAEAEA',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-    gap: 8,
-    color: Colors.black,
-    fontFamily: Fonts.Inter.Basic,
-    fontWeight: 500,
-    fontSize: 14
-  },
-  buttonSpacing: {
-    marginBottom: 16, // Ajout d'un espace entre les boutons
-  },
-  text: {
-    fontSize: 14,
-    color: Colors.black,
-    fontFamily: 'Inter',
-    fontWeight: '400',
-    lineHeight: 20,
-  },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 20, // Adjust the distance from the bottom as needed
-    width: '100%',
-    paddingHorizontal: 20,
-  },
-  button: {
-    backgroundColor: '#E64034',
-    padding: 15,
-    borderRadius: 8,
-    width: '100%',
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontFamily: 'Inter',
-    fontWeight: '600',
-    marginRight: 10,
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: Colors.white,
+  },
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  headerContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
+  heroSection: {
+    alignItems: 'center',
+    paddingBottom: 24,
+    paddingHorizontal: 20,
+  },
+  heroIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.lightMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  heroTitle: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  heroSubtitle: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 120,
+  },
+  infoCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 2, height: 3 },
+    shadowRadius: 5,
+    elevation: 3,
+    padding: 16,
+    marginBottom: 16,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    flexWrap: 'wrap',
+  },
+  infoLabel: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    fontWeight: '600',
+    marginLeft: 8,
+    marginRight: 8,
+    minWidth: 80,
+  },
+  infoValue: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    flex: 1,
+    lineHeight: 20,
+  },
+  validStatus: {
+    color: Colors.success,
+    fontWeight: '600',
+  },
+  pendingStatus: {
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  warningText: {
+    color: Colors.error,
+    fontWeight: '600',
+  },
+  contentCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 2, height: 3 },
+    shadowRadius: 5,
+    elevation: 3,
+    padding: 16,
+    minHeight: 150,
+    marginBottom: 88,
+  },
+  contentTitle: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 12,
+  },
+  contentText: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    lineHeight: 22,
+  },
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
   },
 });

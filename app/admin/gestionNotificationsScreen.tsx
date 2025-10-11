@@ -1,25 +1,78 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, FlatList, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, FlatList, ActivityIndicator, Text, TouchableOpacity, SafeAreaView } from 'react-native';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import Header from '../../components/header';
 import BoutonGestion from '@/components/admins/boutonGestion';
 import { apiGet } from '@/constants/api/apiCalls';
 import { useNavigation } from '@react-navigation/native';
 import ErrorScreen from '@/components/pages/errorPage';
-import { PenLine } from 'lucide-react-native';
-import { Colors, loadFonts } from '@/constants/GraphSettings';
+import { Bell, PenLine, Send, CheckCircle, Clock, AlertTriangle } from 'lucide-react-native';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
+
+interface FilterButtonProps {
+  label: string;
+  icon: React.ReactNode;
+  isActive: boolean;
+  onPress: () => void;
+  count?: number;
+}
+
+const FilterButton: React.FC<FilterButtonProps> = ({ label, icon, isActive, onPress, count }) => (
+  <TouchableOpacity
+    style={[styles.filterButton, isActive && styles.filterButtonActive]}
+    onPress={onPress}
+  >
+    <View style={styles.filterButtonContent}>
+      <View style={styles.filterIcon}>
+        {icon}
+      </View>
+      <Text style={[styles.filterButtonText, isActive && styles.filterButtonTextActive]}>
+        {label}
+      </Text>
+      {count !== undefined && count > 0 && (
+        <View style={styles.filterBadge}>
+          <Text style={styles.filterBadgeText}>{count}</Text>
+        </View>
+      )}
+    </View>
+  </TouchableOpacity>
+);
 
 const GestionNotificationsScreen = () => {
   const navigation = useNavigation();
   const { setUser } = useUser();
 
   const [notifications, setNotifications] = useState([]);
+  const [filteredNotifications, setFilteredNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'displayed'>('all');
 
-  // Fetch notifications from the API
+  const handleFilter = (filter: 'all' | 'active' | 'displayed') => {
+    setActiveFilter(filter);
+    switch (filter) {
+      case 'active':
+        setFilteredNotifications(notifications.filter((item: any) => !item.display));
+        break;
+      case 'displayed':
+        setFilteredNotifications(notifications.filter((item: any) => item.display));
+        break;
+      default:
+        setFilteredNotifications(notifications);
+        break;
+    }
+  };
+
+  const getFilterCounts = () => {
+    return {
+      all: notifications.length,
+      active: notifications.filter((item: any) => !item.display).length,
+      displayed: notifications.filter((item: any) => item.display).length,
+    };
+  };
+
   const fetchAdminNotifications = useCallback(async () => {
     setLoading(true);
     setDisableRefresh(true);
@@ -27,10 +80,11 @@ const GestionNotificationsScreen = () => {
       const response = await apiGet('getAdminNotifications');
       if (response.success) {
         setNotifications(response.data);
+        setFilteredNotifications(response.data);
       } else {
         setError('Erreur lors de la récupération des notifications');
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -45,11 +99,7 @@ const GestionNotificationsScreen = () => {
   }, [setUser]);
 
   useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-    fetchAdminNotifications();
+fetchAdminNotifications();
     const unsubscribe = navigation.addListener('focus', () => {
       fetchAdminNotifications();
     });
@@ -63,76 +113,110 @@ const GestionNotificationsScreen = () => {
 
   if (loading) {
     return (
-      <View
-        style={{
-          height: '100%',
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
+      <SafeAreaView style={styles.container}>
         <Header refreshFunction={null} disableRefresh={true} />
-        <View
-          style={{
-            width: '100%',
-            flex: 1,
-            backgroundColor: Colors.white,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <ActivityIndicator size="large" color={Colors.gray} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Chargement des notifications...</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Header refreshFunction={fetchAdminNotifications} disableRefresh={disableRefresh} />
       <View style={styles.headerContainer}>
         <BoutonRetour previousRoute="adminScreen" title="Gestion des notifications" />
       </View>
 
-      <TouchableOpacity
-        style={[styles.button, styles.deleteButton]} // Reuse deleteButton positioning
-        onPress={() => navigation.navigate('notificationsForm')}
-      >
-        <Text style={styles.buttonText}>Ecrire une nouvelle notification</Text>
-        <PenLine color="white" size={20} />
-      </TouchableOpacity>
+      <View style={styles.heroSection}>
+        <View style={styles.heroIcon}>
+          <Bell size={24} color={Colors.primary} />
+        </View>
+        <Text style={styles.heroTitle}>Gestion des notifications</Text>
+        <Text style={styles.heroSubtitle}>
+          Créez et gérez les notifications pour les utilisateurs
+        </Text>
+      </View>
+
+      <View style={styles.createButtonContainer}>
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={() => (navigation as any).navigate('notificationsForm')}
+        >
+          <View style={styles.createButtonIcon}>
+            <PenLine size={20} color={Colors.white} />
+          </View>
+          <Text style={styles.createButtonText}>Créer une notification</Text>
+          <Send size={16} color={Colors.white} />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.filtersContainer}>
+        <FilterButton
+          label="Toutes"
+          icon={<CheckCircle size={16} color={activeFilter === 'all' ? Colors.white : Colors.primary} />}
+          isActive={activeFilter === 'all'}
+          onPress={() => handleFilter('all')}
+        // count={getFilterCounts().all}
+        />
+        <FilterButton
+          label="Actives"
+          icon={<Clock size={16} color={activeFilter === 'active' ? Colors.white : Colors.primary} />}
+          isActive={activeFilter === 'active'}
+          onPress={() => handleFilter('active')}
+          count={getFilterCounts().active}
+        />
+        <FilterButton
+          label="Désactivées"
+          icon={<AlertTriangle size={16} color={activeFilter === 'displayed' ? Colors.white : Colors.error} />}
+          isActive={activeFilter === 'displayed'}
+          onPress={() => handleFilter('displayed')}
+          count={getFilterCounts().displayed}
+        />
+      </View>
+
       <View style={styles.list}>
         <FlatList
-          data={notifications}
-          renderItem={({ item }) => (
+          data={filteredNotifications}
+          renderItem={({ item }: { item: any }) => (
             <BoutonGestion
               title={item.title}
               subtitle={`Date : ${item?.created_at ? new Date(item.created_at).toLocaleDateString('fr-FR', {
-                weekday: 'long', // Jour de la semaine complet
-                month: 'long', // Mois complet
-                day: 'numeric', // Jour
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
               }) + ' ' + new Date(item.created_at).toLocaleTimeString('fr-FR', {
-                hour: '2-digit', // Heure sur 2 chiffres
-                minute: '2-digit', // Minute sur 2 chiffres
-                hour12: false, // Utiliser l'heure 24h
-              }) : 'Date non disponible'} | Statut : ${item.delete === 0 ? 'Active' : 'Supprimée'}`}
-
-              subtitleStyle={item.delete === 0 ? styles.activeSubtitle : styles.deletedSubtitle}
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+              }) : 'Date non disponible'} | Statut : ${item.display === 0 ? 'Active' : 'Désactivée'}`}
+              subtitleStyle={undefined}
               nextRoute="valideNotificationsScreen"
               id={item.id}
-              valide={!item.delete}
+              valide={!item.display}
             />
           )}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item: any) => item.id.toString()}
           ListEmptyComponent={
-            <Text style={styles.emptyListText}>Aucune notification disponible</Text>
+            <View style={styles.emptyContainer}>
+              <View style={styles.emptyIcon}>
+                <Bell size={48} color={Colors.lightMuted} />
+              </View>
+              <Text style={styles.emptyTitle}>Aucune notification trouvée</Text>
+              <Text style={styles.emptyText}>
+                {activeFilter === 'active'
+                  ? 'Aucune notification active pour le moment'
+                  : activeFilter === 'displayed'
+                    ? 'Aucune notification désactivée'
+                    : 'Aucune notification disponible'}
+              </Text>
+            </View>
           }
-          contentContainerStyle={styles.flatListContent}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -140,79 +224,166 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerContainer: {
-    width: '100%',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  list: {
-    width: '100%',
-    flex: 1,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: Colors.white,
   },
-  emptyListText: {
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16,
     textAlign: 'center',
-    color: 'gray',
-    fontSize: 16,
   },
-  activeSubtitle: {
-    color: 'green',
-    backgroundColor: '#DFF0D8', // Light green background for active
-    padding: 8,
-    borderRadius: 4,
+  headerContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 8,
   },
-  deletedSubtitle: {
-    color: 'red',
-    backgroundColor: '#F8D7DA', // Light red background for deleted
-    padding: 8,
-    borderRadius: 4,
+  heroSection: {
+    alignItems: 'center',
+    paddingBottom: 24,
+    paddingHorizontal: 20,
   },
-  button: {
-    width: '90%',
-    padding: 10,
-    backgroundColor: Colors.orange,
-    borderRadius: 8,
+  heroIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.lightMuted,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 16,
+  },
+  heroTitle: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  heroSubtitle: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  createButtonContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  createButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     flexDirection: 'row',
-    gap: 10,
-    zIndex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 4,
   },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontFamily: 'Inter',
+  createButtonIcon: {
+    marginRight: 12,
+  },
+  createButtonText: {
+    ...TextStyles.body,
+    color: Colors.white,
     fontWeight: '600',
-    marginRight: 10,
+    fontSize: 16,
+    flex: 1,
   },
-  deleteButton: {
+  filtersContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    gap: 8,
+  },
+  filterButton: {
+    flex: 1,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 2, height: 3 },
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  filterButtonActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  filterButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    position: 'relative',
+  },
+  filterIcon: {
+    marginRight: 8,
+  },
+  filterButtonText: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  filterButtonTextActive: {
+    color: Colors.white,
+  },
+  filterBadge: {
     position: 'absolute',
-    bottom: 16,
-    width: '90%',
-    padding: 10,
-    backgroundColor: Colors.orange,
-    borderRadius: 8,
+    top: -8,
+    right: -8,
+    backgroundColor: Colors.error,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
   },
-  deleteButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontFamily: 'Inter',
+  filterBadgeText: {
+    color: Colors.white,
+    fontSize: 12,
     fontWeight: '600',
-    marginRight: 10,
   },
-  flatListContent: {
-    paddingBottom: 80, // This will add space at the bottom of the list
+  list: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
 

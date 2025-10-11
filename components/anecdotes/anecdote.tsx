@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { Heart, TriangleAlert } from 'lucide-react-native';
 import { apiPost } from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
@@ -10,7 +10,7 @@ import Toast from 'react-native-toast-message';
 export default function Anecdote({ id, text, room, nbLikes, liked, warned, authorId, refresh, setError }) {
   const [isLiked, setIsLiked] = useState(liked);
   const [dynamicNbLikes, setDynamicNbLikes] = useState(nbLikes);
-  const [isWarned, setIsWarned] =useState(warned);
+  const [isWarned, setIsWarned] = useState(warned);
 
   const { setUser, user } = useUser();
 
@@ -20,7 +20,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
       if (response.success) {
         setIsLiked(response.liked);
         const updateLike = (response.liked) ? 1 : -1;
-        setDynamicNbLikes(dynamicNbLikes+updateLike);
+        setDynamicNbLikes(dynamicNbLikes + updateLike);
       } else {
         Toast.show({
           type: 'error',
@@ -28,7 +28,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
           text2: response.message,
         });
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -36,7 +36,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
       }
     }
   };
-  
+
   const handleWarning = async () => {
     try {
       const response = await apiPost('warnAnecdote', { 'anecdoteId': id, 'warn': !isWarned });
@@ -49,14 +49,14 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
           text2: response.message,
         });
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
         setError(error.message);
       }
     }
-  };  
+  };
 
   const handleDelete = async () => {
     Alert.alert(
@@ -87,7 +87,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
                   text2: response.message,
                 });
               }
-            } catch (error : any) {
+            } catch (error: any) {
               if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
                 setUser(null);
               } else {
@@ -122,29 +122,25 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
           flexDirection: 'column',
           justifyContent: 'flex-start',
           alignItems: 'flex-start',
-          gap: 27,
+          gap: 20,
         }}
       >
         <Text
           style={{
-            color: 'black',
-            fontSize: 12,
-            fontFamily: 'Inter',
-            fontWeight: '500',
+            color: Colors.primaryBorder,
+            ...TextStyles.body,
           }}
         >
           {text}
         </Text>
-        
+
         <Text
           style={{
             alignSelf: 'stretch',
             textAlign: 'right',
-            color: '#737373',
-            fontSize: 12,
-            fontFamily: 'Inter',
+            color: Colors.muted,
+            ...TextStyles.small,
             fontStyle: 'italic',
-            fontWeight: '300',
           }}
         >
           Chambre : {room}
@@ -152,17 +148,17 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
       </View>
       <View
         style={{
-            position: 'absolute',
-            bottom: '-20%',
-            width: '100%',
-            justifyContent: 'flex-start',
-            alignItems: 'center',
-            gap: 7,
-            flexDirection: 'row',
+          position: 'absolute',
+          bottom: '-20%',
+          width: '100%',
+          justifyContent: 'flex-start',
+          alignItems: 'center',
+          gap: 7,
+          flexDirection: 'row',
         }}
-        >
+      >
         <TouchableOpacity
-          onPress={()=>handleLike()}
+          onPress={() => handleLike()}
           style={{
             paddingLeft: 10,
             paddingRight: 10,
@@ -175,26 +171,24 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
             justifyContent: 'center',
             alignItems: 'center',
             gap: 8,
-            }}
+          }}
         >
-            <Heart
+          <Heart
             size={18}
             color={isLiked ? '#FF1D7C' : '#000000'}
             fill={isLiked ? '#FF1D7C' : 'white'}
-            />
-            <Text
-              style={{
-                color: 'black',
-                fontSize: 14,
-                fontFamily: Fonts.Inter.Basic,
-                fontWeight: '600',
-              }}
-            >
-              {dynamicNbLikes}
-            </Text>
+          />
+          <Text
+            style={{
+              color: 'black',
+              ...TextStyles.body,
+            }}
+          >
+            {dynamicNbLikes}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={()=>handleWarning()}
+          onPress={() => handleWarning()}
           style={{
             width: 40,
             paddingLeft: 10,
@@ -207,20 +201,20 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
             justifyContent: 'center',
             alignItems: 'center',
             gap: 8,
-            }}
+          }}
         >
-            <TriangleAlert
+          <TriangleAlert
             size={18}
             color={isWarned ? '#E3A300' : '#000000'}
-            />
+          />
         </TouchableOpacity>
         {user?.id === authorId && (
           <TouchableOpacity
-            onPress={()=>handleDelete()}
+            onPress={() => handleDelete()}
             style={{
               paddingHorizontal: 10,
               paddingVertical: 8,
-              backgroundColor: Colors.orange,
+              backgroundColor: Colors.accent,
               borderRadius: 8,
               boxShadow: '0px 3px 5px rgba(0, 0, 0, 0.1)',
               justifyContent: 'center',
@@ -230,8 +224,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
             <Text
               style={{
                 color: Colors.white,
-                fontSize: 14,
-                fontFamily: Fonts.Inter.Basic,
+                ...TextStyles.body,
                 fontWeight: '600',
               }}
             >
@@ -239,7 +232,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
             </Text>
           </TouchableOpacity>
         )}
-        </View>
+      </View>
     </View>
   );
 };

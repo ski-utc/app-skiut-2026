@@ -1,92 +1,113 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native"; 
-import { Colors, Fonts } from "@/constants/GraphSettings";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Colors, TextStyles } from "@/constants/GraphSettings";
 import { useNavigation } from "@react-navigation/native";
 import Header from "../header";
+import { AlertTriangle, ArrowLeft } from "lucide-react-native";
 
 //@ts-ignore
 export default function ErrorScreen({ error }) {
   const navigation = useNavigation();
   return (
-    <View
-      style={{
-        height: "100%",
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Header />
-      <View
-        style={{
-          width: "100%",
-          flex: 1,
-          backgroundColor: Colors.white,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Text
-          style={{
-            color: Colors.black,
-            fontSize: 32,
-            fontFamily: Fonts.Inter.Basic,
-            fontWeight: "800",
-            padding: 10,
-            textAlign: "center",
-          }}
-        >
-          Une erreur est survenue...
+    <View style={styles.container}>
+      <Header refreshFunction={null} disableRefresh={true} />
+      <View style={styles.content}>
+        <View style={styles.iconContainer}>
+          <AlertTriangle size={64} color={Colors.error} />
+        </View>
+
+        <Text style={styles.title}>
+          Oups ! Une erreur est survenue
         </Text>
-        <Text
-          style={{
-            color: Colors.black,
-            fontSize: 20,
-            fontFamily: Fonts.Inter.Basic,
-            fontWeight: "400",
-            padding: 10,
-            paddingBottom: 32,
-            textAlign: "center",
-          }}
-        >
-          {error}
+
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            {error}
+          </Text>
+        </View>
+
+        <Text style={styles.helpText}>
+          Si l'erreur persiste, merci de contacter Mathis Delmaere
         </Text>
-        <Text
-          style={{
-            color: Colors.black,
-            fontSize: 16,
-            fontFamily: Fonts.Inter.Italic,
-            fontWeight: "400",
-            padding: 16,
-            textAlign: "center",
-          }}
-        >
-          Si l'erreur persiste, merci de contacter Louise Caignaert ou Mathis Delmaere
-        </Text>
+
         <TouchableOpacity
-            onPress={()=>navigation.goBack()}
-            style={{
-                paddingHorizontal: 16,
-                paddingVertical: 8,
-                backgroundColor: Colors.orange,
-                borderRadius: 8,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
+          onPress={() => navigation.goBack()}
+          style={styles.retourButton}
         >
-            <Text
-                style={{
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: '600',
-                }}
-            >
-                Retour
-            </Text>
-          </TouchableOpacity>
+          <ArrowLeft size={20} color={Colors.white} />
+          <Text style={styles.retourButtonText}>
+            Retour
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.white,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  iconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: Colors.lightMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  title: {
+    ...TextStyles.h2,
+    color: Colors.primaryBorder,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  errorContainer: {
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    width: '100%',
+  },
+  errorText: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  helpText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    textAlign: 'center',
+    marginBottom: 32,
+    lineHeight: 18,
+  },
+  retourButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 14,
+    gap: 8,
+    shadowColor: Colors.primaryBorder,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  retourButtonText: {
+    ...TextStyles.button,
+    color: Colors.white,
+    fontSize: 16,
+  },
+});

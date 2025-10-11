@@ -1,33 +1,82 @@
 import { View, StyleSheet, Text, FlatList, ActivityIndicator, TouchableOpacity } from "react-native";
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import React, { useState, useCallback, useEffect } from 'react';
 import Header from "@/components/header";
 import ErrorScreen from "@/components/pages/errorPage";
 import BoutonRetour from "@/components/divers/boutonRetour";
 import { apiGet } from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
+import { Calendar, Clock, MapPin } from 'lucide-react-native';
+
+interface Activity {
+  activity: string;
+  time: {
+    start: string;
+    end: string;
+  };
+  payant: boolean;
+  status: 'past' | 'current' | 'future';
+}
 
 export default function PlanningScreen() {
-  const days = ["S 18", "D 19", "L 20", "Ma 21", "M 22", "J 23", "V 24", "S 25"];
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [activitiesMap, setActivitiesMap] = useState<{ [key: string]: Activity[] }>({});
+  const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [disableRefresh, setDisableRefresh] = useState(false);
   const { setUser } = useUser();
 
-  const dayMap = {
-    "S": "Samedi",
-    "D": "Dimanche",
-    "L": "Lundi",
-    "Ma": "Mardi",
-    "Me": "Mercredi",
-    "J": "Jeudi",
-    "V": "Vendredi",
-  } as const;
 
-  // Suppress unused variable warning for dayMap as it's used as a type
-  void dayMap;
+  const sortActivitiesByTime = (activities: Activity[]) => {
+    return activities.sort((a, b) => {
+      const timeA = a.time.start;
+      const timeB = b.time.start;
+      return timeA.localeCompare(timeB);
+    });
+  };
+
+  // Fonction pour déterminer la date par défaut à afficher
+  const getDefaultDate = (activitiesMap: { [key: string]: Activity[] }) => {
+    const dates = Object.keys(activitiesMap).sort();
+    if (dates.length === 0) return null;
+
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+    // S'il y a des activités en cours aujourd'hui
+    if (activitiesMap[todayStr]) {
+      const todayActivities = activitiesMap[todayStr];
+      const currentTime = new Date().toTimeString().split(' ')[0];
+
+      // S'il y a des activités qui ont commencé aujourd'hui et ne sont pas finies
+      const hasOngoingActivities = todayActivities.some(activity => {
+        const startTime = activity.time.start;
+        const endTime = activity.time.end;
+
+        if (startTime > endTime) {
+          return currentTime >= startTime || currentTime <= endTime;
+        } else {
+          return currentTime >= startTime && currentTime <= endTime;
+        }
+      });
+
+      if (hasOngoingActivities) {
+        return todayStr;
+      }
+    }
+
+    // Sinon s'il y a des activités demain
+    if (activitiesMap[tomorrowStr]) {
+      return tomorrowStr;
+    }
+
+    // Sinon, retourner la première date disponible
+    return dates[0];
+  };
 
   const fetchPlanning = useCallback(async () => {
     setLoading(true);
@@ -35,11 +84,25 @@ export default function PlanningScreen() {
     try {
       const response = await apiGet("getPlanning");
       if (response.success) {
-        setActivitiesMap(response.data);
+        const sortedActivitiesMap: { [key: string]: Activity[] } = {};
+        Object.keys(response.data).forEach(date => {
+          sortedActivitiesMap[date] = sortActivitiesByTime(response.data[date]);
+        });
+
+        setActivitiesMap(sortedActivitiesMap);
+        const dates = Object.keys(sortedActivitiesMap).sort();
+        setAvailableDates(dates);
+
+        if (dates.length > 0 && !selectedDate) {
+          const defaultDate = getDefaultDate(sortedActivitiesMap);
+          if (defaultDate) {
+            setSelectedDate(defaultDate);
+          }
+        }
       } else {
         setError("Une erreur est survenue lors de la récupération du planning");
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -51,77 +114,74 @@ export default function PlanningScreen() {
         setDisableRefresh(false);
       }, 5000);
     }
-  }, [setUser]);
-
-  const getTodayKey = () => {
-    const today = new Date();
-    const formatter = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    const [{ value: day }, , { value: month }, , { value: year }] = formatter.formatToParts(today);
-    return `${year}-${month}-${day}`;
-  };
+  }, [setUser, selectedDate]);
 
   useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-    const todayKey = getTodayKey();
-    setSelectedDate(todayKey);
-    fetchPlanning();
+fetchPlanning();
   }, [fetchPlanning]);
 
-  const handlePress = useCallback(
-    (day: keyof typeof dayMap, number: string) => {
-      setSelectedDate(`2025-01-${number}`);
+  const handleDatePress = useCallback(
+    (date: string) => {
+      setSelectedDate(date);
     },
     []
   );
 
   const selectedActivities = activitiesMap[selectedDate] || [];
 
+  const formatDateForDisplay = (dateString: string) => {
+    const date = new Date(dateString);
+    const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+    const dayName = dayNames[date.getDay()];
+    const dayNumber = date.getDate().toString().padStart(2, '0');
+    return `${dayName} ${dayNumber}`;
+  };
+
   const data = [
-    { type: "days", days },
+    { type: "days", dates: availableDates },
     { type: "activities", activities: selectedActivities },
   ];
 
   const renderItem = ({ item }: { item: any }) => {
     if (item.type === "days") {
+      if (item.dates.length === 0) {
+        return (
+          <View style={styles.noDatesContainer}>
+            <Calendar size={48} color={Colors.muted} />
+            <Text style={styles.noDatesText}>
+              Aucune activité planifiée pour le moment.
+            </Text>
+          </View>
+        );
+      }
+
       return (
-        <View style={{
-          flexDirection: "row",
-          justifyContent: "space-around",
-          width: "95%",
-          marginTop: 5,
-          height: 60,
-          borderRadius: 12,
-          borderWidth: 2,
-          borderColor: Colors.orange,
-          alignSelf: "center",
-        }}>
-          {item.days.map((day: string, index: number) => {
-            const [letter, number] = day.split(" ");
-            const isSelected = selectedDate === `2025-01-${number}`;
+        <View style={styles.daysContainer}>
+          {item.dates.map((date: string, index: number) => {
+            const isSelected = selectedDate === date;
+            const displayText = formatDateForDisplay(date);
+            const [dayName, dayNumber] = displayText.split(" ");
 
             return (
               <TouchableOpacity
                 key={index}
-                style={{
-                  flex: 1,
-                  paddingTop: 8,
-                  paddingBottom: 8,
-                  borderRadius: 8,
-                  flexDirection: "column",
-                  justifyContent: "flex-start",
-                  alignItems: "center",
-                  backgroundColor: isSelected ? Colors.orange : Colors.white
-                }}
-                onPress={() => handlePress(letter as keyof typeof dayMap, number)}
+                style={[
+                  styles.dayButton,
+                  { backgroundColor: isSelected ? Colors.primary : Colors.white }
+                ]}
+                onPress={() => handleDatePress(date)}
               >
-                <Text style={[styles.dayLetter, { color: isSelected ? Colors.white : Colors.gray }]}>
-                  {letter}
+                <Text style={[
+                  styles.dayLetter,
+                  { color: isSelected ? Colors.white : Colors.primaryBorder }
+                ]}>
+                  {dayName}
                 </Text>
-                <Text style={[styles.dayNumber, { color: isSelected ? Colors.white : Colors.black }]}>
-                  {number}
+                <Text style={[
+                  styles.dayNumber,
+                  { color: isSelected ? Colors.white : Colors.primaryBorder }
+                ]}>
+                  {dayNumber}
                 </Text>
               </TouchableOpacity>
             );
@@ -136,122 +196,89 @@ export default function PlanningScreen() {
       const formattedDate = formattedDate0.charAt(0).toUpperCase() + formattedDate0.slice(1);
 
       return (
-        <>
-          <Text style={styles.infoText}>
-            Les animations déjà réservées sont indiquées en{" "}
-            <Text style={styles.orangeText}>orange</Text>.
-            Vas-y seulement si tu as pris ta place !
-          </Text>
+        <View style={styles.activitiesContainer}>
+          <View style={styles.infoCard}>
+            <Calendar size={20} color={Colors.primary} />
+            <Text style={styles.infoText}>
+              Les animations déjà réservées sont indiquées en{" "}
+              <Text style={styles.primaryText}>bleu</Text>.
+              Vas-y seulement si tu as pris ta place !
+            </Text>
+          </View>
 
-          <Text style={{
-            fontFamily: Fonts.Title.Light,
-            fontSize: 16,
-            fontWeight: "600",
-            color: Colors.black,
-            marginTop: 20,
-          }}>
-            {formattedDate || "Sélectionnez une date"}
-          </Text>
+          <View style={styles.dateHeader}>
+            <Text style={styles.dateTitle}>
+              {formattedDate || "Sélectionnez une date"}
+            </Text>
+          </View>
+
           {item.activities.length > 0 ? (
-            item.activities.map((activity: Activity, index: number) => {
-              const titleColor = activity.payant ? Colors.orange : Colors.black; // Définir la couleur en fonction de 'payant'
-              return (
-                <View
-                  key={index}
-                  style={{
-                    padding: 12,
-                    flexDirection: 'row',
-                    justifyContent: 'flex-start',
-                    alignItems: 'center',
-                    borderBottomColor: Colors.customGray,
-                    borderBottomWidth: 1,
-                    opacity: (activity.status === "past") ? 0.4 : 1
-                  }}
-                >
+            <View style={styles.activitiesList}>
+              {item.activities.map((activity: Activity, index: number) => {
+                const titleColor = activity.payant ? Colors.primary : Colors.primaryBorder;
+                return (
                   <View
-                    style={{
-                      height: 9,
-                      width: 9,
-                      marginRight: 10,
-                      justifyContent: 'center',
-                      alignItems: 'center'
-                    }}
+                    key={index}
+                    style={[
+                      styles.activityCard,
+                      { opacity: (activity.status === "past") ? 0.4 : 1 }
+                    ]}
                   >
-                    <View style={{ height: '100%', width: '100%', borderRadius: 61, backgroundColor: (activity.status === "current") ? 'green' : 'white' }}></View>
+                    <View style={styles.activityIndicator}>
+                      <View style={[
+                        styles.statusDot,
+                        { backgroundColor: (activity.status === "current") ? Colors.success : Colors.lightMuted }
+                      ]} />
+                    </View>
+                    <View style={styles.activityContent}>
+                      <Text style={[styles.activityTitle, { color: titleColor }]}>
+                        {activity.activity}
+                      </Text>
+                      <View style={styles.activityTime}>
+                        <Clock size={14} color={Colors.muted} />
+                        <Text style={styles.activityTimeText}>
+                          {activity.time.start} - {activity.time.end}
+                        </Text>
+                      </View>
+                    </View>
                   </View>
-                  <View
-                    style={{
-                      justifyContent: 'center',
-                      alignItems: 'flex-start',
-                      gap: 8,
-                      flexDirection: 'column'
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: Fonts.Text.Bold,
-                        fontWeight: '600',
-                        fontSize: 16,
-                        color: titleColor,
-                      }}
-                    >
-                      {activity.activity}
-                    </Text>
-                    <Text
-                      style={{
-                        fontFamily: Fonts.Text.Bold,
-                        fontWeight: '600',
-                        fontSize: 14,
-                        color: Colors.gray
-                      }}
-                    >
-
-                      {activity.time.start} - {activity.time.end}
-                    </Text>
-                  </View>
-                </View>
-              );
-            })
+                );
+              })}
+            </View>
           ) : (
             <View style={styles.noActivitiesContainer}>
+              <MapPin size={48} color={Colors.muted} />
               <Text style={styles.noActivitiesText}>
-                Sélectionne une date pour voir les activités prévues.
+                Aucune activité prévue pour cette date.
               </Text>
             </View>
           )}
-        </>
+        </View>
       );
     }
     return null;
   };
 
-  if (error) {
-    return <ErrorScreen error={error} />;
-  }
+  if (error) return <ErrorScreen error={error} />;
 
   if (loading) {
     return (
-      <View
-        style={{
-          height: '100%',
+      <View style={{
+        flex: 1,
+        backgroundColor: Colors.white,
+      }}>
+        <Header refreshFunction={undefined} disableRefresh={true} />
+        <View style={{
           width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          flex: 1,
+          backgroundColor: Colors.white,
           justifyContent: 'center',
-        }}
-      >
-        <Header refreshFunction={null} disableRefresh={true} />
-        <View
-          style={{
-            width: '100%',
-            flex: 1,
-            backgroundColor: Colors.white,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <ActivityIndicator size="large" color={Colors.gray} />
+          alignItems: 'center',
+        }}>
+          <ActivityIndicator size="large" color={Colors.primaryBorder} />
+          <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+            Chargement...
+          </Text>
         </View>
       </View>
     );
@@ -281,7 +308,6 @@ const styles = StyleSheet.create({
   headerContainer: {
     width: '100%',
     paddingHorizontal: 20,
-    paddingBottom: 8,
   },
   listContainer: {
     paddingHorizontal: 20,
@@ -291,47 +317,145 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  daysContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+    marginBottom: 12,
+    height: 64,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.white,
+    padding: 4,
+    shadowColor: Colors.primaryBorder,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  dayButton: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 12,
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    marginHorizontal: 2,
+  },
   dayLetter: {
-    fontSize: 14,
+    ...TextStyles.small,
     fontWeight: '600',
-    fontFamily: Fonts.Text.Medium,
-    paddingBottom: 6,
+    marginBottom: 4,
   },
   dayNumber: {
-    fontSize: 16,
+    ...TextStyles.body,
     fontWeight: '700',
-    fontFamily: Fonts.Text.Bold,
+  },
+  activitiesContainer: {
+    marginTop: 0,
+  },
+  infoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 10,
+    gap: 12,
+  },
+  infoText: {
+    ...TextStyles.small,
+    color: Colors.primaryBorder,
+    flex: 1,
+    lineHeight: 20,
+  },
+  primaryText: {
+    ...TextStyles.body,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  dateHeader: {
+    marginBottom: 16,
+  },
+  dateTitle: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
+  },
+  activitiesList: {
+    gap: 12,
+    marginBottom: 20,
+  },
+  activityCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.lightMuted,
+    shadowColor: Colors.primaryBorder,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  activityIndicator: {
+    marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statusDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  activityContent: {
+    flex: 1,
+    gap: 4,
+  },
+  activityTitle: {
+    ...TextStyles.bodyBold,
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  activityTime: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  activityTimeText: {
+    ...TextStyles.small,
+    color: Colors.muted,
   },
   noActivitiesContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 40,
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 16,
+    marginTop: 20,
   },
   noActivitiesText: {
-    fontFamily: Fonts.Text.Medium,
-    fontSize: 18,
+    ...TextStyles.body,
     textAlign: 'center',
-    color: Colors.gray,
+    color: Colors.muted,
+    marginTop: 12,
+    lineHeight: 20,
   },
-  infoText: {
-    fontFamily: Fonts.Text.Light,
-    fontSize: 14,
-    color: Colors.black, // Default color for the whole text
-    marginTop: 16,
+  noDatesContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 16,
+    marginTop: 20,
+  },
+  noDatesText: {
+    ...TextStyles.body,
     textAlign: 'center',
-    zIndex: 1,
+    color: Colors.muted,
+    marginTop: 12,
+    lineHeight: 20,
   },
-  orangeText: {
-    fontFamily: Fonts.Text.Light,
-    fontSize: 14,
-    color: Colors.orange, // Only the word "orange" will be in orange
-  },
-  subInfoText: {
-    fontFamily: Fonts.Text.Light,
-    fontSize: 14,
-    color: Colors.black,
-    textAlign: 'center',
-    zIndex: 1,
-  },
-  
 });

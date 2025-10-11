@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard, Pressable } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard, Pressable, StyleSheet } from 'react-native';
 import Checkbox from 'expo-checkbox';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Send } from 'lucide-react-native';
+import BoutonActiverLarge from '@/components/divers/boutonActiverLarge';
+import { Send, PenTool, Shield } from 'lucide-react-native';
 import { apiPost } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import Toast from 'react-native-toast-message';
@@ -41,7 +42,7 @@ export default function AnecdotesForm() {
           text2: response.message,
         });
       }
-    } catch (error : any) {
+    } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -49,20 +50,12 @@ export default function AnecdotesForm() {
       }
     }
   };
-
-  useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-  }, []);
-
   const handleCheckboxPress = () => {
     setChecked(!isChecked);
-    Keyboard.dismiss(); // Dismiss the keyboard when the checkbox is clicked
+    Keyboard.dismiss();
   };
 
-  if (error !== '') {
+  if (error) {
     return (
       <ErrorScreen error={error} />
     );
@@ -70,10 +63,22 @@ export default function AnecdotesForm() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Header refreshFunction={null} disableRefresh={true} />
-        <View style={{ width: '100%', flex: 1, backgroundColor: Colors.white, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={Colors.gray} />
+      <View style={{
+        flex: 1,
+        backgroundColor: Colors.white,
+      }}>
+        <Header refreshFunction={undefined} disableRefresh={true} />
+        <View style={{
+          width: '100%',
+          flex: 1,
+          backgroundColor: Colors.white,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+          <ActivityIndicator size="large" color={Colors.primaryBorder} />
+          <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+            Chargement...
+          </Text>
         </View>
       </View>
     );
@@ -81,50 +86,167 @@ export default function AnecdotesForm() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.content}>
         <Header refreshFunction={null} disableRefresh={true} />
-        <View style={{ width: '100%', flex: 1, backgroundColor: Colors.white, paddingHorizontal: 20, paddingBottom: 16 }}>
-          <BoutonRetour previousRoute={"anecdotesScreen"} title={"Raconte nous ta meilleure anecdote !"} />
-          <Pressable
-            onPress={() => Keyboard.dismiss()}
-            style={{ padding: 14, marginBottom: 8, height: 268, backgroundColor: '#F8F8F8', borderRadius: 12, borderWidth: 1, borderColor: '#EAEAEA' }}
-          >
-            <TextInput
-              style={{ color: Colors.black, fontFamily: Fonts.Inter.Basic, fontWeight: '500', width: '100%', fontSize: 14 }}
-              placeholder="Aujourd'hui..."
-              placeholderTextColor={'#969696'}
-              multiline
-              numberOfLines={15}
-              onChangeText={setText}
-              value={text}
-            />
-          </Pressable>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 11 }}>
-            <Checkbox
-              style={{ width: 24, height: 24 }}
-              value={isChecked}
-              onValueChange={handleCheckboxPress}
-              color={isChecked ? Colors.orange : undefined}
-            />
-            <Text style={{ color: Colors.black, fontSize: 12, fontFamily: Fonts.Inter.Basic, fontWeight: '500', paddingRight: 20 }}>
-              En postant cette anecdote, je certifie qu’il respecte les autres participant.e.s du voyage
-            </Text>
+
+        <View style={styles.headerContainer}>
+          <BoutonRetour previousRoute={"anecdotesScreen"} title={"Rédiger un potin"} />
+        </View>
+
+        <View style={styles.heroSection}>
+          <View style={styles.heroIcon}>
+            <PenTool size={24} color={Colors.primary} />
+          </View>
+          <Text style={styles.heroTitle}>Partage ton anecdote</Text>
+          <Text style={styles.heroSubtitle}>
+            Raconte-nous ce qui t'a marqué aujourd'hui !
+          </Text>
+        </View>
+
+        <View style={styles.formContainer}>
+          <View style={styles.inputSection}>
+            <Pressable
+              onPress={() => Keyboard.dismiss()}
+              style={styles.textAreaContainer}
+            >
+              <TextInput
+                style={styles.textAreaInput}
+                placeholder="Aujourd'hui..."
+                placeholderTextColor={Colors.muted}
+                multiline
+                numberOfLines={12}
+                onChangeText={setText}
+                value={text}
+                textAlignVertical="top"
+              />
+            </Pressable>
+          </View>
+
+          <View style={styles.termsSection}>
+            <View style={styles.termsRow}>
+              <Checkbox
+                style={styles.checkbox}
+                value={isChecked}
+                onValueChange={handleCheckboxPress}
+                color={isChecked ? Colors.primary : undefined}
+              />
+              <View style={styles.termsTextContainer}>
+                <Shield size={16} color={Colors.primary} />
+                <Text style={styles.termsText}>
+                  En postant cette anecdote, je certifie qu'elle respecte les autres participant.e.s du voyage
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
-        <View style={{ width: '100%', position: 'absolute', right: 0, bottom: 16, paddingHorizontal: 20 }}>
-          <TouchableOpacity
-            style={{ padding: 10, backgroundColor: '#E64034', opacity: isChecked && text.trim().length > 5 ? 1 : 0.5, borderRadius: 8, justifyContent: 'center', alignItems: 'center', flexDirection: 'row', gap: 10 }}
+
+        <View style={styles.buttonContainer}>
+          <BoutonActiverLarge
+            title="Poster mon anecdote"
+            IconComponent={Send}
             disabled={!isChecked || loading || text.trim().length <= 5}
             onPress={handleSendAnecdote}
-          >
-            <Text style={{ color: 'white', fontSize: 14, fontFamily: Fonts.Inter.Basic, fontWeight: '600' }}>Poster mon anecdote</Text>
-            <Send size={20} color={Colors.white} />
-          </TouchableOpacity>
+          />
         </View>
       </View>
     </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.white,
+  },
+  content: {
+    flex: 1,
+  },
+  headerContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
+  heroSection: {
+    alignItems: 'center',
+    paddingBottom: 24,
+    paddingHorizontal: 20,
+  },
+  heroIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.lightMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  heroTitle: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  heroSubtitle: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  formContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 100,
+  },
+  inputSection: {
+    marginBottom: 20,
+  },
+  textAreaContainer: {
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    minHeight: 200,
+  },
+  textAreaInput: {
+    ...TextStyles.bodyLarge,
+    color: Colors.primaryBorder,
+    padding: 16,
+    flex: 1,
+    textAlignVertical: 'top',
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  termsSection: {
+    marginTop: 10,
+  },
+  termsRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    marginTop: 2,
+  },
+  termsTextContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  termsText: {
+    ...TextStyles.small,
+    color: Colors.primaryBorder,
+    lineHeight: 18,
+    flex: 1,
+  },
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+  },
+});

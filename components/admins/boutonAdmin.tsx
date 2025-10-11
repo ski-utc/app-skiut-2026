@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { TextStyles } from '@/constants/GraphSettings';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronRight } from 'lucide-react-native';
 
@@ -10,7 +10,7 @@ interface BoutonAdminProps {
 }
 
 const BoutonAdmin: React.FC<BoutonAdminProps> = ({ nextRoute, title }) => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<any>();
 
     const onPress = () => {
         navigation.navigate(nextRoute);
@@ -34,7 +34,6 @@ const BoutonAdmin: React.FC<BoutonAdminProps> = ({ nextRoute, title }) => {
                 backgroundColor: 'white',
             }}
         >
-            {/* Partie gauche : icône et titre */}
             <View
                 style={{
                     justifyContent: "flex-start",
@@ -44,12 +43,11 @@ const BoutonAdmin: React.FC<BoutonAdminProps> = ({ nextRoute, title }) => {
                     width: '85%',
                 }}
             >
-                
+
                 <Text
                     style={{
                         color: "#1E1E1E",
-                        fontSize: 16,
-                        fontFamily: Fonts.Inter.Basic,
+                        ...TextStyles.bodyLarge,
                         fontWeight: "500",
                         marginLeft: 10,
                     }}
@@ -58,8 +56,7 @@ const BoutonAdmin: React.FC<BoutonAdminProps> = ({ nextRoute, title }) => {
                 </Text>
             </View>
 
-            {/* Icône flèche à droite */}
-            <ChevronRight size={20} color={Colors.black} />
+            <ChevronRight size={20} color={'#000000'} />
         </TouchableOpacity>
     );
 };

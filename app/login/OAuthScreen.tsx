@@ -6,7 +6,7 @@ import * as SecureStore from "expo-secure-store";
 import { useUser } from "@/contexts/UserContext";
 import * as config from "../../constants/api/apiConfig";
 import { apiGet } from "@/constants/api/apiCalls";
-import { Colors, Fonts } from "@/constants/GraphSettings";
+import { Colors, TextStyles } from "@/constants/GraphSettings";
 import { useNavigation } from '@react-navigation/native';
 
 export default function OAuthScreen() {
@@ -24,14 +24,18 @@ export default function OAuthScreen() {
     if (canEnter && hostname === config.DOMAIN && path === "skiutc/api/connected") {
       setCanEnter(false);
 
-      const accessToken = queryParams?.access_token;
-      const refreshToken = queryParams?.refresh_token;
+      const accessToken = Array.isArray(queryParams?.access_token)
+        ? queryParams.access_token[0]
+        : queryParams?.access_token;
+      const refreshToken = Array.isArray(queryParams?.refresh_token)
+        ? queryParams.refresh_token[0]
+        : queryParams?.refresh_token;
 
       if (accessToken && refreshToken) {
         try {
           await SecureStore.setItemAsync("accessToken", accessToken);
           await SecureStore.setItemAsync("refreshToken", refreshToken);
-      
+
           const response = await apiGet("getUserData");
           if (response.success) {
             setUser({
@@ -46,12 +50,12 @@ export default function OAuthScreen() {
             setWebViewVisible(false);
             setError(`Une erreur est survenue lors de la récupération du user : ${response.message}`);
           }
-        } catch (err) {
-          if (err.JWT_ERROR) {
+        } catch (err: any) {
+          if (err?.JWT_ERROR) {
             setUser(null);
           } else {
             setWebViewVisible(false);
-            setError(err.message);
+            setError(err?.message || 'Une erreur est survenue');
           }
         }
       } else {
@@ -61,81 +65,76 @@ export default function OAuthScreen() {
       }
     } else if (hostname === config.DOMAIN && path === "skiutc/api/notConnected") {
       setWebViewVisible(false);
-      const message = queryParams?.message;
-      setError(message);
+      const message = Array.isArray(queryParams?.message)
+        ? queryParams.message[0]
+        : queryParams?.message;
+      setError(message || 'Erreur de connexion');
     }
   };
 
-  if(error!=='') {
-    return(
+  if (error !== '') {
+    return (
       <View
-      style={{
-        height: "100%",
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Text
         style={{
-          color: Colors.black,
-          fontSize: 32,
-          fontFamily: Fonts.Inter.Basic,
-          fontWeight: "800",
-          padding: 10,
-          textAlign: "center",
+          height: "100%",
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        Une erreur est survenue...
-      </Text>
-      <Text
-        style={{
-          color: Colors.black,
-          fontSize: 20,
-          fontFamily: Fonts.Inter.Basic,
-          fontWeight: "400",
-          padding: 10,
-          paddingBottom: 32,
-          textAlign: "center",
-        }}
-      >
-        {error}
-      </Text>
-      <Text
-        style={{
-          color: Colors.black,
-          fontSize: 16,
-          fontFamily: Fonts.Inter.Italic,
-          fontWeight: "400",
-          padding: 16,
-          textAlign: "center",
-        }}
-      >
-        Si l'erreur persiste, merci de contacter Louise Caignaert ou Mathis Delmaere
-      </Text>
-      <TouchableOpacity
+        <Text
+          style={{
+            ...TextStyles.h1,
+            color: Colors.error,
+            padding: 10,
+            textAlign: "center",
+          }}
+        >
+          Une erreur est survenue...
+        </Text>
+        <Text
+          style={{
+            ...TextStyles.h3,
+            color: Colors.primaryBorder,
+            padding: 10,
+            paddingBottom: 32,
+            textAlign: "center",
+          }}
+        >
+          {error}
+        </Text>
+        <Text
+          style={{
+            ...TextStyles.body,
+            color: Colors.muted,
+            padding: 16,
+            textAlign: "center",
+          }}
+        >
+          Si l'erreur persiste, merci de contacter Mathis Delmaere
+        </Text>
+        <TouchableOpacity
           onPress={() => { navigation.goBack(); }}
           style={{
             width: '90%',
             alignSelf: 'center',
-            backgroundColor: Colors.orange,
+            backgroundColor: Colors.accent,
             paddingVertical: 15,
             marginVertical: 16,
-            borderRadius: 8,
+            borderRadius: 10,
             alignItems: 'center',
           }}
         >
           <Text style={{
-            fontSize: 16,
-            fontWeight: '600',
+            ...TextStyles.buttonLarge,
             color: Colors.white,
           }}>
             Retour
           </Text>
-      </TouchableOpacity>
-    </View>
+        </TouchableOpacity>
+      </View>
     )
   }
 
@@ -147,7 +146,7 @@ export default function OAuthScreen() {
           originWhitelist={["*"]}
           style={{ flex: 1 }}
           onNavigationStateChange={handleNavigationStateChange}
-          incognito={true} // true de base 
+          incognito={true}
           show
         />
       )}

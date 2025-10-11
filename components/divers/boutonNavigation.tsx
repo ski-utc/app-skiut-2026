@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, TouchableOpacity } from 'react-native';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 // @ts-ignore
@@ -28,30 +28,37 @@ export default function BoutonNavigation({ nextRoute, title, IconComponent }) {
             onPress={onPress}
             onLongPress={onLongPress}
             style={{
-            padding: 10,
-            backgroundColor: Colors.orange,
-            borderRadius: 8,
-            justifyContent: 'center',
-            alignItems: 'center',
-            flexDirection: 'row',
-            gap: 10,
+                position: 'absolute',
+                bottom: 16,
+                right: 10,
+                left: 10,
+                padding: 12,
+                backgroundColor: Colors.primary,
+                borderRadius: 10,
+                justifyContent: 'center',
+                alignItems: 'center',
+                flexDirection: 'row',
+                gap: 10,
+                shadowColor: Colors.primaryBorder,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.2,
+                shadowRadius: 3,
+                elevation: 3,
             }}
         >
             <Text
-            style={{
-                color: 'white',
-                fontSize: 14,
-                fontFamily: Fonts.Inter.Basic,
-                fontWeight: '600',
-            }}
+                style={{
+                    ...TextStyles.button,
+                    color: Colors.white,
+                }}
             >
                 {title}
             </Text>
             {IconComponent && (
-              <IconComponent
-                size={20}
-                color={Colors.white}
-              />
+                <IconComponent
+                    size={20}
+                    color={Colors.white}
+                />
             )}
         </TouchableOpacity>
     );

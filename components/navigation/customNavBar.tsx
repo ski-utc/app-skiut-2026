@@ -1,23 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react-native';
 
 // @ts-ignore
 export default function CustomNavBar({ state, navigation }) {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
 
-  useEffect(() => {
-    // Load fonts asynchronously
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-      setFontsLoaded(true);
-    };
-    loadAsyncFonts();
-  }, []);
-
-  const activeColor = Colors.orange;
-  const unactiveColor = Colors.gray;
+  const activeColor = Colors.primary
+  const unactiveColor = Colors.muted;
 
   const tabs = [
     { name: 'homeNavigator', label: 'Home', Icon: Home },
@@ -25,18 +15,6 @@ export default function CustomNavBar({ state, navigation }) {
     { name: 'defisNavigator', label: 'Défi', Icon: LandPlot },
     { name: 'anecdotesNavigator', label: 'Anecdotes', Icon: MessageSquareText },
   ];
-
-  if (!fontsLoaded) {
-    return (
-      <View
-        style={{
-          width: '100%',
-          height: 70,
-          backgroundColor: Colors.white,
-        }}
-      />
-    );
-  }
 
   return (
     <View
@@ -51,7 +29,7 @@ export default function CustomNavBar({ state, navigation }) {
           marginHorizontal: 15,
           backgroundColor: Colors.white,
           borderTopWidth: 1,
-          borderTopColor: Colors.customWhite,
+          borderTopColor: Colors.lightMuted,
           justifyContent: 'flex-start',
           alignItems: 'center',
           flexDirection: 'row',
@@ -99,12 +77,10 @@ export default function CustomNavBar({ state, navigation }) {
               />
               <Text
                 style={{
+                  ...TextStyles.bodyBold,
                   color: isFocused ? activeColor : unactiveColor,
-                  fontSize: 14,
-                  fontFamily: Fonts.Inter.Basic,
-                  fontWeight: '500',
                   textAlign: 'center',
-                  marginBottom: 2, // monte un peu le texte
+                  marginBottom: 2,
                 }}
                 numberOfLines={1}
                 adjustsFontSizeToFit

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { Colors, Fonts } from '@/constants/GraphSettings';
+import { TextStyles } from '@/constants/GraphSettings';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronRight, Check } from 'lucide-react-native';
 
@@ -46,7 +46,6 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
                 backgroundColor: 'white',
             }}
         >
-            {/* Left section: Icon and title */}
             <View
                 style={{
                     justifyContent: "flex-start",
@@ -67,9 +66,7 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
                 <Text
                     style={{
                         color: "#1E1E1E",
-                        fontSize: 14,
-                        fontFamily: Fonts.Inter.Basic,
-                        fontWeight: "500",
+                        ...TextStyles.body,
                         marginLeft: 10,
                     }}
                 >
@@ -77,8 +74,7 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
                 </Text>
             </View>
 
-            {/* Right section: Chevron icon */}
-            <ChevronRight size={20} color={Colors.black} />
+            <ChevronRight size={20} color={'#000000'} />
         </TouchableOpacity>
     );
 };

@@ -5,11 +5,11 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "newArchEnabled": true,
-    "icon": "./assets/images/icone.png",
+    "icon": "./assets/images/logo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/icone.png",
+      "image": "./assets/images/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#aad1cd"
     },
@@ -47,7 +47,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/icone.png",
+          "icon": "./assets/images/logo.png",
           "color": "#aad1cd"
         }
       ],
@@ -68,7 +68,7 @@
       "typedRoutes": true
     },
     "notification": {
-      "icon": "./assets/images/icone.png",
+      "icon": "./assets/images/logo.png",
       "color": "#023c69",
       "iosDisplayInForeground": true
     },

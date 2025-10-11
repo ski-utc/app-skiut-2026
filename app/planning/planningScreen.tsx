@@ -312,7 +312,6 @@ const styles = StyleSheet.create({
   headerContainer: {
     width: '100%',
     paddingHorizontal: 20,
-    paddingBottom: 8,
   },
   listContainer: {
     paddingHorizontal: 20,
@@ -326,8 +325,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     width: "100%",
-    marginTop: 8,
-    marginBottom: 24,
+    marginBottom: 12,
     height: 64,
     borderRadius: 16,
     borderWidth: 2,
@@ -359,19 +357,19 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   activitiesContainer: {
-    marginTop: 8,
+    marginTop: 0,
   },
   infoCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.lightMuted,
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
+    padding: 12,
+    marginBottom: 10,
     gap: 12,
   },
   infoText: {
-    ...TextStyles.body,
+    ...TextStyles.small,
     color: Colors.primaryBorder,
     flex: 1,
     lineHeight: 20,
@@ -385,9 +383,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   dateTitle: {
-    ...TextStyles.h3,
+    ...TextStyles.h3Bold,
     color: Colors.primaryBorder,
-    fontWeight: '600',
   },
   activitiesList: {
     gap: 12,

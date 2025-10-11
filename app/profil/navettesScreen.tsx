@@ -30,7 +30,7 @@ const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap }) => {
                   {item.horaire_depart} - {item.horaire_arrivee}
                 </Text>
                 <Text style={navettesStyles.navetteCouleurText}>
-                  Ligne {item.colour}
+                  Navette {item.colourName}
                 </Text>
               </View>
             </View>
@@ -80,9 +80,8 @@ const navettesStyles = StyleSheet.create({
     padding: 16,
   },
   cardTitle: {
-    ...TextStyles.h3,
+    ...TextStyles.h3Bold,
     color: Colors.primaryBorder,
-    fontWeight: '700',
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -104,18 +103,18 @@ const navettesStyles = StyleSheet.create({
     flex: 1,
   },
   navetteText: {
-    ...TextStyles.body,
+    ...TextStyles.h4,
     color: Colors.primaryBorder,
     fontWeight: '600',
     marginBottom: 4,
   },
   navetteTimeText: {
-    ...TextStyles.small,
+    ...TextStyles.body,
     color: Colors.muted,
     marginBottom: 2,
   },
   navetteCouleurText: {
-    ...TextStyles.small,
+    ...TextStyles.body,
     color: Colors.primary,
     fontWeight: '500',
   },
@@ -141,6 +140,7 @@ export default function NavettesScreen() {
     setLoading(true);
     try {
       const response = await apiGet('getNavettes');
+      console.log(response.data);
       if (response.success) {
         const map: { [key: string]: any[] } = {
           Aller: [],
@@ -217,7 +217,7 @@ export default function NavettesScreen() {
     <View style={styles.container}>
       <Header refreshFunction={null} disableRefresh={null} />
       <View style={styles.headerContainer}>
-        <BoutonRetour previousRoute="homeNavigator" title="Navettes" />
+        <BoutonRetour previousRoute="homeNavigator" title="Vos Navettes" />
       </View>
       <NavettesTab
         navettesMap={navettesMap}

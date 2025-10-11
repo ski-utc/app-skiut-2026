@@ -16,10 +16,8 @@ export default function LaunchScreen2() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Background avec dégradé visuel */}
       <View style={styles.backgroundDecoration} />
 
-      {/* Illustration des défis */}
       <View style={styles.illustrationContainer}>
         <View style={styles.featureCard}>
           <View style={styles.featureIconContainer}>
@@ -46,9 +44,7 @@ export default function LaunchScreen2() {
         </View>
       </View>
 
-      {/* Contenu principal */}
       <View style={styles.contentContainer}>
-        {/* Indicateurs de progression */}
         <View style={styles.progressContainer}>
           <View style={styles.dotsContainer}>
             <View style={[styles.dot, styles.dotInactive]} />
@@ -58,19 +54,16 @@ export default function LaunchScreen2() {
           <Text style={styles.progressText}>2 / 3</Text>
         </View>
 
-        {/* Titre avec icône */}
         <View style={styles.titleContainer}>
           <Trophy size={28} color={Colors.primary} />
           <Text style={styles.title}>Relevez tous les défis</Text>
         </View>
 
-        {/* Description */}
         <Text style={styles.description}>
           Participez à des défis passionnants avec les membres de votre chambre et
           partagez vos réussites avec tous les participants du voyage.
         </Text>
 
-        {/* Boutons d'action */}
         <View style={styles.buttonsContainer}>
           <TouchableOpacity
             onPress={() => (navigation as any).navigate("launchScreen3")}
@@ -91,7 +84,6 @@ export default function LaunchScreen2() {
           </TouchableOpacity>
         </View>
 
-        {/* Bouton skip */}
         <TouchableOpacity
           onPress={() => (navigation as any).navigate("loginScreen")}
           style={styles.skipButton}
@@ -203,9 +195,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   title: {
-    ...TextStyles.h1,
+    ...TextStyles.h2Bold,
     color: Colors.primaryBorder,
-    fontWeight: '700',
     flex: 1,
   },
   description: {

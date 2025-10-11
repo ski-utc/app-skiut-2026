@@ -266,7 +266,7 @@ export default function VitesseDeGlisseScreen() {
                     />
 
                     <ActionButton
-                        title="Voir mes performances"
+                        title="Voir le classement"
                         icon={Trophy}
                         onPress={() => {
                             (navigation as any).navigate('PerformancesScreen');
@@ -306,8 +306,8 @@ const styles = StyleSheet.create({
     },
     heroSection: {
         alignItems: 'center',
-        paddingVertical: 24,
-        marginBottom: 16,
+        paddingBottom: 16,
+        marginBottom: 8,
     },
     heroIcon: {
         width: 80,
@@ -319,13 +319,12 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     heroTitle: {
-        ...TextStyles.h2,
+        ...TextStyles.h2Bold,
         color: Colors.primaryBorder,
-        fontWeight: '700',
         textAlign: 'center',
     },
     statsSection: {
-        marginBottom: 24,
+        marginBottom: 8,
     },
     statCard: {
         flexDirection: 'row',
@@ -363,9 +362,8 @@ const styles = StyleSheet.create({
         alignItems: 'baseline',
     },
     statValue: {
-        ...TextStyles.h3,
+        ...TextStyles.h3Bold,
         color: Colors.primaryBorder,
-        fontWeight: '700',
         marginRight: 4,
     },
     statUnit: {
@@ -377,9 +375,8 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     sectionTitle: {
-        ...TextStyles.h3,
+        ...TextStyles.h3Bold,
         color: Colors.primaryBorder,
-        fontWeight: '700',
         marginBottom: 16,
     },
     actionButton: {

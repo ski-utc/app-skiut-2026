@@ -30,10 +30,8 @@ export default function LaunchScreen1() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Background avec dégradé visuel */}
       <View style={styles.backgroundDecoration} />
 
-      {/* Logo centré */}
       <View style={styles.logoContainer}>
         <View style={styles.logoWrapper}>
           <Image
@@ -45,9 +43,7 @@ export default function LaunchScreen1() {
         </View>
       </View>
 
-      {/* Contenu principal */}
       <View style={styles.contentContainer}>
-        {/* Indicateurs de progression */}
         <View style={styles.progressContainer}>
           <View style={styles.dotsContainer}>
             <View style={[styles.dot, styles.dotActive]} />
@@ -57,19 +53,16 @@ export default function LaunchScreen1() {
           <Text style={styles.progressText}>1 / 3</Text>
         </View>
 
-        {/* Titre avec icône */}
         <View style={styles.titleContainer}>
           <Sparkles size={28} color={Colors.primary} />
           <Text style={styles.title}>Bienvenue sur SkiUTC</Text>
         </View>
 
-        {/* Description */}
         <Text style={styles.description}>
           Découvrez votre compagnon indispensable pour vivre une semaine de ski inoubliable !
           Défis, planning, météo et bien plus encore.
         </Text>
 
-        {/* Bouton d'action */}
         <TouchableOpacity
           onPress={() => (navigation as any).navigate("launchScreen2")}
           style={styles.nextButton}
@@ -79,7 +72,6 @@ export default function LaunchScreen1() {
           <ChevronRight size={20} color={Colors.white} />
         </TouchableOpacity>
 
-        {/* Bouton skip */}
         <TouchableOpacity
           onPress={() => (navigation as any).navigate("loginScreen")}
           style={styles.skipButton}
@@ -178,9 +170,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   title: {
-    ...TextStyles.h1,
+    ...TextStyles.h1Bold,
     color: Colors.primaryBorder,
-    fontWeight: '700',
     flex: 1,
   },
   description: {

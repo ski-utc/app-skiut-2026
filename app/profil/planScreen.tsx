@@ -220,7 +220,6 @@ const styles = StyleSheet.create({
   headerContainer: {
     width: '100%',
     paddingHorizontal: 20,
-    paddingBottom: 8,
   },
   content: {
     flex: 1,
@@ -245,9 +244,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    ...TextStyles.h3,
+    ...TextStyles.h4Bold,
     color: Colors.primaryBorder,
-    fontWeight: '700',
     marginLeft: 12,
     flex: 1,
   },

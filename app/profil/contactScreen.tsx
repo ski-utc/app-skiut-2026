@@ -166,7 +166,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
     },
     listContainer: {
-        paddingTop: 16,
         paddingBottom: 20,
     },
     row: {

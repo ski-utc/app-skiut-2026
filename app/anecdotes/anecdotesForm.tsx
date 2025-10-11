@@ -101,10 +101,9 @@ export default function AnecdotesForm() {
         <Header refreshFunction={null} disableRefresh={true} />
 
         <View style={styles.headerContainer}>
-          <BoutonRetour previousRoute={"anecdotesScreen"} title={"Raconte nous ta meilleure anecdote !"} />
+          <BoutonRetour previousRoute={"anecdotesScreen"} title={"Rédiger un potin"} />
         </View>
 
-        {/* Hero Section */}
         <View style={styles.heroSection}>
           <View style={styles.heroIcon}>
             <PenTool size={24} color={Colors.primary} />
@@ -116,7 +115,6 @@ export default function AnecdotesForm() {
         </View>
 
         <View style={styles.formContainer}>
-          {/* Text Input */}
           <View style={styles.inputSection}>
             <Pressable
               onPress={() => Keyboard.dismiss()}
@@ -135,7 +133,6 @@ export default function AnecdotesForm() {
             </Pressable>
           </View>
 
-          {/* Terms Checkbox */}
           <View style={styles.termsSection}>
             <View style={styles.termsRow}>
               <Checkbox
@@ -154,7 +151,6 @@ export default function AnecdotesForm() {
           </View>
         </View>
 
-        {/* Send Button */}
         <View style={styles.buttonContainer}>
           <BoutonActiverLarge
             title="Poster mon anecdote"
@@ -182,7 +178,7 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     alignItems: 'center',
-    paddingVertical: 24,
+    paddingBottom: 24,
     paddingHorizontal: 20,
   },
   heroIcon: {
@@ -195,9 +191,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   heroTitle: {
-    ...TextStyles.h2,
+    ...TextStyles.h2Bold,
     color: Colors.primaryBorder,
-    fontWeight: '700',
     marginBottom: 8,
     textAlign: 'center',
   },

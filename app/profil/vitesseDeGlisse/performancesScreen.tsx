@@ -256,11 +256,9 @@ export default function PerformancesScreen() {
                 <BoutonRetour previousRoute="VitesseDeGlisseScreen" title={"Classement"} />
             </View>
 
-            {/* Section Podium améliorée */}
             <View style={styles.podiumSection}>
                 <Text style={styles.sectionTitle}>Podium</Text>
                 <View style={styles.podiumContainer}>
-                    {/* Deuxième place */}
                     {podium.length > 1 && (
                         <PodiumPlace
                             position={2}
@@ -269,7 +267,6 @@ export default function PerformancesScreen() {
                             height={80}
                         />
                     )}
-                    {/* Première place */}
                     {podium.length > 0 && (
                         <PodiumPlace
                             position={1}
@@ -278,7 +275,6 @@ export default function PerformancesScreen() {
                             height={120}
                         />
                     )}
-                    {/* Troisième place */}
                     {podium.length > 2 && (
                         <PodiumPlace
                             position={3}
@@ -296,7 +292,6 @@ export default function PerformancesScreen() {
                 showsVerticalScrollIndicator={false}
                 ListHeaderComponent={() => (
                     <View style={styles.rankingSection}>
-                        {/* Titre de la section classement */}
                         {rest.length > 0 && (
                             <Text style={styles.sectionTitle}>
                                 Classement
@@ -333,7 +328,6 @@ const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: Colors.white,
         paddingHorizontal: 20,
-        paddingBottom: 12,
         shadowColor: Colors.primaryBorder,
         shadowOffset: {
             width: 0,
@@ -354,7 +348,6 @@ const styles = StyleSheet.create({
         paddingTop: 24,
         paddingBottom: 16,
         marginHorizontal: 16,
-        marginTop: 16,
         borderRadius: 16,
         shadowColor: Colors.primaryBorder,
         shadowOffset: {

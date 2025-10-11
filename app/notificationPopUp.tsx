@@ -70,7 +70,6 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
           experimentalBlurMethod={undefined}
         >
           <View style={styles.modalContainer}>
-            {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerIcon}>
                 <AlertCircle size={24} color={Colors.error} strokeWidth={2} />
@@ -78,7 +77,6 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
               <Text style={styles.headerTitle}>Erreur</Text>
             </View>
 
-            {/* Content */}
             <View style={styles.content}>
               <Text style={styles.errorTitle}>Une erreur est survenue</Text>
               <Text style={styles.errorDescription}>{error}</Text>
@@ -87,7 +85,6 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
               </Text>
             </View>
 
-            {/* Footer */}
             <View style={styles.footer}>
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                 <X size={20} color={Colors.white} strokeWidth={2} />
@@ -115,7 +112,6 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
           experimentalBlurMethod={undefined}
         >
           <View style={styles.modalContainer}>
-            {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerIcon}>
                 <Bell size={24} color={Colors.primary} strokeWidth={2} />
@@ -123,13 +119,11 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
               <Text style={styles.headerTitle}>Notifications</Text>
             </View>
 
-            {/* Content */}
             <View style={styles.content}>
               <ActivityIndicator size="large" color={Colors.primary} />
               <Text style={styles.loadingText}>Chargement des notifications...</Text>
             </View>
 
-            {/* Footer */}
             <View style={styles.footer}>
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                 <X size={20} color={Colors.white} strokeWidth={2} />
@@ -155,7 +149,6 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
         style={styles.overlay}
       >
         <View style={styles.modalContainer}>
-          {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerIcon}>
               <Bell size={24} color={Colors.primary} strokeWidth={2} />
@@ -163,7 +156,6 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
             <Text style={styles.headerTitle}>Notifications</Text>
           </View>
 
-          {/* Content */}
           <View style={styles.content}>
             {notifications.length > 0 ? (
               <FlatList
@@ -196,7 +188,6 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
             )}
           </View>
 
-          {/* Footer */}
           <View style={styles.footer}>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <X size={20} color={Colors.white} strokeWidth={2} />

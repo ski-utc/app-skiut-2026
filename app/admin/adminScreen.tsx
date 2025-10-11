@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   heroSection: {
     alignItems: 'center',
     paddingHorizontal: 32,
-    paddingVertical: 32,
+    paddingBottom: 8,
     marginBottom: 16,
   },
   heroIcon: {
@@ -187,9 +187,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   heroTitle: {
-    ...TextStyles.h2,
+    ...TextStyles.h2Bold,
     color: Colors.primaryBorder,
-    fontWeight: '700',
     textAlign: 'center',
     marginBottom: 8,
   },

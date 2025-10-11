@@ -48,16 +48,16 @@ const GestionNotificationsScreen = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'deleted'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'displayed'>('all');
 
-  const handleFilter = (filter: 'all' | 'active' | 'deleted') => {
+  const handleFilter = (filter: 'all' | 'active' | 'displayed') => {
     setActiveFilter(filter);
     switch (filter) {
       case 'active':
-        setFilteredNotifications(notifications.filter((item: any) => !item.delete));
+        setFilteredNotifications(notifications.filter((item: any) => !item.display));
         break;
-      case 'deleted':
-        setFilteredNotifications(notifications.filter((item: any) => item.delete));
+      case 'displayed':
+        setFilteredNotifications(notifications.filter((item: any) => item.display));
         break;
       default:
         setFilteredNotifications(notifications);
@@ -68,8 +68,8 @@ const GestionNotificationsScreen = () => {
   const getFilterCounts = () => {
     return {
       all: notifications.length,
-      active: notifications.filter((item: any) => !item.delete).length,
-      deleted: notifications.filter((item: any) => item.delete).length,
+      active: notifications.filter((item: any) => !item.display).length,
+      displayed: notifications.filter((item: any) => item.display).length,
     };
   };
 
@@ -173,11 +173,11 @@ const GestionNotificationsScreen = () => {
           count={getFilterCounts().active}
         />
         <FilterButton
-          label="Supprimées"
-          icon={<AlertTriangle size={16} color={activeFilter === 'deleted' ? Colors.white : Colors.error} />}
-          isActive={activeFilter === 'deleted'}
-          onPress={() => handleFilter('deleted')}
-          count={getFilterCounts().deleted}
+          label="Désactivées"
+          icon={<AlertTriangle size={16} color={activeFilter === 'displayed' ? Colors.white : Colors.error} />}
+          isActive={activeFilter === 'displayed'}
+          onPress={() => handleFilter('displayed')}
+          count={getFilterCounts().displayed}
         />
       </View>
 
@@ -195,11 +195,11 @@ const GestionNotificationsScreen = () => {
                 hour: '2-digit',
                 minute: '2-digit',
                 hour12: false,
-              }) : 'Date non disponible'} | Statut : ${item.delete === 0 ? 'Active' : 'Supprimée'}`}
+              }) : 'Date non disponible'} | Statut : ${item.display === 0 ? 'Active' : 'Désactivée'}`}
               subtitleStyle={undefined}
               nextRoute="valideNotificationsScreen"
               id={item.id}
-              valide={!item.delete}
+              valide={!item.display}
             />
           )}
           keyExtractor={(item: any) => item.id.toString()}
@@ -212,8 +212,8 @@ const GestionNotificationsScreen = () => {
               <Text style={styles.emptyText}>
                 {activeFilter === 'active'
                   ? 'Aucune notification active pour le moment'
-                  : activeFilter === 'deleted'
-                    ? 'Aucune notification supprimée'
+                  : activeFilter === 'displayed'
+                    ? 'Aucune notification désactivée'
                     : 'Aucune notification disponible'}
               </Text>
             </View>
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     alignItems: 'center',
-    paddingVertical: 24,
+    paddingBottom: 24,
     paddingHorizontal: 20,
   },
   heroIcon: {
@@ -260,9 +260,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   heroTitle: {
-    ...TextStyles.h2,
+    ...TextStyles.h2Bold,
     color: Colors.primaryBorder,
-    fontWeight: '700',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -379,9 +378,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   emptyTitle: {
-    ...TextStyles.h3,
+    ...TextStyles.h3Bold,
     color: Colors.primaryBorder,
-    fontWeight: '600',
     marginBottom: 8,
     textAlign: 'center',
   },

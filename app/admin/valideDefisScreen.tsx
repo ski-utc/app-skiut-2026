@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator, Image, TouchableOpacity, SafeAreaView } from 'react-native';
+import { Text, View, StyleSheet, ActivityIndicator, Image, TouchableOpacity, ScrollView, SafeAreaView, Modal, StatusBar } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { X, Check, Trophy, Calendar, User, Image as ImageIcon } from 'lucide-react-native';
+import { X, Check, Trophy, Calendar, User, Image as ImageIcon, Maximize } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
@@ -198,17 +198,17 @@ export default function ValideDefis() {
         <BoutonRetour previousRoute="gestionDefisScreen" title="Gestion défis" />
       </View>
 
-      <View style={styles.heroSection}>
-        <View style={styles.heroIcon}>
-          <Trophy size={24} color={Colors.primary} />
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.heroSection}>
+          <View style={styles.heroIcon}>
+            <Trophy size={24} color={Colors.primary} />
+          </View>
+          <Text style={styles.heroTitle}>Détail du défi #{challengeDetails?.id}</Text>
+          <Text style={styles.heroSubtitle}>
+            Validez ou refusez ce défi soumis
+          </Text>
         </View>
-        <Text style={styles.heroTitle}>Détail du défi #{challengeDetails?.id}</Text>
-        <Text style={styles.heroSubtitle}>
-          Validez ou refusez ce défi soumis
-        </Text>
-      </View>
 
-      <View style={styles.content}>
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <Trophy size={16} color={Colors.primary} />
@@ -248,7 +248,7 @@ export default function ValideDefis() {
             <ImageIcon size={20} color={Colors.primary} />
             <Text style={styles.imageTitle}>Preuve soumise</Text>
           </View>
-          <TouchableOpacity onPress={toggleModal} style={styles.imageContainer}>
+          <TouchableOpacity onPress={toggleModal} style={styles.imageContainer} activeOpacity={0.8}>
             <Image
               source={{ uri: `${proofImage}?timestamp=${new Date().getTime()}` }}
               style={styles.proofImage}
@@ -256,17 +256,19 @@ export default function ValideDefis() {
               onError={() => setProofImage("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
             />
             <View style={styles.imageOverlay}>
+              <Maximize size={16} color={Colors.white} />
               <Text style={styles.imageOverlayText}>Appuyez pour agrandir</Text>
             </View>
           </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
       <View style={styles.buttonContainer}>
         <View style={styles.buttonSpacing}>
           <BoutonActiver
             title="Désactiver le défi"
             IconComponent={X}
             disabled={challengeDetails?.valid === 0}
+            color={Colors.accent}
             onPress={() => handleValidation(0, 0)}
           />
         </View>
@@ -276,6 +278,7 @@ export default function ValideDefis() {
               title="Refuser"
               IconComponent={X}
               disabled={challengeDetails?.valid === 1}
+              color={Colors.error}
               onPress={() => handleValidation(1, 1)}
             />
           </View>
@@ -284,20 +287,38 @@ export default function ValideDefis() {
               title="Valider"
               IconComponent={Check}
               disabled={challengeDetails?.valid === 1}
+              color={Colors.success}
               onPress={() => handleValidation(1, 0)}
             />
           </View>
         </View>
       </View>
 
-      {isModalVisible && (
-        <ImageViewer
-          imageUrls={[{ url: proofImage }]}
-          index={0}
-          visible={isModalVisible}
-          onCancel={toggleModal}
-        />
-      )}
+      <Modal
+        visible={isModalVisible}
+        transparent={false}
+        animationType="fade"
+        onRequestClose={toggleModal}
+      >
+        <StatusBar hidden />
+        <View style={styles.fullScreenContainer}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={toggleModal}
+            activeOpacity={0.7}
+          >
+            <X size={24} color={Colors.white} />
+          </TouchableOpacity>
+
+          <ImageViewer
+            imageUrls={[{ url: proofImage }]}
+            index={0}
+            backgroundColor="transparent"
+            enableSwipeDown={true}
+            onSwipeDown={toggleModal}
+          />
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -325,7 +346,7 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     alignItems: 'center',
-    paddingVertical: 24,
+    paddingBottom: 24,
     paddingHorizontal: 20,
   },
   heroIcon: {
@@ -352,8 +373,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingBottom: 140,
   },
   infoCard: {
     backgroundColor: Colors.white,
@@ -367,6 +386,7 @@ const styles = StyleSheet.create({
     elevation: 3,
     padding: 16,
     marginBottom: 16,
+    marginHorizontal: 20,
   },
   infoRow: {
     flexDirection: 'row',
@@ -407,6 +427,8 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 3,
     padding: 16,
+    marginBottom: 128,
+    marginHorizontal: 20,
   },
   imageHeader: {
     flexDirection: 'row',
@@ -414,9 +436,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   imageTitle: {
-    ...TextStyles.h3,
+    ...TextStyles.h3Bold,
     color: Colors.primaryBorder,
-    fontWeight: '600',
     marginLeft: 8,
   },
   imageContainer: {
@@ -435,13 +456,18 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   imageOverlayText: {
-    ...TextStyles.body,
+    ...TextStyles.small,
     color: Colors.white,
-    fontSize: 12,
+    textAlign: 'center',
+    fontWeight: '500',
+    marginLeft: 6,
   },
   buttonContainer: {
     position: 'absolute',
@@ -458,5 +484,22 @@ const styles = StyleSheet.create({
   },
   buttonHalf: {
     flex: 1,
+  },
+  fullScreenContainer: {
+    flex: 1,
+    backgroundColor: Colors.primaryBorder,
+    position: 'relative',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 1000,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

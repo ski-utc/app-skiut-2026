@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     alignItems: 'center',
-    paddingVertical: 24,
+    paddingBottom: 24,
     paddingHorizontal: 20,
   },
   heroIcon: {
@@ -240,9 +240,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   heroTitle: {
-    ...TextStyles.h2,
+    ...TextStyles.h2Bold,
     color: Colors.primaryBorder,
-    fontWeight: '700',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -331,9 +330,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   emptyTitle: {
-    ...TextStyles.h3,
+    ...TextStyles.h3Bold,
     color: Colors.primaryBorder,
-    fontWeight: '600',
     marginBottom: 8,
     textAlign: 'center',
   },

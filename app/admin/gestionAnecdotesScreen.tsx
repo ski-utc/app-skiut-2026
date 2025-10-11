@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   heroSection: {
     alignItems: 'center',
     paddingHorizontal: 32,
-    paddingVertical: 24,
+    paddingBottom: 24,
     marginBottom: 16,
   },
   heroIcon: {
@@ -239,9 +239,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   heroTitle: {
-    ...TextStyles.h3,
+    ...TextStyles.h3Bold,
     color: Colors.primaryBorder,
-    fontWeight: '700',
     textAlign: 'center',
     marginBottom: 6,
   },

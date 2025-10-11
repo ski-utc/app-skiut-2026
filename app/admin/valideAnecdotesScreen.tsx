@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator, SafeAreaView } from 'react-native';
+import { Text, View, StyleSheet, ActivityIndicator, ScrollView, SafeAreaView } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { X, Check, MessageSquare, Calendar, User, Heart, AlertTriangle } from 'lucide-react-native';
 import Header from '../../components/header';
@@ -123,7 +123,7 @@ export default function ValideAnecdotes() {
         </Text>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <MessageSquare size={16} color={Colors.primary} />
@@ -167,23 +167,26 @@ export default function ValideAnecdotes() {
           <Text style={styles.contentTitle}>Contenu de l'anecdote</Text>
           <Text style={styles.contentText}>{anecdoteDetails?.text}</Text>
         </View>
-      </View>
+      </ScrollView>
 
       <View style={styles.buttonContainer}>
-        <View style={styles.buttonSpacing}>
+        {anecdoteDetails?.valid === 1 ? (
           <BoutonActiver
             title="Désactiver l'anecdote"
             IconComponent={X}
             disabled={anecdoteDetails?.valid === 0}
+            color={Colors.error}
             onPress={() => handleValidation(0)}
           />
-        </View>
-        <BoutonActiver
-          title="Valider l'anecdote"
-          IconComponent={Check}
-          disabled={anecdoteDetails?.valid === 1}
-          onPress={() => handleValidation(1)}
-        />
+        ) : (
+          <BoutonActiver
+            title="Valider l'anecdote"
+            IconComponent={Check}
+            disabled={anecdoteDetails?.valid === 1}
+            color={Colors.success}
+            onPress={() => handleValidation(1)}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -212,7 +215,7 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     alignItems: 'center',
-    paddingVertical: 24,
+    paddingBottom: 24,
     paddingHorizontal: 20,
   },
   heroIcon: {
@@ -225,9 +228,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   heroTitle: {
-    ...TextStyles.h2,
+    ...TextStyles.h2Bold,
     color: Colors.primaryBorder,
-    fontWeight: '700',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -299,11 +301,11 @@ const styles = StyleSheet.create({
     elevation: 3,
     padding: 16,
     minHeight: 150,
+    marginBottom: 88,
   },
   contentTitle: {
-    ...TextStyles.h3,
+    ...TextStyles.h3Bold,
     color: Colors.primaryBorder,
-    fontWeight: '600',
     marginBottom: 12,
   },
   contentText: {
@@ -316,8 +318,5 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 20,
     right: 20,
-  },
-  buttonSpacing: {
-    marginBottom: 16,
   },
 });

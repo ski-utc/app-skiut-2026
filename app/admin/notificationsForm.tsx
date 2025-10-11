@@ -207,9 +207,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   heroTitle: {
-    ...TextStyles.h2,
+    ...TextStyles.h2Bold,
     color: Colors.primaryBorder,
-    fontWeight: '700',
     marginBottom: 8,
     textAlign: 'center',
   },

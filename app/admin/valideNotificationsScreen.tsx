@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator, SafeAreaView } from 'react-native';
+import { Text, View, StyleSheet, ActivityIndicator, ScrollView, SafeAreaView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { Trash, Check, Bell, Calendar, Users } from 'lucide-react-native';
 import Header from '../../components/header';
@@ -43,12 +43,12 @@ export default function ValideNotifications() {
     }
   }, [id, setUser]);
 
-  const handleDelete = async (deleteFlag) => {
+  const handleDelete = async (displayFlag) => {
     setLoading(true);
     try {
-      const response = await apiPost(`deleteNotification/${id}/${deleteFlag}`);
+      const response = await apiPost(`displayNotification/${id}/${displayFlag}`);
       if (response.success) {
-        if (deleteFlag === 1) {
+        if (displayFlag === 1) {
           Toast.show({
             type: 'success',
             text1: 'Notification désactivée !',
@@ -58,7 +58,7 @@ export default function ValideNotifications() {
         } else {
           Toast.show({
             type: 'success',
-            text1: 'Notification envoyée !',
+            text1: 'Notification réactivée !',
             text2: response.message,
           });
           navigation.goBack();
@@ -113,17 +113,17 @@ export default function ValideNotifications() {
         <BoutonRetour previousRoute="gestionNotificationsScreen" title={`Gérer notification`} />
       </View>
 
-      <View style={styles.heroSection}>
-        <View style={styles.heroIcon}>
-          <Bell size={24} color={Colors.primary} />
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.heroSection}>
+          <View style={styles.heroIcon}>
+            <Bell size={24} color={Colors.primary} />
+          </View>
+          <Text style={styles.heroTitle}>Détail de la notification #{id}</Text>
+          <Text style={styles.heroSubtitle}>
+            Gérez l'état de cette notification
+          </Text>
         </View>
-        <Text style={styles.heroTitle}>Détail de la notification #{id}</Text>
-        <Text style={styles.heroSubtitle}>
-          Gérez l'état de cette notification
-        </Text>
-      </View>
 
-      <View style={styles.content}>
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <Bell size={16} color={Colors.primary} />
@@ -155,23 +155,26 @@ export default function ValideNotifications() {
           <Text style={styles.contentTitle}>Contenu de la notification</Text>
           <Text style={styles.contentText}>{notificationDetails?.description}</Text>
         </View>
-      </View>
+      </ScrollView>
 
       <View style={styles.buttonContainer}>
-        <View style={styles.buttonSpacing}>
+        {notificationDetails?.display === 0 ? (
           <BoutonActiver
             title="Désactiver la notification"
             IconComponent={Trash}
-            disabled={notificationDetails?.delete === 1}
+            disabled={notificationDetails?.display === 1}
+            color={Colors.error}
             onPress={() => handleDelete(1)}
           />
-        </View>
-        <BoutonActiver
-          title="Activer la notification"
-          IconComponent={Check}
-          disabled={notificationDetails?.delete === 0}
-          onPress={() => handleDelete(0)}
-        />
+        ) : (
+          <BoutonActiver
+            title="Activer la notification"
+            IconComponent={Check}
+            disabled={notificationDetails?.display === 0}
+            color={Colors.success}
+            onPress={() => handleDelete(0)}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -200,7 +203,7 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     alignItems: 'center',
-    paddingVertical: 24,
+    paddingBottom: 24,
     paddingHorizontal: 20,
   },
   heroIcon: {
@@ -213,9 +216,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   heroTitle: {
-    ...TextStyles.h2,
+    ...TextStyles.h2Bold,
     color: Colors.primaryBorder,
-    fontWeight: '700',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -227,8 +229,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingBottom: 120,
   },
   infoCard: {
     backgroundColor: Colors.white,
@@ -242,6 +242,7 @@ const styles = StyleSheet.create({
     elevation: 3,
     padding: 16,
     marginBottom: 16,
+    marginHorizontal: 20,
   },
   infoRow: {
     flexDirection: 'row',
@@ -275,11 +276,12 @@ const styles = StyleSheet.create({
     elevation: 3,
     padding: 16,
     minHeight: 150,
+    marginBottom: 88,
+    marginHorizontal: 20,
   },
   contentTitle: {
-    ...TextStyles.h3,
+    ...TextStyles.h3Bold,
     color: Colors.primaryBorder,
-    fontWeight: '600',
     marginBottom: 12,
   },
   contentText: {
@@ -292,8 +294,5 @@ const styles = StyleSheet.create({
     bottom: 20,
     left: 20,
     right: 20,
-  },
-  buttonSpacing: {
-    marginBottom: 16,
   },
 });

@@ -15,7 +15,7 @@ import ImageViewer from "react-native-image-zoom-viewer";
 
 interface ChallengeDetails {
   id: number;
-  valid: number;
+  valid: 0 | 1;
   created_at: string;
   user: {
     firstName: string;

@@ -18,7 +18,7 @@ interface NotificationDetails {
   description: string;
   created_at: string;
   general: number;
-  display: number;
+  display: 0 | 1;
 }
 
 interface RouteParams {
@@ -177,7 +177,6 @@ export default function ValideNotifications() {
           <BoutonActiver
             title="Activer la notification"
             IconComponent={Check}
-            disabled={notificationDetails?.display === 0}
             color={Colors.success}
             onPress={() => handleDelete(0)}
           />

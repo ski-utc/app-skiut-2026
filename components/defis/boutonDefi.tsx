@@ -46,7 +46,6 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
                 backgroundColor: 'white',
             }}
         >
-            {/* Left section: Icon and title */}
             <View
                 style={{
                     justifyContent: "flex-start",
@@ -75,7 +74,6 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
                 </Text>
             </View>
 
-            {/* Right section: Chevron icon */}
             <ChevronRight size={20} color={'#000000'} />
         </TouchableOpacity>
     );

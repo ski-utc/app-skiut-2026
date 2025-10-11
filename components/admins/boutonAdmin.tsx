@@ -34,7 +34,6 @@ const BoutonAdmin: React.FC<BoutonAdminProps> = ({ nextRoute, title }) => {
                 backgroundColor: 'white',
             }}
         >
-            {/* Partie gauche : icône et titre */}
             <View
                 style={{
                     justifyContent: "flex-start",
@@ -57,7 +56,6 @@ const BoutonAdmin: React.FC<BoutonAdminProps> = ({ nextRoute, title }) => {
                 </Text>
             </View>
 
-            {/* Icône flèche à droite */}
             <ChevronRight size={20} color={'#000000'} />
         </TouchableOpacity>
     );

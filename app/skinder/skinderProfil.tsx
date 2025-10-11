@@ -246,7 +246,6 @@ export default function SkinderProfil() {
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-        {/* Photo de profil */}
         <View style={styles.photoSection}>
           <TouchableOpacity onPress={handleImagePick} style={styles.photoContainer}>
             <Image
@@ -263,7 +262,6 @@ export default function SkinderProfil() {
           <Text style={styles.profileName}>{profile.nom}</Text>
         </View>
 
-        {/* Section Description */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>À propos de vous</Text>
           <TextInput
@@ -279,7 +277,6 @@ export default function SkinderProfil() {
           <Text style={styles.characterCount}>{profile.description.length}/100</Text>
         </View>
 
-        {/* Section Passions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Vos passions</Text>
           <Text style={styles.sectionSubtitle}>Ajoutez jusqu'à 6 passions (16 caractères max chacune)</Text>
@@ -310,7 +307,6 @@ export default function SkinderProfil() {
           </View>
         </View>
 
-        {/* Boutons d'action */}
         <View style={styles.actionsContainer}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
@@ -394,18 +390,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   profileName: {
-    ...TextStyles.h2,
+    ...TextStyles.h2Bold,
     color: Colors.primaryBorder,
-    fontWeight: '700',
     textAlign: 'center',
   },
   section: {
-    marginBottom: 32,
+    marginBottom: 0,
   },
   sectionTitle: {
-    ...TextStyles.h3,
+    ...TextStyles.h3Bold,
     color: Colors.primaryBorder,
-    fontWeight: '700',
     marginBottom: 8,
   },
   sectionSubtitle: {

@@ -112,13 +112,6 @@ export default function SkinderMyMatches() {
       </View>
 
       <View style={styles.content}>
-        {/* Header avec titre */}
-        <View style={styles.titleContainer}>
-          <Sparkles size={24} color={Colors.primary} />
-          <Text style={styles.pageTitle}>Vos Matches</Text>
-        </View>
-
-        {/* Liste des matches */}
         <FlatList
           data={matchedRooms}
           renderItem={renderMatchItem}
@@ -164,9 +157,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   pageTitle: {
-    ...TextStyles.h3,
+    ...TextStyles.h3Bold,
     color: Colors.primaryBorder,
-    fontWeight: '700',
   },
   listContainer: {
     flexGrow: 1,
@@ -229,9 +221,8 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   emptyStateTitle: {
-    ...TextStyles.h2,
+    ...TextStyles.h2Bold,
     color: Colors.primaryBorder,
-    fontWeight: '700',
     textAlign: 'center',
     marginTop: 24,
     marginBottom: 12,

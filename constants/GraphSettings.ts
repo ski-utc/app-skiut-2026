@@ -2,8 +2,9 @@ import * as Font from 'expo-font';
 
 export const Colors = {
   primary: '#79a8ce',      // Fond bleu principal
-  primaryBorder: '#35446d', // Bord bleu
-  secondary: '#eabfcd',      // Fond rose
+  primaryBorder: '#35446d', // Bord bleu (foncé)
+  secondary: '#e9c9d4',      // Fond rose
+  secondaryBorder: '#eaa4bb', // Bord rose (foncé)
   accent: '#fe734e',        // Texte orange sur fond blanc
   error: '#b50043',         // Rouge pour erreurs et indicateurs
   success: '#006259',       // Vert
@@ -67,11 +68,21 @@ export const FontSizes = {
 export const TextStyles = {
   // Titres
   h1: {
+    fontFamily: 'LibreBaskerville-Regular',
+    fontSize: FontSizes.h1,
+    lineHeight: FontSizes.h1 * 1.2,
+  },
+  h1Bold: {
     fontFamily: 'LibreBaskerville-Bold',
     fontSize: FontSizes.h1,
     lineHeight: FontSizes.h1 * 1.2,
   },
   h2: {
+    fontFamily: 'LibreBaskerville-Regular',
+    fontSize: FontSizes.h2,
+    lineHeight: FontSizes.h2 * 1.2,
+  },
+  h2Bold: {
     fontFamily: 'LibreBaskerville-Bold',
     fontSize: FontSizes.h2,
     lineHeight: FontSizes.h2 * 1.2,
@@ -81,8 +92,18 @@ export const TextStyles = {
     fontSize: FontSizes.h3,
     lineHeight: FontSizes.h3 * 1.2,
   },
+  h3Bold: {
+    fontFamily: 'LibreBaskerville-Bold',
+    fontSize: FontSizes.h3,
+    lineHeight: FontSizes.h3 * 1.2,
+  },
   h4: {
     fontFamily: 'LibreBaskerville-Regular',
+    fontSize: FontSizes.h4,
+    lineHeight: FontSizes.h4 * 1.2,
+  },
+  h4Bold: {
+    fontFamily: 'LibreBaskerville-Bold',
     fontSize: FontSizes.h4,
     lineHeight: FontSizes.h4 * 1.2,
   },

@@ -276,7 +276,6 @@ export default function SkinderDiscover() {
             </View>
 
             <View style={styles.content}>
-                {/* Header avec navigation */}
                 <View style={styles.navigationHeader}>
                     <TouchableOpacity
                         onPress={() => (navigation as any).navigate('skinderMyMatches')}
@@ -285,11 +284,6 @@ export default function SkinderDiscover() {
                         <MessageCircle size={20} color={Colors.primary} />
                         <Text style={styles.navButtonText}>Mes Matches</Text>
                     </TouchableOpacity>
-
-                    <View style={styles.titleContainer}>
-                        <Sparkles size={24} color={Colors.primary} />
-                        <Text style={styles.pageTitle}>Découvrir</Text>
-                    </View>
 
                     <TouchableOpacity
                         onPress={() => (navigation as any).navigate('skinderProfil')}
@@ -300,7 +294,6 @@ export default function SkinderDiscover() {
                     </TouchableOpacity>
                 </View>
 
-                {/* Contenu principal */}
                 {!noPhoto ? (
                     !tooMuch ? (
                         <View style={styles.cardContainer}>
@@ -387,7 +380,6 @@ export default function SkinderDiscover() {
                 )}
             </View>
 
-            {/* Boutons d'action */}
             {!noPhoto && !tooMuch && (
                 <View style={styles.actionButtonsContainer}>
                     <TouchableOpacity
@@ -407,7 +399,6 @@ export default function SkinderDiscover() {
                 </View>
             )}
 
-            {/* Animations de like/dislike */}
             <Animated.View style={[styles.likeAnimation, { opacity: likeOpacity, transform: [{ scale: likeOpacity }] }]}>
                 <Heart size={80} color={Colors.primary} fill={Colors.primary} />
             </Animated.View>
@@ -455,18 +446,13 @@ const styles = StyleSheet.create({
     navButtonText: {
         ...TextStyles.small,
         color: Colors.primary,
-        fontWeight: '600',
+        fontWeight: '700',
         marginTop: 4,
     },
     titleContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
-    },
-    pageTitle: {
-        ...TextStyles.h3,
-        color: Colors.primaryBorder,
-        fontWeight: '700',
     },
     cardContainer: {
         flex: 1,
@@ -503,9 +489,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
     },
     profileName: {
-        ...TextStyles.h2,
+        ...TextStyles.h2Bold,
         color: Colors.white,
-        fontWeight: '700',
     },
     profileInfo: {
         flex: 1,
@@ -552,9 +537,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 40,
     },
     emptyStateTitle: {
-        ...TextStyles.h2,
+        ...TextStyles.h2Bold,
         color: Colors.primaryBorder,
-        fontWeight: '700',
         textAlign: 'center',
         marginTop: 24,
         marginBottom: 12,

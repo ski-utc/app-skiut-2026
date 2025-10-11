@@ -36,14 +36,12 @@ export default function MatchScreen() {
             </View>
 
             <View style={styles.content}>
-                {/* Animation de célébration */}
                 <View style={styles.celebrationContainer}>
                     <Sparkles size={32} color={Colors.primary} />
                     <Text style={styles.matchTitle}>C'est un Match !</Text>
                     <Sparkles size={32} color={Colors.primary} />
                 </View>
 
-                {/* Images des profils */}
                 <View style={styles.profilesContainer}>
                     <View style={styles.profileImageContainer}>
                         <Image
@@ -74,7 +72,6 @@ export default function MatchScreen() {
                     </View>
                 </View>
 
-                {/* Informations de contact */}
                 <View style={styles.contactCard}>
                     <View style={styles.contactHeader}>
                         <MapPin size={20} color={Colors.primary} />
@@ -86,7 +83,6 @@ export default function MatchScreen() {
                     </Text>
                 </View>
 
-                {/* Message d'encouragement */}
                 <View style={styles.encouragementCard}>
                     <MessageCircle size={20} color={Colors.primary} />
                     <Text style={styles.encouragementText}>
@@ -94,7 +90,6 @@ export default function MatchScreen() {
                     </Text>
                 </View>
 
-                {/* Bouton de retour */}
                 <TouchableOpacity
                     onPress={() => navigation.goBack()}
                     style={styles.continueButton}
@@ -130,9 +125,8 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     matchTitle: {
-        ...TextStyles.h1,
+        ...TextStyles.h1Bold,
         color: Colors.primary,
-        fontWeight: '700',
         textAlign: 'center',
     },
     profilesContainer: {

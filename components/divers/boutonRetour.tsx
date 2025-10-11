@@ -37,7 +37,7 @@ export default function BoutonRetour({ previousRoute, title }) {
             <Text
                 style={{
                     color: '#000000',
-                    ...TextStyles.bodyLarge,
+                    ...TextStyles.h4,
                 }}
             >
                 {title}

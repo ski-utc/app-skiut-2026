@@ -160,8 +160,7 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
     },
     userName: {
-        ...TextStyles.h2,
-        fontWeight: '600',
+        ...TextStyles.h2Bold,
         color: Colors.white,
         marginBottom: 2,
     },
@@ -201,9 +200,9 @@ const styles = StyleSheet.create({
         marginRight: 16,
     },
     itemLabel: {
-        ...TextStyles.body,
+        ...TextStyles.h4Bold,
+        fontSize: FontSizes.medium,
         color: Colors.primaryBorder,
-        fontWeight: '600',
         flex: 1,
     },
     footer: {

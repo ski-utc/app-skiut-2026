@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   helpText: {
-    ...TextStyles.small,
+    ...TextStyles.body,
     color: Colors.muted,
     textAlign: 'center',
     marginBottom: 32,

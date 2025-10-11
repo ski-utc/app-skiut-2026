@@ -6,6 +6,7 @@ import { Colors, TextStyles } from '@/constants/GraphSettings';
 export default function BoutonActiver({
     title,
     IconComponent,
+    color,
     onPress = () => { },
     disabled = false,
     customStyles = {}
@@ -16,7 +17,7 @@ export default function BoutonActiver({
             style={[
                 {
                     padding: 10,
-                    backgroundColor: disabled ? Colors.muted : Colors.error,
+                    backgroundColor: disabled ? Colors.muted : color,
                     borderRadius: 8,
                     justifyContent: 'center',
                     alignItems: 'center',

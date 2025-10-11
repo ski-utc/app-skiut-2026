@@ -19,7 +19,7 @@ export default function SkinderProfil() {
     description: '',
     passions: ['', '', '', '', '', ''],
   });
-  const [profileImage, setProfileImage] = useState('https://pixsector.com/cache/d69e58d4/avbfe351f753bcaa24ae2.png');
+  const [profileImage, setProfileImage] = useState('https://i.fbcd.co/products/resized/resized-750-500/563d0201e4359c2e890569e254ea14790eb370b71d08b6de5052511cc0352313.jpg');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [modifiedPicture, setModifiedPicture] = useState(false);
@@ -252,7 +252,7 @@ export default function SkinderProfil() {
               source={{ uri: profileImage }}
               style={styles.profileImage}
               resizeMode="cover"
-              onError={() => setProfileImage("https://pixsector.com/cache/d69e58d4/avbfe351f753bcaa24ae2.png")}
+              onError={() => setProfileImage("https://i.fbcd.co/products/resized/resized-750-500/563d0201e4359c2e890569e254ea14790eb370b71d08b6de5052511cc0352313.jpg")}
             />
             <View style={styles.photoOverlay}>
               <Camera size={24} color={Colors.white} />

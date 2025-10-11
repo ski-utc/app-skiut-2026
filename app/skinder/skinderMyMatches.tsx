@@ -1,17 +1,36 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, ActivityIndicator, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, FlatList, TouchableOpacity, StyleSheet, Modal, ScrollView, Image, StatusBar } from 'react-native';
 import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
 import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
-import { MessageCircle, Heart, User, Sparkles, Eye } from 'lucide-react-native';
+import { MessageCircle, Heart, User, Sparkles, Eye, X, Trophy } from 'lucide-react-native';
 
 export default function SkinderMyMatches() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [matchedRooms, setMatchedRooms] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<any>(null);
+  const [roomDetails, setRoomDetails] = useState({
+    id: null,
+    roomNumber: '',
+    name: '',
+    description: '',
+    mood: '',
+    passions: [],
+    image: "https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png",
+    totalPoints: 0,
+    respUser: null,
+    statistics: {
+      likesReceived: 0,
+      likesGiven: 0,
+      matches: 0
+    }
+  });
   const { setUser } = useUser();
 
   useEffect(() => {
@@ -40,6 +59,68 @@ export default function SkinderMyMatches() {
       setLoading(false);
     }
   }, [setUser]);
+
+  const fetchRoomDetails = useCallback(async (roomId: number) => {
+    setLoadingRoomDetails(true);
+    try {
+      const response = await apiGet(`getRoomDetails/${roomId}`);
+      if (response.success) {
+        setRoomDetails({
+          id: response.data.id,
+          roomNumber: response.data.roomNumber,
+          name: response.data.name,
+          description: response.data.description,
+          mood: response.data.mood,
+          passions: Array.isArray(response.data.passions) ? response.data.passions : [],
+          image: response.data.image || "https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png",
+          totalPoints: response.data.totalPoints,
+          respUser: response.data.respUser,
+          statistics: response.data.statistics || {
+            likesReceived: 0,
+            likesGiven: 0,
+            matches: 0
+          }
+        });
+      } else {
+        setError(response.message || 'Une erreur est survenue lors de la récupération des détails.');
+      }
+    } catch (error: any) {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        setUser(null);
+      } else {
+        setError(error.message || 'Erreur réseau.');
+      }
+    } finally {
+      setLoadingRoomDetails(false);
+    }
+  }, [setUser]);
+
+  const handleOpenModal = (room: any) => {
+    setSelectedRoom(room);
+    setIsModalVisible(true);
+    fetchRoomDetails(room.roomId);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+    setSelectedRoom(null);
+    setRoomDetails({
+      id: null,
+      roomNumber: '',
+      name: '',
+      description: '',
+      mood: '',
+      passions: [],
+      image: "https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png",
+      totalPoints: 0,
+      respUser: null,
+      statistics: {
+        likesReceived: 0,
+        likesGiven: 0,
+        matches: 0
+      }
+    });
+  };
 
   useEffect(() => {
     fetchMatches();
@@ -75,7 +156,7 @@ export default function SkinderMyMatches() {
   }
 
   const renderMatchItem = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.matchCard}>
+    <TouchableOpacity style={styles.matchCard} onPress={() => handleOpenModal(item)} activeOpacity={0.7}>
       <View style={styles.matchIconContainer}>
         <Heart size={24} color={Colors.primary} fill={Colors.primary} />
       </View>
@@ -85,7 +166,7 @@ export default function SkinderMyMatches() {
           <Text style={styles.matchRespName}>{item.respRoom}</Text>
         )}
         <Text style={styles.matchSubtitle}>
-          Allez toquer pour vous rencontrer !
+          Appuyez pour voir le profil
         </Text>
       </View>
       <View style={styles.matchAction}>
@@ -121,6 +202,111 @@ export default function SkinderMyMatches() {
           ListEmptyComponent={renderEmptyState}
         />
       </View>
+
+      <Modal
+        visible={isModalVisible}
+        transparent={false}
+        animationType="slide"
+        onRequestClose={handleCloseModal}
+      >
+        <StatusBar hidden />
+        <View style={styles.modalContainer}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={handleCloseModal}
+            activeOpacity={0.7}
+          >
+            <X size={24} color={Colors.white} />
+          </TouchableOpacity>
+
+          {loadingRoomDetails ? (
+            <View style={styles.modalLoadingContainer}>
+              <ActivityIndicator size="large" color={Colors.primaryBorder} />
+              <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+                Chargement du profil...
+              </Text>
+            </View>
+          ) : (
+            <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+              <View style={styles.modalImageContainer}>
+                <Image
+                  source={{ uri: roomDetails.image }}
+                  style={styles.modalImage}
+                  resizeMode="cover"
+                />
+                <View style={styles.modalImageOverlay}>
+                  <Text style={styles.modalRoomName}>{roomDetails.name}</Text>
+                  {roomDetails.roomNumber && (
+                    <Text style={styles.modalRoomNumber}>Chambre {roomDetails.roomNumber}</Text>
+                  )}
+                </View>
+              </View>
+
+              <View style={styles.modalInfo}>
+                {roomDetails.respUser && (
+                  <View style={styles.modalInfoCard}>
+                    <Text style={styles.modalInfoLabel}>Responsable de chambre</Text>
+                    <Text style={styles.modalInfoValue}>{(roomDetails.respUser as any).fullName}</Text>
+                  </View>
+                )}
+
+                {roomDetails.totalPoints > 0 && (
+                  <View style={styles.modalInfoCard}>
+                    <Trophy size={16} color={Colors.primary} />
+                    <Text style={styles.modalInfoLabel}>Points Défis</Text>
+                    <Text style={styles.modalInfoValue}>{roomDetails.totalPoints} pts</Text>
+                  </View>
+                )}
+
+                {roomDetails.mood && (
+                  <View style={styles.modalSection}>
+                    <Text style={styles.modalSectionTitle}>Humeur</Text>
+                    <Text style={styles.modalDescriptionText}>{roomDetails.mood}</Text>
+                  </View>
+                )}
+
+                {roomDetails.description ? (
+                  <View style={styles.modalSection}>
+                    <Text style={styles.modalSectionTitle}>À propos</Text>
+                    <Text style={styles.modalDescriptionText}>{roomDetails.description}</Text>
+                  </View>
+                ) : null}
+
+                {roomDetails.passions.length > 0 ? (
+                  <View style={styles.modalSection}>
+                    <Text style={styles.modalSectionTitle}>Passions</Text>
+                    <View style={styles.modalPassionContainer}>
+                      {roomDetails.passions.map((passion, index) => (
+                        <View key={index} style={styles.modalPassionChip}>
+                          <Text style={styles.modalPassionText}>{passion}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                ) : null}
+
+                {(roomDetails.statistics.matches > 0 || roomDetails.statistics.likesReceived > 0) && (
+                  <View style={styles.modalSection}>
+                    <Text style={styles.modalSectionTitle}>Statistiques</Text>
+                    <View style={styles.modalStatsContainer}>
+                      <View style={styles.modalStatItem}>
+                        <Heart size={20} color={Colors.primary} fill={Colors.primary} />
+                        <Text style={styles.modalStatValue}>{roomDetails.statistics.likesReceived}</Text>
+                        <Text style={styles.modalStatLabel}>Likes reçus</Text>
+                      </View>
+                      <View style={styles.modalStatItem}>
+                        <Sparkles size={20} color={Colors.accent} />
+                        <Text style={styles.modalStatValue}>{roomDetails.statistics.matches}</Text>
+                        <Text style={styles.modalStatLabel}>Matches</Text>
+                      </View>
+                    </View>
+                  </View>
+                )}
+              </View>
+            </ScrollView>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -232,5 +418,132 @@ const styles = StyleSheet.create({
     color: Colors.muted,
     textAlign: 'center',
     lineHeight: 22,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: Colors.white,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 1000,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalLoadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  modalContent: {
+    flex: 1,
+  },
+  modalImageContainer: {
+    position: 'relative',
+    height: 400,
+  },
+  modalImage: {
+    width: '100%',
+    height: '100%',
+  },
+  modalImageOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+  },
+  modalRoomName: {
+    ...TextStyles.h1Bold,
+    color: Colors.white,
+  },
+  modalRoomNumber: {
+    ...TextStyles.body,
+    color: Colors.white,
+    marginTop: 4,
+    opacity: 0.9,
+  },
+  modalInfo: {
+    padding: 20,
+  },
+  modalInfoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    gap: 8,
+  },
+  modalInfoLabel: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    flex: 1,
+  },
+  modalInfoValue: {
+    ...TextStyles.bodyBold,
+    color: Colors.primaryBorder,
+  },
+  modalSection: {
+    marginBottom: 24,
+  },
+  modalSectionTitle: {
+    ...TextStyles.h4Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 12,
+  },
+  modalDescriptionText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    lineHeight: 22,
+  },
+  modalPassionContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  modalPassionChip: {
+    backgroundColor: Colors.lightMuted,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  modalPassionText: {
+    ...TextStyles.body,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  modalStatsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    gap: 16,
+  },
+  modalStatItem: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 12,
+    padding: 16,
+  },
+  modalStatValue: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+    marginTop: 8,
+  },
+  modalStatLabel: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    marginTop: 4,
+    textAlign: 'center',
   },
 });

@@ -3,62 +3,73 @@ import { View, Text, Image, TouchableOpacity, StyleSheet, SafeAreaView } from 'r
 import { useNavigation } from '@react-navigation/native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { ChevronRight, Sparkles } from 'lucide-react-native';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 
 export default function LaunchScreen1() {
   const navigation = useNavigation();
 
+  const handleGestureEvent = ({ nativeEvent }: any) => {
+    if (nativeEvent.state === State.END) {
+      if (nativeEvent.velocityX < -500) {
+        (navigation as any).navigate("launchScreen2");
+      }
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.backgroundDecoration} />
+    <PanGestureHandler onHandlerStateChange={handleGestureEvent}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.backgroundDecoration} />
 
-      <View style={styles.logoContainer}>
-        <View style={styles.logoWrapper}>
-          <Image
-            source={require('../../assets/images/logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <View style={styles.logoGlow} />
-        </View>
-      </View>
-
-      <View style={styles.contentContainer}>
-        <View style={styles.progressContainer}>
-          <View style={styles.dotsContainer}>
-            <View style={[styles.dot, styles.dotActive]} />
-            <View style={[styles.dot, styles.dotInactive]} />
-            <View style={[styles.dot, styles.dotInactive]} />
+        <View style={styles.logoContainer}>
+          <View style={styles.logoWrapper}>
+            <Image
+              source={require('../../assets/images/logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            <View style={styles.logoGlow} />
           </View>
-          <Text style={styles.progressText}>1 / 3</Text>
         </View>
 
-        <View style={styles.titleContainer}>
-          <Sparkles size={28} color={Colors.primary} />
-          <Text style={styles.title}>Bienvenue sur SkiUTC</Text>
+        <View style={styles.contentContainer}>
+          <View style={styles.progressContainer}>
+            <View style={styles.dotsContainer}>
+              <View style={[styles.dot, styles.dotActive]} />
+              <View style={[styles.dot, styles.dotInactive]} />
+              <View style={[styles.dot, styles.dotInactive]} />
+            </View>
+            <Text style={styles.progressText}>1 / 3</Text>
+          </View>
+
+          <View style={styles.titleContainer}>
+            <Sparkles size={28} color={Colors.primary} />
+            <Text style={styles.title}>Bienvenue sur Ski'UTC</Text>
+          </View>
+
+          <Text style={styles.description}>
+            Découvrez votre compagnon indispensable pour vivre une semaine de ski inoubliable !
+            Défis, planning, météo et bien plus encore.
+          </Text>
+
+          {/* <TouchableOpacity
+            onPress={() => (navigation as any).navigate("launchScreen2")}
+            style={styles.nextButton}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.nextButtonText}>Commencer l'aventure</Text>
+            <ChevronRight size={20} color={Colors.white} />
+          </TouchableOpacity> */}
+
+          <TouchableOpacity
+            onPress={() => (navigation as any).navigate("loginScreen")}
+            style={styles.skipButton}
+          >
+            <Text style={styles.skipButtonText}>Passer l'introduction</Text>
+          </TouchableOpacity>
         </View>
-
-        <Text style={styles.description}>
-          Découvrez votre compagnon indispensable pour vivre une semaine de ski inoubliable !
-          Défis, planning, météo et bien plus encore.
-        </Text>
-
-        <TouchableOpacity
-          onPress={() => (navigation as any).navigate("launchScreen2")}
-          style={styles.nextButton}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.nextButtonText}>Commencer l'aventure</Text>
-          <ChevronRight size={20} color={Colors.white} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => (navigation as any).navigate("loginScreen")}
-          style={styles.skipButton}
-        >
-          <Text style={styles.skipButtonText}>Passer l'introduction</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </PanGestureHandler>
   );
 }
 
@@ -71,8 +82,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     right: 0,
-    width: '75%',
-    height: '50%',
+    width: '80%',
+    height: '60%',
     backgroundColor: Colors.primary,
     opacity: 0.1,
     borderBottomLeftRadius: 100,
@@ -176,7 +187,7 @@ const styles = StyleSheet.create({
   },
   skipButton: {
     alignItems: 'center',
-    paddingVertical: 12,
+    marginTop: 20,
   },
   skipButtonText: {
     ...TextStyles.body,

@@ -1,47 +1,123 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView, AppState, Platform } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import Header from "../../../components/header";
 import BoutonRetour from "../../../components/divers/boutonRetour";
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { Trophy, Play, Square, Zap, MapPin, Timer } from "lucide-react-native";
+import { Trophy, Play, Square, Zap, MapPin, Timer, Gauge, Activity, TrendingUp } from "lucide-react-native";
 import * as Location from "expo-location";
+import * as TaskManager from "expo-task-manager";
 import { apiPost } from "@/constants/api/apiCalls";
 import { useUser } from "@/contexts/UserContext";
 import Toast from 'react-native-toast-message';
 
+const LOCATION_TASK_NAME = 'background-location-task';
+
+// Tâche en arrière-plan pour la géolocalisation
+TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
+    if (error) {
+        console.error('Erreur dans la tâche de localisation:', error);
+        return;
+    }
+    if (data) {
+        const { locations } = data as any;
+        console.log('Localisation reçue en arrière-plan:', locations);
+    }
+});
+
 export default function VitesseDeGlisseScreen() {
     const [isTracking, setIsTracking] = useState(false);
     const [distance, setDistance] = useState(0);
-    const [trackingTimer, setTrackingTimer] = useState<number | null>(null);
     const [maxSpeed, setMaxSpeed] = useState(0);
+    const [averageSpeed, setAverageSpeed] = useState(0);
+    const [currentSpeed, setCurrentSpeed] = useState(0);
     const [prevLocation, setPrevLocation] = useState<Location.LocationObjectCoords | null>(null);
     const [subscription, setSubscription] = useState<Location.LocationSubscription | null>(null);
     const [trackingTime, setTrackingTime] = useState(0);
+    const [sessionId, setSessionId] = useState<string | null>(null);
+    const [speedHistory, setSpeedHistory] = useState<number[]>([]);
 
-    const { user } = useUser();
+    // Statistiques de session
+    const [sessionStats, setSessionStats] = useState({
+        startTime: 0,
+        totalSpeed: 0,
+        speedReadings: 0,
+        validReadings: 0
+    });
+
+    const { user, setUser } = useUser();
     const navigation = useNavigation();
+    const appState = useRef(AppState.currentState);
+    const trackingInterval = useRef<NodeJS.Timeout | null>(null);
+
+    // Nettoyer lors du démontage
     useEffect(() => {
         return () => {
             if (subscription) subscription.remove();
+            if (trackingInterval.current) clearInterval(trackingInterval.current);
         };
     }, [subscription]);
 
+    // Gérer les changements d'état de l'app (arrière-plan)
     useEffect(() => {
-        let interval = null;
+        const subscription = AppState.addEventListener('change', (nextAppState) => {
+            if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+                console.log('App revenue au premier plan');
+            } else if (appState.current === 'active' && nextAppState.match(/inactive|background/)) {
+                console.log('App passée en arrière-plan');
+                if (isTracking) {
+                    // Continuer le tracking en arrière-plan
+                    enableBackgroundLocation();
+                }
+            }
+            appState.current = nextAppState;
+        });
+
+        return () => subscription?.remove();
+    }, [isTracking]);
+
+    // Timer pour le temps de tracking
+    useEffect(() => {
         if (isTracking) {
-            interval = setInterval(() => {
+            trackingInterval.current = setInterval(() => {
                 setTrackingTime(time => time + 1);
             }, 1000);
         } else {
+            if (trackingInterval.current) {
+                clearInterval(trackingInterval.current);
+                trackingInterval.current = null;
+            }
             setTrackingTime(0);
         }
         return () => {
-            if (interval) clearInterval(interval);
+            if (trackingInterval.current) clearInterval(trackingInterval.current);
         };
     }, [isTracking]);
 
+    // Activer la géolocalisation en arrière-plan
+    const enableBackgroundLocation = async () => {
+        try {
+            if (Platform.OS === 'ios') {
+                const backgroundPermission = await Location.requestBackgroundPermissionsAsync();
+                if (backgroundPermission.status !== 'granted') {
+                    console.log('Permission arrière-plan refusée sur iOS');
+                    return;
+                }
+            }
+
+            await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+                accuracy: Location.Accuracy.Highest,
+                timeInterval: 2000,
+                distanceInterval: 5,
+                showsBackgroundLocationIndicator: Platform.OS === 'ios',
+            });
+        } catch (error) {
+            console.error('Erreur lors de l\'activation de la géolocalisation en arrière-plan:', error);
+        }
+    };
+
     const startTracking = async () => {
+        // Demander les permissions de localisation
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
             Alert.alert(
@@ -51,91 +127,203 @@ export default function VitesseDeGlisseScreen() {
             return;
         }
 
+        // Pour iOS, demander la permission d'arrière-plan
+        if (Platform.OS === 'ios') {
+            const backgroundStatus = await Location.requestBackgroundPermissionsAsync();
+            if (backgroundStatus.status !== 'granted') {
+                Alert.alert(
+                    "Permission arrière-plan recommandée",
+                    "Pour une mesure continue même avec le téléphone en veille, autorisez la localisation en arrière-plan."
+                );
+            }
+        }
+
+        // Réinitialiser les données
+        const newSessionId = Date.now().toString();
+        setSessionId(newSessionId);
         setIsTracking(true);
         setDistance(0);
         setMaxSpeed(0);
+        setAverageSpeed(0);
+        setCurrentSpeed(0);
         setPrevLocation(null);
+        setSpeedHistory([]);
+        setSessionStats({
+            startTime: Date.now(),
+            totalSpeed: 0,
+            speedReadings: 0,
+            validReadings: 0
+        });
 
-        const locationSubscription = await Location.watchPositionAsync(
-            {
-                accuracy: Location.Accuracy.Highest,
-                timeInterval: 1000,
-                distanceInterval: 1,
-            },
-            (location) => {
-                const { coords } = location;
-                if (prevLocation) {
-                    const deltaDistance = getDistanceFromLatLonInMeters(
-                        prevLocation.latitude,
-                        prevLocation.longitude,
-                        coords.latitude,
-                        coords.longitude
-                    );
-
-                    const currentSpeed = (coords.speed || 0) * 3.6;
-
-                    if (deltaDistance <= 100 && currentSpeed <= 150) {
-                        setDistance((prev) => prev + deltaDistance);
-                    }
-
-                    setMaxSpeed((prevMaxSpeed) =>
-                        currentSpeed > prevMaxSpeed ? currentSpeed : prevMaxSpeed
-                    );
+        try {
+            const locationSubscription = await Location.watchPositionAsync(
+                {
+                    accuracy: Location.Accuracy.BestForNavigation,
+                    timeInterval: 1000, // Mise à jour chaque seconde
+                    distanceInterval: 1, // Mise à jour chaque mètre
+                    mayShowUserSettingsDialog: true,
+                },
+                (location) => {
+                    processLocationUpdate(location);
                 }
+            );
 
-                setPrevLocation(coords);
+            setSubscription(locationSubscription);
+
+            // Activer le mode arrière-plan après un délai
+            setTimeout(() => {
+                if (isTracking) {
+                    enableBackgroundLocation();
+                }
+            }, 2000);
+
+        } catch (error) {
+            console.error('Erreur lors du démarrage du tracking:', error);
+            Alert.alert('Erreur', 'Impossible de démarrer le suivi de localisation.');
+            setIsTracking(false);
+        }
+    };
+
+    const processLocationUpdate = (location: Location.LocationObject) => {
+        const { coords } = location;
+
+        // Vérifier la précision GPS
+        if (coords.accuracy && coords.accuracy > 20) {
+            console.log(`Précision GPS faible: ${coords.accuracy}m`);
+            return; // Ignorer les lectures imprécises
+        }
+
+        setCurrentSpeed((coords.speed || 0) * 3.6); // Conversion m/s vers km/h
+
+        if (prevLocation && coords.speed !== null) {
+            const deltaDistance = getDistanceFromLatLonInMeters(
+                prevLocation.latitude,
+                prevLocation.longitude,
+                coords.latitude,
+                coords.longitude
+            );
+
+            const currentSpeedKmh = coords.speed * 3.6;
+
+            // Filtrage des valeurs aberrantes
+            const isValidSpeed = currentSpeedKmh >= 0 && currentSpeedKmh <= 200; // Maximum 200 km/h
+            const isValidDistance = deltaDistance < 200; // Maximum 200m entre deux lectures
+
+            if (isValidSpeed && isValidDistance) {
+                // Mettre à jour la distance
+                setDistance(prev => prev + deltaDistance);
+
+                // Mettre à jour la vitesse maximale
+                setMaxSpeed(prevMaxSpeed =>
+                    currentSpeedKmh > prevMaxSpeed ? currentSpeedKmh : prevMaxSpeed
+                );
+
+                // Mettre à jour l'historique des vitesses
+                setSpeedHistory(prev => {
+                    const newHistory = [...prev, currentSpeedKmh];
+                    // Garder seulement les 60 dernières lectures (1 minute)
+                    return newHistory.slice(-60);
+                });
+
+                // Calculer la vitesse moyenne
+                setSessionStats(prev => {
+                    const newTotalSpeed = prev.totalSpeed + currentSpeedKmh;
+                    const newReadings = prev.speedReadings + 1;
+                    const newValidReadings = prev.validReadings + 1;
+
+                    setAverageSpeed(newTotalSpeed / newReadings);
+
+                    return {
+                        ...prev,
+                        totalSpeed: newTotalSpeed,
+                        speedReadings: newReadings,
+                        validReadings: newValidReadings
+                    };
+                });
             }
-        );
+        }
 
-        setSubscription(locationSubscription);
-
-        const timer = setTimeout(() => {
-            stopTracking();
-        }, 2 * 60 * 1000);
-
-        setTrackingTimer(timer);
+        setPrevLocation(coords);
     };
 
     const stopTracking = async () => {
         setIsTracking(false);
+
+        // Arrêter l'abonnement à la localisation
         if (subscription) {
             subscription.remove();
             setSubscription(null);
         }
 
-        if (trackingTimer) {
-            clearTimeout(trackingTimer);
-            setTrackingTimer(null);
+        // Arrêter la tâche en arrière-plan
+        if (await TaskManager.isTaskRegisteredAsync(LOCATION_TASK_NAME)) {
+            await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
         }
 
-        try {
-            const response = await apiPost("update-performance", {
-                user_id: user?.id,
-                speed: maxSpeed,
-                distance: distance / 1000,
-            });
+        // Calculer les statistiques finales de la session
+        const sessionDuration = trackingTime;
+        const totalDistanceKm = distance / 1000;
+        const avgSpeedFinal = sessionStats.speedReadings > 0 ?
+            sessionStats.totalSpeed / sessionStats.speedReadings : 0;
 
-            if (response.success) {
-                Toast.show({
-                    type: 'success',
-                    text1: 'Succès',
-                    text2: "Votre performance a été enregistrée !",
+        // Enregistrer la performance si significative
+        if (totalDistanceKm > 0.01 && sessionDuration > 5) { // Minimum 10m et 5 secondes
+            try {
+                const response = await apiPost("update-performance", {
+                    user_id: user?.id,
+                    speed: maxSpeed,
+                    distance: totalDistanceKm,
+                    duration: sessionDuration,
+                    average_speed: avgSpeedFinal,
+                    session_id: sessionId
                 });
-            } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Erreur',
-                    text2: "Une erreur est survenue lors de l'enregistrement.",
-                });
+
+                if (response.success) {
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Performance enregistrée !',
+                        text2: `${maxSpeed.toFixed(1)} km/h max • ${totalDistanceKm.toFixed(2)} km`,
+                    });
+                } else {
+                    throw new Error(response.message || 'Erreur serveur');
+                }
+            } catch (error: any) {
+                if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+                    setUser(null);
+                } else {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Erreur d\'enregistrement',
+                        text2: error.message || 'Impossible de sauvegarder la performance',
+                    });
+                }
             }
-        } catch (error: any) {
-            const errorMessage = error?.message || "Erreur inconnue";
-            Alert.alert("Erreur", `Impossible d'enregistrer la performance : ${errorMessage}`);
+        } else {
+            Toast.show({
+                type: 'info',
+                text1: 'Session trop courte',
+                text2: 'Session non enregistrée (minimum 10m et 5s)',
+            });
         }
 
+        // Réinitialiser les données
+        resetSession();
+    };
+
+    const resetSession = () => {
         setDistance(0);
         setMaxSpeed(0);
+        setAverageSpeed(0);
+        setCurrentSpeed(0);
         setPrevLocation(null);
+        setSpeedHistory([]);
+        setSessionStats({
+            startTime: 0,
+            totalSpeed: 0,
+            speedReadings: 0,
+            validReadings: 0
+        });
+        setSessionId(null);
     };
 
     const formatTime = (seconds: number) => {
@@ -144,21 +332,22 @@ export default function VitesseDeGlisseScreen() {
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const StatCard = ({ icon: IconComponent, title, value, unit, color = Colors.primary }: {
+    const StatCard = ({ icon: IconComponent, title, value, unit, color = Colors.primary, isLive = false }: {
         icon: any;
         title: string;
         value: string;
         unit: string;
         color?: string;
+        isLive?: boolean;
     }) => (
-        <View style={styles.statCard}>
+        <View style={[styles.statCard, isLive && styles.statCardLive]}>
             <View style={[styles.statIcon, { backgroundColor: color }]}>
                 <IconComponent size={24} color={Colors.white} />
             </View>
             <View style={styles.statContent}>
                 <Text style={styles.statTitle}>{title}</Text>
                 <View style={styles.statValueContainer}>
-                    <Text style={styles.statValue}>{value}</Text>
+                    <Text style={[styles.statValue, isLive && styles.statValueLive]}>{value}</Text>
                     <Text style={styles.statUnit}>{unit}</Text>
                 </View>
             </View>
@@ -192,7 +381,7 @@ export default function VitesseDeGlisseScreen() {
     );
 
     const getDistanceFromLatLonInMeters = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-        const R = 6371e3;
+        const R = 6371e3; // Rayon de la Terre en mètres
         const toRad = (value: number) => (value * Math.PI) / 180;
         const dLat = toRad(lat2 - lat1);
         const dLon = toRad(lon2 - lon1);
@@ -215,19 +404,43 @@ export default function VitesseDeGlisseScreen() {
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 <View style={styles.heroSection}>
-                    <View style={styles.heroIcon}>
-                        <Zap size={32} color={Colors.primary} />
+                    <View style={[styles.heroIcon, isTracking && styles.heroIconActive]}>
+                        <Zap size={32} color={isTracking ? Colors.white : Colors.primary} />
                     </View>
-                    <Text style={styles.heroTitle}>Enregistre ta performance</Text>
+                    <Text style={styles.heroTitle}>
+                        {isTracking ? 'Enregistrement en cours...' : 'Suivi de performance'}
+                    </Text>
+                    {isTracking && (
+                        <Text style={styles.heroSubtitle}>
+                            Session active • {formatTime(trackingTime)}
+                        </Text>
+                    )}
                 </View>
 
                 <View style={styles.statsSection}>
+                    <StatCard
+                        icon={Activity}
+                        title="Vitesse actuelle"
+                        value={currentSpeed.toFixed(1)}
+                        unit="km/h"
+                        color={Colors.success}
+                        isLive={isTracking}
+                    />
+
                     <StatCard
                         icon={Zap}
                         title="Vitesse maximale"
                         value={maxSpeed.toFixed(1)}
                         unit="km/h"
                         color={Colors.primary}
+                    />
+
+                    <StatCard
+                        icon={TrendingUp}
+                        title="Vitesse moyenne"
+                        value={averageSpeed.toFixed(1)}
+                        unit="km/h"
+                        color={Colors.accent}
                     />
 
                     <StatCard
@@ -240,10 +453,10 @@ export default function VitesseDeGlisseScreen() {
 
                     <StatCard
                         icon={Timer}
-                        title="Temps d'enregistrement"
+                        title="Durée"
                         value={formatTime(trackingTime)}
-                        unit="min"
-                        color={Colors.accent}
+                        unit=""
+                        color={Colors.muted}
                     />
                 </View>
 
@@ -251,7 +464,7 @@ export default function VitesseDeGlisseScreen() {
                     <Text style={styles.sectionTitle}>Contrôles</Text>
 
                     <ActionButton
-                        title={isTracking ? "Arrêter l'enregistrement" : "Démarrer l'enregistrement"}
+                        title={isTracking ? "Arrêter l'enregistrement" : "Commencer l'enregistrement"}
                         icon={isTracking ? Square : Play}
                         onPress={isTracking ? stopTracking : startTracking}
                         variant="primary"
@@ -260,23 +473,19 @@ export default function VitesseDeGlisseScreen() {
                     <ActionButton
                         title="Voir le classement"
                         icon={Trophy}
-                        onPress={() => {
-                            (navigation as any).navigate('PerformancesScreen');
-                        }}
+                        onPress={() => (navigation as any).navigate('PerformancesScreen')}
                         variant="secondary"
+                        disabled={isTracking}
+                    />
+
+                    <ActionButton
+                        title="Mes enregistrements"
+                        icon={Gauge}
+                        onPress={() => (navigation as any).navigate('UserPerformancesScreen')}
+                        variant="secondary"
+                        disabled={isTracking}
                     />
                 </View>
-
-                {isTracking && (
-                    <View style={styles.infoSection}>
-                        <View style={styles.infoCard}>
-                            <Text style={styles.infoTitle}>📱 Enregistrement en cours</Text>
-                            <Text style={styles.infoText}>
-                                L'enregistrement s'arrêtera automatiquement après 2 minutes ou lorsque vous appuyez sur "Arrêter".
-                            </Text>
-                        </View>
-                    </View>
-                )}
             </ScrollView>
         </View>
     );
@@ -298,8 +507,8 @@ const styles = StyleSheet.create({
     },
     heroSection: {
         alignItems: 'center',
-        paddingBottom: 16,
-        marginBottom: 8,
+        paddingBottom: 24,
+        marginBottom: 16,
     },
     heroIcon: {
         width: 80,
@@ -310,13 +519,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 16,
     },
+    heroIconActive: {
+        backgroundColor: Colors.primary,
+    },
     heroTitle: {
         ...TextStyles.h2Bold,
         color: Colors.primaryBorder,
         textAlign: 'center',
+        marginBottom: 4,
+    },
+    heroSubtitle: {
+        ...TextStyles.body,
+        color: Colors.primary,
+        textAlign: 'center',
+        fontWeight: '600',
     },
     statsSection: {
-        marginBottom: 8,
+        marginBottom: 24,
     },
     statCard: {
         flexDirection: 'row',
@@ -332,6 +551,10 @@ const styles = StyleSheet.create({
         elevation: 3,
         padding: 16,
         marginBottom: 12,
+    },
+    statCardLive: {
+        borderColor: Colors.success,
+        borderWidth: 2,
     },
     statIcon: {
         width: 48,
@@ -357,6 +580,9 @@ const styles = StyleSheet.create({
         ...TextStyles.h3Bold,
         color: Colors.primaryBorder,
         marginRight: 4,
+    },
+    statValueLive: {
+        color: Colors.success,
     },
     statUnit: {
         ...TextStyles.body,
@@ -408,26 +634,5 @@ const styles = StyleSheet.create({
     },
     actionButtonTextSecondary: {
         color: Colors.primaryBorder,
-    },
-    infoSection: {
-        marginBottom: 24,
-    },
-    infoCard: {
-        backgroundColor: Colors.lightMuted,
-        borderRadius: 12,
-        padding: 16,
-        borderLeftWidth: 4,
-        borderLeftColor: Colors.primary,
-    },
-    infoTitle: {
-        ...TextStyles.body,
-        color: Colors.primaryBorder,
-        fontWeight: '600',
-        marginBottom: 8,
-    },
-    infoText: {
-        ...TextStyles.small,
-        color: Colors.muted,
-        lineHeight: 20,
     },
 });

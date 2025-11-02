@@ -134,7 +134,7 @@ export default function AnecdotesForm() {
                 color={isChecked ? Colors.primary : undefined}
               />
               <View style={styles.termsTextContainer}>
-                <Shield size={16} color={Colors.primary} />
+                {/* <Shield size={16} color={Colors.primary} /> */}
                 <Text style={styles.termsText}>
                   En postant cette anecdote, je certifie qu'elle respecte les autres participant.e.s du voyage
                 </Text>

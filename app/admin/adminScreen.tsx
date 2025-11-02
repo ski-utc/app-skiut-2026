@@ -7,7 +7,7 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '@/contexts/UserContext';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { ChevronRight, Shield, MessageSquare, Trophy, Bell } from 'lucide-react-native';
+import { ChevronRight, Shield, MessageSquare, Trophy, Bell, Clock, Home } from 'lucide-react-native';
 
 interface BoutonAdminProps {
   nextRoute: string;
@@ -58,6 +58,18 @@ const adminControls = [
     icon: <Bell size={24} color={Colors.primary} />,
     description: 'Envoyer des notifications'
   },
+  {
+    title: 'Gestion des permanences',
+    nextRoute: 'gestionPermanencesScreen',
+    icon: <Clock size={24} color={Colors.primary} />,
+    description: 'Planifier et gérer les permanences'
+  },
+  {
+    title: 'Tournée des chambres',
+    nextRoute: 'gestionTourneeChambreScreen',
+    icon: <Home size={24} color={Colors.primary} />,
+    description: 'Organiser les tournées de chambres'
+  },
 ];
 
 export default function Admin() {
@@ -88,7 +100,7 @@ export default function Admin() {
   }, [navigation, setUser]);
 
   useEffect(() => {
-fetchAdmin();
+    fetchAdmin();
   }, [fetchAdmin]);
 
   if (error !== '') {

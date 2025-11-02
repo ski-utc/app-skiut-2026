@@ -1,8 +1,8 @@
-import { Text, View, ActivityIndicator, Dimensions, StyleSheet, FlatList } from "react-native";
+import { Text, View, ActivityIndicator, Dimensions, StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import Header from "@/components/header";
 import React, { useState, useEffect } from "react";
 import { Colors, TextStyles, Fonts } from '@/constants/GraphSettings';
-import { Crown, Trophy, Medal } from "lucide-react-native";
+import { Crown, Trophy, Medal, ChevronDown } from "lucide-react-native";
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from "@/components/pages/errorPage";
@@ -10,16 +10,20 @@ import ErrorScreen from "@/components/pages/errorPage";
 const screenWidth = Dimensions.get('window').width;
 const podiumWidth = (screenWidth - 80) / 3;
 
+type RankingType = 'speed' | 'distance' | 'duration';
+
 interface PerformanceData {
     user_id: number;
     full_name: string;
     max_speed: number;
+    total_distance?: number;
+    duration?: number;
 }
 
 interface PodiumPlaceProps {
     position: number;
     fullName: string;
-    speed: number;
+    speed: string;
     height: number;
 }
 
@@ -54,7 +58,7 @@ const PodiumPlace: React.FC<PodiumPlaceProps> = ({ position, fullName, speed, he
                 {fullName}
             </Text>
             <Text style={[podiumStyles.pointsText, { color: Colors.primaryBorder }]}>
-                {speed.toFixed(1)} km/h
+                {speed}
             </Text>
             <View style={[
                 podiumStyles.podiumBar,
@@ -70,7 +74,7 @@ const PodiumPlace: React.FC<PodiumPlaceProps> = ({ position, fullName, speed, he
 interface RankingItemProps {
     position: number;
     fullName: string;
-    speed: number;
+    speed: string;
 }
 
 const RankingItem: React.FC<RankingItemProps> = ({ position, fullName, speed }) => {
@@ -81,7 +85,7 @@ const RankingItem: React.FC<RankingItemProps> = ({ position, fullName, speed }) 
             </View>
             <View style={rankingStyles.contentContainer}>
                 <Text style={rankingStyles.roomName}>{fullName}</Text>
-                <Text style={rankingStyles.points}>{speed.toFixed(1)} km/h</Text>
+                <Text style={rankingStyles.points}>{speed}</Text>
             </View>
         </View>
     );
@@ -185,16 +189,18 @@ export default function PerformancesScreen() {
     const [podium, setPodium] = useState<PerformanceData[]>([]);
     const [rest, setRest] = useState<PerformanceData[]>([]);
     const [disableRefresh, setDisableRefresh] = useState(false);
+    const [rankingType, setRankingType] = useState<RankingType>('speed');
+    const [showRankingMenu, setShowRankingMenu] = useState(false);
 
     useEffect(() => {
         fetchPerformances();
-}, []);
+    }, [rankingType]);
 
     const fetchPerformances = async () => {
         setLoading(true);
         setDisableRefresh(true);
         try {
-            const response = await apiGet("classement-performances");
+            const response = await apiGet(`classement-performances?type=${rankingType}`);
             if (response.success) {
                 setPodium(response.podium);
                 setRest(response.rest);
@@ -213,6 +219,22 @@ export default function PerformancesScreen() {
             setTimeout(() => {
                 setDisableRefresh(false);
             }, 5000);
+        }
+    };
+
+    const getRankingLabel = () => {
+        switch (rankingType) {
+            case 'speed': return 'Vitesse max';
+            case 'distance': return 'Distance';
+            case 'duration': return 'Temps';
+        }
+    };
+
+    const getValue = (item: PerformanceData) => {
+        switch (rankingType) {
+            case 'speed': return `${item.max_speed.toFixed(1)} km/h`;
+            case 'distance': return `${(item.total_distance || 0).toFixed(2)} km`;
+            case 'duration': return `${Math.floor((item.duration || 0) / 60)}min`;
         }
     };
 
@@ -248,8 +270,67 @@ export default function PerformancesScreen() {
     return (
         <View style={{ flex: 1, backgroundColor: Colors.white }}>
             <Header refreshFunction={fetchPerformances} disableRefresh={disableRefresh} />
-            <View style={{ width: '100%', paddingHorizontal: 20 }}>
+            <View style={{ width: '100%', paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000 }}>
                 <BoutonRetour previousRoute="VitesseDeGlisseScreen" title={"Classement"} />
+                <View style={styles.dropdownContainer}>
+                    <TouchableOpacity
+                        style={styles.rankingButton}
+                        onPress={() => setShowRankingMenu(!showRankingMenu)}
+                    >
+                        <Text style={styles.rankingButtonText}>{getRankingLabel()}</Text>
+                        <ChevronDown
+                            size={16}
+                            color={Colors.primary}
+                            style={{
+                                transform: [{ rotate: showRankingMenu ? '180deg' : '0deg' }]
+                            }}
+                        />
+                    </TouchableOpacity>
+
+                    {showRankingMenu && (
+                        <View style={styles.dropdownMenu}>
+                            <TouchableOpacity
+                                style={[styles.dropdownOption, rankingType === 'speed' && styles.dropdownOptionActive]}
+                                onPress={() => {
+                                    setRankingType('speed');
+                                    setShowRankingMenu(false);
+                                }}
+                            >
+                                <Text style={[styles.dropdownOptionText, rankingType === 'speed' && styles.dropdownOptionTextActive]}>
+                                    Vitesse max
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[styles.dropdownOption, rankingType === 'distance' && styles.dropdownOptionActive]}
+                                onPress={() => {
+                                    setRankingType('distance');
+                                    setShowRankingMenu(false);
+                                }}
+                            >
+                                <Text style={[styles.dropdownOptionText, rankingType === 'distance' && styles.dropdownOptionTextActive]}>
+                                    Distance
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[
+                                    styles.dropdownOption,
+                                    styles.dropdownOptionLast,
+                                    rankingType === 'duration' && styles.dropdownOptionActive
+                                ]}
+                                onPress={() => {
+                                    setRankingType('duration');
+                                    setShowRankingMenu(false);
+                                }}
+                            >
+                                <Text style={[styles.dropdownOptionText, rankingType === 'duration' && styles.dropdownOptionTextActive]}>
+                                    Temps
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </View>
             </View>
 
             <View style={styles.podiumSection}>
@@ -259,7 +340,7 @@ export default function PerformancesScreen() {
                         <PodiumPlace
                             position={2}
                             fullName={podium[1].full_name}
-                            speed={podium[1].max_speed}
+                            speed={getValue(podium[1])}
                             height={80}
                         />
                     )}
@@ -267,7 +348,7 @@ export default function PerformancesScreen() {
                         <PodiumPlace
                             position={1}
                             fullName={podium[0].full_name}
-                            speed={podium[0].max_speed}
+                            speed={getValue(podium[0])}
                             height={120}
                         />
                     )}
@@ -275,7 +356,7 @@ export default function PerformancesScreen() {
                         <PodiumPlace
                             position={3}
                             fullName={podium[2].full_name}
-                            speed={podium[2].max_speed}
+                            speed={getValue(podium[2])}
                             height={60}
                         />
                     )}
@@ -299,7 +380,7 @@ export default function PerformancesScreen() {
                     <RankingItem
                         position={index + 4}
                         fullName={item.full_name}
-                        speed={item.max_speed}
+                        speed={getValue(item)}
                     />
                 )}
                 contentContainerStyle={styles.flatListContainer}
@@ -381,5 +462,66 @@ const styles = StyleSheet.create({
         ...TextStyles.body,
         color: Colors.muted,
         textAlign: 'center',
+    },
+    dropdownContainer: {
+        position: 'relative',
+        marginBottom: 8,
+    },
+    rankingButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.white,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: Colors.primary,
+        gap: 4,
+    },
+    rankingButtonText: {
+        ...TextStyles.small,
+        color: Colors.primary,
+        fontWeight: '600',
+    },
+    dropdownMenu: {
+        position: 'absolute',
+        top: '100%',
+        right: 0,
+        marginTop: 4,
+        backgroundColor: Colors.white,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: Colors.lightMuted,
+        shadowColor: Colors.primaryBorder,
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        elevation: 5,
+        minWidth: 140,
+        overflow: 'hidden',
+    },
+    dropdownOption: {
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.lightMuted,
+    },
+    dropdownOptionLast: {
+        borderBottomWidth: 0,
+    },
+    dropdownOptionActive: {
+        backgroundColor: Colors.primary,
+    },
+    dropdownOptionText: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+        textAlign: 'left',
+    },
+    dropdownOptionTextActive: {
+        color: Colors.white,
+        fontWeight: '600',
     },
 });

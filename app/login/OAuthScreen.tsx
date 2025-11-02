@@ -44,7 +44,8 @@ export default function OAuthScreen() {
               lastName: response.lastName,
               room: response.room,
               roomName: response.roomName,
-              admin: response.admin
+              admin: response.admin,
+              member: response.member
             });
           } else {
             setWebViewVisible(false);

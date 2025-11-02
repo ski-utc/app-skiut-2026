@@ -6,7 +6,7 @@ import ErrorScreen from "@/components/pages/errorPage";
 import BoutonRetour from "@/components/divers/boutonRetour";
 import { apiGet } from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
-import { Calendar, Clock, MapPin } from 'lucide-react-native';
+import { Calendar, Clock, MapPin, HousePlus } from 'lucide-react-native';
 
 interface Activity {
   activity: string;
@@ -16,6 +16,7 @@ interface Activity {
   };
   payant: boolean;
   status: 'past' | 'current' | 'future';
+  is_permanence: boolean;
 }
 
 export default function PlanningScreen() {
@@ -43,35 +44,10 @@ export default function PlanningScreen() {
 
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-    // S'il y a des activités en cours aujourd'hui
-    if (activitiesMap[todayStr]) {
-      const todayActivities = activitiesMap[todayStr];
-      const currentTime = new Date().toTimeString().split(' ')[0];
-
-      // S'il y a des activités qui ont commencé aujourd'hui et ne sont pas finies
-      const hasOngoingActivities = todayActivities.some(activity => {
-        const startTime = activity.time.start;
-        const endTime = activity.time.end;
-
-        if (startTime > endTime) {
-          return currentTime >= startTime || currentTime <= endTime;
-        } else {
-          return currentTime >= startTime && currentTime <= endTime;
-        }
-      });
-
-      if (hasOngoingActivities) {
-        return todayStr;
-      }
-    }
-
-    // Sinon s'il y a des activités demain
-    if (activitiesMap[tomorrowStr]) {
-      return tomorrowStr;
+    // Toujours retourner aujourd'hui s'il existe dans les dates
+    if (dates.includes(todayStr)) {
+      return todayStr;
     }
 
     // Sinon, retourner la première date disponible
@@ -100,7 +76,7 @@ export default function PlanningScreen() {
           }
         }
       } else {
-        setError("Une erreur est survenue lors de la récupération du planning");
+        setError("Une erreur est survenue lors de la récupération du planning : " + response.message);
       }
     } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
@@ -117,7 +93,7 @@ export default function PlanningScreen() {
   }, [setUser, selectedDate]);
 
   useEffect(() => {
-fetchPlanning();
+    fetchPlanning();
   }, [fetchPlanning]);
 
   const handleDatePress = useCallback(
@@ -216,6 +192,7 @@ fetchPlanning();
             <View style={styles.activitiesList}>
               {item.activities.map((activity: Activity, index: number) => {
                 const titleColor = activity.payant ? Colors.primary : Colors.primaryBorder;
+                const isPermanence = activity.is_permanence === true;
                 return (
                   <View
                     key={index}
@@ -241,6 +218,12 @@ fetchPlanning();
                         </Text>
                       </View>
                     </View>
+                    {isPermanence && (
+                      <View style={styles.permanenceIcon}>
+                        <HousePlus size={18} color={Colors.primary} />
+                        <Text style={[styles.activityTimeText, { ...TextStyles.body }]}>Perm</Text>
+                      </View>
+                    )}
                   </View>
                 );
               })}
@@ -397,6 +380,7 @@ const styles = StyleSheet.create({
     shadowColor: Colors.primaryBorder,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
+    position: 'relative',
     shadowRadius: 2,
     elevation: 1,
   },
@@ -427,6 +411,15 @@ const styles = StyleSheet.create({
   activityTimeText: {
     ...TextStyles.small,
     color: Colors.muted,
+  },
+  permanenceIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    position: 'absolute',
+    right: 16,
+    top: '50%',
+    transform: [{ translateY: -9 }],
   },
   noActivitiesContainer: {
     justifyContent: 'center',

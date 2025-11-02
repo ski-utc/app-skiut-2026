@@ -6,10 +6,9 @@ import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import { useNavigation } from "@react-navigation/native";
 import { useUser } from "@/contexts/UserContext";
 import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import ErrorScreen from "@/components/pages/errorPage";
-import { Calendar, Trophy, MessageCircle, Bug, ChevronRight, MapPin, Thermometer, Wind, Droplets, Sun, Cloud, CloudRain, CloudSnow, Moon, CloudMoon, CloudLightning, CloudDrizzle, CloudFog, CloudMoonRain } from 'lucide-react-native';
+import { Calendar, Trophy, MessageCircle, Bug, ChevronRight, MapPin, Thermometer, Wind, Droplets, Sun, Cloud, CloudRain, CloudSnow, Moon, CloudMoon, CloudLightning, CloudDrizzle, CloudFog, CloudMoonRain, Home, Users, Clock } from 'lucide-react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 
 interface WeatherWidgetProps {
@@ -265,7 +264,7 @@ const WidgetCard: React.FC<WidgetCardProps> = ({
   const backgroundColor = variant === 'primary'
     ? Colors.primary
     : variant === 'secondary'
-      ? Colors.secondary
+      ? Colors.secondaryBorder
       : Colors.white;
 
   const textColor = variant === 'primary'
@@ -344,29 +343,25 @@ export default function HomeScreen() {
   const [error, setError] = useState('');
   const [data, setData] = useState<any>(null);
   const [weatherData, setWeatherData] = useState<any>(null);
+  const [tourStatus, setTourStatus] = useState<any>(null);
 
   const navigation = useNavigation();
   const { setUser } = useUser();
-
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldPlaySound: false,
-      shouldShowAlert: true,
-      shouldSetBadge: false,
-      shouldShowBanner: true,
-      shouldShowList: true,
-    }),
-  });
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const response = await apiGet("getRandomData");
       const responseWeather = await apiGet("getWeather");
+      const responseTourStatus = await apiGet("room-tours/status");
+
       if (response.success) {
         setData(response.data);
         if (responseWeather.success) {
           setWeatherData(responseWeather.data);
+        }
+        if (responseTourStatus.success && responseTourStatus.data) {
+          setTourStatus(responseTourStatus.data);
         }
       } else {
         setError(response.message);
@@ -383,45 +378,8 @@ export default function HomeScreen() {
   }, [setUser]);
 
   useEffect(() => {
-    const registerForPushNotifications = async () => {
-      try {
-        if (Device.isDevice) {
-          const { status: existingStatus } = await Notifications.getPermissionsAsync();
-          let finalStatus = existingStatus;
-
-          if (existingStatus !== "granted") {
-            const { status } = await Notifications.requestPermissionsAsync();
-            finalStatus = status;
-          }
-          if (finalStatus !== "granted") {
-            alert("Erreur d'accès aux notifications");
-            return;
-          }
-
-          const token = (await Notifications.getExpoPushTokenAsync()).data;
-          await apiPost("save-token", { userToken: token });
-        } else {
-          alert("Doit être utilisé sur un appareil physique pour les notifications push");
-        }
-
-        if (Platform.OS === "android") {
-          Notifications.setNotificationChannelAsync("default", {
-            name: "default",
-            importance: Notifications.AndroidImportance.MAX,
-            vibrationPattern: [0, 250, 250, 250],
-            lightColor: "#FF231F7C",
-          });
-        }
-      } catch (error: any) {
-        if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-          setUser(null);
-        }
-      }
-    };
-
-    registerForPushNotifications();
-fetchData();
-  }, [fetchData, setUser]);
+    fetchData();
+  }, []);
 
   if (error) {
     return (
@@ -469,6 +427,25 @@ fetchData();
         showsVerticalScrollIndicator={false}
       >
         {weatherData && <WeatherWidget weatherData={weatherData} />}
+
+        {tourStatus && tourStatus.tour_active && (
+          <WidgetCard
+            title={`Tournée des chambres en cours`}
+            subtitles={[
+              {
+                text: tourStatus.rooms_before === 0
+                  ? 'Votre chambre est la prochaine sur la liste !'
+                  : `${tourStatus.rooms_before} chambre${tourStatus.rooms_before !== 1 ? 's' : ''} à visiter avant la vôtre`
+              },
+              { text: `Binôme qui viendra vous voir :` },
+              ...tourStatus.binome.members.map((member: any) => ({
+                text: `• ${member.firstName} ${member.lastName}`
+              }))
+            ]}
+            icon={Home}
+            variant="secondary"
+          />
+        )}
 
         {data && data.closestActivity && (
           <WidgetCard

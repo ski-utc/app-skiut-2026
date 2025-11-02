@@ -16,7 +16,7 @@ export default function BoutonActiver({
             onPress={disabled ? () => { } : onPress}
             style={[
                 {
-                    padding: 10,
+                    padding: 14,
                     backgroundColor: disabled ? Colors.muted : color,
                     borderRadius: 8,
                     justifyContent: 'center',

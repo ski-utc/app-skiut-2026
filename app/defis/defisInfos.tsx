@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert, Modal, StatusBar } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { Video, ResizeMode } from 'expo-av';
 import * as ImageManipulator from "expo-image-manipulator";
 import { useRoute } from '@react-navigation/native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { LandPlot, Trash, Check, Hourglass, X, Upload, CloudOff, Maximize } from 'lucide-react-native';
+import { LandPlot, Trash, Check, Hourglass, X, Upload, CloudOff, Maximize, Play, Pause, Image as ImageIcon, Video as VideoIcon } from 'lucide-react-native';
 import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
@@ -17,20 +18,23 @@ export default function DefisInfos() {
   const route = useRoute();
   const { id, title, points, status } = route.params;
 
-  const [proofImage, setProofImage] = useState(null);
+  const [proofMedia, setProofMedia] = useState(null);
+  const [mediaType, setMediaType] = useState('image'); // 'image' ou 'video'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const { setUser, user } = useUser();
 
-  const [modifiedPicture, setModifiedPicture] = useState(false);
+  const [modifiedMedia, setModifiedMedia] = useState(false);
   const [challengeSent, setChallengeSent] = useState(false);
   const [dynamicStatus, setStatus] = useState(status);
-  const [imageAspectRatio] = useState(1.0);
+  const [mediaAspectRatio] = useState(1.0);
   const [networkError, setNetworkError] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [videoRef, setVideoRef] = useState(null);
 
   const toggleModal = () => {
     setIsModalVisible(!isModalVisible);
@@ -40,11 +44,12 @@ export default function DefisInfos() {
     setLoading(true);
     setNetworkError(false);
     try {
-      const response = await apiPost('challenges/getProofImage', { defiId: id });
+      const response = await apiPost('challenges/getProofMedia', { defiId: id });
       if (response.success) {
-        setProofImage(response.image);
+        setProofMedia(response.media);
+        setMediaType(response.mediaType || 'image');
       } else {
-        setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
+        setError(response.message || 'Une erreur est survenue lors de la récupération du média.');
       }
     } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
@@ -64,16 +69,22 @@ export default function DefisInfos() {
     }
   }, [status, fetchProof]);
 
-  const handleImagePick = async () => {
+  const handleMediaPick = async (type: 'image' | 'video' | 'both' = 'both') => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.status !== 'granted') {
       Alert.alert('Permission requise', 'Nous avons besoin de votre permission pour accéder à votre galerie.');
       return;
     }
 
+    let mediaTypes = ImagePicker.MediaTypeOptions.All;
+    if (type === 'image') mediaTypes = ImagePicker.MediaTypeOptions.Images;
+    else if (type === 'video') mediaTypes = ImagePicker.MediaTypeOptions.Videos;
+
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes,
       quality: 1,
+      videoQuality: ImagePicker.VideoQuality.Medium,
+      videoMaxDuration: 60, // 60 secondes max
     });
 
     if (result.canceled) {
@@ -82,17 +93,14 @@ export default function DefisInfos() {
 
     try {
       setIsCompressing(true);
-      const { uri, width } = result.assets[0];
-      let compressQuality = 1;
+      const asset = result.assets[0];
+      const { uri, type: assetType, width, height } = asset;
+      const isVideo = assetType?.includes('video') || uri.includes('.mp4') || uri.includes('.mov');
 
-      let compressedImage = await ImageManipulator.manipulateAsync(
-        uri,
-        [{ resize: { width: width > 1080 ? 1080 : width } }],
-        { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
-      );
+      setMediaType(isVideo ? 'video' : 'image');
 
-      let fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
-      let maxFileSize = 1024 * 1024;
+      // Récupérer la taille max
+      let maxFileSize = 5 * 1024 * 1024; // 5MB par défaut (plus pour les vidéos)
       try {
         const getTailleMax = await apiGet("getMaxFileSize");
         if (getTailleMax.success) {
@@ -106,49 +114,78 @@ export default function DefisInfos() {
         }
       }
 
-      while (fileInfo.size > maxFileSize && compressQuality > 0.1) {
-        compressQuality -= 0.1;
-        compressedImage = await ImageManipulator.manipulateAsync(
+      if (isVideo) {
+        // Pour les vidéos, vérifier directement la taille
+        const fileInfo = await fetch(uri).then((res) => res.blob());
+        if (fileInfo.size > maxFileSize) {
+          Alert.alert('Erreur', 'Vidéo trop lourde. Veuillez choisir une vidéo plus courte ou de moindre qualité.');
+          setIsCompressing(false);
+          return;
+        }
+        setModifiedMedia(true);
+        setProofMedia(uri);
+      } else {
+        // Pour les images, compression comme avant
+        let compressQuality = 1;
+        let compressedImage = await ImageManipulator.manipulateAsync(
           uri,
           [{ resize: { width: width > 1080 ? 1080 : width } }],
           { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
         );
-        fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
-      }
 
-      if (fileInfo.size > 1 * 1024 * 1024) {
-        Alert.alert('Erreur', 'Image trop lourde même après compression :(');
-        setIsCompressing(false);
-        return;
+        let fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
+
+        while (fileInfo.size > maxFileSize && compressQuality > 0.1) {
+          compressQuality -= 0.1;
+          compressedImage = await ImageManipulator.manipulateAsync(
+            uri,
+            [{ resize: { width: width > 1080 ? 1080 : width } }],
+            { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
+          );
+          fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
+        }
+
+        if (fileInfo.size > maxFileSize) {
+          Alert.alert('Erreur', 'Image trop lourde même après compression');
+          setIsCompressing(false);
+          return;
+        }
+        setModifiedMedia(true);
+        setProofMedia(compressedImage.uri);
       }
-      setModifiedPicture(true);
-      setProofImage(compressedImage.uri);
     } catch (error: any) {
-      setError('Erreur lors de la compression de l\'image :', error);
+      setError('Erreur lors du traitement du média:', error);
     } finally {
       setIsCompressing(false);
     }
   };
 
-  const uploadImage = async (uri) => {
+  const uploadMedia = async (uri) => {
     try {
       setIsUploading(true);
       const fileInfo = await fetch(uri).then((res) => res.blob());
-      if (fileInfo.size > 1 * 1024 * 1024) {
-        Alert.alert('Erreur', 'L\'image dépasse la taille maximale de 1 Mo.');
+
+      // Taille max adaptée au type de média
+      const maxSize = mediaType === 'video' ? 10 * 1024 * 1024 : 5 * 1024 * 1024; // 10MB vidéo, 5MB image
+      if (fileInfo.size > maxSize) {
+        Alert.alert('Erreur', `Le ${mediaType === 'video' ? 'vidéo' : 'image'} dépasse la taille maximale.`);
         setIsUploading(false);
         return;
       }
 
       const formData = new FormData();
-      formData.append('image', {
+      const extension = mediaType === 'video' ? '.mp4' : '.jpg';
+      const mimeType = mediaType === 'video' ? 'video/mp4' : 'image/jpeg';
+
+      formData.append('media', {
         uri,
-        name: `challenge_${id}_room_${user?.room}.jpg`,
-        type: 'image/jpeg',
+        name: `challenge_${id}_room_${user?.roomID}_${Date.now()}${extension}`,
+        type: mimeType,
       });
       formData.append('defiId', id);
+      formData.append('mediaType', mediaType);
 
-      const response = await apiPost('challenges/uploadProofImage', formData, true);
+      const response = await apiPost('challenges/uploadProofMedia', formData, true);
       if (response.success) {
         setStatus('pending');
         try {
@@ -170,7 +207,7 @@ export default function DefisInfos() {
         });
       }
     } catch (error: any) {
-      setError(error.message || "Erreur lors du téléversement de l'image");
+      setError(error.message || "Erreur lors du téléversement du média");
     } finally {
       setIsUploading(false);
     }
@@ -178,7 +215,7 @@ export default function DefisInfos() {
 
   const handleSendDefi = async () => {
     try {
-      await uploadImage(proofImage);
+      await uploadMedia(proofMedia);
     } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
@@ -199,9 +236,10 @@ export default function DefisInfos() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const response = await apiPost('challenges/deleteproofImage', { defiId: id });
+              const response = await apiPost('challenges/deleteProofMedia', { defiId: id });
               if (response.success) {
-                setProofImage(null);
+                setProofMedia(null);
+                setMediaType('image');
                 setStatus('empty');
                 route.params.onUpdate(id, 'empty');
                 setChallengeSent(false);
@@ -272,7 +310,7 @@ export default function DefisInfos() {
 
       <View style={{ width: '100%', height: '60%', justifyContent: 'center', alignItems: 'center' }}>
         <TouchableOpacity
-          onPress={status === 'empty' ? handleImagePick : toggleModal}
+          onPress={status === 'empty' ? handleMediaPick : toggleModal}
           style={{ justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%', position: 'relative' }}
           disabled={(challengeSent && status === 'empty') || isCompressing || isUploading}
           activeOpacity={0.8}
@@ -307,14 +345,93 @@ export default function DefisInfos() {
                 Impossible de charger l'image
               </Text>
             </View>
-          ) : proofImage ? (
+          ) : proofMedia ? (
             <View style={{ width: '90%', height: '100%', position: 'relative', justifyContent: 'center', alignItems: 'center' }}>
-              <Image
-                source={{ uri: proofImage }}
-                style={{ width: '100%', aspectRatio: imageAspectRatio, maxHeight: '100%', borderRadius: 25 }}
-                resizeMode="contain"
-                onError={() => setNetworkError(true)}
-              />
+              {mediaType === 'video' ? (
+                <View style={{ width: '100%', aspectRatio: mediaAspectRatio, maxHeight: '100%', borderRadius: 25, overflow: 'hidden' }}>
+                  <Video
+                    ref={setVideoRef}
+                    source={{ uri: proofMedia }}
+                    style={{ width: '100%', height: '100%' }}
+                    resizeMode={ResizeMode.CONTAIN}
+                    shouldPlay={isPlaying}
+                    isLooping={false}
+                    onError={() => setNetworkError(true)}
+                  />
+                  {!isPlaying && (
+                    <TouchableOpacity
+                      style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: [{ translateX: -30 }, { translateY: -30 }],
+                        width: 60,
+                        height: 60,
+                        borderRadius: 30,
+                        backgroundColor: 'rgba(0,0,0,0.7)',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                      onPress={() => setIsPlaying(true)}
+                    >
+                      <Play size={28} color={Colors.white} />
+                    </TouchableOpacity>
+                  )}
+                  {isPlaying && (
+                    <TouchableOpacity
+                      style={{
+                        position: 'absolute',
+                        top: 20,
+                        right: 20,
+                        width: 40,
+                        height: 40,
+                        borderRadius: 20,
+                        backgroundColor: 'rgba(0,0,0,0.7)',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                      onPress={() => setIsPlaying(false)}
+                    >
+                      <Pause size={20} color={Colors.white} />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ) : (
+                <Image
+                  source={{ uri: proofMedia }}
+                  style={{ width: '100%', aspectRatio: mediaAspectRatio, maxHeight: '100%', borderRadius: 25 }}
+                  resizeMode="contain"
+                  onError={() => setNetworkError(true)}
+                />
+              )}
+
+              {/* Indicateur de type de média */}
+              <View style={{
+                position: 'absolute',
+                top: 20,
+                left: 20,
+                backgroundColor: 'rgba(0,0,0,0.7)',
+                paddingVertical: 4,
+                paddingHorizontal: 8,
+                borderRadius: 6,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
+                {mediaType === 'video' ? (
+                  <VideoIcon size={14} color={Colors.white} />
+                ) : (
+                  <ImageIcon size={14} color={Colors.white} />
+                )}
+                <Text style={{
+                  ...TextStyles.small,
+                  color: Colors.white,
+                  marginLeft: 4,
+                  fontWeight: '600',
+                }}>
+                  {mediaType === 'video' ? 'Vidéo' : 'Image'}
+                </Text>
+              </View>
+
               {status !== 'empty' && !isCompressing && !isUploading && (
                 <View style={{
                   position: 'absolute',
@@ -359,7 +476,7 @@ export default function DefisInfos() {
                     marginTop: 12,
                     fontWeight: '600',
                   }}>
-                    {isCompressing ? 'Compression...' : 'Upload en cours...'}
+                    {isCompressing ? 'Traitement...' : 'Upload en cours...'}
                   </Text>
                 </View>
               )}
@@ -394,7 +511,7 @@ export default function DefisInfos() {
                 marginTop: 16,
                 textAlign: 'center',
               }}>
-                Ajouter une photo
+                Ajouter un média
               </Text>
               <Text style={{
                 ...TextStyles.body,
@@ -402,7 +519,7 @@ export default function DefisInfos() {
                 marginTop: 8,
                 textAlign: 'center',
               }}>
-                Appuyez pour sélectionner un média
+                Photo ou vidéo (max 60s)
               </Text>
             </View>
           )}
@@ -489,10 +606,10 @@ export default function DefisInfos() {
                 shadowOpacity: 0.2,
                 shadowRadius: 3,
                 elevation: 3,
-                opacity: (modifiedPicture && !isUploading && !isCompressing) ? 1 : 0.4
+                opacity: (modifiedMedia && !isUploading && !isCompressing) ? 1 : 0.4
               }}
               onPress={handleSendDefi}
-              disabled={!modifiedPicture || isUploading || isCompressing}
+              disabled={!modifiedMedia || isUploading || isCompressing}
             >
               <Text style={{ ...TextStyles.button, color: Colors.white }}> Publier mon défi </Text> <LandPlot color="white" size={20} />
             </TouchableOpacity>
@@ -500,7 +617,7 @@ export default function DefisInfos() {
         )}
       </View>
 
-      {proofImage && (
+      {proofMedia && (
         <Modal
           visible={isModalVisible}
           transparent={false}
@@ -532,13 +649,34 @@ export default function DefisInfos() {
               <X size={24} color={Colors.white} />
             </TouchableOpacity>
 
-            <ImageViewer
-              imageUrls={[{ url: proofImage }]}
-              index={0}
-              backgroundColor="transparent"
-              enableSwipeDown={true}
-              onSwipeDown={toggleModal}
-            />
+            {mediaType === 'video' ? (
+              <View style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: 20,
+              }}>
+                <Video
+                  source={{ uri: proofMedia }}
+                  style={{
+                    width: '100%',
+                    height: '80%',
+                  }}
+                  resizeMode={ResizeMode.CONTAIN}
+                  shouldPlay={true}
+                  isLooping={false}
+                  useNativeControls={true}
+                />
+              </View>
+            ) : (
+              <ImageViewer
+                imageUrls={[{ url: proofMedia }]}
+                index={0}
+                backgroundColor="transparent"
+                enableSwipeDown={true}
+                onSwipeDown={toggleModal}
+              />
+            )}
           </View>
         </Modal>
       )}

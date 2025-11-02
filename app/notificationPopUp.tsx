@@ -2,15 +2,19 @@ import React from "react";
 import { View, Text, TouchableOpacity, ActivityIndicator, Modal, FlatList, StatusBar, StyleSheet } from "react-native";
 import { Colors, TextStyles, FontSizes } from "@/constants/GraphSettings";
 import { BlurView } from "expo-blur";
-import { X, Bell, Clock, AlertCircle } from "lucide-react-native";
+import { X, Bell, Clock, AlertCircle, Globe, Users, Home, Check } from "lucide-react-native";
 import { useEffect, useState, useCallback } from "react";
-import { apiGet } from "@/constants/api/apiCalls";
+import { apiGet, apiPost } from "@/constants/api/apiCalls";
 import { useUser } from "@/contexts/UserContext";
 
 interface NotificationItem {
   id: number;
   title: string;
   description: string;
+  type?: 'global' | 'targeted' | 'room_based';
+  created_at: string;
+  read: boolean;
+  read_at?: string;
   delete?: boolean;
 }
 
@@ -32,7 +36,7 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
     try {
       const response = await apiGet('getNotifications');
       if (response.success) {
-        setNotifications(response.data.filter((item: NotificationItem) => !item.delete));
+        setNotifications(response.data);
       } else {
         setError('Une erreur est survenue lors de la récupération des notifications');
       }
@@ -46,6 +50,59 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
       setLoading(false);
     }
   }, [setUser]);
+
+  const markAsRead = async (notificationId: number) => {
+    try {
+      const response = await apiPost(`notifications/${notificationId}/read`, {});
+      if (response.success) {
+        setNotifications(prev =>
+          prev.map(notif =>
+            notif.id === notificationId
+              ? { ...notif, read: true, read_at: new Date().toISOString() }
+              : notif
+          )
+        );
+      }
+    } catch (error: any) {
+      console.log('Erreur lors du marquage comme lue:', error);
+    }
+  };
+
+  const getNotificationIcon = (type?: string) => {
+    switch (type) {
+      case 'global':
+        return Globe;
+      case 'targeted':
+        return Users;
+      case 'room_based':
+        return Home;
+      default:
+        return Clock;
+    }
+  };
+
+  const getNotificationTypeText = (type?: string) => {
+    switch (type) {
+      case 'global':
+        return 'Globale';
+      case 'targeted':
+        return 'Ciblée';
+      case 'room_based':
+        return 'Chambre';
+      default:
+        return 'Info';
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   useEffect(() => {
     if (visible) {
@@ -160,17 +217,58 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
             {notifications.length > 0 ? (
               <FlatList
                 data={notifications}
-                renderItem={({ item }) => (
-                  <View style={styles.notificationItem}>
-                    <View style={styles.notificationIcon}>
-                      <Clock size={16} color={Colors.primary} strokeWidth={2} />
-                    </View>
-                    <View style={styles.notificationContent}>
-                      <Text style={styles.notificationTitle}>{item.title}</Text>
-                      <Text style={styles.notificationDescription}>{item.description}</Text>
-                    </View>
-                  </View>
-                )}
+                renderItem={({ item }) => {
+                  const IconComponent = getNotificationIcon(item.type);
+                  return (
+                    <TouchableOpacity
+                      style={[
+                        styles.notificationItem,
+                        !item.read && styles.notificationItemUnread
+                      ]}
+                      onPress={() => !item.read && markAsRead(item.id)}
+                      activeOpacity={0.8}
+                    >
+                      <View style={[
+                        styles.notificationIcon,
+                        !item.read && styles.notificationIconUnread
+                      ]}>
+                        <IconComponent size={16} color={Colors.primary} strokeWidth={2} />
+                      </View>
+                      <View style={styles.notificationContent}>
+                        <View style={styles.notificationHeader}>
+                          <Text style={[
+                            styles.notificationTitle,
+                            !item.read && styles.notificationTitleUnread
+                          ]}>
+                            {item.title}
+                          </Text>
+                          {!item.read && (
+                            <View style={styles.unreadBadge}>
+                              <View style={styles.unreadDot} />
+                            </View>
+                          )}
+                        </View>
+                        <Text style={styles.notificationDescription}>{item.description}</Text>
+                        <View style={styles.notificationFooter}>
+                          <View style={styles.notificationMeta}>
+                            <Text style={styles.notificationType}>
+                              {getNotificationTypeText(item.type)}
+                            </Text>
+                            <Text style={styles.notificationDate}>
+                              {formatDate(item.created_at)}
+                            </Text>
+                          </View>
+                          {item.read && (
+                            <View style={styles.readIndicator}>
+                              <Check size={12} color={Colors.success} />
+                              <Text style={styles.readText}>Lu</Text>
+                            </View>
+                          )}
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                }}
                 keyExtractor={(item) => item.id.toString()}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.listContainer}
@@ -178,7 +276,7 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
             ) : (
               <View style={styles.emptyState}>
                 <View style={styles.emptyIcon}>
-                  <Bell size={48} color={Colors.lightMuted} strokeWidth={1.5} />
+                  <Bell size={48} color={Colors.primary} strokeWidth={1.5} />
                 </View>
                 <Text style={styles.emptyTitle}>Aucune notification</Text>
                 <Text style={styles.emptyDescription}>
@@ -291,6 +389,11 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
+  notificationItemUnread: {
+    backgroundColor: '#F8F9FF',
+    borderColor: Colors.primary,
+    borderWidth: 1.5,
+  },
   notificationIcon: {
     width: 32,
     height: 32,
@@ -301,19 +404,74 @@ const styles = StyleSheet.create({
     marginRight: 12,
     flexShrink: 0,
   },
+  notificationIconUnread: {
+    backgroundColor: '#E3F2FD',
+  },
   notificationContent: {
     flex: 1,
+  },
+  notificationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
   },
   notificationTitle: {
     ...TextStyles.bodyBold,
     color: Colors.primaryBorder,
-    marginBottom: 4,
+    flex: 1,
+  },
+  notificationTitleUnread: {
+    color: Colors.primary,
+  },
+  unreadBadge: {
+    marginLeft: 8,
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.primary,
   },
   notificationDescription: {
     ...TextStyles.body,
     color: Colors.muted,
     fontSize: FontSizes.small,
     lineHeight: 18,
+    marginBottom: 8,
+  },
+  notificationFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  notificationMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  notificationType: {
+    ...TextStyles.small,
+    color: Colors.primary,
+    fontWeight: '600',
+    fontSize: 11,
+    textTransform: 'uppercase',
+  },
+  notificationDate: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    fontSize: 11,
+  },
+  readIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  readText: {
+    ...TextStyles.small,
+    color: Colors.success,
+    fontSize: 11,
+    fontWeight: '500',
   },
 
   emptyState: {

@@ -27,7 +27,7 @@ export default function SkinderProfil() {
 
   const { setUser } = useUser();
   const navigation = useNavigation();
-const fetchProfil = useCallback(async () => {
+  const fetchProfil = useCallback(async () => {
     setLoading(true);
     try {
       const response = await apiGet('getMyProfilSkinder');
@@ -38,7 +38,7 @@ const fetchProfil = useCallback(async () => {
         setProfile({
           id: response.data.id,
           nom: response.data.name,
-          description: response.data.description,
+          description: response.data.description || '',
           passions: [...Array(6)].map((_, i) => passions[i] || ''),
         });
         setProfileImage(`${response.data.image}?timestamp=${Date.now()}`);
@@ -266,7 +266,7 @@ const fetchProfil = useCallback(async () => {
             onChangeText={(text) => text.length <= 100 ? setProfile({ ...profile, description: text }) : null}
             textAlignVertical="top"
           />
-          <Text style={styles.characterCount}>{profile.description.length}/100</Text>
+          <Text style={styles.characterCount}>{(profile.description || '').length}/100</Text>
         </View>
 
         <View style={styles.section}>

@@ -3,87 +3,105 @@ import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-na
 import { useNavigation } from '@react-navigation/native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { ChevronRight, ChevronLeft, Trophy, MessageCircle, Calendar } from 'lucide-react-native';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 
 export default function LaunchScreen2() {
   const navigation = useNavigation();
+
+  // Gesture de swipe pour naviguer
+  const handleGestureEvent = ({ nativeEvent }: any) => {
+    if (nativeEvent.state === State.END) {
+      // Swipe de droite à gauche (velocityX négatif) -> page suivante
+      if (nativeEvent.velocityX < -500) {
+        (navigation as any).navigate("launchScreen3");
+      }
+      // Swipe de gauche à droite (velocityX positif) -> page précédente
+      else if (nativeEvent.velocityX > 500) {
+        navigation.goBack();
+      }
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.backgroundDecoration} />
+    <PanGestureHandler onHandlerStateChange={handleGestureEvent}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.backgroundDecoration} />
 
-      <View style={styles.illustrationContainer}>
-        <View style={styles.featureCard}>
-          <View style={styles.featureIconContainer}>
-            <Calendar size={32} color={Colors.primary} />
+        <View style={styles.illustrationContainer}>
+          <View style={styles.featureCard}>
+            <View style={styles.featureIconContainer}>
+              <Calendar size={32} color={Colors.primary} />
+            </View>
+            <Text style={styles.featureTitle}>Planning</Text>
+            <Text style={styles.featureDescription}>Emploi du temps de la semaine</Text>
           </View>
-          <Text style={styles.featureTitle}>Planning</Text>
-          <Text style={styles.featureDescription}>Emploi du temps de la semaine</Text>
-        </View>
 
-        <View style={[styles.featureCard, styles.featureCardSecondary]}>
-          <View style={styles.featureIconContainer}>
-            <Trophy size={32} color={Colors.primary} />
+          <View style={[styles.featureCard, styles.featureCardSecondary]}>
+            <View style={styles.featureIconContainer}>
+              <Trophy size={32} color={Colors.primary} />
+            </View>
+            <Text style={styles.featureTitle}>Défis</Text>
+            <Text style={styles.featureDescription}>Relevez des défis avec votre chambre</Text>
           </View>
-          <Text style={styles.featureTitle}>Défis</Text>
-          <Text style={styles.featureDescription}>Relevez des défis avec votre chambre</Text>
-        </View>
 
-        <View style={styles.featureCard}>
-          <View style={styles.featureIconContainer}>
-            <MessageCircle size={32} color={Colors.primary} />
+          <View style={styles.featureCard}>
+            <View style={styles.featureIconContainer}>
+              <MessageCircle size={32} color={Colors.primary} />
+            </View>
+            <Text style={styles.featureTitle}>Anecdotes</Text>
+            <Text style={styles.featureDescription}>Partagez vos meilleurs souvenirs</Text>
           </View>
-          <Text style={styles.featureTitle}>Anecdotes</Text>
-          <Text style={styles.featureDescription}>Partagez vos meilleurs souvenirs</Text>
         </View>
-      </View>
 
-      <View style={styles.contentContainer}>
-        <View style={styles.progressContainer}>
-          <View style={styles.dotsContainer}>
-            <View style={[styles.dot, styles.dotInactive]} />
-            <View style={[styles.dot, styles.dotActive]} />
-            <View style={[styles.dot, styles.dotInactive]} />
+        <View style={styles.contentContainer}>
+          <View style={styles.progressContainer}>
+            <View style={styles.dotsContainer}>
+              <View style={[styles.dot, styles.dotInactive]} />
+              <View style={[styles.dot, styles.dotActive]} />
+              <View style={[styles.dot, styles.dotInactive]} />
+            </View>
+            <Text style={styles.progressText}>2 / 3</Text>
           </View>
-          <Text style={styles.progressText}>2 / 3</Text>
-        </View>
 
-        <View style={styles.titleContainer}>
-          <Trophy size={28} color={Colors.primary} />
-          <Text style={styles.title}>Relevez tous les défis</Text>
-        </View>
+          <View style={styles.titleContainer}>
+            <Trophy size={28} color={Colors.primary} />
+            <Text style={styles.title}>Relevez tous les défis</Text>
+          </View>
 
-        <Text style={styles.description}>
-          Participez à des défis passionnants avec les membres de votre chambre et
-          partagez vos réussites avec tous les participants du voyage.
-        </Text>
+          <Text style={styles.description}>
+            Participez à des défis passionnants avec les membres de votre chambre et
+            partagez vos réussites avec tous les participants du voyage.
+          </Text>
 
-        <View style={styles.buttonsContainer}>
+          {/* <View style={styles.buttonsContainer}>
+            <TouchableOpacity
+              onPress={() => (navigation as any).navigate("launchScreen3")}
+              style={styles.nextButton}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.nextButtonText}>Continuer</Text>
+              <ChevronRight size={20} color={Colors.white} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backButton}
+              activeOpacity={0.8}
+            >
+              <ChevronLeft size={20} color={Colors.primary} />
+              <Text style={styles.backButtonText}>Retour</Text>
+            </TouchableOpacity>
+          </View> */}
+
           <TouchableOpacity
-            onPress={() => (navigation as any).navigate("launchScreen3")}
-            style={styles.nextButton}
-            activeOpacity={0.8}
+            onPress={() => (navigation as any).navigate("loginScreen")}
+            style={styles.skipButton}
           >
-            <Text style={styles.nextButtonText}>Continuer</Text>
-            <ChevronRight size={20} color={Colors.white} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-            activeOpacity={0.8}
-          >
-            <ChevronLeft size={20} color={Colors.primary} />
-            <Text style={styles.backButtonText}>Retour</Text>
+            <Text style={styles.skipButtonText}>Passer l'introduction</Text>
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity
-          onPress={() => (navigation as any).navigate("loginScreen")}
-          style={styles.skipButton}
-        >
-          <Text style={styles.skipButtonText}>Passer l'introduction</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </PanGestureHandler>
   );
 }
 
@@ -240,6 +258,7 @@ const styles = StyleSheet.create({
   },
   skipButton: {
     alignItems: 'center',
+    marginTop: 20,
   },
   skipButtonText: {
     ...TextStyles.body,

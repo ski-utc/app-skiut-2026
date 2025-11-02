@@ -32,7 +32,7 @@ export default function BoutonNavigation({ nextRoute, title, IconComponent }) {
                 bottom: 16,
                 right: 10,
                 left: 10,
-                padding: 12,
+                padding: 14,
                 backgroundColor: Colors.primary,
                 borderRadius: 10,
                 justifyContent: 'center',

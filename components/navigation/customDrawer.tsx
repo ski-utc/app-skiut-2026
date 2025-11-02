@@ -10,7 +10,9 @@ import {
     Gauge,
     Heart,
     UserRoundCheck,
-    Shield
+    Shield,
+    Cookie,
+    Home
 } from 'lucide-react-native';
 import { useUser } from '@/contexts/UserContext';
 
@@ -53,6 +55,11 @@ export default function CustomDrawer({ navigation }: CustomDrawerProps) {
             onPress: () => navigateToScreen('PlanScreen')
         },
         {
+            label: 'Navettes',
+            icon: Bus,
+            onPress: () => navigateToScreen('NavettesScreen')
+        },
+        {
             label: 'Vitesse de glisse',
             icon: Gauge,
             onPress: () => navigateToScreen('VitesseDeGlisseScreen')
@@ -63,9 +70,9 @@ export default function CustomDrawer({ navigation }: CustomDrawerProps) {
             onPress: () => navigateToScreen('SkinderNavigator')
         },
         {
-            label: 'Navettes',
-            icon: Bus,
-            onPress: () => navigateToScreen('NavettesScreen')
+            label: "Monopr'UT",
+            icon: Cookie,
+            onPress: () => navigateToScreen('MonoprutNavigator')
         },
         {
             label: 'RGPD & Données',
@@ -73,6 +80,15 @@ export default function CustomDrawer({ navigation }: CustomDrawerProps) {
             onPress: () => navigateToScreen('RGPDScreen')
         }
     ];
+
+    // Ajout des fonctionnalités spécifiques aux membres de l'association
+    if (user?.member) {
+        drawerItems.push({
+            label: 'Tournée des chambres',
+            icon: Home,
+            onPress: () => navigateToScreen('TourneeChambreScreen')
+        });
+    }
 
     if (user?.admin) {
         drawerItems.push({
@@ -116,6 +132,7 @@ export default function CustomDrawer({ navigation }: CustomDrawerProps) {
                         <ChevronRight size={20} color={Colors.primaryBorder} />
                     </TouchableOpacity>
                 ))}
+                <View style={{ height: 25 }}></View>
             </ScrollView>
 
             <View style={styles.footer}>

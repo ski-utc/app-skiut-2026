@@ -2,12 +2,13 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Contact from './profil/contactScreen';
 import PlanScreen from './profil/planScreen';
-import VitesseDeGlisseScreen from './profil/vitesseDeGlisse/vitesseDeGlisseScreen';
-import PerformancesScreen from './profil/vitesseDeGlisse/performancesScreen';
+import VitesseDeGlisseNavigator from './profil/vitesseDeGlisse/vitesseDeGlisseNavigator';
 import SkinderNavigator from './skinder/skinderNavigator';
 import NavettesScreen from './profil/navettesScreen';
 import RGPDScreen from './profil/rgpdScreen';
+import TourneeChambreScreen from './profil/tourneeChambreScreen';
 import AdminNavigator from './adminNavigator';
+import MonoprutNavigator from './monoprutNavigator';
 
 const Stack = createStackNavigator();
 
@@ -41,12 +42,7 @@ export default function ProfilNavigator() {
             />
             <Stack.Screen
                 name="VitesseDeGlisseScreen"
-                component={VitesseDeGlisseScreen}
-                listeners={getScreenListeners}
-            />
-            <Stack.Screen
-                name='PerformancesScreen'
-                component={PerformancesScreen}
+                component={VitesseDeGlisseNavigator}
                 listeners={getScreenListeners}
             />
             <Stack.Screen
@@ -62,6 +58,16 @@ export default function ProfilNavigator() {
             <Stack.Screen
                 name="RGPDScreen"
                 component={RGPDScreen}
+                listeners={getScreenListeners}
+            />
+            <Stack.Screen
+                name="MonoprutNavigator"
+                component={MonoprutNavigator}
+                listeners={getScreenListeners}
+            />
+            <Stack.Screen
+                name="TourneeChambreScreen"
+                component={TourneeChambreScreen}
                 listeners={getScreenListeners}
             />
             <Stack.Screen

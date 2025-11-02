@@ -17,6 +17,7 @@ import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react-na
 import { loadFonts } from '@/constants/GraphSettings';
 import Toast from 'react-native-toast-message';
 import { Keyboard } from 'react-native';
+import { useNotifications } from '../hooks/useNotifications';
 
 const Tab = createBottomTabNavigator();
 const Drawer = createDrawerNavigator();
@@ -145,6 +146,7 @@ export default function App() {
 function Content() {
   const { user } = useUser();
   const [isLoading, setIsLoading] = useState(true);
+  const { initializeNotifications, isInitialized } = useNotifications();
 
   useEffect(() => {
     const loadAsyncFonts = async () => {
@@ -158,7 +160,11 @@ function Content() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (isLoading) {
+  // Afficher un indicateur de chargement supplémentaire si les notifications ne sont pas initialisées
+  // pour un utilisateur connecté
+  const shouldShowLoadingForNotifications = user && !isInitialized && !isLoading;
+
+  if (isLoading || shouldShowLoadingForNotifications) {
     return (
       <View
         style={{
@@ -180,6 +186,15 @@ function Content() {
           }}
         >
           <ActivityIndicator size="large" color={Colors.muted} />
+          {shouldShowLoadingForNotifications && (
+            <Text style={{
+              marginTop: 16,
+              color: Colors.muted,
+              textAlign: 'center'
+            }}>
+              Initialisation des notifications...
+            </Text>
+          )}
         </View>
       </View>
     );

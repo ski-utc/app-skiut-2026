@@ -3,80 +3,94 @@ import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-na
 import { useNavigation } from '@react-navigation/native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { ChevronLeft, Calendar, Map, LogIn, PartyPopper, Cookie } from 'lucide-react-native';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 
 export default function LaunchScreen3() {
   const navigation = useNavigation();
+
+  // Gesture de swipe pour naviguer
+  const handleGestureEvent = ({ nativeEvent }: any) => {
+    if (nativeEvent.state === State.END) {
+      // Swipe de gauche à droite (velocityX positif) -> page précédente
+      if (nativeEvent.velocityX > 500) {
+        navigation.goBack();
+      }
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.backgroundDecoration} />
+    <PanGestureHandler onHandlerStateChange={handleGestureEvent}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.backgroundDecoration} />
 
-      <View style={styles.illustrationContainer}>
-        <View style={styles.featureCard}>
-          <View style={styles.featureIconContainer}>
-            <Map size={32} color={Colors.primary} />
+        <View style={styles.illustrationContainer}>
+          <View style={styles.featureCard}>
+            <View style={styles.featureIconContainer}>
+              <Map size={32} color={Colors.primary} />
+            </View>
+            <Text style={styles.featureTitle}>Plans</Text>
+            <Text style={styles.featureDescription}>Ne soyez pas paumé.e.s</Text>
           </View>
-          <Text style={styles.featureTitle}>Plans</Text>
-          <Text style={styles.featureDescription}>Ne soyez pas paumé.e.s</Text>
-        </View>
 
-        <View style={[styles.featureCard, styles.featureCardSecondary]}>
-          <View style={styles.featureIconContainer}>
-            <PartyPopper size={32} color={Colors.primary} />
+          <View style={[styles.featureCard, styles.featureCardSecondary]}>
+            <View style={styles.featureIconContainer}>
+              <PartyPopper size={32} color={Colors.primary} />
+            </View>
+            <Text style={styles.featureTitle}>Skinder</Text>
+            <Text style={styles.featureDescription}>Rencontrez d'autres chambres</Text>
           </View>
-          <Text style={styles.featureTitle}>Skinder</Text>
-          <Text style={styles.featureDescription}>Rencontrez d'autres chambres</Text>
-        </View>
 
-        <View style={styles.featureCard}>
-          <View style={styles.featureIconContainer}>
-            <Cookie size={32} color={Colors.primary} />
+          <View style={styles.featureCard}>
+            <View style={styles.featureIconContainer}>
+              <Cookie size={32} color={Colors.primary} />
+            </View>
+            <Text style={styles.featureTitle}>Monopr'ut</Text>
+            <Text style={styles.featureDescription}>Limitez le gaspillage</Text>
           </View>
-          <Text style={styles.featureTitle}>Monopr'ut</Text>
-          <Text style={styles.featureDescription}>Limitez le gaspillage</Text>
         </View>
-      </View>
 
-      <View style={styles.contentContainer}>
-        <View style={styles.progressContainer}>
-          <View style={styles.dotsContainer}>
-            <View style={[styles.dot, styles.dotInactive]} />
-            <View style={[styles.dot, styles.dotInactive]} />
-            <View style={[styles.dot, styles.dotActive]} />
+        <View style={styles.contentContainer}>
+          <View style={styles.progressContainer}>
+            <View style={styles.dotsContainer}>
+              <View style={[styles.dot, styles.dotInactive]} />
+              <View style={[styles.dot, styles.dotInactive]} />
+              <View style={[styles.dot, styles.dotActive]} />
+            </View>
+            <Text style={styles.progressText}>3 / 3</Text>
           </View>
-          <Text style={styles.progressText}>3 / 3</Text>
+
+          <View style={styles.titleContainer}>
+            <Calendar size={28} color={Colors.primary} />
+            <Text style={styles.title}>Et bien plus encore !</Text>
+          </View>
+
+          <Text style={styles.description}>
+            Consultez l'emploi du temps de la semaine, partagez vos meilleures anecdotes
+            du voyage et téléchargez le plan des pistes pour ne rien manquer !
+          </Text>
+
+          <View style={styles.buttonsContainer}>
+            <TouchableOpacity
+              onPress={() => (navigation as any).navigate("loginScreen")}
+              style={styles.loginButton}
+              activeOpacity={0.8}
+            >
+              <LogIn size={20} color={Colors.white} />
+              <Text style={styles.loginButtonText}>Se connecter</Text>
+            </TouchableOpacity>
+
+            {/* <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backButton}
+              activeOpacity={0.8}
+            >
+              <ChevronLeft size={20} color={Colors.primary} />
+              <Text style={styles.backButtonText}>Retour</Text>
+            </TouchableOpacity> */}
+          </View>
         </View>
-
-        <View style={styles.titleContainer}>
-          <Calendar size={28} color={Colors.primary} />
-          <Text style={styles.title}>Et bien plus encore !</Text>
-        </View>
-
-        <Text style={styles.description}>
-          Consultez l'emploi du temps de la semaine, partagez vos meilleures anecdotes
-          du voyage et téléchargez le plan des pistes pour ne rien manquer !
-        </Text>
-
-        <View style={styles.buttonsContainer}>
-          <TouchableOpacity
-            onPress={() => (navigation as any).navigate("loginScreen")}
-            style={styles.loginButton}
-            activeOpacity={0.8}
-          >
-            <LogIn size={20} color={Colors.white} />
-            <Text style={styles.loginButtonText}>Se connecter</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-            activeOpacity={0.8}
-          >
-            <ChevronLeft size={20} color={Colors.primary} />
-            <Text style={styles.backButtonText}>Retour</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </SafeAreaView >
+      </SafeAreaView>
+    </PanGestureHandler>
   );
 }
 

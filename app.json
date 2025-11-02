@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "newArchEnabled": true,
     "icon": "./assets/images/logo.png",
-    "scheme": "myapp",
+    "scheme": "skiutc",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/logo.png",
@@ -21,7 +21,7 @@
         "NSCameraUsageDescription": "Autoriser Ski'Ut à accéder à la Caméra.",
         "NSPhotoLibraryUsageDescription": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Autoriser Ski'Ut à accéder à la localisation pour calculer votre vitesse de glisse.",
-        "NSLocationWhenInUseUsageDescription": "Nous utilisons votre localisation lorsque l'application est en cours d'utilisation pour calculer votre vitesse de glisse."
+        "NSLocationWhenInUseUsageDescription": "Autoriser Ski'Ut à accéder à la localisation lorsque l'application est en cours d'utilisation pour calculer votre vitesse de glisse."
       }
     },
     "android": {
@@ -30,6 +30,9 @@
         "backgroundColor": "#aad1cd"
       },
       "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO",
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.RECORD_AUDIO"
@@ -84,6 +87,12 @@
         "projectId": "f03f1a56-74c7-4c87-a0b2-60b420f7de94"
       }
     },
-    "owner": "skiutcapp"
+    "owner": "skiutcapp",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f03f1a56-74c7-4c87-a0b2-60b420f7de94"
+    }
   }
 }

@@ -99,7 +99,7 @@ const GestionNotificationsScreen = () => {
   }, [setUser]);
 
   useEffect(() => {
-fetchAdminNotifications();
+    fetchAdminNotifications();
     const unsubscribe = navigation.addListener('focus', () => {
       fetchAdminNotifications();
     });
@@ -143,7 +143,7 @@ fetchAdminNotifications();
       <View style={styles.createButtonContainer}>
         <TouchableOpacity
           style={styles.createButton}
-          onPress={() => (navigation as any).navigate('notificationsForm')}
+          onPress={() => (navigation as any).navigate('createNotificationScreen')}
         >
           <View style={styles.createButtonIcon}>
             <PenLine size={20} color={Colors.white} />

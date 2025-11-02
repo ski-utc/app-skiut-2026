@@ -7,7 +7,9 @@ import Admin from './admin/adminScreen';
 import ValideDefis from './admin/valideDefisScreen';
 import ValideAnecdotes from './admin/valideAnecdotesScreen';
 import ValideNotifications from './admin/valideNotificationsScreen';
-import NotificationsForm from './admin/notificationsForm';
+import CreateNotificationScreen from './admin/createNotificationScreen';
+import GestionPermanencesScreen from './admin/gestionPermanencesScreen';
+import GestionTourneeChambreScreen from './admin/gestionTourneeChambreScreen';
 
 const Stack = createStackNavigator();
 
@@ -50,11 +52,20 @@ export default function AdminNavigator() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="notificationsForm"
-        component={NotificationsForm}
+        name="createNotificationScreen"
+        component={CreateNotificationScreen}
         options={{ headerShown: false }}
       />
-
+      <Stack.Screen
+        name="gestionPermanencesScreen"
+        component={GestionPermanencesScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="gestionTourneeChambreScreen"
+        component={GestionTourneeChambreScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }

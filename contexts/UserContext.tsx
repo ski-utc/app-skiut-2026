@@ -9,6 +9,7 @@ interface User {
   room: number;
   roomName: string;
   admin: boolean;
+  member: boolean;
 }
 
 interface UserContextProps {

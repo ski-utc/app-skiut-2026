@@ -6,7 +6,7 @@ import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
-import { apiPost, apiGet } from '@/constants/api/apiCalls';
+import { apiPost, apiGet, apiPut } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 import Toast from 'react-native-toast-message';
@@ -47,7 +47,7 @@ export default function ValideDefis() {
   const fetchChallengeDetails = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiGet(`getChallengeDetails/${id}`);
+      const response = await apiGet(`admin/challenges/${id}`);
       if (response.success) {
         setChallengeDetails(response.data);
         setProofImage(response.imagePath);
@@ -68,60 +68,22 @@ export default function ValideDefis() {
   const handleValidation = async (isValid: number, isDelete: number) => {
     setLoading(true);
     try {
-      const response = await apiPost(`updateChallengeStatus/${id}/${isValid}/${isDelete}`);
+      const response = await apiPut(`admin/challenges/${id}/status`, { is_valid: isValid, is_delete: isDelete });
 
-      if (isValid && isDelete) {
-        if (response.success) {
-          Toast.show({
-            type: 'success',
-            text1: 'Défi supprimé !',
-            text2: response.message,
-          });
-          navigation.goBack();
-        } else {
-          Toast.show({
-            type: 'error',
-            text1: 'Une erreur est survenue...',
-            text2: response.message,
-          });
-          setError(response.message || 'Une erreur est survenue lors de la validation du défi.');
-        }
-      }
-
-      if (isValid && !isDelete) {
-        if (response.success) {
-          Toast.show({
-            type: 'success',
-            text1: 'Défi validé !',
-            text2: response.message,
-          });
-          navigation.goBack();
-        } else {
-          Toast.show({
-            type: 'error',
-            text1: 'Une erreur est survenue...',
-            text2: response.message,
-          });
-          setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
-        }
-      }
-
-      if (!isValid) {
-        if (response.success) {
-          Toast.show({
-            type: 'success',
-            text1: 'Défis en attente !',
-            text2: response.message,
-          });
-          navigation.goBack();
-        } else {
-          Toast.show({
-            type: 'error',
-            text1: 'Une erreur est survenue...',
-            text2: response.message,
-          });
-          setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
-        }
+      if (response.success) {
+        Toast.show({
+          type: 'success',
+          text1: 'Défi mis à jour !',
+          text2: response.message,
+        });
+        navigation.goBack();
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Une erreur est survenue...',
+          text2: response.message,
+        });
+        setError(response.message || 'Une erreur est survenue lors de la validation du défi.');
       }
     } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {

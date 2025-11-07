@@ -56,7 +56,7 @@ const GestionAnecdotesScreen = () => {
     setDisableRefresh(true);
 
     try {
-      const response = await apiGet('getAdminAnecdotes');
+      const response = await apiGet('admin/anecdotes');
       if (response.success) {
         setAnecdotes(response.data);
         setFilteredAnecdotes(response.data);
@@ -99,7 +99,7 @@ const GestionAnecdotesScreen = () => {
   };
 
   useEffect(() => {
-fetchAdminAnecdotes();
+    fetchAdminAnecdotes();
     const unsubscribe = navigation.addListener('focus', () => {
       fetchAdminAnecdotes();
     });

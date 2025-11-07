@@ -55,7 +55,7 @@ const GestionDefisScreen = () => {
     setLoading(true);
     setDisableRefresh(true);
     try {
-      const response = await apiGet('getAdminChallenges');
+      const response = await apiGet('admin/challenges');
       if (response.success) {
         setDefis(response.data);
         setFilteredDefis(response.data);
@@ -100,7 +100,7 @@ const GestionDefisScreen = () => {
   };
 
   useEffect(() => {
-fetchAdminDefis();
+    fetchAdminDefis();
     const unsubscribe = navigation.addListener('focus', () => {
       fetchAdminDefis();
     });

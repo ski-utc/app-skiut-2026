@@ -14,7 +14,7 @@ import {
     ScrollView,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { apiGet, apiPost } from '@/constants/api/apiCalls';
+import { apiGet, apiPost, apiDelete } from '@/constants/api/apiCalls';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import Header from '../../components/header';
 import ErrorScreen from '@/components/pages/errorPage';
@@ -242,7 +242,7 @@ export default function GestionTourneeChambreScreen() {
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            const response = await apiPost(`room-tours/${tour.id}`, {}, 'DELETE');
+                            const response = await apiDelete(`room-tours/${tour.id}`);
                             if (response.success) {
                                 Alert.alert('Succès', 'Tournée supprimée avec succès.');
                                 fetchData();
@@ -281,7 +281,7 @@ export default function GestionTourneeChambreScreen() {
                     </Text>
                     <View style={[
                         styles.statusBadge,
-                        { backgroundColor: getStatusColor(item) }
+                        { backgroundColor: getStatusColor(item) || Colors.lightMuted }
                     ]}>
                         <Text style={styles.statusText}>{getStatusText(item)}</Text>
                     </View>
@@ -849,7 +849,7 @@ const styles = StyleSheet.create({
     },
     modalCloseText: {
         ...TextStyles.body,
-        color: Colors.danger,
+        color: Colors.error,
     },
     modalTitle: {
         ...TextStyles.h3Bold,

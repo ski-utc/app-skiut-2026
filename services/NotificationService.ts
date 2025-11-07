@@ -117,9 +117,20 @@ export class NotificationService {
      */
     private async saveTokenToServer(token: string): Promise<void> {
         try {
-            const response = await apiPost('save-token', { userToken: token });
+            // Détecter le type d'appareil et le nom
+            const deviceType = Platform.OS === 'ios' ? 'ios' : 'android';
+            const deviceName = `${Device.brand || 'Unknown'} ${Device.modelName || 'Device'}`.trim();
+
+            const response = await apiPost('push-tokens', {
+                token,
+                device_type: deviceType,
+                device_name: deviceName,
+            });
+
             if (!response.success) {
                 console.error('Erreur lors de la sauvegarde du token:', response.message);
+            } else {
+                console.log('Token push enregistré avec succès sur le serveur');
             }
         } catch (error) {
             console.error('Erreur réseau lors de la sauvegarde du token:', error);
@@ -314,6 +325,58 @@ export class NotificationService {
             await Notifications.setBadgeCountAsync(count);
         } catch (error) {
             console.error('Erreur lors de la mise à jour du badge count:', error);
+        }
+    }
+
+    /**
+     * Désactive le push token sur le serveur (sans le supprimer)
+     */
+    public async deactivateToken(): Promise<void> {
+        if (!this.pushToken) {
+            console.warn('Aucun token à désactiver');
+            return;
+        }
+
+        try {
+            const response = await apiPost('push-tokens/deactivate', {
+                token: this.pushToken
+            });
+
+            if (response.success) {
+                console.log('Token désactivé avec succès');
+            }
+        } catch (error) {
+            console.error('Erreur lors de la désactivation du token:', error);
+        }
+    }
+
+    /**
+     * Supprime le push token du serveur
+     */
+    public async deleteToken(): Promise<void> {
+        if (!this.pushToken) {
+            console.warn('Aucun token à supprimer');
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `${process.env.EXPO_PUBLIC_API_URL}/push-tokens`,
+                {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token: this.pushToken }),
+                }
+            );
+
+            if (response.ok) {
+                console.log('Token supprimé avec succès');
+                this.pushToken = null;
+            }
+        } catch (error) {
+            console.error('Erreur lors de la suppression du token:', error);
         }
     }
 }

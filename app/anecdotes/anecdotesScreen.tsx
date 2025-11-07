@@ -7,7 +7,7 @@ import Anecdote from '../../components/anecdotes/anecdote';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import BoutonNavigationLarge from '@/components/divers/boutonNavigationLarge';
 import { MessageCirclePlus } from 'lucide-react-native';
-import { apiPost } from '@/constants/api/apiCalls';
+import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 
 interface AnecdoteType {
@@ -37,7 +37,7 @@ export default function AnecdotesScreen() {
     setDisableRefresh(true);
 
     try {
-      const response = await apiPost('getAnecdotes', { 'quantity': requestedQuantity });
+      const response = await apiGet(`anecdotes?quantity=${requestedQuantity}`);
       if (response.success) {
         if (response.data.length < requestedQuantity) {
           setHasMoreData(false);
@@ -66,7 +66,7 @@ export default function AnecdotesScreen() {
   }, [fetchAnecdotes, quantity]);
 
   useEffect(() => {
-fetchAnecdotes(10, false);
+    fetchAnecdotes(10, false);
   }, [fetchAnecdotes]);
 
   const handleLoadMore = () => {

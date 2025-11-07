@@ -9,6 +9,7 @@ import Toast from 'react-native-toast-message';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import ArticleCard from '@/components/monoprut/articleCard';
 import CreateArticleModal from '@/components/monoprut/createArticleModal';
+import ErrorScreen from '@/components/pages/errorPage';
 
 interface Article {
     id: number;
@@ -35,13 +36,14 @@ interface Article {
 export default function MyOffersScreen() {
     const navigation = useNavigation<any>();
     const [articles, setArticles] = useState<Article[]>([]);
+    const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
 
     const fetchArticles = async () => {
         try {
-            const response = await apiGet('myGivenArticles');
+            const response = await apiGet('articles/given');
             if (response.success) {
                 setArticles(response.data || []);
             } else {
@@ -52,6 +54,7 @@ export default function MyOffersScreen() {
                 });
             }
         } catch (error: any) {
+            setError(error.message || 'Une erreur est survenue.');
             Toast.show({
                 type: 'error',
                 text1: 'Erreur',
@@ -79,6 +82,12 @@ export default function MyOffersScreen() {
         setShowCreateModal(false);
         fetchArticles();
     };
+
+    if (error) {
+        return (
+            <ErrorScreen error={error} />
+        );
+    }
 
     if (loading) {
         return (

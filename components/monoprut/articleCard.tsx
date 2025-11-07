@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { Apple, CupSoda, Candy, Sandwich, Milk, Croissant, Drumstick, Carrot, Fish, Wheat, Package, Trash2 } from 'lucide-react-native';
-import { apiPost } from '@/constants/api/apiCalls';
+import { apiPost, apiDelete } from '@/constants/api/apiCalls';
 import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 
@@ -100,7 +100,7 @@ export default function ArticleCard({ article, onUpdate, showReserveButton = fal
                     text: 'Réserver',
                     onPress: async () => {
                         try {
-                            const response = await apiPost('shotgunArticle', { articleId: article.id });
+                            const response = await apiPost(`articles/${article.id}/shotgun`, {});
                             if (response.success) {
                                 Toast.show({
                                     type: 'success',
@@ -139,7 +139,7 @@ export default function ArticleCard({ article, onUpdate, showReserveButton = fal
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            const response = await apiPost('deleteArticle', { articleId: article.id });
+                            const response = await apiDelete(`articles/${article.id}`);
                             if (response.success) {
                                 Toast.show({
                                     type: 'success',

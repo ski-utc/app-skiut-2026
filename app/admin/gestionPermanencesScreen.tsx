@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
-import { apiGet, apiPost } from '@/constants/api/apiCalls';
+import { apiGet, apiPost, apiPut, apiDelete } from '@/constants/api/apiCalls';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import Header from '../../components/header';
 import ErrorScreen from '@/components/pages/errorPage';
@@ -184,7 +184,7 @@ export default function GestionPermanencesScreen() {
             const method = editingPermanence ? 'PUT' : 'POST';
 
             const response = await (method === 'PUT' ?
-                apiPost(endpoint, data) :
+                apiPut(endpoint, data) :
                 apiPost(endpoint, data)
             );
 
@@ -217,7 +217,7 @@ export default function GestionPermanencesScreen() {
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            const response = await apiPost(`permanences/${permanence.id}`, {}, 'DELETE');
+                            const response = await apiDelete(`permanences/${permanence.id}`);
                             if (response.success) {
                                 Alert.alert('Succès', 'Permanence supprimée avec succès.');
                                 fetchData();

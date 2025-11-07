@@ -2,13 +2,12 @@ import { Text, View, ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity
 import { Colors, FontSizes, TextStyles } from '@/constants/GraphSettings';
 import Header from "../../components/header";
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { apiPost, apiGet } from '@/constants/api/apiCalls';
+import { apiGet } from '@/constants/api/apiCalls';
 import { useNavigation } from "@react-navigation/native";
 import { useUser } from "@/contexts/UserContext";
 import * as Device from "expo-device";
-import { Platform } from "react-native";
 import ErrorScreen from "@/components/pages/errorPage";
-import { Calendar, Trophy, MessageCircle, Bug, ChevronRight, MapPin, Thermometer, Wind, Droplets, Sun, Cloud, CloudRain, CloudSnow, Moon, CloudMoon, CloudLightning, CloudDrizzle, CloudFog, CloudMoonRain, Home, Users, Clock } from 'lucide-react-native';
+import { Calendar, Trophy, MessageCircle, Bug, ChevronRight, MapPin, Thermometer, Wind, Droplets, Sun, Cloud, CloudRain, CloudSnow, Moon, CloudMoon, CloudLightning, CloudDrizzle, CloudFog, CloudMoonRain, Home } from 'lucide-react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 
 interface WeatherWidgetProps {
@@ -351,8 +350,8 @@ export default function HomeScreen() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiGet("getRandomData");
-      const responseWeather = await apiGet("getWeather");
+      const response = await apiGet("home/random-data");
+      const responseWeather = await apiGet("home/weather");
       const responseTourStatus = await apiGet("room-tours/status");
 
       if (response.success) {

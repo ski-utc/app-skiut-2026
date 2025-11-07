@@ -25,7 +25,7 @@ export default function AnecdotesForm() {
   const handleSendAnecdote = async () => {
     setLoading(true);
     try {
-      const response = await apiPost("sendAnecdote", {
+      const response = await apiPost("anecdotes", {
         texte: text
       });
       if (response.success) {

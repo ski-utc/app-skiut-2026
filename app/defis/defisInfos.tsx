@@ -9,7 +9,7 @@ import { LandPlot, Trash, Check, Hourglass, X, Upload, CloudOff, Maximize, Play,
 import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiPost, apiGet } from '@/constants/api/apiCalls';
+import { apiPost, apiGet, apiDelete } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import Toast from 'react-native-toast-message';
 import ImageViewer from "react-native-image-zoom-viewer";
@@ -44,7 +44,7 @@ export default function DefisInfos() {
     setLoading(true);
     setNetworkError(false);
     try {
-      const response = await apiPost('challenges/getProofMedia', { defiId: id });
+      const response = await apiGet(`challenges/proof-media/${id}`);
       if (response.success) {
         setProofMedia(response.media);
         setMediaType(response.mediaType || 'image');
@@ -102,7 +102,7 @@ export default function DefisInfos() {
       // Récupérer la taille max
       let maxFileSize = 5 * 1024 * 1024; // 5MB par défaut (plus pour les vidéos)
       try {
-        const getTailleMax = await apiGet("getMaxFileSize");
+        const getTailleMax = await apiGet("users/max-file-size");
         if (getTailleMax.success) {
           maxFileSize = getTailleMax.data;
         }
@@ -185,7 +185,7 @@ export default function DefisInfos() {
       formData.append('defiId', id);
       formData.append('mediaType', mediaType);
 
-      const response = await apiPost('challenges/uploadProofMedia', formData, true);
+      const response = await apiPost('challenges/proof-media', formData, true);
       if (response.success) {
         setStatus('pending');
         try {
@@ -236,7 +236,7 @@ export default function DefisInfos() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const response = await apiPost('challenges/deleteProofMedia', { defiId: id });
+              const response = await apiDelete(`challenges/proof-media/${id}`);
               if (response.success) {
                 setProofMedia(null);
                 setMediaType('image');

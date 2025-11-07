@@ -33,10 +33,10 @@ export default function SkinderMyMatches() {
     }
   });
   const { setUser } = useUser();
-const fetchMatches = useCallback(async () => {
+  const fetchMatches = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiGet('getMySkinderMatches');
+      const response = await apiGet('skinder/matches');
       if (response.success) {
         setMatchedRooms(response.data);
       } else {
@@ -56,7 +56,7 @@ const fetchMatches = useCallback(async () => {
   const fetchRoomDetails = useCallback(async (roomId: number) => {
     setLoadingRoomDetails(true);
     try {
-      const response = await apiGet(`getRoomDetails/${roomId}`);
+      const response = await apiGet(`skinder/rooms/${roomId}`);
       if (response.success) {
         setRoomDetails({
           id: response.data.id,

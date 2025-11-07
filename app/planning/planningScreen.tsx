@@ -58,7 +58,7 @@ export default function PlanningScreen() {
     setLoading(true);
     setDisableRefresh(true);
     try {
-      const response = await apiGet("getPlanning");
+      const response = await apiGet("planning");
       if (response.success) {
         const sortedActivitiesMap: { [key: string]: Activity[] } = {};
         Object.keys(response.data).forEach(date => {

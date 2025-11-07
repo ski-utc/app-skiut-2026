@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard, Pressable, SafeAreaView, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard, SafeAreaView, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from "../../components/header";
@@ -53,7 +53,7 @@ export default function CreateNotificationScreen() {
     const fetchRecipientsData = async () => {
         try {
             setDataLoading(true);
-            const response = await apiGet('getRecipientsData');
+            const response = await apiGet('notifications/recipients');
             if (response.success) {
                 setUsers(response.data.users);
                 setRooms(response.data.rooms);
@@ -84,7 +84,7 @@ export default function CreateNotificationScreen() {
                 display
             };
 
-            const response = await apiPost('createNotification', payload);
+            const response = await apiPost('notifications', payload);
             if (response.success) {
                 Toast.show({
                     type: 'success',

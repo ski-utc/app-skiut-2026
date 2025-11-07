@@ -6,7 +6,7 @@ import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
-import { apiPost, apiGet } from '@/constants/api/apiCalls';
+import { apiPost, apiGet, apiPut } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 import Toast from 'react-native-toast-message';
@@ -42,7 +42,7 @@ export default function ValideAnecdotes() {
   const fetchAnecdoteDetails = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiGet(`getAnecdoteDetails/${id}`);
+      const response = await apiGet(`admin/anecdotes/${id}`);
       if (response.success) {
         setAnecdoteDetails(response.data);
         setNbLikes(response.nbLikes);
@@ -64,7 +64,7 @@ export default function ValideAnecdotes() {
   const handleValidation = async (isValid: number) => {
     setLoading(true);
     try {
-      const response = await apiPost(`updateAnecdoteStatus/${id}/${isValid}`);
+      const response = await apiPut(`admin/anecdotes/${id}/status`, { is_valid: isValid });
       if (response.success) {
         setAnecdoteDetails(prevDetails => prevDetails ? ({
           ...prevDetails,

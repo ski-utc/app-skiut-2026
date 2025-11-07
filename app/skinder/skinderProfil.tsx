@@ -7,7 +7,7 @@ import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import { useNavigation } from '@react-navigation/native';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiPost, apiGet } from '@/constants/api/apiCalls';
+import { apiPost, apiGet, apiPut } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import Toast from 'react-native-toast-message';
 import { Camera, Save, X } from 'lucide-react-native';
@@ -30,7 +30,7 @@ export default function SkinderProfil() {
   const fetchProfil = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiGet('getMyProfilSkinder');
+      const response = await apiGet('skinder/my-profile');
       if (response.success) {
         const passions = Array.isArray(response.data.passions)
           ? response.data.passions
@@ -93,7 +93,7 @@ export default function SkinderProfil() {
       let fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
       let maxFileSize = 1024 * 1024;
       try {
-        const getTailleMax = await apiGet("getMaxFileSize");
+        const getTailleMax = await apiGet("users/max-file-size");
         if (getTailleMax.success) {
           maxFileSize = getTailleMax.data;
         }
@@ -145,7 +145,7 @@ export default function SkinderProfil() {
         type: 'image/jpeg',
       } as any);
 
-      const response = await apiPost('uploadRoomImage', formData, true);
+      const response = await apiPost('skinder/my-profile/image', formData, true);
       return response;
     } catch (error: any) {
       setError(error.message || "Erreur lors du téléversement de l'image");
@@ -157,7 +157,7 @@ export default function SkinderProfil() {
 
     try {
       const filteredPassions = profile.passions.filter(p => p.trim() !== '');
-      const response = await apiPost('modifyProfilSkinder', { 'description': profile.description, 'passions': filteredPassions });
+      const response = await apiPut('skinder/my-profile', { 'description': profile.description, 'passions': filteredPassions });
       if (modifiedPicture) {
         const response2 = await uploadImage(profileImage);
         Toast.show({

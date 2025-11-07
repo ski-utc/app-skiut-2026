@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, SafeAreaView, ActivityIndicator, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { X, Apple, CupSoda, Candy, Sandwich, Milk, Croissant, Drumstick, Carrot, Fish, Wheat, Package, Shield } from 'lucide-react-native';
+import { X, Apple, CupSoda, Candy, Sandwich, Milk, Croissant, Drumstick, Carrot, Fish, Wheat, Package } from 'lucide-react-native';
 import { apiPost } from '@/constants/api/apiCalls';
 import Toast from 'react-native-toast-message';
 import Checkbox from 'expo-checkbox';
@@ -60,7 +60,7 @@ export default function CreateArticleModal({ onClose, onSuccess }: CreateArticle
 
         setLoading(true);
         try {
-            const response = await apiPost('createArticle', {
+            const response = await apiPost('articles', {
                 product: product.trim(),
                 quantity: quantity.trim(),
                 type,

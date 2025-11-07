@@ -25,7 +25,7 @@ export default function Contact() {
     const fetchContacts = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await apiGet('getContacts');
+            const response = await apiGet('contacts');
             if (response.success) {
                 setContacts(response.data);
             } else {

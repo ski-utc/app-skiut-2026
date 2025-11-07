@@ -139,7 +139,7 @@ export default function NavettesScreen() {
   const fetchNavettes = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiGet('getNavettes');
+      const response = await apiGet('navettes');
       if (response.success) {
         const map: { [key: string]: any[] } = {
           Aller: [],

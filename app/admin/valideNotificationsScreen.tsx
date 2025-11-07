@@ -6,7 +6,7 @@ import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
-import { apiPost, apiGet } from '@/constants/api/apiCalls';
+import { apiPost, apiGet, apiPut } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 import { useNavigation } from '@react-navigation/native';
@@ -39,7 +39,7 @@ export default function ValideNotifications() {
   const fetchNotificationDetails = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiGet(`getNotificationDetails/${id}`);
+      const response = await apiGet(`admin/notifications/${id}`);
       if (response.success) {
         setNotificationDetails(response.data);
       } else {
@@ -59,7 +59,7 @@ export default function ValideNotifications() {
   const handleDelete = async (displayFlag: number) => {
     setLoading(true);
     try {
-      const response = await apiPost(`displayNotification/${id}/${displayFlag}`);
+      const response = await apiPut(`admin/notifications/${id}/display`, { display_flag: displayFlag });
       if (response.success) {
         if (displayFlag === 1) {
           Toast.show({

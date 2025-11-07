@@ -36,7 +36,7 @@ export default function OAuthScreen() {
           await SecureStore.setItemAsync("accessToken", accessToken);
           await SecureStore.setItemAsync("refreshToken", refreshToken);
 
-          const response = await apiGet("getUserData");
+          const response = await apiGet("auth/me");
           if (response.success) {
             setUser({
               id: response.id,

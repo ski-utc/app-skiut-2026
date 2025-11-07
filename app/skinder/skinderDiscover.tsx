@@ -6,7 +6,7 @@ import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Heart, X, User, MessageCircle, Settings } from 'lucide-react-native';
-import { apiPost, apiGet } from '@/constants/api/apiCalls';
+import { apiGet, apiPost } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useNavigation } from '@react-navigation/native';
 
@@ -28,7 +28,7 @@ export default function SkinderDiscover() {
     const cardOpacity = useRef(new Animated.Value(1)).current;
     const likeOpacity = useRef(new Animated.Value(0)).current;
     const dislikeOpacity = useRef(new Animated.Value(0)).current;
-const handleGesture = Animated.event(
+    const handleGesture = Animated.event(
         [{ nativeEvent: { translationX: translateX } }],
         { useNativeDriver: false }
     );
@@ -161,7 +161,7 @@ const handleGesture = Animated.event(
         setDisableButton(false);
 
         try {
-            const response = await apiGet('getProfilSkinder');
+            const response = await apiGet('skinder/profiles');
             if (response.success) {
                 setProfile({
                     id: response.data.id,
@@ -199,7 +199,7 @@ const handleGesture = Animated.event(
 
     const handleLike = async () => {
         try {
-            const response = await apiPost('likeSkinder', { 'roomLiked': profile.id });
+            const response = await apiPost(`skinder/profiles/${profile.id}/like`, { 'roomLiked': profile.id });
             if (response.success) {
                 if (response.match) {
                     (navigation as any).navigate('matchScreen', {

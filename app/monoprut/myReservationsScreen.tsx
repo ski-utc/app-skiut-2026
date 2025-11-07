@@ -4,10 +4,11 @@ import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { ShoppingBasket } from 'lucide-react-native';
-import { apiGet, apiPost } from '@/constants/api/apiCalls';
+import { apiGet, apiPost, apiPut } from '@/constants/api/apiCalls';
 import Toast from 'react-native-toast-message';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import ArticleCard from '@/components/monoprut/articleCard';
+import ErrorScreen from '@/components/pages/errorPage';
 
 interface Article {
     id: number;
@@ -29,12 +30,13 @@ interface Article {
 export default function MyReservationsScreen() {
     const navigation = useNavigation<any>();
     const [articles, setArticles] = useState<Article[]>([]);
+    const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
     const fetchArticles = async () => {
         try {
-            const response = await apiGet('myReceivedArticles');
+            const response = await apiGet('articles/received');
             if (response.success) {
                 setArticles(response.data || []);
             } else {
@@ -45,6 +47,7 @@ export default function MyReservationsScreen() {
                 });
             }
         } catch (error: any) {
+            setError(error.message || 'Une erreur est survenue.');
             Toast.show({
                 type: 'error',
                 text1: 'Erreur',
@@ -70,7 +73,7 @@ export default function MyReservationsScreen() {
 
     const handleMarkAsRetrieved = async (articleId: number) => {
         try {
-            const response = await apiPost('markAsRetrieved', { articleId });
+            const response = await apiPut(`articles/${articleId}/retrieve`, {});
             if (response.success) {
                 Toast.show({
                     type: 'success',
@@ -97,7 +100,7 @@ export default function MyReservationsScreen() {
 
     const handleCancelReservation = async (articleId: number) => {
         try {
-            const response = await apiPost('cancelReservation', { articleId });
+            const response = await apiPost(`articles/${articleId}/cancel-reservation`, {});
             if (response.success) {
                 Toast.show({
                     type: 'success',
@@ -121,6 +124,12 @@ export default function MyReservationsScreen() {
             });
         }
     };
+
+    if (error) {
+        return (
+            <ErrorScreen error={error} />
+        );
+    }
 
     if (loading) {
         return (

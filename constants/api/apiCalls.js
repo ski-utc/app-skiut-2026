@@ -4,7 +4,6 @@ import * as SecureStore from "expo-secure-store";
 import { Alert } from "react-native";
 import { apiCache } from "./apiCache";
 
-// Rafraichir les tokens
 const refreshTokens = async () => {
   const refreshtoken = await SecureStore.getItemAsync("refreshToken");
   if (!refreshtoken) {
@@ -23,9 +22,15 @@ const refreshTokens = async () => {
   }
 };
 
-// apiGet avec JWT et cache optionnel
-export const apiGet = async (url, useCache = false, cacheTTL = undefined) => {
-  if (useCache) {
+const apiCall = async (method = 'GET', url, data = null, options = {}) => {
+  const {
+    useCache = false,
+    cacheTTL = undefined,
+    multimedia = false,
+    invalidateCache = null,
+  } = options;
+
+  if (method.toUpperCase() === 'GET' && useCache) {
     const cachedData = apiCache.get(url);
     if (cachedData) {
       return cachedData;
@@ -33,45 +38,47 @@ export const apiGet = async (url, useCache = false, cacheTTL = undefined) => {
   }
 
   let response;
-  let accessToken = await SecureStore.getItemAsync("accessToken");
-  let apiConfig = { headers: { Authorization: `Bearer ${accessToken}` } };
-  try {
-    response = await axios.get(`${config.API_BASE_URL}/${url}`, apiConfig);
-  } catch (error) {
-    if (error.response?.data?.JWT_ERROR) {
-      await refreshTokens();
-      return await apiGet(url, useCache, cacheTTL); // Retry with new token
-    } else {
-      throw new Error(error.response?.data?.message || "RequestError");
-    }
-  }
+  const accessToken = await SecureStore.getItemAsync("accessToken");
 
-  if (useCache && response.data) {
-    apiCache.set(url, response.data, cacheTTL);
-  }
-
-  return response.data;
-};
-
-// apiPost avec JWT (invalide le cache si nécessaire)
-export const apiPost = async (url, data, multimedia = false, invalidateCache = null) => {
-  let response;
-  let accessToken = await SecureStore.getItemAsync("accessToken");
-  let apiConfig = {
+  const apiConfig = {
     headers: multimedia
       ? { Authorization: `Bearer ${accessToken}`, "content-type": "multipart/form-data" }
-      : { Authorization: `Bearer ${accessToken}` },
+      : { Authorization: `Bearer ${accessToken}` }
   };
 
   try {
-    response = await axios.post(`${config.API_BASE_URL}/${url}`, data, apiConfig);
+    const url_full = `${config.API_BASE_URL}/${url}`;
+
+    switch (method.toUpperCase()) {
+      case 'GET':
+        response = await axios.get(url_full, apiConfig);
+        break;
+      case 'POST':
+        response = await axios.post(url_full, data, apiConfig);
+        break;
+      case 'PUT':
+        response = await axios.put(url_full, data, apiConfig);
+        break;
+      case 'DELETE':
+        response = await axios.delete(url_full, apiConfig);
+        break;
+      case 'PATCH':
+        response = await axios.patch(url_full, data, apiConfig);
+        break;
+      default:
+        throw new Error(`Unsupported HTTP method: ${method}`);
+    }
   } catch (error) {
     if (error.response?.data?.JWT_ERROR) {
       await refreshTokens();
-      return await apiPost(url, data, multimedia, invalidateCache); // Retry with new token
+      return await apiCall(method, url, data, options);
     } else {
       throw new Error(error.response?.data?.message || "RequestError");
     }
+  }
+
+  if (method.toUpperCase() === 'GET' && useCache && response.data) {
+    apiCache.set(url, response.data, cacheTTL);
   }
 
   if (invalidateCache) {
@@ -85,8 +92,22 @@ export const apiPost = async (url, data, multimedia = false, invalidateCache = n
   return response.data;
 };
 
-// Public GET sans JWT
-export const apiGetPublic = async (url) => {
-  const response = await axios.get(`${config.API_BASE_URL}/${url}`);
-  return response.data;
+export const apiGet = async (url, useCache = false, cacheTTL = undefined) => {
+  return apiCall('GET', url, null, { useCache, cacheTTL });
+};
+
+export const apiPost = async (url, data, multimedia = false, invalidateCache = null) => {
+  return apiCall('POST', url, data, { multimedia, invalidateCache });
+};
+
+export const apiPut = async (url, data, options = {}) => {
+  return apiCall('PUT', url, data, options);
+};
+
+export const apiDelete = async (url, options = {}) => {
+  return apiCall('DELETE', url, null, options);
+};
+
+export const apiPatch = async (url, data, options = {}) => {
+  return apiCall('PATCH', url, data, options);
 };

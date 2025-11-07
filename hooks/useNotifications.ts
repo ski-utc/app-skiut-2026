@@ -86,6 +86,23 @@ export const useNotifications = () => {
         }
     }, [notificationService]);
 
+    const deactivateToken = useCallback(async () => {
+        try {
+            await notificationService.deactivateToken();
+        } catch (error) {
+            console.error('Erreur désactivation token:', error);
+        }
+    }, [notificationService]);
+
+    const deleteToken = useCallback(async () => {
+        try {
+            await notificationService.deleteToken();
+            setPushToken(null);
+        } catch (error) {
+            console.error('Erreur suppression token:', error);
+        }
+    }, [notificationService]);
+
     // Auto-initialisation quand l'utilisateur se connecte
     useEffect(() => {
         if (user && !isInitialized) {
@@ -97,11 +114,12 @@ export const useNotifications = () => {
     useEffect(() => {
         if (!user && isInitialized) {
             clearNotifications();
+            deactivateToken(); // Désactiver le token sur le serveur
             setIsInitialized(false);
             setPermissionStatus('undetermined');
             setPushToken(null);
         }
-    }, [user, isInitialized, clearNotifications]);
+    }, [user, isInitialized, clearNotifications, deactivateToken]);
 
     return {
         isInitialized,
@@ -113,5 +131,7 @@ export const useNotifications = () => {
         sendLocalNotification,
         clearNotifications,
         setBadgeCount,
+        deactivateToken,
+        deleteToken,
     };
 };

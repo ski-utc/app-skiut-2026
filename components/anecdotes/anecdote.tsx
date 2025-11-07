@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { Heart, TriangleAlert } from 'lucide-react-native';
-import { apiPost } from '@/constants/api/apiCalls';
+import { apiPost, apiDelete } from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
 import Toast from 'react-native-toast-message';
 
@@ -16,7 +16,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
 
   const handleLike = async () => {
     try {
-      const response = await apiPost('likeAnecdote', { 'anecdoteId': id, 'like': !isLiked });
+      const response = await apiPost(`anecdotes/${id}/like`, { 'like': !isLiked });
       if (response.success) {
         setIsLiked(response.liked);
         const updateLike = (response.liked) ? 1 : -1;
@@ -39,7 +39,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
 
   const handleWarning = async () => {
     try {
-      const response = await apiPost('warnAnecdote', { 'anecdoteId': id, 'warn': !isWarned });
+      const response = await apiPost(`anecdotes/${id}/warn`, { 'warn': !isWarned });
       if (response.success) {
         setIsWarned(response.warn);
       } else {
@@ -72,7 +72,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
           style: 'destructive',
           onPress: async () => {
             try {
-              const response = await apiPost('deleteAnecdote', { anecdoteId: id });
+              const response = await apiDelete(`anecdotes/${id}`);
               if (response.success) {
                 Toast.show({
                   type: 'success',

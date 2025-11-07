@@ -4,8 +4,8 @@ import { useNavigation } from '@react-navigation/native';
 import Header from "../../../components/header";
 import BoutonRetour from "../../../components/divers/boutonRetour";
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { Zap, MapPin, Timer, Calendar, Activity, TrendingUp, Trash2 } from "lucide-react-native";
-import { apiGet, apiPost } from "@/constants/api/apiCalls";
+import { Zap, MapPin, Timer, Activity, TrendingUp, Trash2 } from "lucide-react-native";
+import { apiGet, apiPost, apiDelete } from "@/constants/api/apiCalls";
 import { useUser } from "@/contexts/UserContext";
 import Toast from 'react-native-toast-message';
 import ErrorScreen from "@/components/pages/errorPage";
@@ -74,7 +74,7 @@ export default function UserPerformancesScreen() {
                 { text: 'Annuler', style: 'cancel' },
                 {
                     text: 'Supprimer', style: 'destructive', onPress: async () => {
-                        const response = await apiPost('delete-performance-session', { session_id: sessionId });
+                        const response = await apiDelete(`user-performances/${sessionId}`);
                         if (response.success) {
                             setSessions(prev => prev.filter(session => session.session_id !== sessionId));
                         }

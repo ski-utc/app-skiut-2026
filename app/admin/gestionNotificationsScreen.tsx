@@ -77,7 +77,7 @@ const GestionNotificationsScreen = () => {
     setLoading(true);
     setDisableRefresh(true);
     try {
-      const response = await apiGet('getAdminNotifications');
+      const response = await apiGet('admin/notifications');
       if (response.success) {
         setNotifications(response.data);
         setFilteredNotifications(response.data);

@@ -34,7 +34,7 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiGet('getNotifications');
+      const response = await apiGet('notifications');
       if (response.success) {
         setNotifications(response.data);
       } else {

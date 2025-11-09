@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { WebView } from "react-native-webview";
 import * as Linking from "expo-linking";
 import * as SecureStore from "expo-secure-store";
@@ -8,6 +8,7 @@ import * as config from "../../constants/api/apiConfig";
 import { apiGet } from "@/constants/api/apiCalls";
 import { Colors, TextStyles } from "@/constants/GraphSettings";
 import { useNavigation } from '@react-navigation/native';
+import { X } from "lucide-react-native";
 
 export default function OAuthScreen() {
   const { setUser } = useUser();
@@ -142,15 +143,50 @@ export default function OAuthScreen() {
   return (
     <View style={{ flex: 1 }}>
       {isWebViewVisible && (
-        <WebView
-          source={{ uri: `${config.BASE_URL}/auth/login` }}
-          originWhitelist={["*"]}
-          style={{ flex: 1 }}
-          onNavigationStateChange={handleNavigationStateChange}
-          incognito={true}
-          show
-        />
+        <>
+          <View style={styles.closeButtonContainer}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.closeButton}
+            >
+              <X size={24} color={Colors.white} />
+            </TouchableOpacity>
+          </View>
+          <WebView
+            source={{ uri: `${config.BASE_URL}/auth/login` }}
+            originWhitelist={["*"]}
+            style={{ flex: 1 }}
+            onNavigationStateChange={handleNavigationStateChange}
+            incognito={true}
+            show
+          />
+        </>
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  closeButtonContainer: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    zIndex: 10,
+    paddingTop: 16,
+    paddingRight: 16,
+  },
+  closeButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#000',
+    opacity: 0.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 5,
+  },
+});

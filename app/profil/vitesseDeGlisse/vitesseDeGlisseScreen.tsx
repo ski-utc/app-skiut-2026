@@ -81,7 +81,7 @@ export default function VitesseDeGlisseScreen() {
     // Timer pour le temps de tracking
     useEffect(() => {
         if (isTracking) {
-            trackingInterval.current = setInterval(() => {
+            setInterval(() => {
                 setTrackingTime(time => time + 1);
             }, 1000);
         } else {

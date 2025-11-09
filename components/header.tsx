@@ -1,10 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { GanttChart, Bell, RotateCcw } from 'lucide-react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import NotificationPopup from '@/app/notificationPopUp';
 import { useUser } from '@/contexts/UserContext';
+import { apiGet } from '@/constants/api/apiCalls';
 
 interface HeaderProps {
   refreshFunction?: (() => void) | null;
@@ -13,6 +14,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = React.memo(({ refreshFunction, disableRefresh = false }) => {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const { user } = useUser();
   const navigation = useNavigation();
 
@@ -26,6 +28,24 @@ const Header: React.FC<HeaderProps> = React.memo(({ refreshFunction, disableRefr
 
   const handleClosePopup = useCallback(() => {
     setIsPopupVisible(false);
+  }, []);
+
+  const updateUnreadNotifications = useCallback(async () => {
+    try {
+      const response = await apiGet('notifications');
+      if (response.success && response.data) {
+        const hasUnread = response.data.some((notification: any) => notification.read === false);
+        setHasUnreadNotifications(hasUnread);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération des notifications:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    updateUnreadNotifications();
+    // const interval = setInterval(updateUnreadNotifications, 30000);
+    // return () => clearInterval(interval);
   }, []);
 
   return (
@@ -67,6 +87,9 @@ const Header: React.FC<HeaderProps> = React.memo(({ refreshFunction, disableRefr
       }
       <TouchableOpacity style={styles.bellButton} onPress={handleBellPress}>
         <Bell size={20} color={Colors.primaryBorder} />
+        {hasUnreadNotifications && (
+          <View style={styles.notificationDot} />
+        )}
       </TouchableOpacity>
       <NotificationPopup visible={isPopupVisible} onClose={handleClosePopup} />
     </View>
@@ -133,5 +156,16 @@ const styles = StyleSheet.create({
     borderColor: Colors.muted,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    width: 14,
+    height: 14,
+    borderRadius: 32,
+    backgroundColor: Colors.error,
+    borderWidth: 2,
+    borderColor: Colors.white,
   },
 });

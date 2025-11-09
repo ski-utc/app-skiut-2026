@@ -53,7 +53,7 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
 
   const markAsRead = async (notificationId: number) => {
     try {
-      const response = await apiPost(`notifications/${notificationId}/read`, {});
+      const response = await apiPost(`notifications/${notificationId}/read`, { 'read': true });
       if (response.success) {
         setNotifications(prev =>
           prev.map(notif =>
@@ -78,19 +78,6 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
         return Home;
       default:
         return Clock;
-    }
-  };
-
-  const getNotificationTypeText = (type?: string) => {
-    switch (type) {
-      case 'global':
-        return 'Globale';
-      case 'targeted':
-        return 'Ciblée';
-      case 'room_based':
-        return 'Chambre';
-      default:
-        return 'Info';
     }
   };
 
@@ -251,9 +238,6 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
                         <Text style={styles.notificationDescription}>{item.description}</Text>
                         <View style={styles.notificationFooter}>
                           <View style={styles.notificationMeta}>
-                            <Text style={styles.notificationType}>
-                              {getNotificationTypeText(item.type)}
-                            </Text>
                             <Text style={styles.notificationDate}>
                               {formatDate(item.created_at)}
                             </Text>

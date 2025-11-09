@@ -4,7 +4,7 @@ import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Shield, FileText, Trash2, UserX, Download, X } from 'lucide-react-native';
-import { apiPost } from '@/constants/api/apiCalls';
+import { apiPost, apiDelete } from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
 import Toast from 'react-native-toast-message';
 import { WebView } from 'react-native-webview';
@@ -35,7 +35,7 @@ export default function RGPDScreen() {
                                 Toast.show({
                                     type: 'success',
                                     text1: 'Données anonymisées',
-                                    text2: 'Vos données personnelles ont été anonymisées avec succès.',
+                                    text2: 'Vos données personnelles ont été anonymisées avec succès. Vous allez être déconnecté.',
                                 });
                                 setTimeout(() => logout(), 2000);
                             } else {
@@ -81,7 +81,7 @@ export default function RGPDScreen() {
                                     onPress: async () => {
                                         setLoading(true);
                                         try {
-                                            const response = await apiPost('rgpd/delete-my-data');
+                                            const response = await apiDelete('rgpd/delete-my-data');
                                             if (response.success) {
                                                 Toast.show({
                                                     type: 'success',

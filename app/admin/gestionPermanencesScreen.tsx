@@ -29,10 +29,9 @@ import {
     MapPin,
     Edit3,
     Trash2,
-    AlertCircle,
-    CheckCircle,
     Send
 } from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
 
 interface Permanence {
     id: number;
@@ -101,7 +100,7 @@ export default function GestionPermanencesScreen() {
             }
 
             // Récupérer les membres
-            const membersResponse = await apiGet("permanences/members");
+            const membersResponse = await apiGet("admin/permanences/members");
             if (membersResponse.success) {
                 setMembers(membersResponse.data);
             }
@@ -158,12 +157,20 @@ export default function GestionPermanencesScreen() {
 
     const submitPermanence = async () => {
         if (!formName.trim() || !formResponsibleId) {
-            Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires.');
+            Toast.show({
+                type: 'error',
+                text1: 'Erreur',
+                text2: 'Veuillez remplir tous les champs obligatoires.',
+            });
             return;
         }
 
         if (formStartDate >= formEndDate) {
-            Alert.alert('Erreur', 'L\'heure de fin doit être postérieure à l\'heure de début.');
+            Toast.show({
+                type: 'error',
+                text1: 'Erreur',
+                text2: 'L\'heure de fin doit être postérieure à l\'heure de début.',
+            });
             return;
         }
 
@@ -180,7 +187,7 @@ export default function GestionPermanencesScreen() {
                 responsible_user_id: formResponsibleId,
             };
 
-            const endpoint = editingPermanence ? `permanences/${editingPermanence.id}` : 'permanences';
+            const endpoint = editingPermanence ? `admin/permanences/${editingPermanence.id}` : 'admin/permanences';
             const method = editingPermanence ? 'PUT' : 'POST';
 
             const response = await (method === 'PUT' ?
@@ -189,18 +196,28 @@ export default function GestionPermanencesScreen() {
             );
 
             if (response.success) {
-                Alert.alert(
-                    'Succès',
-                    `Permanence ${editingPermanence ? 'modifiée' : 'créée'} avec succès.`
-                );
+                Toast.show({
+                    text1: 'Succès',
+                    text2: `Permanence ${editingPermanence ? 'modifiée' : 'créée'} avec succès.`,
+                    type: 'success',
+                });
                 setShowCreateModal(false);
                 resetForm();
                 fetchData();
             } else {
-                Alert.alert('Erreur', response.message);
+                Toast.show({
+                    text1: 'Erreur',
+                    text2: response.message,
+                    type: 'error',
+                });
             }
         } catch (error: any) {
-            Alert.alert('Erreur', 'Impossible de sauvegarder la permanence.');
+            setError(error.message || 'Une erreur est survenue.');
+            Toast.show({
+                type: 'error',
+                text1: 'Erreur',
+                text2: error.message || 'Une erreur est survenue.',
+            });
         } finally {
             setFormSubmitting(false);
         }
@@ -219,13 +236,26 @@ export default function GestionPermanencesScreen() {
                         try {
                             const response = await apiDelete(`permanences/${permanence.id}`);
                             if (response.success) {
-                                Alert.alert('Succès', 'Permanence supprimée avec succès.');
+                                Toast.show({
+                                    text1: 'Succès',
+                                    text2: 'Permanence supprimée avec succès.',
+                                    type: 'success',
+                                });
                                 fetchData();
                             } else {
-                                Alert.alert('Erreur', response.message);
+                                Toast.show({
+                                    type: 'error',
+                                    text1: 'Erreur',
+                                    text2: response.message,
+                                });
                             }
-                        } catch (error) {
-                            Alert.alert('Erreur', 'Impossible de supprimer la permanence.');
+                        } catch (error: any) {
+                            setError(error.message || 'Une erreur est survenue.');
+                            Toast.show({
+                                type: 'error',
+                                text1: 'Erreur',
+                                text2: error.message || 'Une erreur est survenue.',
+                            });
                         }
                     }
                 }
@@ -236,21 +266,33 @@ export default function GestionPermanencesScreen() {
     const sendReminders = async () => {
         Alert.alert(
             'Envoyer des rappels',
-            'Voulez-vous envoyer des rappels de permanence à tous les membres concernés ?',
+            'Voulez-vous envoyer des rappels de permanence dans l\'heure à venir à tous les membres concernés ?',
             [
                 { text: 'Annuler', style: 'cancel' },
                 {
                     text: 'Envoyer',
                     onPress: async () => {
                         try {
-                            const response = await apiPost('permanences/send-reminders', {});
+                            const response = await apiPost('admin/permanences/send-reminders', {});
                             if (response.success) {
-                                Alert.alert('Succès', 'Rappels envoyés avec succès.');
+                                Toast.show({
+                                    type: 'success',
+                                    text1: 'Succès',
+                                    text2: 'Rappels envoyés avec succès.',
+                                });
                             } else {
-                                Alert.alert('Erreur', response.message);
+                                Toast.show({
+                                    type: 'error',
+                                    text1: 'Erreur',
+                                    text2: response.message,
+                                });
                             }
-                        } catch (error) {
-                            Alert.alert('Erreur', 'Impossible d\'envoyer les rappels.');
+                        } catch (error: any) {
+                            setError(error.message || 'Une erreur est survenue.');
+                            Toast.show({
+                                type: 'error', text1: 'Erreur',
+                                text2: error.message || 'Une erreur est survenue.',
+                            });
                         }
                     }
                 }
@@ -260,21 +302,19 @@ export default function GestionPermanencesScreen() {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'scheduled': return Colors.primary;
-            case 'in_progress': return Colors.warning;
+            case 'in_progress': return Colors.primary;
             case 'completed': return Colors.success;
-            case 'cancelled': return Colors.danger;
-            default: return Colors.muted;
+            case 'cancelled': return Colors.error;
+            default: return null;
         }
     };
 
     const getStatusText = (status: string) => {
         switch (status) {
-            case 'scheduled': return 'Planifiée';
             case 'in_progress': return 'En cours';
             case 'completed': return 'Terminée';
             case 'cancelled': return 'Annulée';
-            default: return 'Inconnue';
+            default: return null;
         }
     };
 
@@ -288,7 +328,7 @@ export default function GestionPermanencesScreen() {
                     <Text style={styles.cardTitle}>{item.name}</Text>
                     <View style={[
                         styles.statusBadge,
-                        { backgroundColor: getStatusColor(item.status) }
+                        { backgroundColor: getStatusColor(item.status) || Colors.white }
                     ]}>
                         <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
                     </View>
@@ -337,8 +377,8 @@ export default function GestionPermanencesScreen() {
                         style={[styles.actionButton, styles.deleteButton]}
                         onPress={() => deletePermanence(item)}
                     >
-                        <Trash2 size={16} color={Colors.danger} />
-                        <Text style={[styles.actionButtonText, { color: Colors.danger }]}>
+                        <Trash2 size={16} color={Colors.error} />
+                        <Text style={[styles.actionButtonText, { color: Colors.error }]}>
                             Supprimer
                         </Text>
                     </TouchableOpacity>
@@ -363,6 +403,12 @@ export default function GestionPermanencesScreen() {
         );
     }
 
+    // Filtrer les permanences pour n'afficher que celles dont la date de fin est dans le futur
+    const filteredPermanences = permanences.filter(perm => {
+        const endDate = new Date(perm.end_datetime);
+        return endDate > new Date();
+    });
+
     return (
         <SafeAreaView style={styles.container}>
             <Header refreshFunction={null} disableRefresh={true} />
@@ -376,7 +422,7 @@ export default function GestionPermanencesScreen() {
                 </View>
                 <Text style={styles.heroTitle}>Permanences</Text>
                 <Text style={styles.heroSubtitle}>
-                    {permanences.length} permanence{permanences.length !== 1 ? 's' : ''} planifiée{permanences.length !== 1 ? 's' : ''}
+                    {filteredPermanences.length} permanence{filteredPermanences.length !== 1 ? 's' : ''} à venir
                 </Text>
             </View>
 
@@ -394,7 +440,7 @@ export default function GestionPermanencesScreen() {
 
             <View style={styles.contentContainer}>
                 <FlatList
-                    data={permanences}
+                    data={filteredPermanences}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={renderPermanenceCard}
                     refreshControl={
@@ -704,7 +750,7 @@ const styles = StyleSheet.create({
     statusBadge: {
         paddingHorizontal: 8,
         paddingVertical: 4,
-        borderRadius: 12,
+        borderRadius: 16,
     },
     statusText: {
         ...TextStyles.small,
@@ -789,7 +835,7 @@ const styles = StyleSheet.create({
     },
     modalCloseText: {
         ...TextStyles.body,
-        color: Colors.danger,
+        color: Colors.error,
     },
     modalTitle: {
         ...TextStyles.h3Bold,

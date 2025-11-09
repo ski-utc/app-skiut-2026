@@ -66,8 +66,10 @@ export default function VitesseDeGlisseScreen() {
             } else if (appState.current === 'active' && nextAppState.match(/inactive|background/)) {
                 console.log('App passée en arrière-plan');
                 if (isTracking) {
-                    // Continuer le tracking en arrière-plan
-                    enableBackgroundLocation();
+                    // Continuer le tracking en arrière-plan si les permissions sont accordées
+                    enableBackgroundLocation().catch((error) => {
+                        console.warn('Background location non disponible:', error.message);
+                    });
                 }
             }
             appState.current = nextAppState;
@@ -97,22 +99,48 @@ export default function VitesseDeGlisseScreen() {
     // Activer la géolocalisation en arrière-plan
     const enableBackgroundLocation = async () => {
         try {
-            if (Platform.OS === 'ios') {
-                const backgroundPermission = await Location.requestBackgroundPermissionsAsync();
-                if (backgroundPermission.status !== 'granted') {
-                    console.log('Permission arrière-plan refusée sur iOS');
-                    return;
-                }
+            // Vérifier que la tâche est déjà enregistrée
+            const isTaskRegistered = await TaskManager.isTaskRegisteredAsync(LOCATION_TASK_NAME);
+
+            if (isTaskRegistered) {
+                console.log('Tâche de localisation déjà enregistrée');
+                return;
             }
 
-            await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-                accuracy: Location.Accuracy.Highest,
-                timeInterval: 2000,
-                distanceInterval: 5,
-                showsBackgroundLocationIndicator: Platform.OS === 'ios',
-            });
+            // Sur iOS, demander la permission "Always"
+            if (Platform.OS === 'ios') {
+                const backgroundPermission = await Location.requestBackgroundPermissionsAsync();
+                console.log('iOS background permission status:', backgroundPermission.status);
+
+                if (backgroundPermission.status === 'granted') {
+                    await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+                        accuracy: Location.Accuracy.High,
+                        timeInterval: 5000, // 5 secondes minimum pour l'arrière-plan
+                        distanceInterval: 10, // 10 mètres
+                        showsBackgroundLocationIndicator: true,
+                    });
+                    console.log('Background location tracking started on iOS');
+                } else {
+                    console.warn('iOS background location permission denied');
+                    throw new Error('Permission en arrière-plan refusée sur iOS');
+                }
+            } else if (Platform.OS === 'android') {
+                // Sur Android, juste démarrer si la permission est déjà accordée
+                const foregroundPermission = await Location.getForegroundPermissionsAsync();
+                if (foregroundPermission.status === 'granted') {
+                    await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+                        accuracy: Location.Accuracy.High,
+                        timeInterval: 5000,
+                        distanceInterval: 10,
+                    });
+                    console.log('Background location tracking started on Android');
+                } else {
+                    throw new Error('Permission en avant-plan non accordée');
+                }
+            }
         } catch (error) {
-            console.error('Erreur lors de l\'activation de la géolocalisation en arrière-plan:', error);
+            console.warn('Background location setup failed:', error);
+            throw error; // Propager l'erreur pour que le caller puisse la gérer
         }
     };
 
@@ -127,15 +155,34 @@ export default function VitesseDeGlisseScreen() {
             return;
         }
 
-        // Pour iOS, demander la permission d'arrière-plan
-        if (Platform.OS === 'ios') {
-            const backgroundStatus = await Location.requestBackgroundPermissionsAsync();
-            if (backgroundStatus.status !== 'granted') {
-                Alert.alert(
-                    "Permission arrière-plan recommandée",
-                    "Pour une mesure continue même avec le téléphone en veille, autorisez la localisation en arrière-plan."
-                );
+        // Demander les permissions d'arrière-plan pour la continuité du tracking
+        try {
+            if (Platform.OS === 'ios') {
+                const backgroundStatus = await Location.requestBackgroundPermissionsAsync();
+                console.log('iOS background permission requested:', backgroundStatus.status);
+                if (backgroundStatus.status === 'granted') {
+                    console.log('iOS background location permission granted');
+                } else {
+                    console.warn('iOS background location permission not granted, tracking will stop in background');
+                    Alert.alert(
+                        "Permission arrière-plan",
+                        "Pour une mesure continue même avec le téléphone en veille, autorisez la localisation en arrière-plan dans les paramètres."
+                    );
+                }
+            } else if (Platform.OS === 'android') {
+                // Sur Android, vérifier que la permission est accordée
+                const foregroundStatus = await Location.getForegroundPermissionsAsync();
+                if (foregroundStatus.status !== 'granted') {
+                    Alert.alert(
+                        "Permission requise",
+                        "La localisation en avant-plan est requise pour le tracking."
+                    );
+                    return;
+                }
             }
+        } catch (error) {
+            console.warn('Error checking background permissions:', error);
+            // Continuer quand même avec le tracking en avant-plan
         }
 
         // Réinitialiser les données
@@ -159,8 +206,8 @@ export default function VitesseDeGlisseScreen() {
             const locationSubscription = await Location.watchPositionAsync(
                 {
                     accuracy: Location.Accuracy.BestForNavigation,
-                    timeInterval: 1000, // Mise à jour chaque seconde
-                    distanceInterval: 1, // Mise à jour chaque mètre
+                    timeInterval: 1000,
+                    distanceInterval: 1,
                     mayShowUserSettingsDialog: true,
                 },
                 (location) => {
@@ -169,14 +216,6 @@ export default function VitesseDeGlisseScreen() {
             );
 
             setSubscription(locationSubscription);
-
-            // Activer le mode arrière-plan après un délai
-            setTimeout(() => {
-                if (isTracking) {
-                    enableBackgroundLocation();
-                }
-            }, 2000);
-
         } catch (error) {
             console.error('Erreur lors du démarrage du tracking:', error);
             Alert.alert('Erreur', 'Impossible de démarrer le suivi de localisation.');
@@ -190,24 +229,28 @@ export default function VitesseDeGlisseScreen() {
         // Vérifier la précision GPS
         if (coords.accuracy && coords.accuracy > 20) {
             console.log(`Précision GPS faible: ${coords.accuracy}m`);
-            return; // Ignorer les lectures imprécises
+            return;
         }
 
-        setCurrentSpeed((coords.speed || 0) * 3.6); // Conversion m/s vers km/h
+        const currentSpeedKmh = (coords.speed || 0) * 3.6;
+        setCurrentSpeed(currentSpeedKmh);
 
-        if (prevLocation && coords.speed !== null) {
+        setPrevLocation(prevLoc => {
+            if (!prevLoc) {
+                // Premier point: initialiser
+                return coords;
+            }
+
             const deltaDistance = getDistanceFromLatLonInMeters(
-                prevLocation.latitude,
-                prevLocation.longitude,
+                prevLoc.latitude,
+                prevLoc.longitude,
                 coords.latitude,
                 coords.longitude
             );
 
-            const currentSpeedKmh = coords.speed * 3.6;
-
             // Filtrage des valeurs aberrantes
-            const isValidSpeed = currentSpeedKmh >= 0 && currentSpeedKmh <= 200; // Maximum 200 km/h
-            const isValidDistance = deltaDistance < 200; // Maximum 200m entre deux lectures
+            const isValidSpeed = currentSpeedKmh >= 0 && currentSpeedKmh <= 200;
+            const isValidDistance = deltaDistance > 0 && deltaDistance < 200;
 
             if (isValidSpeed && isValidDistance) {
                 // Mettre à jour la distance
@@ -221,7 +264,6 @@ export default function VitesseDeGlisseScreen() {
                 // Mettre à jour l'historique des vitesses
                 setSpeedHistory(prev => {
                     const newHistory = [...prev, currentSpeedKmh];
-                    // Garder seulement les 60 dernières lectures (1 minute)
                     return newHistory.slice(-60);
                 });
 
@@ -229,7 +271,6 @@ export default function VitesseDeGlisseScreen() {
                 setSessionStats(prev => {
                     const newTotalSpeed = prev.totalSpeed + currentSpeedKmh;
                     const newReadings = prev.speedReadings + 1;
-                    const newValidReadings = prev.validReadings + 1;
 
                     setAverageSpeed(newTotalSpeed / newReadings);
 
@@ -237,13 +278,13 @@ export default function VitesseDeGlisseScreen() {
                         ...prev,
                         totalSpeed: newTotalSpeed,
                         speedReadings: newReadings,
-                        validReadings: newValidReadings
+                        validReadings: prev.validReadings + 1
                     };
                 });
             }
-        }
 
-        setPrevLocation(coords);
+            return coords;
+        });
     };
 
     const stopTracking = async () => {
@@ -332,23 +373,24 @@ export default function VitesseDeGlisseScreen() {
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const StatCard = ({ icon: IconComponent, title, value, unit, color = Colors.primary, isLive = false }: {
+    const StatCard = ({ icon: IconComponent, title, value, unit, color = Colors.primary, isLive = false, compact = false }: {
         icon: any;
         title: string;
         value: string;
         unit: string;
         color?: string;
         isLive?: boolean;
+        compact?: boolean;
     }) => (
-        <View style={[styles.statCard, isLive && styles.statCardLive]}>
-            <View style={[styles.statIcon, { backgroundColor: color }]}>
-                <IconComponent size={24} color={Colors.white} />
+        <View style={[styles.statCard, isLive && styles.statCardLive, compact && styles.statCardCompact]}>
+            <View style={[styles.statIcon, { backgroundColor: color }, compact && styles.statIconCompact]}>
+                <IconComponent size={compact ? 18 : 24} color={Colors.white} />
             </View>
             <View style={styles.statContent}>
-                <Text style={styles.statTitle}>{title}</Text>
+                <Text style={[styles.statTitle, compact && styles.statTitleCompact]}>{title}</Text>
                 <View style={styles.statValueContainer}>
-                    <Text style={[styles.statValue, isLive && styles.statValueLive]}>{value}</Text>
-                    <Text style={styles.statUnit}>{unit}</Text>
+                    <Text style={[styles.statValue, isLive && styles.statValueLive, compact && styles.statValueCompact]}>{value}</Text>
+                    <Text style={[styles.statUnit, compact && styles.statUnitCompact]}>{unit}</Text>
                 </View>
             </View>
         </View>
@@ -408,7 +450,7 @@ export default function VitesseDeGlisseScreen() {
                         <Zap size={32} color={isTracking ? Colors.white : Colors.primary} />
                     </View>
                     <Text style={styles.heroTitle}>
-                        {isTracking ? 'Enregistrement en cours...' : 'Suivi de performance'}
+                        {isTracking ? 'Enregistrement en cours...' : 'Vitesse de glisse'}
                     </Text>
                     {isTracking && (
                         <Text style={styles.heroSubtitle}>
@@ -418,6 +460,7 @@ export default function VitesseDeGlisseScreen() {
                 </View>
 
                 <View style={styles.statsSection}>
+                    {/* Vitesse actuelle - pleine largeur */}
                     <StatCard
                         icon={Activity}
                         title="Vitesse actuelle"
@@ -427,37 +470,53 @@ export default function VitesseDeGlisseScreen() {
                         isLive={isTracking}
                     />
 
-                    <StatCard
-                        icon={Zap}
-                        title="Vitesse maximale"
-                        value={maxSpeed.toFixed(1)}
-                        unit="km/h"
-                        color={Colors.primary}
-                    />
+                    {/* Deux colonnes: Vitesse max et moyenne */}
+                    <View style={styles.twoColumnRow}>
+                        <View style={styles.halfColumn}>
+                            <StatCard
+                                icon={Zap}
+                                title="Vitesse max"
+                                value={maxSpeed.toFixed(1)}
+                                unit="km/h"
+                                color={Colors.primary}
+                                compact={true}
+                            />
+                        </View>
+                        <View style={styles.halfColumn}>
+                            <StatCard
+                                icon={TrendingUp}
+                                title="Vitesse moy"
+                                value={averageSpeed.toFixed(1)}
+                                unit="km/h"
+                                color={Colors.accent}
+                                compact={true}
+                            />
+                        </View>
+                    </View>
 
-                    <StatCard
-                        icon={TrendingUp}
-                        title="Vitesse moyenne"
-                        value={averageSpeed.toFixed(1)}
-                        unit="km/h"
-                        color={Colors.accent}
-                    />
-
-                    <StatCard
-                        icon={MapPin}
-                        title="Distance parcourue"
-                        value={(distance / 1000).toFixed(2)}
-                        unit="km"
-                        color={Colors.primaryBorder}
-                    />
-
-                    <StatCard
-                        icon={Timer}
-                        title="Durée"
-                        value={formatTime(trackingTime)}
-                        unit=""
-                        color={Colors.muted}
-                    />
+                    {/* Deux colonnes: Distance et Durée */}
+                    <View style={styles.twoColumnRow}>
+                        <View style={styles.halfColumn}>
+                            <StatCard
+                                icon={MapPin}
+                                title="Distance"
+                                value={(distance / 1000).toFixed(2)}
+                                unit="km"
+                                color={Colors.primaryBorder}
+                                compact={true}
+                            />
+                        </View>
+                        <View style={styles.halfColumn}>
+                            <StatCard
+                                icon={Timer}
+                                title="Durée"
+                                value={formatTime(trackingTime)}
+                                unit=""
+                                color={Colors.muted}
+                                compact={true}
+                            />
+                        </View>
+                    </View>
                 </View>
 
                 <View style={styles.controlsSection}>
@@ -507,7 +566,6 @@ const styles = StyleSheet.create({
     },
     heroSection: {
         alignItems: 'center',
-        paddingBottom: 24,
         marginBottom: 16,
     },
     heroIcon: {
@@ -535,7 +593,17 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     statsSection: {
-        marginBottom: 24,
+        marginBottom: 16,
+        gap: 8,
+    },
+    twoColumnRow: {
+        flexDirection: 'row',
+        gap: 8,
+        width: '100%',
+    },
+    halfColumn: {
+        flex: 1,
+        minWidth: 0,
     },
     statCard: {
         flexDirection: 'row',
@@ -549,20 +617,30 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 2, height: 3 },
         shadowRadius: 5,
         elevation: 3,
-        padding: 16,
-        marginBottom: 12,
+        padding: 12,
+        overflow: 'hidden',
+    },
+    statCardCompact: {
+        padding: 10,
     },
     statCardLive: {
         borderColor: Colors.success,
         borderWidth: 2,
     },
     statIcon: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
+        width: 42,
+        height: 42,
+        borderRadius: 21,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 16,
+        marginRight: 12,
+        flexShrink: 0,
+    },
+    statIconCompact: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        marginRight: 8,
     },
     statContent: {
         flex: 1,
@@ -571,6 +649,10 @@ const styles = StyleSheet.create({
         ...TextStyles.body,
         color: Colors.muted,
         marginBottom: 4,
+    },
+    statTitleCompact: {
+        ...TextStyles.small,
+        marginBottom: 2,
     },
     statValueContainer: {
         flexDirection: 'row',
@@ -581,6 +663,9 @@ const styles = StyleSheet.create({
         color: Colors.primaryBorder,
         marginRight: 4,
     },
+    statValueCompact: {
+        ...TextStyles.bodyBold,
+    },
     statValueLive: {
         color: Colors.success,
     },
@@ -588,6 +673,9 @@ const styles = StyleSheet.create({
         ...TextStyles.body,
         color: Colors.primary,
         fontWeight: '600',
+    },
+    statUnitCompact: {
+        ...TextStyles.small,
     },
     controlsSection: {
         marginBottom: 24,

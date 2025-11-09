@@ -201,11 +201,16 @@ export default function PerformancesScreen() {
         setDisableRefresh(true);
         try {
             const response = await apiGet(`classement-performances?type=${rankingType}`);
-            if (response.success) {
-                setPodium(response.podium);
-                setRest(response.rest);
+            if (response.success && response.data) {
+                // Format nouveau : objet avec positions en clés
+                const allPerformances = Object.values(response.data as any[]);
+                const podiumData = allPerformances.slice(0, 3);
+                const restData = allPerformances.slice(3);
+
+                setPodium(podiumData);
+                setRest(restData);
             } else {
-                setError(response.message);
+                setError(response.message || 'Erreur lors du chargement des performances');
             }
         } catch (error: any) {
             if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
@@ -232,9 +237,9 @@ export default function PerformancesScreen() {
 
     const getValue = (item: PerformanceData) => {
         switch (rankingType) {
-            case 'speed': return `${item.max_speed.toFixed(1)} km/h`;
-            case 'distance': return `${(item.total_distance || 0).toFixed(2)} km`;
-            case 'duration': return `${Math.floor((item.duration || 0) / 60)}min`;
+            case 'speed': return `${Number(item.max_speed).toFixed(1)} km/h`;
+            case 'distance': return `${Number(item.total_distance || 0).toFixed(2)} km`;
+            case 'duration': return `${Math.floor(Number(item.duration || 0) / 60 / 60)}h${Math.floor(Number(item.duration || 0) % 60)}min`;
         }
     };
 

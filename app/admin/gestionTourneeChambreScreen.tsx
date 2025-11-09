@@ -31,6 +31,7 @@ import {
     CheckCircle,
 } from 'lucide-react-native';
 import Checkbox from 'expo-checkbox';
+import Toast from 'react-native-toast-message';
 
 interface RoomTour {
     id: number;
@@ -95,19 +96,19 @@ export default function GestionTourneeChambreScreen() {
             }
 
             // Récupérer les tournées
-            const toursResponse = await apiGet("room-tours");
+            const toursResponse = await apiGet("admin/room-tours");
             if (toursResponse.success) {
                 setTours(toursResponse.data);
             }
 
             // Récupérer les chambres disponibles
-            const roomsResponse = await apiGet("room-tours/available-rooms");
+            const roomsResponse = await apiGet("admin/room-tours/available-rooms");
             if (roomsResponse.success) {
                 setRooms(roomsResponse.data);
             }
 
             // Récupérer les membres
-            const membersResponse = await apiGet("permanences/members");
+            const membersResponse = await apiGet("admin/permanences/members");
             if (membersResponse.success) {
                 setMembers(membersResponse.data);
             }
@@ -164,14 +165,22 @@ export default function GestionTourneeChambreScreen() {
 
     const submitTour = async () => {
         if (binomes.length === 0) {
-            Alert.alert('Erreur', 'Veuillez ajouter au moins un binôme.');
+            Toast.show({
+                type: 'error',
+                text1: 'Erreur',
+                text2: 'Veuillez ajouter au moins un binôme.',
+            });
             return;
         }
 
         for (let i = 0; i < binomes.length; i++) {
             const binome = binomes[i];
             if (binome.member_ids.length === 0 || binome.assigned_rooms.length === 0) {
-                Alert.alert('Erreur', `Le ${binome.name} doit avoir au moins un membre et une chambre assignée.`);
+                Toast.show({
+                    type: 'error',
+                    text1: 'Erreur',
+                    text2: `Le ${binome.name} doit avoir au moins un membre et une chambre assignée.`,
+                });
                 return;
             }
         }
@@ -184,18 +193,31 @@ export default function GestionTourneeChambreScreen() {
                 binomes: binomes
             };
 
-            const response = await apiPost('room-tours', data);
+            const response = await apiPost('admin/room-tours', data);
 
             if (response.success) {
-                Alert.alert('Succès', 'Tournée créée avec succès.');
+                Toast.show({
+                    type: 'success',
+                    text1: 'Succès',
+                    text2: 'Tournée créée avec succès.',
+                });
                 setShowCreateModal(false);
                 resetForm();
                 fetchData();
             } else {
-                Alert.alert('Erreur', response.message);
+                Toast.show({
+                    type: 'error',
+                    text1: 'Erreur',
+                    text2: response.message,
+                });
             }
         } catch (error: any) {
-            Alert.alert('Erreur', 'Impossible de créer la tournée.');
+            setError(error.message || 'Une erreur est survenue.');
+            Toast.show({
+                type: 'error',
+                text1: 'Erreur',
+                text2: error.message || 'Une erreur est survenue.',
+            });
         } finally {
             setFormSubmitting(false);
         }
@@ -212,22 +234,35 @@ export default function GestionTourneeChambreScreen() {
                     {
                         text: action.charAt(0).toUpperCase() + action.slice(1),
                         onPress: async () => {
-                            const response = await apiPost(`room-tours/${tour.id}/toggle`, {
+                            const response = await apiPost(`admin/room-tours/${tour.id}/toggle`, {
                                 activate: !tour.is_active
                             });
 
                             if (response.success) {
-                                Alert.alert('Succès', response.message);
+                                Toast.show({
+                                    type: 'success',
+                                    text1: 'Succès',
+                                    text2: response.message,
+                                });
                                 fetchData();
                             } else {
-                                Alert.alert('Erreur', response.message);
+                                Toast.show({
+                                    type: 'error',
+                                    text1: 'Erreur',
+                                    text2: response.message,
+                                });
                             }
                         }
                     }
                 ]
             );
-        } catch (error) {
-            Alert.alert('Erreur', 'Impossible de modifier la tournée.');
+        } catch (error: any) {
+            setError(error.message || 'Une erreur est survenue.');
+            Toast.show({
+                type: 'error',
+                text1: 'Erreur',
+                text2: error.message || 'Une erreur est survenue.',
+            });
         }
     };
 
@@ -242,15 +277,28 @@ export default function GestionTourneeChambreScreen() {
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            const response = await apiDelete(`room-tours/${tour.id}`);
+                            const response = await apiDelete(`admin/room-tours/${tour.id}`);
                             if (response.success) {
-                                Alert.alert('Succès', 'Tournée supprimée avec succès.');
+                                Toast.show({
+                                    type: 'success',
+                                    text1: 'Succès',
+                                    text2: 'Tournée supprimée avec succès.',
+                                });
                                 fetchData();
                             } else {
-                                Alert.alert('Erreur', response.message);
+                                Toast.show({
+                                    type: 'error',
+                                    text1: 'Erreur',
+                                    text2: response.message,
+                                });
                             }
-                        } catch (error) {
-                            Alert.alert('Erreur', 'Impossible de supprimer la tournée.');
+                        } catch (error: any) {
+                            setError(error.message || 'Une erreur est survenue.');
+                            Toast.show({
+                                type: 'error',
+                                text1: 'Erreur',
+                                text2: error.message || 'Une erreur est survenue.',
+                            });
                         }
                     }
                 }
@@ -281,7 +329,7 @@ export default function GestionTourneeChambreScreen() {
                     </Text>
                     <View style={[
                         styles.statusBadge,
-                        { backgroundColor: getStatusColor(item) || Colors.lightMuted }
+                        { backgroundColor: getStatusColor(item) || Colors.white }
                     ]}>
                         <Text style={styles.statusText}>{getStatusText(item)}</Text>
                     </View>

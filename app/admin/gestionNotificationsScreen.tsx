@@ -191,11 +191,11 @@ const GestionNotificationsScreen = () => {
                 hour: '2-digit',
                 minute: '2-digit',
                 hour12: false,
-              }) : 'Date non disponible'} | Statut : ${item.display === 0 ? 'Active' : 'Désactivée'}`}
+              }) : 'Date non disponible'} | Statut : ${item.display === true ? 'Active' : 'Désactivée'}`}
               subtitleStyle={undefined}
               nextRoute="valideNotificationsScreen"
               id={item.id}
-              valide={!item.display}
+              valide={item.display}
             />
           )}
           keyExtractor={(item: any) => item.id.toString()}

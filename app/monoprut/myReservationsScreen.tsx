@@ -39,6 +39,7 @@ export default function MyReservationsScreen() {
             const response = await apiGet('articles/received');
             if (response.success) {
                 setArticles(response.data || []);
+                console.log(response.data);
             } else {
                 Toast.show({
                     type: 'error',

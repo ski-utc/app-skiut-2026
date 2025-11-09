@@ -182,37 +182,54 @@ export default function ArticleCard({ article, onUpdate, showReserveButton = fal
             )}
 
             <View style={styles.content}>
-                <View style={styles.header}>
-                    <Text style={styles.productName}>{article.product}</Text>
-                </View>
+                {!isMyOffer && !isReservation && (
+                    <View style={styles.header}>
+                        <Text style={styles.productName}>{article.product}</Text>
+                    </View>
+                )}
+
+                {(isMyOffer || isReservation) && (
+                    <View style={styles.header}>
+                        <Text style={styles.productName}>{article.quantity} {article.product}</Text>
+                    </View>
+                )}
 
                 {!isMyOffer && !isReservation && (
                     <Text style={styles.quantity}>Quantité : {article.quantity}</Text>
                 )}
 
-                {isReservation && article.giver_info && (
+                {isReservation && (
                     <View style={styles.roomInfo}>
                         <Text style={styles.roomLabel}>À récupérer auprès de :</Text>
                         <Text style={styles.roomName}>
-                            Chambre {article.giver_info.room} (Resp : {article.giver_info.responsible_name})
+                            {article.giver_info
+                                ? `Chambre ${article.giver_info.room}\n(Resp : ${article.giver_info.responsible_name})`
+                                : `Chambre ${article.giver_room_id}`
+                            }
                         </Text>
                     </View>
                 )}
 
-                {!isReservation && !isMyOffer && article.giver_room && (
+                {/* {!isReservation && !isMyOffer && (
                     <View style={styles.roomInfo}>
                         <Text style={styles.roomLabel}>Chambre :</Text>
                         <Text style={styles.roomName}>
-                            {article.giver_room.roomNumber} - {article.giver_room.name}
+                            {article.giver_room
+                                ? `${article.giver_room.roomNumber} - ${article.giver_room.name}`
+                                : `Chambre ${article.giver_room_id}`
+                            }
                         </Text>
                     </View>
-                )}
+                )} */}
 
-                {isMyOffer && article.receiver_room_id && article.receiver_info && (
+                {isMyOffer && article.receiver_room_id && (
                     <View style={styles.roomInfo}>
                         <Text style={styles.roomLabel}>Réservé par :</Text>
                         <Text style={styles.roomName}>
-                            Chambre {article.receiver_info.room} (Resp : {article.receiver_info.responsible_name})
+                            {article.receiver_info
+                                ? `Chambre ${article.receiver_info.room}\n(Resp : ${article.receiver_info.responsible_name})`
+                                : `Chambre ${article.receiver_room_id}`
+                            }
                         </Text>
                     </View>
                 )}
@@ -338,7 +355,6 @@ const styles = StyleSheet.create({
     quantity: {
         ...TextStyles.body,
         color: Colors.muted,
-        marginBottom: 8,
     },
     roomInfo: {
         marginTop: 4,
@@ -379,12 +395,13 @@ const styles = StyleSheet.create({
     },
     retrievedButton: {
         backgroundColor: Colors.success,
-        paddingVertical: 10,
-        paddingHorizontal: 16,
+        paddingVertical: 8,
+        paddingHorizontal: 12,
         borderRadius: 8,
     },
     retrievedButtonText: {
         ...TextStyles.bodyBold,
+        fontSize: 13,
         color: Colors.white,
     },
     actionButtons: {
@@ -394,13 +411,14 @@ const styles = StyleSheet.create({
     },
     cancelButton: {
         backgroundColor: Colors.error,
-        paddingVertical: 10,
-        paddingHorizontal: 16,
+        paddingVertical: 8,
+        paddingHorizontal: 12,
         borderRadius: 8,
         alignItems: 'center',
     },
     cancelButtonText: {
         ...TextStyles.bodyBold,
+        fontSize: 14,
         color: Colors.white,
     },
 });

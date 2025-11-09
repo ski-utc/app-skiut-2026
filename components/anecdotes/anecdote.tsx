@@ -143,7 +143,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
             fontStyle: 'italic',
           }}
         >
-          Chambre : {room}
+          Chambre : {typeof room === 'string' ? room : room?.name || room?.roomNumber || 'Inconnue'}
         </Text>
       </View>
       <View

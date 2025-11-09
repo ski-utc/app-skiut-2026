@@ -21,7 +21,8 @@
         "NSCameraUsageDescription": "Autoriser Ski'Ut à accéder à la Caméra.",
         "NSPhotoLibraryUsageDescription": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Autoriser Ski'Ut à accéder à la localisation pour calculer votre vitesse de glisse.",
-        "NSLocationWhenInUseUsageDescription": "Autoriser Ski'Ut à accéder à la localisation lorsque l'application est en cours d'utilisation pour calculer votre vitesse de glisse."
+        "NSLocationWhenInUseUsageDescription": "Autoriser Ski'Ut à accéder à la localisation lorsque l'application est en cours d'utilisation pour calculer votre vitesse de glisse.",
+        "NSLocationAlwaysUsageDescription": "Autoriser Ski'Ut à accéder à votre localisation en arrière-plan pour continuer le suivi de votre vitesse de glisse."
       }
     },
     "android": {
@@ -33,9 +34,9 @@
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.RECORD_AUDIO",
-        "android.permission.CAMERA",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION"
       ],
       "package": "fr.utc.assos.skiutc",
       "icon": "./assets/images/logo.png"
@@ -59,6 +60,12 @@
         {
           "photosPermission": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images.",
           "cameraPermission": "Autoriser Ski'Ut à accéder à la Caméra."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Autoriser Ski'Ut à accéder à votre localisation pour calculer votre vitesse de glisse."
         }
       ],
       "expo-font",

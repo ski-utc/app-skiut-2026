@@ -75,13 +75,6 @@ export default function MatchScreen() {
                     </Text>
                 </View>
 
-                <View style={styles.encouragementCard}>
-                    <MessageCircle size={20} color={Colors.primary} />
-                    <Text style={styles.encouragementText}>
-                        N'hésitez pas à faire le premier pas ! Les meilleures rencontres commencent par un simple "Salut" 😊
-                    </Text>
-                </View>
-
                 <TouchableOpacity
                     onPress={() => navigation.goBack()}
                     style={styles.continueButton}
@@ -185,21 +178,6 @@ const styles = StyleSheet.create({
         ...TextStyles.body,
         color: Colors.muted,
         lineHeight: 22,
-    },
-    encouragementCard: {
-        backgroundColor: Colors.lightMuted,
-        borderRadius: 14,
-        padding: 16,
-        width: '100%',
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        gap: 12,
-    },
-    encouragementText: {
-        ...TextStyles.body,
-        color: Colors.primary,
-        lineHeight: 22,
-        flex: 1,
     },
     continueButton: {
         backgroundColor: Colors.primary,

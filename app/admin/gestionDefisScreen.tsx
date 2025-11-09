@@ -8,7 +8,7 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
 import { useNavigation } from '@react-navigation/native';
-import { Trophy, Clock, CheckCircle } from 'lucide-react-native';
+import { Trophy, Clock, CheckCircle, Zap, ChevronRight } from 'lucide-react-native';
 
 interface FilterButtonProps {
   label: string;
@@ -141,6 +141,19 @@ const GestionDefisScreen = () => {
         </Text>
       </View>
 
+      <View style={styles.createButtonContainer}>
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={() => (navigation as any).navigate('valideDefisRapide')}
+        >
+          <View style={styles.createButtonIcon}>
+            <Zap size={20} color={Colors.white} />
+          </View>
+          <Text style={styles.createButtonText}>Mode Rapide</Text>
+          <ChevronRight size={16} color={Colors.white} />
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.filtersContainer}>
         <FilterButton
           label="Tous"
@@ -246,6 +259,34 @@ const styles = StyleSheet.create({
     color: Colors.muted,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  createButtonContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  createButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  createButtonIcon: {
+    marginRight: 12,
+  },
+  createButtonText: {
+    ...TextStyles.body,
+    color: Colors.white,
+    fontWeight: '600',
+    fontSize: 16,
+    flex: 1,
   },
   filtersContainer: {
     flexDirection: 'row',

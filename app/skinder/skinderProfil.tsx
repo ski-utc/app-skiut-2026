@@ -93,7 +93,7 @@ export default function SkinderProfil() {
       let fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
       let maxFileSize = 1024 * 1024;
       try {
-        const getTailleMax = await apiGet("users/max-file-size");
+        const getTailleMax = await apiGet("challenges/max-file-size");
         if (getTailleMax.success) {
           maxFileSize = getTailleMax.data;
         }

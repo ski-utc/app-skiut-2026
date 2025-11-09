@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Text, View, StyleSheet, ActivityIndicator, ScrollView, SafeAreaView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { Trash, Check, Bell, Calendar, Users } from 'lucide-react-native';
+import { Check, Bell, Calendar, Users, X } from 'lucide-react-native';
 import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
@@ -18,7 +18,7 @@ interface NotificationDetails {
   description: string;
   created_at: string;
   general: number;
-  display: 0 | 1;
+  display: boolean;
 }
 
 interface RouteParams {
@@ -39,7 +39,7 @@ export default function ValideNotifications() {
   const fetchNotificationDetails = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiGet(`admin/notifications/${id}`);
+      const response = await apiGet(`notifications/${id}`);
       if (response.success) {
         setNotificationDetails(response.data);
       } else {
@@ -56,12 +56,12 @@ export default function ValideNotifications() {
     }
   }, [id, setUser]);
 
-  const handleDelete = async (displayFlag: number) => {
+  const handleDelete = async (displayFlag: boolean) => {
     setLoading(true);
     try {
-      const response = await apiPut(`admin/notifications/${id}/display`, { display_flag: displayFlag });
+      const response = await apiPut(`notifications/${id}/display`, { display_flag: displayFlag });
       if (response.success) {
-        if (displayFlag === 1) {
+        if (displayFlag === true) {
           Toast.show({
             type: 'success',
             text1: 'Notification désactivée !',
@@ -166,19 +166,19 @@ export default function ValideNotifications() {
       </ScrollView>
 
       <View style={styles.buttonContainer}>
-        {notificationDetails?.display === 0 ? (
+        {notificationDetails?.display === true ? (
           <BoutonActiver
             title="Désactiver la notification"
-            IconComponent={Trash}
+            IconComponent={X}
             color={Colors.error}
-            onPress={() => handleDelete(1)}
+            onPress={() => handleDelete(true)}
           />
         ) : (
           <BoutonActiver
             title="Activer la notification"
             IconComponent={Check}
             color={Colors.success}
-            onPress={() => handleDelete(0)}
+            onPress={() => handleDelete(false)}
           />
         )}
       </View>

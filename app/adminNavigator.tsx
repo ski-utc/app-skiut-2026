@@ -5,6 +5,7 @@ import GestionAnecdotesScreen from './admin/gestionAnecdotesScreen';
 import GestionNotificationsScreen from './admin/gestionNotificationsScreen';
 import Admin from './admin/adminScreen';
 import ValideDefis from './admin/valideDefisScreen';
+import ValideDefisRapide from './admin/valideDefisRapide';
 import ValideAnecdotes from './admin/valideAnecdotesScreen';
 import ValideNotifications from './admin/valideNotificationsScreen';
 import CreateNotificationScreen from './admin/createNotificationScreen';
@@ -39,6 +40,11 @@ export default function AdminNavigator() {
       <Stack.Screen
         name="valideDefisScreen"
         component={ValideDefis}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="valideDefisRapide"
+        component={ValideDefisRapide}
         options={{ headerShown: false }}
       />
       <Stack.Screen

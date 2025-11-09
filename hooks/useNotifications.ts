@@ -114,7 +114,7 @@ export const useNotifications = () => {
     useEffect(() => {
         if (!user && isInitialized) {
             clearNotifications();
-            deactivateToken(); // Désactiver le token sur le serveur
+            deactivateToken();
             setIsInitialized(false);
             setPermissionStatus('undetermined');
             setPushToken(null);

@@ -35,8 +35,17 @@ export default function DefisInfos() {
   const [isUploading, setIsUploading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoRef, setVideoRef] = useState(null);
+  const [isFullscreenVideoPlaying, setIsFullscreenVideoPlaying] = useState(false);
 
   const toggleModal = () => {
+    if (!isModalVisible) {
+      // Ouvrir le modal: mettre en pause la vidéo en arrière-plan
+      setIsPlaying(false);
+      setIsFullscreenVideoPlaying(false);
+    } else {
+      // Fermer le modal: restaurer l'état
+      setIsFullscreenVideoPlaying(false);
+    }
     setIsModalVisible(!isModalVisible);
   };
 
@@ -83,7 +92,7 @@ export default function DefisInfos() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes,
       quality: 1,
-      videoQuality: ImagePicker.VideoQuality.Medium,
+      videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium,
       videoMaxDuration: 60, // 60 secondes max
     });
 
@@ -102,7 +111,7 @@ export default function DefisInfos() {
       // Récupérer la taille max
       let maxFileSize = 5 * 1024 * 1024; // 5MB par défaut (plus pour les vidéos)
       try {
-        const getTailleMax = await apiGet("users/max-file-size");
+        const getTailleMax = await apiGet("challenges/max-file-size");
         if (getTailleMax.success) {
           maxFileSize = getTailleMax.data;
         }
@@ -179,7 +188,7 @@ export default function DefisInfos() {
 
       formData.append('media', {
         uri,
-        name: `challenge_${id}_room_${user?.roomID}_${Date.now()}${extension}`,
+        name: `challenge_${id}_room_${user?.room}_${Date.now()}${extension}`,
         type: mimeType,
       });
       formData.append('defiId', id);
@@ -189,7 +198,9 @@ export default function DefisInfos() {
       if (response.success) {
         setStatus('pending');
         try {
-          route.params.onUpdate(id, 'pending');
+          if (route.params?.onUpdate) {
+            route.params.onUpdate(id, 'pending');
+          }
         } catch (error: any) {
           setError(error.message || 'Erreur lors de la mise à jour du défi');
         }
@@ -241,7 +252,9 @@ export default function DefisInfos() {
                 setProofMedia(null);
                 setMediaType('image');
                 setStatus('empty');
-                route.params.onUpdate(id, 'empty');
+                if (route.params?.onUpdate) {
+                  route.params.onUpdate(id, 'empty');
+                }
                 setChallengeSent(false);
                 Toast.show({
                   type: 'success',
@@ -299,7 +312,7 @@ export default function DefisInfos() {
   return (
     <View style={{ flex: 1, backgroundColor: Colors.white }}>
       <Header refreshFunction={undefined} disableRefresh={undefined} />
-      <View style={{ width: '100%', paddingHorizontal: 20 }}>
+      <View style={{ width: '100%', paddingHorizontal: 20, paddingRight: 30 }}>
         <BoutonRetour previousRoute="defisScreen" title={title} />
       </View>
       <View style={{ width: '100%', paddingHorizontal: 20 }}>
@@ -311,7 +324,7 @@ export default function DefisInfos() {
       <View style={{ width: '100%', height: '60%', justifyContent: 'center', alignItems: 'center' }}>
         <TouchableOpacity
           onPress={status === 'empty' ? handleMediaPick : toggleModal}
-          style={{ justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%', position: 'relative' }}
+          style={{ justifyContent: 'center', alignItems: 'center', width: '100%', height: '80%', position: 'relative' }}
           disabled={(challengeSent && status === 'empty') || isCompressing || isUploading}
           activeOpacity={0.8}
         >
@@ -346,7 +359,7 @@ export default function DefisInfos() {
               </Text>
             </View>
           ) : proofMedia ? (
-            <View style={{ width: '90%', height: '100%', position: 'relative', justifyContent: 'center', alignItems: 'center' }}>
+            <View style={{ width: '100%', height: '100%', position: 'relative', justifyContent: 'center', alignItems: 'center', marginTop: 32 }}>
               {mediaType === 'video' ? (
                 <View style={{ width: '100%', aspectRatio: mediaAspectRatio, maxHeight: '100%', borderRadius: 25, overflow: 'hidden' }}>
                   <Video
@@ -611,7 +624,10 @@ export default function DefisInfos() {
               onPress={handleSendDefi}
               disabled={!modifiedMedia || isUploading || isCompressing}
             >
-              <Text style={{ ...TextStyles.button, color: Colors.white }}> Publier mon défi </Text> <LandPlot color="white" size={20} />
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+                <Text style={{ ...TextStyles.button, color: Colors.white }}>Publier mon défi</Text>
+                <LandPlot color="white" size={20} />
+              </View>
             </TouchableOpacity>
           </View>
         )}
@@ -653,8 +669,7 @@ export default function DefisInfos() {
               <View style={{
                 flex: 1,
                 justifyContent: 'center',
-                alignItems: 'center',
-                padding: 20,
+                alignItems: 'center'
               }}>
                 <Video
                   source={{ uri: proofMedia }}
@@ -663,10 +678,34 @@ export default function DefisInfos() {
                     height: '80%',
                   }}
                   resizeMode={ResizeMode.CONTAIN}
-                  shouldPlay={true}
+                  shouldPlay={isFullscreenVideoPlaying}
                   isLooping={false}
                   useNativeControls={true}
+                  onPlaybackStatusUpdate={(status) => {
+                    if (status.isPlaying) {
+                      setIsFullscreenVideoPlaying(true);
+                    }
+                  }}
                 />
+                {!isFullscreenVideoPlaying && (
+                  <TouchableOpacity
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: [{ translateX: -30 }, { translateY: -10 }],
+                      width: 60,
+                      height: 60,
+                      borderRadius: 30,
+                      backgroundColor: 'rgba(0,0,0,0.7)',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                    onPress={() => setIsFullscreenVideoPlaying(true)}
+                  >
+                    <Play size={28} color={Colors.white} />
+                  </TouchableOpacity>
+                )}
               </View>
             ) : (
               <ImageViewer

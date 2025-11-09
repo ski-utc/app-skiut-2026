@@ -479,20 +479,6 @@ export default function HomeScreen() {
             onPress={() => (navigation as any).navigate('anecdotesNavigator')}
           />
         )}
-
-        <WidgetCard
-          title="Signaler un bug"
-          subtitles={[
-            { text: "Un problème avec l'app ? Fais-nous le savoir !" },
-            {
-              text: 'Formulaire de retour : ',
-              link: 'https://forms.gle/E8hhG7pDRqyfR8CS6',
-            },
-          ]}
-          icon={Bug}
-          variant="white"
-          onPress={undefined}
-        />
       </ScrollView>
     </View>
   );

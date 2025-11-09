@@ -15,7 +15,7 @@ import Toast from 'react-native-toast-message';
 interface User {
     id: number;
     name: string;
-    roomID: number;
+    roomId: number;
     admin: boolean;
 }
 
@@ -53,7 +53,7 @@ export default function CreateNotificationScreen() {
     const fetchRecipientsData = async () => {
         try {
             setDataLoading(true);
-            const response = await apiGet('notifications/recipients');
+            const response = await apiGet('admin/notifications/recipients');
             if (response.success) {
                 setUsers(response.data.users);
                 setRooms(response.data.rooms);
@@ -84,7 +84,7 @@ export default function CreateNotificationScreen() {
                 display
             };
 
-            const response = await apiPost('notifications', payload);
+            const response = await apiPost('admin/notifications', payload);
             if (response.success) {
                 Toast.show({
                     type: 'success',
@@ -133,7 +133,7 @@ export default function CreateNotificationScreen() {
             case 'targeted':
                 return selectedUsers.length;
             case 'room_based':
-                return users.filter(user => selectedRooms.includes(user.roomID)).length;
+                return users.filter(user => selectedRooms.includes(user.roomId)).length;
             default:
                 return 0;
         }
@@ -390,7 +390,6 @@ export default function CreateNotificationScreen() {
                                     color={isChecked ? Colors.primary : undefined}
                                 />
                                 <View style={styles.termsTextContainer}>
-                                    <Shield size={16} color={Colors.primary} />
                                     <Text style={styles.termsText}>
                                         Je certifie que cette notification respecte tous les participants
                                     </Text>

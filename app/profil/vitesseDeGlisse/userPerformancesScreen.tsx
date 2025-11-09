@@ -76,7 +76,7 @@ export default function UserPerformancesScreen() {
                     text: 'Supprimer', style: 'destructive', onPress: async () => {
                         const response = await apiDelete(`user-performances/${sessionId}`);
                         if (response.success) {
-                            setSessions(prev => prev.filter(session => session.session_id !== sessionId));
+                            fetchUserPerformances();
                         }
                     }
                 }]);

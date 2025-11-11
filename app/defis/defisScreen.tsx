@@ -7,7 +7,7 @@ import BoutonRetour from "@/components/divers/boutonRetour";
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { apiGet } from "@/constants/api/apiCalls";
 import ErrorScreen from '@/components/pages/errorPage';
-import { useNavigation } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import { useUser } from '@/contexts/UserContext';
 
 interface BoutonDefiProps {
@@ -122,7 +122,7 @@ export default function Defis() {
   };
 
   useEffect(() => {
-fetchChallenges();
+    fetchChallenges();
     const unsubscribe = navigation.addListener('focus', () => {
       fetchChallenges();
     });

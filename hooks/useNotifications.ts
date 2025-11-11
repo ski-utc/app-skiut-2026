@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { NotificationService } from '../services/NotificationService';
 import { useUser } from '@/contexts/UserContext';
+import Toast from 'react-native-toast-message';
 
 export const useNotifications = () => {
     const [isInitialized, setIsInitialized] = useState(false);
@@ -16,7 +17,9 @@ export const useNotifications = () => {
         }
 
         try {
+            console.log('[useNotifications] Début initialisation...');
             const success = await notificationService.initialize();
+            console.log('[useNotifications] Initialisation terminée, success:', success);
             setIsInitialized(success);
 
             if (success) {
@@ -25,14 +28,28 @@ export const useNotifications = () => {
 
                 setPermissionStatus(status);
                 setPushToken(token);
+
+                if (token) {
+                    console.log('[useNotifications] Token obtenu:', token.substring(0, 20) + '...');
+                } else {
+                    console.warn('[useNotifications] Aucun token push obtenu');
+                }
             }
         } catch (error: any) {
-            console.error('Erreur initialisation notifications:', error);
+            console.error('[useNotifications] Erreur initialisation notifications:', error);
 
-            // Si erreur JWT, déconnecter l'utilisateur
+            Toast.show({
+                type: 'error',
+                text1: 'Erreur notifications',
+                text2: error.message || 'Erreur inconnue',
+                visibilityTime: 4000,
+            });
+
             if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
                 setUser(null);
             }
+
+            setIsInitialized(true);
         }
     }, [user, isInitialized, notificationService, setUser]);
 
@@ -105,12 +122,26 @@ export const useNotifications = () => {
 
     // Auto-initialisation quand l'utilisateur se connecte
     useEffect(() => {
+        let timeoutId: NodeJS.Timeout;
+
         if (user && !isInitialized) {
+            timeoutId = setTimeout(() => {
+                if (!isInitialized) {
+                    console.warn('Timeout initialisation notifications - l\'app continue sans notifications');
+                    setIsInitialized(true);
+                }
+            }, 10000);
+
             initializeNotifications();
         }
-    }, [user, isInitialized, initializeNotifications]);
 
-    // Nettoyer les notifications à la déconnexion
+        return () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        };
+    }, [user, isInitialized]);
+
     useEffect(() => {
         if (!user && isInitialized) {
             clearNotifications();

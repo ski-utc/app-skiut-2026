@@ -39,25 +39,36 @@ export class NotificationService {
             // Vérifier si c'est un appareil physique
             if (!Device.isDevice) {
                 console.warn('Notifications push disponibles uniquement sur appareil physique');
-                return false;
+                // Sur simulateur/émulateur, on initialise quand même sans notifications push
+                this.isInitialized = true;
+                return true;
             }
 
             // Demander les permissions
             const hasPermission = await this.requestPermissions();
             if (!hasPermission) {
-                console.warn('Permissions de notifications refusées');
-                return false;
+                console.warn('Permissions de notifications refusées - l\'app continue');
+                // L'utilisateur peut refuser les permissions, on laisse l'app fonctionner
+                this.isInitialized = true;
+                return true;
             }
 
-            // Obtenir le token push
-            const token = await this.getExpoPushToken();
+            // Obtenir le token push (avec timeout de 8 secondes)
+            const tokenPromise = this.getExpoPushToken();
+            const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000));
+            const token = await Promise.race([tokenPromise, timeoutPromise]);
+
             if (!token) {
-                console.error('Impossible d\'obtenir le token push');
-                return false;
+                console.warn('Impossible d\'obtenir le token push ou timeout - l\'app continue');
+                // On continue quand même, les notifications ne fonctionneront pas mais l'app oui
+                this.isInitialized = true;
+                return true;
             }
 
-            // Envoyer le token au serveur
-            await this.saveTokenToServer(token);
+            // Envoyer le token au serveur (non bloquant)
+            this.saveTokenToServer(token).catch(err => {
+                console.error('Erreur sauvegarde token (non bloquant):', err);
+            });
 
             // Configurer le canal Android
             await this.setupAndroidChannel();
@@ -71,7 +82,9 @@ export class NotificationService {
 
         } catch (error) {
             console.error('Erreur lors de l\'initialisation des notifications:', error);
-            return false;
+            // Même en cas d'erreur, on initialise pour ne pas bloquer l'app
+            this.isInitialized = true;
+            return true;
         }
     }
 
@@ -102,7 +115,7 @@ export class NotificationService {
     private async getExpoPushToken(): Promise<string | null> {
         try {
             const token = await Notifications.getExpoPushTokenAsync({
-                projectId: process.env.EXPO_PUBLIC_PROJECT_ID,
+                projectId: 'f03f1a56-74c7-4c87-a0b2-60b420f7de94',
             });
             this.pushToken = token.data;
             return token.data;

@@ -43,11 +43,10 @@
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/logo.png"
     },
     "plugins": [
-      "expo-router",
       [
         "expo-notifications",
         {
@@ -69,14 +68,12 @@
         }
       ],
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "assetBundlePatterns": [
       "**/*"
     ],
-    "experiments": {
-      "typedRoutes": true
-    },
     "notification": {
       "icon": "./assets/images/logo.png",
       "color": "#023c69",
@@ -87,9 +84,6 @@
       "backgroundColor": "#aad1cd"
     },
     "extra": {
-      "router": {
-        "origin": false
-      },
       "eas": {
         "projectId": "f03f1a56-74c7-4c87-a0b2-60b420f7de94"
       }

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { ActivityIndicator, View, Text, StyleSheet, Platform } from 'react-native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { UserProvider, useUser } from '../contexts/UserContext';
+import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import HomeNavigator from './homeNavigator';
@@ -201,7 +202,7 @@ function Content() {
   }
 
   return (
-    <>
+    <NavigationContainer>
       {user ? (
         <Drawer.Navigator
           screenOptions={{ headerShown: false }}
@@ -216,7 +217,7 @@ function Content() {
       ) : (
         <LoginNavigator />
       )}
-    </>
+    </NavigationContainer>
   );
 }
 

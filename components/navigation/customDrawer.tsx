@@ -81,7 +81,6 @@ export default function CustomDrawer({ navigation }: CustomDrawerProps) {
         }
     ];
 
-    // Ajout des fonctionnalités spécifiques aux membres de l'association
     if (user?.member) {
         drawerItems.push({
             label: 'Tournée des chambres',

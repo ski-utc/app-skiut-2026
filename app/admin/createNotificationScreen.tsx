@@ -199,7 +199,6 @@ export default function CreateNotificationScreen() {
                     </View>
 
                     <View style={styles.content}>
-                        {/* Type de notification */}
                         <View style={styles.typeSection}>
                             <Text style={styles.sectionTitle}>Type de notification</Text>
                             <View style={styles.typeButtons}>
@@ -235,7 +234,6 @@ export default function CreateNotificationScreen() {
                             </View>
                         </View>
 
-                        {/* Sélection utilisateurs */}
                         {type === 'targeted' && (
                             <View style={styles.selectionSection}>
                                 <TouchableOpacity
@@ -282,7 +280,6 @@ export default function CreateNotificationScreen() {
                             </View>
                         )}
 
-                        {/* Sélection chambres */}
                         {type === 'room_based' && (
                             <View style={styles.selectionSection}>
                                 <TouchableOpacity
@@ -324,7 +321,6 @@ export default function CreateNotificationScreen() {
                             </View>
                         )}
 
-                        {/* Titre */}
                         <View style={styles.inputSection}>
                             <View style={styles.inputHeader}>
                                 <FileText size={16} color={Colors.primary} />
@@ -339,7 +335,6 @@ export default function CreateNotificationScreen() {
                             />
                         </View>
 
-                        {/* Description */}
                         <View style={styles.inputSection}>
                             <View style={styles.inputHeader}>
                                 <FileText size={16} color={Colors.primary} />
@@ -357,7 +352,6 @@ export default function CreateNotificationScreen() {
                             />
                         </View>
 
-                        {/* Options */}
                         <View style={styles.optionsSection}>
                             <Text style={styles.sectionTitle}>Options</Text>
 
@@ -380,7 +374,6 @@ export default function CreateNotificationScreen() {
                             </View>
                         </View>
 
-                        {/* Conditions */}
                         <View style={styles.termsSection}>
                             <View style={styles.termsRow}>
                                 <Checkbox

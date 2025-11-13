@@ -67,11 +67,9 @@ export default function GestionPermanencesScreen() {
     const [permanences, setPermanences] = useState<Permanence[]>([]);
     const [members, setMembers] = useState<Member[]>([]);
 
-    // Modal states
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingPermanence, setEditingPermanence] = useState<Permanence | null>(null);
 
-    // Form states
     const [formName, setFormName] = useState('');
     const [formDescription, setFormDescription] = useState('');
     const [formLocation, setFormLocation] = useState('');
@@ -93,13 +91,11 @@ export default function GestionPermanencesScreen() {
                 return;
             }
 
-            // Récupérer les permanences
             const permanencesResponse = await apiGet("permanences");
             if (permanencesResponse.success) {
                 setPermanences(permanencesResponse.data);
             }
 
-            // Récupérer les membres
             const membersResponse = await apiGet("admin/permanences/members");
             if (membersResponse.success) {
                 setMembers(membersResponse.data);
@@ -403,7 +399,6 @@ export default function GestionPermanencesScreen() {
         );
     }
 
-    // Filtrer les permanences pour n'afficher que celles dont la date de fin est dans le futur
     const filteredPermanences = permanences.filter(perm => {
         const endDate = new Date(perm.end_datetime);
         return endDate > new Date();
@@ -465,7 +460,6 @@ export default function GestionPermanencesScreen() {
                 />
             </View>
 
-            {/* Modal de création/modification */}
             <Modal
                 visible={showCreateModal}
                 animationType="slide"
@@ -604,7 +598,6 @@ export default function GestionPermanencesScreen() {
                         />
                     )}
 
-                    {/* Boutons en bas */}
                     <View style={styles.modalFooter}>
                         <TouchableOpacity
                             onPress={() => setShowCreateModal(false)}
@@ -630,7 +623,6 @@ export default function GestionPermanencesScreen() {
     );
 }
 
-// Les styles sont similaires aux autres écrans admin, je vais les inclure
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -816,7 +808,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 22,
     },
-    // Modal styles
     modalContainer: {
         flex: 1,
         backgroundColor: Colors.white,

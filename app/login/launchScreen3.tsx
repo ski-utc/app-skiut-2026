@@ -8,10 +8,8 @@ import { PanGestureHandler, State } from 'react-native-gesture-handler';
 export default function LaunchScreen3() {
   const navigation = useNavigation();
 
-  // Gesture de swipe pour naviguer
   const handleGestureEvent = ({ nativeEvent }: any) => {
     if (nativeEvent.state === State.END) {
-      // Swipe de gauche à droite (velocityX positif) -> page précédente
       if (nativeEvent.velocityX > 500) {
         navigation.goBack();
       }
@@ -78,15 +76,6 @@ export default function LaunchScreen3() {
               <LogIn size={20} color={Colors.white} />
               <Text style={styles.loginButtonText}>Se connecter</Text>
             </TouchableOpacity>
-
-            {/* <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={styles.backButton}
-              activeOpacity={0.8}
-            >
-              <ChevronLeft size={20} color={Colors.primary} />
-              <Text style={styles.backButtonText}>Retour</Text>
-            </TouchableOpacity> */}
           </View>
         </View>
       </SafeAreaView>

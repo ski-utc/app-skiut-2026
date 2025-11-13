@@ -13,7 +13,6 @@ import Toast from 'react-native-toast-message';
 
 const LOCATION_TASK_NAME = 'background-location-task';
 
-// Tâche en arrière-plan pour la géolocalisation
 TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
     if (error) {
         console.error('Erreur dans la tâche de localisation:', error);
@@ -37,7 +36,6 @@ export default function VitesseDeGlisseScreen() {
     const [sessionId, setSessionId] = useState<string | null>(null);
     const [speedHistory, setSpeedHistory] = useState<number[]>([]);
 
-    // Statistiques de session
     const [sessionStats, setSessionStats] = useState({
         startTime: 0,
         totalSpeed: 0,
@@ -50,7 +48,6 @@ export default function VitesseDeGlisseScreen() {
     const appState = useRef(AppState.currentState);
     const trackingInterval = useRef<NodeJS.Timeout | null>(null);
 
-    // Nettoyer lors du démontage
     useEffect(() => {
         return () => {
             if (subscription) subscription.remove();
@@ -58,7 +55,6 @@ export default function VitesseDeGlisseScreen() {
         };
     }, [subscription]);
 
-    // Gérer les changements d'état de l'app (arrière-plan)
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {
             if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
@@ -66,7 +62,6 @@ export default function VitesseDeGlisseScreen() {
             } else if (appState.current === 'active' && nextAppState.match(/inactive|background/)) {
                 console.log('App passée en arrière-plan');
                 if (isTracking) {
-                    // Continuer le tracking en arrière-plan si les permissions sont accordées
                     enableBackgroundLocation().catch((error) => {
                         console.warn('Background location non disponible:', error.message);
                     });
@@ -78,7 +73,6 @@ export default function VitesseDeGlisseScreen() {
         return () => subscription?.remove();
     }, [isTracking]);
 
-    // Timer pour le temps de tracking
     useEffect(() => {
         if (isTracking) {
             setInterval(() => {
@@ -96,10 +90,8 @@ export default function VitesseDeGlisseScreen() {
         };
     }, [isTracking]);
 
-    // Activer la géolocalisation en arrière-plan
     const enableBackgroundLocation = async () => {
         try {
-            // Vérifier que la tâche est déjà enregistrée
             const isTaskRegistered = await TaskManager.isTaskRegisteredAsync(LOCATION_TASK_NAME);
 
             if (isTaskRegistered) {
@@ -107,7 +99,6 @@ export default function VitesseDeGlisseScreen() {
                 return;
             }
 
-            // Sur iOS, demander la permission "Always"
             if (Platform.OS === 'ios') {
                 const backgroundPermission = await Location.requestBackgroundPermissionsAsync();
                 console.log('iOS background permission status:', backgroundPermission.status);
@@ -115,8 +106,8 @@ export default function VitesseDeGlisseScreen() {
                 if (backgroundPermission.status === 'granted') {
                     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
                         accuracy: Location.Accuracy.High,
-                        timeInterval: 5000, // 5 secondes minimum pour l'arrière-plan
-                        distanceInterval: 10, // 10 mètres
+                        timeInterval: 5000,
+                        distanceInterval: 10,
                         showsBackgroundLocationIndicator: true,
                     });
                     console.log('Background location tracking started on iOS');
@@ -125,7 +116,6 @@ export default function VitesseDeGlisseScreen() {
                     throw new Error('Permission en arrière-plan refusée sur iOS');
                 }
             } else if (Platform.OS === 'android') {
-                // Sur Android, juste démarrer si la permission est déjà accordée
                 const foregroundPermission = await Location.getForegroundPermissionsAsync();
                 if (foregroundPermission.status === 'granted') {
                     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
@@ -140,12 +130,11 @@ export default function VitesseDeGlisseScreen() {
             }
         } catch (error) {
             console.warn('Background location setup failed:', error);
-            throw error; // Propager l'erreur pour que le caller puisse la gérer
+            throw error;
         }
     };
 
     const startTracking = async () => {
-        // Demander les permissions de localisation
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
             Alert.alert(
@@ -155,7 +144,6 @@ export default function VitesseDeGlisseScreen() {
             return;
         }
 
-        // Demander les permissions d'arrière-plan pour la continuité du tracking
         try {
             if (Platform.OS === 'ios') {
                 const backgroundStatus = await Location.requestBackgroundPermissionsAsync();
@@ -170,7 +158,6 @@ export default function VitesseDeGlisseScreen() {
                     );
                 }
             } else if (Platform.OS === 'android') {
-                // Sur Android, vérifier que la permission est accordée
                 const foregroundStatus = await Location.getForegroundPermissionsAsync();
                 if (foregroundStatus.status !== 'granted') {
                     Alert.alert(
@@ -182,10 +169,8 @@ export default function VitesseDeGlisseScreen() {
             }
         } catch (error) {
             console.warn('Error checking background permissions:', error);
-            // Continuer quand même avec le tracking en avant-plan
         }
 
-        // Réinitialiser les données
         const newSessionId = Date.now().toString();
         setSessionId(newSessionId);
         setIsTracking(true);
@@ -226,7 +211,6 @@ export default function VitesseDeGlisseScreen() {
     const processLocationUpdate = (location: Location.LocationObject) => {
         const { coords } = location;
 
-        // Vérifier la précision GPS
         if (coords.accuracy && coords.accuracy > 20) {
             console.log(`Précision GPS faible: ${coords.accuracy}m`);
             return;
@@ -237,7 +221,6 @@ export default function VitesseDeGlisseScreen() {
 
         setPrevLocation(prevLoc => {
             if (!prevLoc) {
-                // Premier point: initialiser
                 return coords;
             }
 
@@ -248,26 +231,21 @@ export default function VitesseDeGlisseScreen() {
                 coords.longitude
             );
 
-            // Filtrage des valeurs aberrantes
             const isValidSpeed = currentSpeedKmh >= 0 && currentSpeedKmh <= 200;
             const isValidDistance = deltaDistance > 0 && deltaDistance < 200;
 
             if (isValidSpeed && isValidDistance) {
-                // Mettre à jour la distance
                 setDistance(prev => prev + deltaDistance);
 
-                // Mettre à jour la vitesse maximale
                 setMaxSpeed(prevMaxSpeed =>
                     currentSpeedKmh > prevMaxSpeed ? currentSpeedKmh : prevMaxSpeed
                 );
 
-                // Mettre à jour l'historique des vitesses
                 setSpeedHistory(prev => {
                     const newHistory = [...prev, currentSpeedKmh];
                     return newHistory.slice(-60);
                 });
 
-                // Calculer la vitesse moyenne
                 setSessionStats(prev => {
                     const newTotalSpeed = prev.totalSpeed + currentSpeedKmh;
                     const newReadings = prev.speedReadings + 1;
@@ -290,27 +268,23 @@ export default function VitesseDeGlisseScreen() {
     const stopTracking = async () => {
         setIsTracking(false);
 
-        // Arrêter l'abonnement à la localisation
         if (subscription) {
             subscription.remove();
             setSubscription(null);
         }
 
-        // Arrêter la tâche en arrière-plan
         if (await TaskManager.isTaskRegisteredAsync(LOCATION_TASK_NAME)) {
             await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
         }
 
-        // Calculer les statistiques finales de la session
         const sessionDuration = trackingTime;
         const totalDistanceKm = distance / 1000;
         const avgSpeedFinal = sessionStats.speedReadings > 0 ?
             sessionStats.totalSpeed / sessionStats.speedReadings : 0;
 
-        // Enregistrer la performance si significative
-        if (totalDistanceKm > 0.01 && sessionDuration > 5) { // Minimum 10m et 5 secondes
+        if (totalDistanceKm > 0.01 && sessionDuration > 5) {
             try {
-                const response = await apiPost("update-performance", {
+                const response = await apiPost("create-performance", {
                     user_id: user?.id,
                     speed: maxSpeed,
                     distance: totalDistanceKm,
@@ -347,7 +321,6 @@ export default function VitesseDeGlisseScreen() {
             });
         }
 
-        // Réinitialiser les données
         resetSession();
     };
 
@@ -460,7 +433,6 @@ export default function VitesseDeGlisseScreen() {
                 </View>
 
                 <View style={styles.statsSection}>
-                    {/* Vitesse actuelle - pleine largeur */}
                     <StatCard
                         icon={Activity}
                         title="Vitesse actuelle"
@@ -470,7 +442,6 @@ export default function VitesseDeGlisseScreen() {
                         isLive={isTracking}
                     />
 
-                    {/* Deux colonnes: Vitesse max et moyenne */}
                     <View style={styles.twoColumnRow}>
                         <View style={styles.halfColumn}>
                             <StatCard
@@ -494,7 +465,6 @@ export default function VitesseDeGlisseScreen() {
                         </View>
                     </View>
 
-                    {/* Deux colonnes: Distance et Durée */}
                     <View style={styles.twoColumnRow}>
                         <View style={styles.halfColumn}>
                             <StatCard

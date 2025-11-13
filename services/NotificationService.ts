@@ -3,7 +3,6 @@ import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import { apiPost } from '@/constants/api/apiCalls';
 
-// Configuration du gestionnaire de notifications
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
         shouldPlaySound: true,
@@ -36,44 +35,35 @@ export class NotificationService {
         }
 
         try {
-            // Vérifier si c'est un appareil physique
             if (!Device.isDevice) {
                 console.warn('Notifications push disponibles uniquement sur appareil physique');
-                // Sur simulateur/émulateur, on initialise quand même sans notifications push
                 this.isInitialized = true;
                 return true;
             }
 
-            // Demander les permissions
             const hasPermission = await this.requestPermissions();
             if (!hasPermission) {
                 console.warn('Permissions de notifications refusées - l\'app continue');
-                // L'utilisateur peut refuser les permissions, on laisse l'app fonctionner
                 this.isInitialized = true;
                 return true;
             }
 
-            // Obtenir le token push (avec timeout de 8 secondes)
             const tokenPromise = this.getExpoPushToken();
             const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000));
             const token = await Promise.race([tokenPromise, timeoutPromise]);
 
             if (!token) {
                 console.warn('Impossible d\'obtenir le token push ou timeout - l\'app continue');
-                // On continue quand même, les notifications ne fonctionneront pas mais l'app oui
                 this.isInitialized = true;
                 return true;
             }
 
-            // Envoyer le token au serveur (non bloquant)
             this.saveTokenToServer(token).catch(err => {
                 console.error('Erreur sauvegarde token (non bloquant):', err);
             });
 
-            // Configurer le canal Android
             await this.setupAndroidChannel();
 
-            // Configurer les listeners
             this.setupNotificationListeners();
 
             this.isInitialized = true;
@@ -82,7 +72,6 @@ export class NotificationService {
 
         } catch (error) {
             console.error('Erreur lors de l\'initialisation des notifications:', error);
-            // Même en cas d'erreur, on initialise pour ne pas bloquer l'app
             this.isInitialized = true;
             return true;
         }
@@ -96,7 +85,6 @@ export class NotificationService {
             const { status: existingStatus } = await Notifications.getPermissionsAsync();
             let finalStatus = existingStatus;
 
-            // Si pas encore accordé, demander la permission
             if (existingStatus !== 'granted') {
                 const { status } = await Notifications.requestPermissionsAsync();
                 finalStatus = status;
@@ -130,7 +118,6 @@ export class NotificationService {
      */
     private async saveTokenToServer(token: string): Promise<void> {
         try {
-            // Détecter le type d'appareil et le nom
             const deviceType = Platform.OS === 'ios' ? 'ios' : 'android';
             const deviceName = `${Device.brand || 'Unknown'} ${Device.modelName || 'Device'}`.trim();
 
@@ -147,7 +134,6 @@ export class NotificationService {
             }
         } catch (error) {
             console.error('Erreur réseau lors de la sauvegarde du token:', error);
-            // Ne pas lever l'erreur car l'app doit continuer de fonctionner
         }
     }
 
@@ -167,7 +153,6 @@ export class NotificationService {
                     showBadge: true,
                 });
 
-                // Canal pour les notifications importantes (matches, etc.)
                 await Notifications.setNotificationChannelAsync('important', {
                     name: 'Notifications importantes',
                     importance: Notifications.AndroidImportance.HIGH,
@@ -178,7 +163,6 @@ export class NotificationService {
                     showBadge: true,
                 });
 
-                // Canal pour les notifications silencieuses
                 await Notifications.setNotificationChannelAsync('silent', {
                     name: 'Notifications silencieuses',
                     importance: Notifications.AndroidImportance.LOW,
@@ -197,17 +181,13 @@ export class NotificationService {
      * Configure les listeners de notifications
      */
     private setupNotificationListeners(): void {
-        // Listener pour les notifications reçues quand l'app est ouverte
         Notifications.addNotificationReceivedListener((notification) => {
             console.log('Notification reçue:', notification);
-            // Ici on peut traiter la notification reçue
             this.handleNotificationReceived(notification);
         });
 
-        // Listener pour les interactions avec les notifications
         Notifications.addNotificationResponseReceivedListener((response) => {
             console.log('Interaction avec notification:', response);
-            // Ici on peut naviguer vers l'écran approprié
             this.handleNotificationResponse(response);
         });
     }
@@ -216,19 +196,15 @@ export class NotificationService {
      * Traite une notification reçue
      */
     private handleNotificationReceived(notification: Notifications.Notification): void {
-        // Logique pour traiter les notifications reçues
         const { data } = notification.request.content;
 
         if (data?.type) {
             switch (data.type) {
                 case 'skinder_match':
-                    // Éventuellement jouer un son spécial ou afficher une animation
                     break;
                 case 'permanence_reminder':
-                    // Traitement spécifique aux rappels de permanence
                     break;
                 default:
-                    // Traitement par défaut
                     break;
             }
         }
@@ -240,23 +216,15 @@ export class NotificationService {
     private handleNotificationResponse(response: Notifications.NotificationResponse): void {
         const { data } = response.notification.request.content;
 
-        // Ici on pourrait implémenter la navigation vers l'écran approprié
-        // Cela nécessiterait d'avoir accès au navigation, qu'on pourrait passer
-        // ou utiliser un système d'événements
-
         if (data?.type) {
             switch (data.type) {
                 case 'skinder_match':
-                    // Naviguer vers les matches Skinder
                     break;
                 case 'permanence_reminder':
-                    // Naviguer vers l'écran des permanences
                     break;
                 case 'room_tour':
-                    // Naviguer vers la tournée des chambres
                     break;
                 default:
-                    // Navigation par défaut vers les notifications
                     break;
             }
         }
@@ -274,7 +242,7 @@ export class NotificationService {
                     data,
                     sound: 'default',
                 },
-                trigger: null, // Immédiatement
+                trigger: null,
             });
         } catch (error) {
             console.error('Erreur lors de l\'envoi de notification locale:', error);

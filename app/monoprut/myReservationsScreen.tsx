@@ -81,7 +81,6 @@ export default function MyReservationsScreen() {
                     text1: 'Succès',
                     text2: 'Article marqué comme récupéré',
                 });
-                // Retirer l'article de la liste
                 setArticles(articles.filter(a => a.id !== articleId));
             } else {
                 Toast.show({
@@ -108,7 +107,6 @@ export default function MyReservationsScreen() {
                     text1: 'Succès',
                     text2: 'Réservation annulée',
                 });
-                // Retirer l'article de la liste
                 setArticles(articles.filter(a => a.id !== articleId));
             } else {
                 Toast.show({
@@ -186,16 +184,6 @@ export default function MyReservationsScreen() {
                     <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
                 }
             >
-                {/* <View style={styles.headerSection}>
-                    <View style={styles.iconCircle}>
-                        <ShoppingBasket size={28} color={Colors.success} />
-                    </View>
-                    <Text style={styles.title}>Mes réservations</Text>
-                    <Text style={styles.subtitle}>
-                        Articles que vous avez réservés auprès d'autres chambres
-                    </Text>
-                </View> */}
-
                 {articles.length === 0 ? (
                     <View style={styles.emptyContainer}>
                         <ShoppingBasket size={48} color={Colors.muted} />

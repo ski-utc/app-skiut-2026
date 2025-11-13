@@ -39,11 +39,9 @@ export default function DefisInfos() {
 
   const toggleModal = () => {
     if (!isModalVisible) {
-      // Ouvrir le modal: mettre en pause la vidéo en arrière-plan
       setIsPlaying(false);
       setIsFullscreenVideoPlaying(false);
     } else {
-      // Fermer le modal: restaurer l'état
       setIsFullscreenVideoPlaying(false);
     }
     setIsModalVisible(!isModalVisible);
@@ -108,8 +106,7 @@ export default function DefisInfos() {
 
       setMediaType(isVideo ? 'video' : 'image');
 
-      // Récupérer la taille max
-      let maxFileSize = 5 * 1024 * 1024; // 5MB par défaut (plus pour les vidéos)
+      let maxFileSize = 5 * 1024 * 1024;
       try {
         const getTailleMax = await apiGet("challenges/max-file-size");
         if (getTailleMax.success) {
@@ -123,8 +120,7 @@ export default function DefisInfos() {
         }
       }
 
-      if (isVideo) {
-        // Pour les vidéos, vérifier directement la taille
+      if (isVideo) { // TODO : implem a way to compress video through a certain lib to define
         const fileInfo = await fetch(uri).then((res) => res.blob());
         if (fileInfo.size > maxFileSize) {
           Alert.alert('Erreur', 'Vidéo trop lourde. Veuillez choisir une vidéo plus courte ou de moindre qualité.');
@@ -134,7 +130,6 @@ export default function DefisInfos() {
         setModifiedMedia(true);
         setProofMedia(uri);
       } else {
-        // Pour les images, compression comme avant
         let compressQuality = 1;
         let compressedImage = await ImageManipulator.manipulateAsync(
           uri,
@@ -174,8 +169,7 @@ export default function DefisInfos() {
       setIsUploading(true);
       const fileInfo = await fetch(uri).then((res) => res.blob());
 
-      // Taille max adaptée au type de média
-      const maxSize = mediaType === 'video' ? 10 * 1024 * 1024 : 5 * 1024 * 1024; // 10MB vidéo, 5MB image
+      const maxSize = mediaType === 'video' ? 10 * 1024 * 1024 : 5 * 1024 * 1024; // TODO : fetch this info from backend 
       if (fileInfo.size > maxSize) {
         Alert.alert('Erreur', `Le ${mediaType === 'video' ? 'vidéo' : 'image'} dépasse la taille maximale.`);
         setIsUploading(false);
@@ -418,7 +412,6 @@ export default function DefisInfos() {
                 />
               )}
 
-              {/* Indicateur de type de média */}
               <View style={{
                 position: 'absolute',
                 top: 20,

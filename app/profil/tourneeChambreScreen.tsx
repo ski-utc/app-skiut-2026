@@ -22,11 +22,6 @@ import Header from '../../components/header';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-
-// Alias pour compatibilité
-const darkGrey = Colors.primaryBorder;
-const grey = Colors.muted;
-const lightGrey = Colors.lightMuted;
 import {
     Home,
     Users,
@@ -271,9 +266,6 @@ export default function TourneeChambreScreen() {
                                     {item.room_info.room_name}
                                 </Text>
                             )}
-                            {/* <Text style={[styles.occupantsCount, item.visited && styles.textVisited]}>
-                                {item.room_info.occupants_count} occupant{item.room_info.occupants_count > 1 ? 's' : ''}
-                            </Text> */}
                         </View>
 
                         <View style={styles.roomActions}>
@@ -299,12 +291,11 @@ export default function TourneeChambreScreen() {
                                 disabled={isActive}
                                 style={styles.dragHandle}
                             >
-                                <GripVertical size={18} color={grey} />
+                                <GripVertical size={18} color={Colors.muted} />
                             </TouchableOpacity>
                         </View>
                     </View>
 
-                    {/* Occupants collapsible */}
                     <TouchableOpacity
                         onPress={() => toggleRoomExpanded(item.id)}
                         style={styles.expandButton}
@@ -375,7 +366,7 @@ export default function TourneeChambreScreen() {
                         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                     }
                 >
-                    <Home size={64} color={grey} />
+                    <Home size={64} color={Colors.muted} />
                     <Text style={styles.noTourText}>Aucune tournée active aujourd'hui</Text>
                     <Text style={styles.noTourSubtext}>
                         Revenez plus tard ou contactez un administrateur
@@ -393,7 +384,6 @@ export default function TourneeChambreScreen() {
                     <BoutonRetour previousRoute="homeNavigator" title="Tournée des chambres" />
                 </View>
 
-                {/* Informations du binôme - Compact */}
                 <View style={styles.binomeCard}>
                     <View style={styles.binomeHeader}>
                         <View style={styles.binomeTitleRow}>
@@ -406,13 +396,12 @@ export default function TourneeChambreScreen() {
                     </View>
                 </View>
 
-                {/* Section titre */}
                 <View style={styles.titleSection}>
                     <Text style={styles.sectionTitle}>
                         Chambres à visiter ({visits.length})
                     </Text>
                     <Text style={styles.dragHint}>
-                        Maintenez l'icône <GripVertical size={12} color={grey} /> pour réorganiser
+                        Maintenez l'icône <GripVertical size={12} color={Colors.muted} /> pour réorganiser
                     </Text>
                 </View>
 
@@ -499,12 +488,12 @@ const styles = StyleSheet.create({
     },
     sectionTitle: {
         ...TextStyles.h3,
-        color: darkGrey,
+        color: Colors.primaryBorder,
         marginBottom: 4,
     },
     dragHint: {
         ...TextStyles.small,
-        color: grey,
+        color: Colors.muted,
     },
     flatListContent: {
         paddingBottom: 20,
@@ -517,7 +506,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginBottom: 8,
         borderWidth: 1,
-        borderColor: lightGrey,
+        borderColor: Colors.lightMuted,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
@@ -560,20 +549,20 @@ const styles = StyleSheet.create({
     roomNumber: {
         ...TextStyles.body,
         fontWeight: '600',
-        color: darkGrey,
+        color: Colors.primaryBorder,
     },
     roomName: {
         ...TextStyles.small,
-        color: grey,
+        color: Colors.muted,
         marginTop: 2,
     },
     occupantsCount: {
         ...TextStyles.small,
-        color: grey,
+        color: Colors.muted,
         marginTop: 2,
     },
     textVisited: {
-        color: grey,
+        color: Colors.muted,
     },
     roomActions: {
         flexDirection: 'row',
@@ -615,7 +604,7 @@ const styles = StyleSheet.create({
         paddingTop: 8,
         marginTop: 8,
         borderTopWidth: 1,
-        borderTopColor: lightGrey,
+        borderTopColor: Colors.lightMuted,
         gap: 4,
     },
     expandButtonText: {
@@ -629,7 +618,7 @@ const styles = StyleSheet.create({
     },
     occupantName: {
         ...TextStyles.small,
-        color: darkGrey,
+        color: Colors.primaryBorder,
         marginBottom: 3,
     },
     saveButtonContainer: {
@@ -648,13 +637,13 @@ const styles = StyleSheet.create({
     },
     noTourText: {
         ...TextStyles.h2,
-        color: darkGrey,
+        color: Colors.primaryBorder,
         marginTop: 16,
         textAlign: 'center',
     },
     noTourSubtext: {
         ...TextStyles.body,
-        color: grey,
+        color: Colors.muted,
         marginTop: 8,
         textAlign: 'center',
     },

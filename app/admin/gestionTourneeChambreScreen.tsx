@@ -74,13 +74,11 @@ export default function GestionTourneeChambreScreen() {
     const [rooms, setRooms] = useState<Room[]>([]);
     const [members, setMembers] = useState<Member[]>([]);
 
-    // Modal states
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [formSubmitting, setFormSubmitting] = useState(false);
-    const [showMemberPicker, setShowMemberPicker] = useState<number | null>(null); // Index du binôme
-    const [showRoomPicker, setShowRoomPicker] = useState<number | null>(null); // Index du binôme
+    const [showMemberPicker, setShowMemberPicker] = useState<number | null>(null);
+    const [showRoomPicker, setShowRoomPicker] = useState<number | null>(null);
 
-    // Form states
     const [formDate, setFormDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [binomes, setBinomes] = useState<Binome[]>([]);
@@ -95,19 +93,16 @@ export default function GestionTourneeChambreScreen() {
                 return;
             }
 
-            // Récupérer les tournées
             const toursResponse = await apiGet("admin/room-tours");
             if (toursResponse.success) {
                 setTours(toursResponse.data);
             }
 
-            // Récupérer les chambres disponibles
             const roomsResponse = await apiGet("admin/room-tours/available-rooms");
             if (roomsResponse.success) {
                 setRooms(roomsResponse.data);
             }
 
-            // Récupérer les membres
             const membersResponse = await apiGet("admin/permanences/members");
             if (membersResponse.success) {
                 setMembers(membersResponse.data);
@@ -336,11 +331,6 @@ export default function GestionTourneeChambreScreen() {
                 </View>
 
                 <View style={styles.cardStats}>
-                    {/* <View style={styles.statRow}>
-                        <Users size={16} color={Colors.muted} />
-                        <Text style={styles.statText}>{item.binomes_count} binôme{item.binomes_count !== 1 ? 's' : ''}</Text>
-                    </View> */}
-
                     <View style={styles.statRow}>
                         <Home size={16} color={Colors.muted} />
                         <Text style={styles.statText}>
@@ -464,7 +454,6 @@ export default function GestionTourneeChambreScreen() {
                 />
             </View>
 
-            {/* Modal de création */}
             <Modal
                 visible={showCreateModal}
                 animationType="slide"
@@ -576,7 +565,6 @@ export default function GestionTourneeChambreScreen() {
                         />
                     )}
 
-                    {/* Boutons en bas */}
                     <View style={styles.modalFooter}>
                         <TouchableOpacity
                             onPress={() => setShowCreateModal(false)}
@@ -597,7 +585,6 @@ export default function GestionTourneeChambreScreen() {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Modal de sélection membres */}
                     <Modal
                         visible={showMemberPicker !== null}
                         transparent={true}
@@ -651,7 +638,6 @@ export default function GestionTourneeChambreScreen() {
                         </View>
                     </Modal>
 
-                    {/* Modal de sélection chambres */}
                     <Modal
                         visible={showRoomPicker !== null}
                         transparent={true}
@@ -878,7 +864,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 22,
     },
-    // Modal styles
     modalContainer: {
         flex: 1,
         backgroundColor: Colors.white,

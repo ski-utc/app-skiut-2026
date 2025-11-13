@@ -210,18 +210,6 @@ export default function ArticleCard({ article, onUpdate, showReserveButton = fal
                     </View>
                 )}
 
-                {/* {!isReservation && !isMyOffer && (
-                    <View style={styles.roomInfo}>
-                        <Text style={styles.roomLabel}>Chambre :</Text>
-                        <Text style={styles.roomName}>
-                            {article.giver_room
-                                ? `${article.giver_room.roomNumber} - ${article.giver_room.name}`
-                                : `Chambre ${article.giver_room_id}`
-                            }
-                        </Text>
-                    </View>
-                )} */}
-
                 {isMyOffer && article.receiver_room_id && (
                     <View style={styles.roomInfo}>
                         <Text style={styles.roomLabel}>Réservé par :</Text>

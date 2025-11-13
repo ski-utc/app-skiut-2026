@@ -143,16 +143,6 @@ export default function MyOffersScreen() {
                     <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
                 }
             >
-                {/* <View style={styles.headerSection}>
-                    <View style={styles.iconCircle}>
-                        <Package size={28} color={Colors.accent} />
-                    </View>
-                    <Text style={styles.title}>Mes propositions</Text>
-                    <Text style={styles.subtitle}>
-                        Articles que vous proposez aux autres chambres
-                    </Text>
-                </View> */}
-
                 {articles.length === 0 ? (
                     <View style={styles.emptyContainer}>
                         <Package size={48} color={Colors.muted} />

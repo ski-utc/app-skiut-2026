@@ -138,16 +138,6 @@ export default function MonoprutScreen() {
                     <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
                 }
             >
-                {/* <View style={styles.headerSection}>
-                    <View style={styles.iconCircle}>
-                        <UtensilsCrossed size={28} color={Colors.primary} />
-                    </View>
-                    <Text style={styles.title}>Articles disponibles</Text>
-                    <Text style={styles.subtitle}>
-                        Découvrez les aliments proposés par les autres chambres
-                    </Text>
-                </View> */}
-
                 {articles.length === 0 ? (
                     <View style={styles.emptyContainer}>
                         <UtensilsCrossed size={48} color={Colors.muted} />

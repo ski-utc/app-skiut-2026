@@ -145,7 +145,6 @@ export default function ValideDefisRapide() {
         try {
             const response = await apiGet('admin/challenges');
             if (response.success) {
-                // Filtrer pour n'avoir que les défis non validés et non supprimés
                 const pendingDefis = response.data.filter((d: any) => !d.valid && !d.delete);
 
                 if (pendingDefis.length > 0) {

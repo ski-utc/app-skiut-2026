@@ -161,8 +161,6 @@ function Content() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Afficher un indicateur de chargement supplémentaire si les notifications ne sont pas initialisées
-  // pour un utilisateur connecté
   const shouldShowLoadingForNotifications = user && !isInitialized && !isLoading;
 
   if (isLoading || shouldShowLoadingForNotifications) {

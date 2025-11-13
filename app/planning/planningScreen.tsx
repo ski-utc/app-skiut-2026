@@ -37,7 +37,6 @@ export default function PlanningScreen() {
     });
   };
 
-  // Fonction pour déterminer la date par défaut à afficher
   const getDefaultDate = (activitiesMap: { [key: string]: Activity[] }) => {
     const dates = Object.keys(activitiesMap).sort();
     if (dates.length === 0) return null;
@@ -45,12 +44,10 @@ export default function PlanningScreen() {
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
 
-    // Toujours retourner aujourd'hui s'il existe dans les dates
     if (dates.includes(todayStr)) {
       return todayStr;
     }
 
-    // Sinon, retourner la première date disponible
     return dates[0];
   };
 

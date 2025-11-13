@@ -14,7 +14,6 @@ export default function SkinderMyMatches() {
   const [matchedRooms, setMatchedRooms] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_selectedRoom, setSelectedRoom] = useState<any>(null);
   const [roomDetails, setRoomDetails] = useState({
     id: null,

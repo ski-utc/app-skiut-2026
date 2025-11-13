@@ -52,15 +52,6 @@ export default function LaunchScreen1() {
             Défis, planning, météo et bien plus encore.
           </Text>
 
-          {/* <TouchableOpacity
-            onPress={() => (navigation as any).navigate("launchScreen2")}
-            style={styles.nextButton}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.nextButtonText}>Commencer l'aventure</Text>
-            <ChevronRight size={20} color={Colors.white} />
-          </TouchableOpacity> */}
-
           <TouchableOpacity
             onPress={() => (navigation as any).navigate("loginScreen")}
             style={styles.skipButton}

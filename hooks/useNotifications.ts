@@ -120,7 +120,6 @@ export const useNotifications = () => {
         }
     }, [notificationService]);
 
-    // Auto-initialisation quand l'utilisateur se connecte
     useEffect(() => {
         let timeoutId: NodeJS.Timeout;
 

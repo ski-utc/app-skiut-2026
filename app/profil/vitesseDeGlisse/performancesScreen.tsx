@@ -202,7 +202,6 @@ export default function PerformancesScreen() {
         try {
             const response = await apiGet(`classement-performances?type=${rankingType}`);
             if (response.success && response.data) {
-                // Format nouveau : objet avec positions en clés
                 const allPerformances = Object.values(response.data as any[]);
                 const podiumData = allPerformances.slice(0, 3);
                 const restData = allPerformances.slice(3);

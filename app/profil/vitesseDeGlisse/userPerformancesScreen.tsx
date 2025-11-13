@@ -193,7 +193,6 @@ export default function UserPerformancesScreen() {
             </View>
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-                {/* Statistiques globales */}
                 {stats && (
                     <View style={styles.statsSection}>
                         <Text style={styles.sectionTitle}>Statistiques globales</Text>
@@ -239,12 +238,11 @@ export default function UserPerformancesScreen() {
                             title="Meilleure vitesse moyenne"
                             value={stats.best_average_speed.toFixed(1)}
                             unit="km/h"
-                            color={Colors.warning}
+                            color={Colors.error}
                         />
                     </View>
                 )}
 
-                {/* Liste des sessions */}
                 <View style={styles.sessionsSection}>
                     <Text style={styles.sectionTitle}>
                         Vos enregistrements ({sessions.length})

@@ -234,7 +234,7 @@ export default function SkinderProfil() {
     >
       <Header refreshFunction={null} disableRefresh={true} />
       <View style={styles.headerContainer}>
-        <BoutonRetour previousRoute={'homeNavigator'} title={'Modifier mon profil'} />
+        <BoutonRetour previousRoute={'homeNavigator'} title={'Informations de ma chambre'} />
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>

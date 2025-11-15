@@ -363,13 +363,13 @@ export default function SkinderDiscover() {
                         <User size={64} color={Colors.lightMuted} />
                         <Text style={styles.emptyStateTitle}>Photo requise</Text>
                         <Text style={styles.emptyStateText}>
-                            Ajoutez une photo de profil pour commencer à utiliser Skinder
+                            Définissez les informations de votre chambre et ajoutez une photo de profil pour commencer à utiliser Skinder
                         </Text>
                         <TouchableOpacity
                             onPress={() => (navigation as any).navigate('skinderProfil')}
                             style={styles.actionButton}
                         >
-                            <Text style={styles.actionButtonText}>Ajouter une photo</Text>
+                            <Text style={styles.actionButtonText}>Modifier mon profil</Text>
                         </TouchableOpacity>
                     </View>
                 )}

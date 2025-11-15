@@ -327,7 +327,7 @@ export default function DefisInfos() {
         flex: 1,
         backgroundColor: Colors.white,
       }}>
-        <Header refreshFunction={undefined} disableRefresh={true} />
+        <Header refreshFunction={null} disableRefresh={undefined} />
         <View style={{
           width: '100%',
           flex: 1,
@@ -346,7 +346,7 @@ export default function DefisInfos() {
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.white }}>
-      <Header refreshFunction={undefined} disableRefresh={undefined} />
+      <Header refreshFunction={null} disableRefresh={undefined} />
       <View style={{ width: '100%', paddingHorizontal: 20, paddingRight: 30 }}>
         <BoutonRetour previousRoute="defisScreen" title={title} />
       </View>

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { GanttChart, Bell, RotateCcw } from 'lucide-react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
@@ -65,20 +65,7 @@ const Header: React.FC<HeaderProps> = React.memo(({ refreshFunction, disableRefr
       </View>
       {refreshFunction === null ? null :
         <TouchableOpacity
-          style={{
-            position: 'absolute',
-            //top: Platform.OS === 'ios' ? 60 : 20,
-            top: 60,
-            right: 70,
-            width: 40,
-            height: 40,
-            borderRadius: 8,
-            borderWidth: 1,
-            opacity: disableRefresh ? 0.4 : 1,
-            borderColor: Colors.muted,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
+          style={styles.refreshButton}
           onPress={refreshFunction}
           disabled={disableRefresh}
         >
@@ -104,8 +91,7 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     backgroundColor: Colors.white,
-    //paddingTop: Platform.OS === 'ios' ? 50 : 20,
-    paddingTop: 50,
+    paddingTop: Platform.OS === 'ios' ? 50 : 40,
     paddingBottom: 20,
     paddingLeft: 20,
     paddingRight: 20,
@@ -144,10 +130,22 @@ const styles = StyleSheet.create({
     ...TextStyles.small,
     color: Colors.muted,
   },
+  refreshButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 40,
+    right: 70,
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    borderWidth: 1,
+    opacity: disableRefresh ? 0.4 : 1,
+    borderColor: Colors.muted,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   bellButton: {
     position: 'absolute',
-    //top: Platform.OS === 'ios' ? 60 : 20,
-    top: 60,
+    top: Platform.OS === 'ios' ? 60 : 40,
     right: 20,
     width: 40,
     height: 40,

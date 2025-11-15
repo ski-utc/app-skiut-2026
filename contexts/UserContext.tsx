@@ -46,6 +46,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await saveUser(null);
     await SecureStore.deleteItemAsync('accessToken');
     await SecureStore.deleteItemAsync('refreshToken');
+    await AsyncStorage.removeItem('notificationsRegistered');
   }, [saveUser]);
 
   const contextValue = React.useMemo(

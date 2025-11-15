@@ -3,6 +3,7 @@ import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import { apiPost } from '@/constants/api/apiCalls';
 import Constants from 'expo-constants';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -68,6 +69,7 @@ export class NotificationService {
             this.setupNotificationListeners();
 
             this.isInitialized = true;
+            await AsyncStorage.setItem('notificationsRegistered', 'true');
             console.log('Service de notifications initialisé avec succès');
             return true;
 

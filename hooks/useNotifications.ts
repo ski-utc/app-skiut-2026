@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { NotificationService } from '../services/NotificationService';
 import { useUser } from '@/contexts/UserContext';
 import Toast from 'react-native-toast-message';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const useNotifications = () => {
     const [isInitialized, setIsInitialized] = useState(false);
@@ -11,8 +12,33 @@ export const useNotifications = () => {
 
     const notificationService = NotificationService.getInstance();
 
+    useEffect(() => {
+        const loadInitialState = async () => {
+            try {
+                const notificationsRegistered = await AsyncStorage.getItem('notificationsRegistered');
+                if (notificationsRegistered === 'true') {
+                    setIsInitialized(true);
+                    console.log('[useNotifications] Notifications déjà enregistrées - isInitialized = true');
+                } else {
+                    setIsInitialized(false);
+                }
+            } catch (error) {
+                setIsInitialized(false);
+                console.error('[useNotifications] Erreur lors du chargement de l\'état initial:', error);
+            }
+        };
+        loadInitialState();
+    }, []);
+
     const initializeNotifications = useCallback(async () => {
         if (!user || isInitialized) {
+            return;
+        }
+
+        const notificationsRegistered = await AsyncStorage.getItem('notificationsRegistered');
+        if (notificationsRegistered === 'true') {
+            console.log('[useNotifications] Notifications déjà enregistrées - pas de ré-initialisation');
+            setIsInitialized(true);
             return;
         }
 
@@ -20,9 +46,11 @@ export const useNotifications = () => {
             console.log('[useNotifications] Début initialisation...');
             const success = await notificationService.initialize();
             console.log('[useNotifications] Initialisation terminée, success:', success);
-            setIsInitialized(success);
 
             if (success) {
+                await AsyncStorage.setItem('notificationsRegistered', 'true');
+                setIsInitialized(true);
+
                 const status = await notificationService.getPermissionStatus();
                 const token = notificationService.getPushToken();
 
@@ -34,6 +62,8 @@ export const useNotifications = () => {
                 } else {
                     console.warn('[useNotifications] Aucun token push obtenu');
                 }
+            } else {
+                setIsInitialized(true);
             }
         } catch (error: any) {
             console.error('[useNotifications] Erreur initialisation notifications:', error);

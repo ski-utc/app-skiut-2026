@@ -17,7 +17,7 @@ const refreshTokens = async () => {
     return true;
   } catch (_e) {
     await SecureStore.setItemAsync("accessToken", "");
-    Alert.alert("Déconnexion", "Vous avez été déconnecté.", [{ text: "Ok" }]);
+    // Alert.alert("Déconnexion", "Vous avez été déconnecté.", [{ text: "Ok" }]);
     throw new Error('NoRefreshTokenError');
   }
 };

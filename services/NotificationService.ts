@@ -2,6 +2,7 @@ import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import { apiPost } from '@/constants/api/apiCalls';
+import Constants from 'expo-constants';
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -103,7 +104,7 @@ export class NotificationService {
     private async getExpoPushToken(): Promise<string | null> {
         try {
             const token = await Notifications.getExpoPushTokenAsync({
-                projectId: 'f03f1a56-74c7-4c87-a0b2-60b420f7de94',
+                projectId: Constants.expoConfig?.extra?.eas?.projectId || 'f03f1a56-74c7-4c87-a0b2-60b420f7de94',
             });
             this.pushToken = token.data;
             return token.data;

@@ -1,4 +1,4 @@
-import { View, StyleSheet, Text, FlatList, ActivityIndicator, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Text, FlatList, ActivityIndicator, TouchableOpacity, Modal, ScrollView } from "react-native";
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import React, { useState, useCallback, useEffect } from 'react';
 import Header from "@/components/header";
@@ -6,7 +6,7 @@ import ErrorScreen from "@/components/pages/errorPage";
 import BoutonRetour from "@/components/divers/boutonRetour";
 import { apiGet } from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
-import { Calendar, Clock, MapPin, HousePlus } from 'lucide-react-native';
+import { Calendar, Clock, MapPin, HousePlus, Info, X, User, Timer } from 'lucide-react-native';
 
 interface Activity {
   activity: string;
@@ -17,6 +17,30 @@ interface Activity {
   payant: boolean;
   status: 'past' | 'current' | 'future';
   is_permanence: boolean;
+  permanence_data?: {
+    id: number;
+    name: string;
+    description?: string;
+    location?: string;
+    status: string;
+  };
+}
+
+interface PermanenceDetails {
+  id: number;
+  name: string;
+  start_datetime: string;
+  end_datetime: string;
+  location: string;
+  status: string;
+  is_responsible: boolean;
+  responsible: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  duration_minutes: number;
+  notes: string;
 }
 
 export default function PlanningScreen() {
@@ -27,6 +51,10 @@ export default function PlanningScreen() {
   const [error, setError] = useState<string>("");
   const [disableRefresh, setDisableRefresh] = useState(false);
   const { setUser } = useUser();
+
+  const [showPermanenceModal, setShowPermanenceModal] = useState<boolean>(false);
+  const [permanenceDetails, setPermanenceDetails] = useState<PermanenceDetails | null>(null);
+  const [loadingPermanence, setLoadingPermanence] = useState<boolean>(false);
 
 
   const sortActivitiesByTime = (activities: Activity[]) => {
@@ -99,6 +127,34 @@ export default function PlanningScreen() {
     },
     []
   );
+
+  const handlePermanencePress = useCallback(async (permanenceId: number) => {
+    setLoadingPermanence(true);
+    setShowPermanenceModal(true);
+    try {
+      const response = await apiGet(`permanences/${permanenceId}`);
+      if (response.success) {
+        setPermanenceDetails(response.data);
+      } else {
+        setError("Erreur lors de la récupération des détails de la permanence");
+        setShowPermanenceModal(false);
+      }
+    } catch (error: any) {
+      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        setUser(null);
+      } else {
+        setError(error.message || "Une erreur inattendue est survenue");
+      }
+      setShowPermanenceModal(false);
+    } finally {
+      setLoadingPermanence(false);
+    }
+  }, [setUser]);
+
+  const closePermanenceModal = useCallback(() => {
+    setShowPermanenceModal(false);
+    setPermanenceDetails(null);
+  }, []);
 
   const selectedActivities = activitiesMap[selectedDate] || [];
 
@@ -215,11 +271,15 @@ export default function PlanningScreen() {
                         </Text>
                       </View>
                     </View>
-                    {isPermanence && (
-                      <View style={styles.permanenceIcon}>
+                    {isPermanence && activity.permanence_data && (
+                      <TouchableOpacity
+                        style={styles.permanenceButton}
+                        onPress={() => handlePermanencePress(activity.permanence_data!.id)}
+                      >
                         <HousePlus size={18} color={Colors.primary} />
-                        <Text style={[styles.activityTimeText, { ...TextStyles.body }]}>Perm</Text>
-                      </View>
+                        <Text style={[styles.permanenceButtonText, { ...TextStyles.body }]}>Perm</Text>
+                        <Info size={16} color={Colors.primary} />
+                      </TouchableOpacity>
                     )}
                   </View>
                 );
@@ -276,6 +336,121 @@ export default function PlanningScreen() {
         renderItem={renderItem}
         contentContainerStyle={styles.listContainer}
       />
+
+      <Modal
+        visible={showPermanenceModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={closePermanenceModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <View style={styles.modalHeaderContent}>
+                <HousePlus size={28} color={Colors.primary} />
+                <Text style={styles.modalTitle}>{permanenceDetails?.name ? permanenceDetails.name : 'Permanence'}</Text>
+              </View>
+              <TouchableOpacity onPress={closePermanenceModal} style={styles.closeButton}>
+                <X size={24} color={Colors.primaryBorder} />
+              </TouchableOpacity>
+            </View>
+
+            {loadingPermanence ? (
+              <View style={styles.modalLoading}>
+                <ActivityIndicator size="large" color={Colors.primary} />
+                <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+                  Chargement...
+                </Text>
+              </View>
+            ) : permanenceDetails ? (
+              <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+                <View style={styles.detailSection}>
+                  {/* <View style={[
+                    styles.statusBadgeContainer,
+                    {
+                      backgroundColor: permanenceDetails.status === 'completed' ? Colors.success :
+                        permanenceDetails.status === 'in_progress' ? Colors.primary :
+                          permanenceDetails.status === 'cancelled' ? Colors.error :
+                            Colors.muted
+                    }
+                  ]}>
+                    <Text style={styles.statusBadgeText}>
+                      {permanenceDetails.status === 'completed' ? 'Terminée' :
+                        permanenceDetails.status === 'in_progress' ? 'En cours' :
+                          permanenceDetails.status === 'cancelled' ? 'Annulée' :
+                            'Planifiée'}
+                    </Text>
+                  </View> */}
+
+                  <View style={styles.detailCard}>
+                    <View style={styles.detailCardHeader}>
+                      <Clock size={20} color={Colors.primary} strokeWidth={2.5} />
+                      <Text style={styles.detailCardTitle}>Horaires</Text>
+                    </View>
+                    <View style={styles.detailCardContent}>
+                      <Text style={styles.detailValue}>
+                        {new Date(permanenceDetails.start_datetime).toLocaleDateString('fr-FR', {
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'long'
+                        }).charAt(0).toUpperCase() + new Date(permanenceDetails.start_datetime).toLocaleDateString('fr-FR', {
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'long'
+                        }).slice(1)}
+                      </Text>
+                      <View style={styles.timeRow}>
+                        <Text style={styles.timeValue}>
+                          {new Date(permanenceDetails.start_datetime).toLocaleTimeString('fr-FR', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </Text>
+                        <Text style={styles.detailSeparator}>→</Text>
+                        <Text style={styles.timeValue}>
+                          {new Date(permanenceDetails.end_datetime).toLocaleTimeString('fr-FR', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </Text>
+                      </View>
+                      <View style={styles.durationBadge}>
+                        <Timer size={14} color={Colors.primary} strokeWidth={2.5} />
+                        <Text style={styles.durationText}>
+                          {Math.floor(permanenceDetails.duration_minutes / 60)}h
+                          {permanenceDetails.duration_minutes % 60 > 0 && ` ${permanenceDetails.duration_minutes % 60}min`}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {permanenceDetails.location && (
+                    <View style={styles.detailCard}>
+                      <View style={styles.detailCardHeader}>
+                        <MapPin size={20} color={Colors.primary} strokeWidth={2.5} />
+                        <Text style={styles.detailCardTitle}>Lieu</Text>
+                      </View>
+                      <View style={styles.detailCardContent}>
+                        <Text style={styles.detailValue}>{permanenceDetails.location}</Text>
+                      </View>
+                    </View>
+                  )}
+
+                  {permanenceDetails.notes && (
+                    <View style={styles.notesCard}>
+                      <View style={styles.detailCardHeader}>
+                        <Info size={20} color={Colors.primary} strokeWidth={2.5} />
+                        <Text style={styles.detailCardTitle}>Notes</Text>
+                      </View>
+                      <Text style={styles.notesText}>{permanenceDetails.notes}</Text>
+                    </View>
+                  )}
+                </View>
+              </ScrollView>
+            ) : null}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -409,14 +584,20 @@ const styles = StyleSheet.create({
     ...TextStyles.small,
     color: Colors.muted,
   },
-  permanenceIcon: {
+  permanenceButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    position: 'absolute',
-    right: 16,
-    top: '50%',
-    transform: [{ translateY: -9 }],
+    backgroundColor: Colors.lightMuted,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  permanenceButtonText: {
+    color: Colors.primary,
+    fontWeight: '600',
   },
   noActivitiesContainer: {
     justifyContent: 'center',
@@ -447,5 +628,141 @@ const styles = StyleSheet.create({
     color: Colors.muted,
     marginTop: 12,
     lineHeight: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 12,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.lightMuted,
+  },
+  modalHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  modalTitle: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+  },
+  closeButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.lightMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalLoading: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  modalContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+  detailSection: {
+    gap: 16,
+    paddingBottom: 20,
+  },
+  statusBadgeContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  detailCard: {
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.lightMuted,
+    borderRadius: 12,
+    padding: 16,
+    gap: 12,
+  },
+  detailCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 4,
+  },
+  detailCardTitle: {
+    ...TextStyles.bodyBold,
+    color: Colors.primaryBorder,
+    fontSize: 16,
+  },
+  detailCardContent: {
+    gap: 8,
+  },
+  detailValue: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    lineHeight: 22,
+  },
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 4,
+  },
+  timeValue: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
+    fontSize: 18,
+  },
+  detailSeparator: {
+    ...TextStyles.body,
+    color: Colors.primary,
+    fontSize: 20,
+  },
+  durationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Colors.lightMuted,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    marginTop: 8,
+  },
+  durationText: {
+    ...TextStyles.small,
+    color: Colors.primaryBorder,
+    fontWeight: '600',
+  },
+  notesCard: {
+    backgroundColor: Colors.lightMuted,
+    padding: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  notesText: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    lineHeight: 22,
+  },
+  statusBadgeText: {
+    ...TextStyles.bodyBold,
+    color: Colors.white,
+    fontSize: 14,
   },
 });

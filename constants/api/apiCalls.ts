@@ -218,6 +218,7 @@ export const syncPendingRequests = async () => {
       }
       results.failed++;
     }
+    setTimeout(() => { return; }, 1000);
   }
 
   return results;

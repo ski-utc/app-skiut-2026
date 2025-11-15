@@ -322,29 +322,42 @@ export default function DefisInfos() {
       <View style={{ width: '100%', paddingHorizontal: 20, paddingRight: 30 }}>
         <BoutonRetour previousRoute="defisScreen" title={title} />
       </View>
-      <View style={{ width: '100%', paddingHorizontal: 20 }}>
+      <View style={{ width: '100%', paddingHorizontal: 20, marginBottom: 32 }}>
         <Text style={{ ...TextStyles.h2Bold, color: Colors.primaryBorder }}>
           Points : {points}
         </Text>
       </View>
 
-      <View style={{ width: '100%', height: '60%', justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ width: '100%', paddingHorizontal: 20 }}>
         <TouchableOpacity
           onPress={status === 'empty' ? handleMediaPick : toggleModal}
-          style={{ justifyContent: 'center', alignItems: 'center', width: '100%', height: '80%', position: 'relative' }}
+          style={{
+            width: '100%',
+            backgroundColor: Colors.white,
+            borderRadius: 14,
+            borderWidth: 1,
+            borderColor: 'rgba(0,0,0,0.06)',
+            shadowColor: '#000',
+            shadowOpacity: 0.08,
+            shadowOffset: { width: 2, height: 3 },
+            shadowRadius: 5,
+            elevation: 3,
+            padding: 16,
+          }}
           disabled={(challengeSent && status === 'empty') || isCompressing || isUploading}
           activeOpacity={0.8}
         >
           {networkError ? (
             <View style={{
-              width: '90%',
+              width: '100%',
               aspectRatio: 1,
-              borderWidth: 2,
-              borderColor: Colors.primaryBorder,
-              borderRadius: 20,
+              borderWidth: 1,
+              borderColor: Colors.lightMuted,
+              borderRadius: 12,
               justifyContent: 'center',
               alignItems: 'center',
               padding: 40,
+              backgroundColor: Colors.white,
             }}>
               <CloudOff size={80} color={Colors.muted} />
               <Text style={{
@@ -366,69 +379,36 @@ export default function DefisInfos() {
               </Text>
             </View>
           ) : proofMedia ? (
-            <View style={{ width: '100%', height: '100%', position: 'relative', justifyContent: 'center', alignItems: 'center', marginTop: 32 }}>
+            <View style={{
+              width: '100%',
+              aspectRatio: 1,
+              borderRadius: 12,
+              overflow: 'hidden',
+              position: 'relative',
+            }}>
               {mediaType === 'video' ? (
-                <View style={{ width: '100%', aspectRatio: mediaAspectRatio, maxHeight: '100%', borderRadius: 25, overflow: 'hidden' }}>
-                  <Video
-                    ref={setVideoRef}
-                    source={{ uri: proofMedia }}
-                    style={{ width: '100%', height: '100%' }}
-                    resizeMode={ResizeMode.CONTAIN}
-                    shouldPlay={isPlaying}
-                    isLooping={false}
-                    onError={() => setNetworkError(true)}
-                  />
-                  {!isPlaying && (
-                    <TouchableOpacity
-                      style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: [{ translateX: -30 }, { translateY: -30 }],
-                        width: 60,
-                        height: 60,
-                        borderRadius: 30,
-                        backgroundColor: 'rgba(0,0,0,0.7)',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                      }}
-                      onPress={() => setIsPlaying(true)}
-                    >
-                      <Play size={28} color={Colors.white} />
-                    </TouchableOpacity>
-                  )}
-                  {isPlaying && (
-                    <TouchableOpacity
-                      style={{
-                        position: 'absolute',
-                        top: 20,
-                        right: 20,
-                        width: 40,
-                        height: 40,
-                        borderRadius: 20,
-                        backgroundColor: 'rgba(0,0,0,0.7)',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                      }}
-                      onPress={() => setIsPlaying(false)}
-                    >
-                      <Pause size={20} color={Colors.white} />
-                    </TouchableOpacity>
-                  )}
-                </View>
+                <Video
+                  ref={setVideoRef}
+                  source={{ uri: proofMedia }}
+                  style={{ width: '100%', height: '100%' }}
+                  resizeMode={ResizeMode.COVER}
+                  shouldPlay={isPlaying}
+                  isLooping={false}
+                  onError={() => setNetworkError(true)}
+                />
               ) : (
                 <Image
                   source={{ uri: proofMedia }}
-                  style={{ width: '100%', aspectRatio: mediaAspectRatio, maxHeight: '100%', borderRadius: 25 }}
-                  resizeMode="contain"
+                  style={{ width: '100%', height: '100%' }}
+                  resizeMode="cover"
                   onError={() => setNetworkError(true)}
                 />
               )}
 
               <View style={{
                 position: 'absolute',
-                top: 20,
-                left: 20,
+                top: 12,
+                left: 12,
                 backgroundColor: 'rgba(0,0,0,0.7)',
                 paddingVertical: 4,
                 paddingHorizontal: 8,
@@ -451,10 +431,49 @@ export default function DefisInfos() {
                 </Text>
               </View>
 
+              {mediaType === 'video' && !isPlaying && (
+                <TouchableOpacity
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: [{ translateX: -30 }, { translateY: -30 }],
+                    width: 60,
+                    height: 60,
+                    borderRadius: 30,
+                    backgroundColor: 'rgba(0,0,0,0.7)',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                  onPress={() => setIsPlaying(true)}
+                >
+                  <Play size={28} color={Colors.white} />
+                </TouchableOpacity>
+              )}
+
+              {mediaType === 'video' && isPlaying && (
+                <TouchableOpacity
+                  style={{
+                    position: 'absolute',
+                    top: 12,
+                    right: 12,
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: 'rgba(0,0,0,0.7)',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                  onPress={() => setIsPlaying(false)}
+                >
+                  <Pause size={20} color={Colors.white} />
+                </TouchableOpacity>
+              )}
+
               {status !== 'empty' && !isCompressing && !isUploading && (
                 <View style={{
                   position: 'absolute',
-                  bottom: 20,
+                  bottom: 0,
                   left: 0,
                   right: 0,
                   backgroundColor: 'rgba(0,0,0,0.5)',
@@ -463,8 +482,6 @@ export default function DefisInfos() {
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  borderRadius: 8,
-                  marginHorizontal: 20,
                 }}>
                   <Maximize size={16} color={Colors.white} />
                   <Text style={{
@@ -476,6 +493,7 @@ export default function DefisInfos() {
                   }}>Appuyez pour agrandir</Text>
                 </View>
               )}
+
               {(isCompressing || isUploading) && (
                 <View style={{
                   position: 'absolute',
@@ -486,7 +504,6 @@ export default function DefisInfos() {
                   backgroundColor: 'rgba(0,0,0,0.6)',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  borderRadius: 25,
                 }}>
                   <ActivityIndicator size="large" color={Colors.white} />
                   <Text style={{
@@ -501,7 +518,12 @@ export default function DefisInfos() {
               )}
             </View>
           ) : (isCompressing || isUploading) ? (
-            <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+            <View style={{
+              width: '100%',
+              aspectRatio: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
               <ActivityIndicator size="large" color={Colors.primaryBorder} />
               <Text style={{
                 ...TextStyles.body,
@@ -513,11 +535,11 @@ export default function DefisInfos() {
             </View>
           ) : (
             <View style={{
-              width: '90%',
+              width: '100%',
               aspectRatio: 1,
               borderWidth: 2,
               borderColor: Colors.primaryBorder,
-              borderRadius: 20,
+              borderRadius: 12,
               borderStyle: 'dashed',
               justifyContent: 'center',
               alignItems: 'center',

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Ref
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { UtensilsCrossed, Plus } from 'lucide-react-native';
+import { UtensilsCrossed, Plus, ShoppingBag, Clock, Package } from 'lucide-react-native';
 import { apiGet } from '@/constants/api/apiCalls';
 import Toast from 'react-native-toast-message';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -111,8 +111,9 @@ export default function MonoprutScreen() {
                     style={[styles.navButton, styles.navButtonActive]}
                     activeOpacity={0.7}
                 >
+                    <ShoppingBag size={18} color={Colors.white} strokeWidth={2.5} />
                     <Text style={[styles.navButtonText, styles.navButtonTextActive]}>
-                        Articles disponibles
+                        Disponibles
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -120,14 +121,16 @@ export default function MonoprutScreen() {
                     onPress={() => navigation.navigate('MyReservationsScreen')}
                     activeOpacity={0.7}
                 >
-                    <Text style={styles.navButtonText}>Mes réservations</Text>
+                    <Clock size={18} color={Colors.primaryBorder} strokeWidth={2.5} />
+                    <Text style={styles.navButtonText}>Réservations</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.navButton}
                     onPress={() => navigation.navigate('MyOffersScreen')}
                     activeOpacity={0.7}
                 >
-                    <Text style={styles.navButtonText}>Mes propositions</Text>
+                    <Package size={18} color={Colors.primaryBorder} strokeWidth={2.5} />
+                    <Text style={styles.navButtonText}>Propositions</Text>
                 </TouchableOpacity>
             </View>
 
@@ -205,30 +208,44 @@ const styles = StyleSheet.create({
     navigationBar: {
         flexDirection: 'row',
         paddingHorizontal: 20,
-        paddingBottom: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.lightMuted,
-        gap: 8,
+        paddingVertical: 12,
+        marginBottom: 4,
+        gap: 10,
     },
     navButton: {
         flex: 1,
-        paddingVertical: 10,
-        paddingHorizontal: 12,
-        borderRadius: 8,
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        paddingVertical: 12,
+        paddingHorizontal: 8,
+        borderRadius: 12,
         backgroundColor: Colors.white,
         borderWidth: 1,
         borderColor: Colors.lightMuted,
-        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+        elevation: 3,
     },
     navButtonActive: {
         backgroundColor: Colors.primary,
-        borderColor: Colors.primaryBorder,
+        borderColor: Colors.primary,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 6,
+        elevation: 6,
     },
     navButtonText: {
         ...TextStyles.small,
+        fontSize: 11,
         color: Colors.primaryBorder,
         fontWeight: '600',
         textAlign: 'center',
+        lineHeight: 14,
     },
     navButtonTextActive: {
         color: Colors.white,

@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     },
     header: {
         backgroundColor: Colors.primary,
-        paddingTop: 60,
+        paddingTop: 40,
         paddingBottom: 40,
         paddingHorizontal: 20,
         position: 'relative',

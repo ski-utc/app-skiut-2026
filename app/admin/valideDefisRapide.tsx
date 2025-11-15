@@ -184,6 +184,13 @@ export default function ValideDefisRapide() {
                     text2: `${defi.user.firstName} ${defi.user.lastName}`,
                 });
                 fetchNextDefi();
+            } else if (response.pending) {
+                Toast.show({
+                    type: 'info',
+                    text1: 'Requête sauvegardée',
+                    text2: response.message,
+                });
+                fetchNextDefi();
             } else {
                 Toast.show({
                     type: 'error',
@@ -221,6 +228,13 @@ export default function ValideDefisRapide() {
                     type: 'success',
                     text1: 'Défi refusé',
                     text2: `${defi.user.firstName} ${defi.user.lastName}`,
+                });
+                fetchNextDefi();
+            } else if (response.pending) {
+                Toast.show({
+                    type: 'info',
+                    text1: 'Requête sauvegardée',
+                    text2: response.message,
                 });
                 fetchNextDefi();
             } else {

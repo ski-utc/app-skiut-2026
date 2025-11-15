@@ -30,6 +30,7 @@ import {
     ChevronUp,
     GripVertical,
 } from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
 
 interface Visit {
     id: number;
@@ -158,11 +159,26 @@ export default function TourneeChambreScreen() {
                     )
                 );
                 fetchTourData();
+            } else if (response.pending) {
+                Toast.show({
+                    type: 'info',
+                    text1: 'Requête sauvegardée',
+                    text2: response.message,
+                });
+                fetchTourData();
             } else {
-                Alert.alert('Erreur', response.message || 'Impossible de marquer la chambre comme visitée');
+                Toast.show({
+                    type: 'error',
+                    text1: 'Erreur',
+                    text2: response.message || 'Impossible de marquer la chambre comme visitée',
+                });
             }
         } catch (error: any) {
-            Alert.alert('Erreur', error.message || 'Une erreur est survenue');
+            Toast.show({
+                type: 'error',
+                text1: 'Erreur',
+                text2: error.message || 'Une erreur est survenue',
+            });
         }
     };
 
@@ -189,10 +205,18 @@ export default function TourneeChambreScreen() {
                                 );
                                 fetchTourData();
                             } else {
-                                Alert.alert('Erreur', response.message || 'Impossible d\'annuler la visite');
+                                Toast.show({
+                                    type: 'error',
+                                    text1: 'Erreur',
+                                    text2: response.message || 'Impossible d\'annuler la visite',
+                                });
                             }
                         } catch (error: any) {
-                            Alert.alert('Erreur', error.message || 'Une erreur est survenue');
+                            Toast.show({
+                                type: 'error',
+                                text1: 'Erreur',
+                                text2: error.message || 'Une erreur est survenue',
+                            });
                         }
                     }
                 }
@@ -221,8 +245,19 @@ export default function TourneeChambreScreen() {
                 setHasChanges(false);
                 Alert.alert('Succès', 'L\'ordre des chambres a été enregistré');
                 fetchTourData();
+            } else if (response.pending) {
+                Toast.show({
+                    type: 'info',
+                    text1: 'Requête sauvegardée',
+                    text2: response.message,
+                });
+                fetchTourData();
             } else {
-                Alert.alert('Erreur', response.message || 'Impossible d\'enregistrer l\'ordre');
+                Toast.show({
+                    type: 'error',
+                    text1: 'Erreur',
+                    text2: response.message,
+                });
             }
         } catch (error: any) {
             Alert.alert('Erreur', error.message || 'Une erreur est survenue');

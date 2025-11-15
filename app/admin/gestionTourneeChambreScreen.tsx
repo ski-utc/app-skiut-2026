@@ -199,6 +199,15 @@ export default function GestionTourneeChambreScreen() {
                 setShowCreateModal(false);
                 resetForm();
                 fetchData();
+            } else if (response.pending) {
+                Toast.show({
+                    type: 'info',
+                    text1: 'Requête sauvegardée',
+                    text2: response.message,
+                });
+                setShowCreateModal(false);
+                resetForm();
+                fetchData();
             } else {
                 Toast.show({
                     type: 'error',
@@ -240,6 +249,13 @@ export default function GestionTourneeChambreScreen() {
                                     text2: response.message,
                                 });
                                 fetchData();
+                            } else if (response.pending) {
+                                Toast.show({
+                                    type: 'info',
+                                    text1: 'Requête sauvegardée',
+                                    text2: response.message,
+                                });
+                                fetchData();
                             } else {
                                 Toast.show({
                                     type: 'error',
@@ -278,6 +294,13 @@ export default function GestionTourneeChambreScreen() {
                                     type: 'success',
                                     text1: 'Succès',
                                     text2: 'Tournée supprimée avec succès.',
+                                });
+                                fetchData();
+                            } else if (response.pending) {
+                                Toast.show({
+                                    type: 'info',
+                                    text1: 'Requête sauvegardée',
+                                    text2: response.message,
                                 });
                                 fetchData();
                             } else {

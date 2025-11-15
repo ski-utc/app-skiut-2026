@@ -108,6 +108,13 @@ export default function ArticleCard({ article, onUpdate, showReserveButton = fal
                                     text2: 'L\'article a été réservé avec succès.',
                                 });
                                 onUpdate();
+                            }
+                            else if (response.pending) {
+                                Toast.show({
+                                    type: 'info',
+                                    text1: 'Requête sauvegardée',
+                                    text2: response.message,
+                                });
                             } else {
                                 Toast.show({
                                     type: 'error',
@@ -147,6 +154,12 @@ export default function ArticleCard({ article, onUpdate, showReserveButton = fal
                                     text2: 'L\'article a été supprimé avec succès.',
                                 });
                                 onUpdate();
+                            } else if (response.pending) {
+                                Toast.show({
+                                    type: 'info',
+                                    text1: 'Requête sauvegardée',
+                                    text2: response.message,
+                                });
                             } else {
                                 Toast.show({
                                     type: 'error',

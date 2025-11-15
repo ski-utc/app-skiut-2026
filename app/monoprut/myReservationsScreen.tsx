@@ -82,6 +82,13 @@ export default function MyReservationsScreen() {
                     text2: 'Article marqué comme récupéré',
                 });
                 setArticles(articles.filter(a => a.id !== articleId));
+            } else if (response.pending) {
+                Toast.show({
+                    type: 'info',
+                    text1: 'Requête sauvegardée',
+                    text2: response.message,
+                });
+                setArticles(articles.filter(a => a.id !== articleId));
             } else {
                 Toast.show({
                     type: 'error',
@@ -106,6 +113,13 @@ export default function MyReservationsScreen() {
                     type: 'success',
                     text1: 'Succès',
                     text2: 'Réservation annulée',
+                });
+                setArticles(articles.filter(a => a.id !== articleId));
+            } else if (response.pending) {
+                Toast.show({
+                    type: 'info',
+                    text1: 'Requête sauvegardée',
+                    text2: response.message,
                 });
                 setArticles(articles.filter(a => a.id !== articleId));
             } else {

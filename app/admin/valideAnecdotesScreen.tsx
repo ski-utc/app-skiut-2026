@@ -77,6 +77,18 @@ export default function ValideAnecdotes() {
           text2: response.message,
         });
         navigation.goBack();
+      } else if (response.pending) {
+        setAnecdoteDetails(prevDetails => prevDetails ? ({
+          ...prevDetails,
+          valid: isValid,
+        }) : null);
+
+        Toast.show({
+          type: 'info',
+          text1: 'Requête sauvegardée',
+          text2: response.message,
+        });
+        navigation.goBack();
       } else {
         Toast.show({
           type: 'error',

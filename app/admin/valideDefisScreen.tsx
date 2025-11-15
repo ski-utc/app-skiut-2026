@@ -77,6 +77,13 @@ export default function ValideDefis() {
           text2: response.message,
         });
         navigation.goBack();
+      } else if (response.pending) {
+        Toast.show({
+          type: 'info',
+          text1: 'Requête sauvegardée',
+          text2: response.message,
+        });
+        navigation.goBack();
       } else {
         Toast.show({
           type: 'error',

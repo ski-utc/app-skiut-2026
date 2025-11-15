@@ -217,6 +217,21 @@ export default function DefisInfos() {
           text2: response.message,
         });
         setChallengeSent(true);
+      } else if (response.pending) {
+        setStatus('pending');
+        try {
+          if (route.params?.onUpdate) {
+            route.params.onUpdate(id, 'pending');
+          }
+        } catch (error: any) {
+          setError(error.message || 'Erreur lors de la mise à jour du défi');
+        }
+        Toast.show({
+          type: 'success',
+          text1: 'Requête sauvegardée',
+          text2: response.message,
+        });
+        setChallengeSent(true);
       } else {
         Toast.show({
           type: 'error',
@@ -266,6 +281,19 @@ export default function DefisInfos() {
                 Toast.show({
                   type: 'success',
                   text1: 'Défi supprimé !',
+                  text2: response.message,
+                });
+              } else if (response.pending) {
+                setProofMedia(null);
+                setMediaType('image');
+                setStatus('empty');
+                if (route.params?.onUpdate) {
+                  route.params.onUpdate(id, 'empty');
+                }
+                setChallengeSent(false);
+                Toast.show({
+                  type: 'info',
+                  text1: 'Requête sauvegardée',
                   text2: response.message,
                 });
               } else {

@@ -73,6 +73,12 @@ export default function CreateArticleModal({ onClose, onSuccess }: CreateArticle
                     text2: 'Votre article a été ajouté avec succès.',
                 });
                 onSuccess();
+            } else if (response.pending) {
+                Toast.show({
+                    type: 'info',
+                    text1: 'Requête sauvegardée',
+                    text2: response.message,
+                });
             } else {
                 Toast.show({
                     type: 'error',

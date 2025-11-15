@@ -17,7 +17,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
   const handleLike = async () => {
     try {
       const response = await apiPost(`anecdotes/${id}/like`, { 'like': !isLiked });
-      if (response.success) {
+      if (response.success || response.pending) {
         setIsLiked(response.liked);
         const updateLike = (response.liked) ? 1 : -1;
         setDynamicNbLikes(dynamicNbLikes + updateLike);
@@ -40,7 +40,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
   const handleWarning = async () => {
     try {
       const response = await apiPost(`anecdotes/${id}/warn`, { 'warn': !isWarned });
-      if (response.success) {
+      if (response.success || response.pending) {
         setIsWarned(response.warn);
       } else {
         Toast.show({
@@ -80,6 +80,12 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
                   text2: response.message,
                 });
                 refresh();
+              } else if (response.pending) {
+                Toast.show({
+                  type: 'info',
+                  text1: 'Requête sauvegardée',
+                  text2: response.message,
+                });
               } else {
                 Toast.show({
                   type: 'error',

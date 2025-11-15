@@ -299,8 +299,18 @@ export default function VitesseDeGlisseScreen() {
                         text1: 'Performance enregistrée !',
                         text2: `${maxSpeed.toFixed(1)} km/h max • ${totalDistanceKm.toFixed(2)} km`,
                     });
+                } else if (response.pending) {
+                    Toast.show({
+                        type: 'info',
+                        text1: 'Requête sauvegardée',
+                        text2: response.message,
+                    });
                 } else {
-                    throw new Error(response.message || 'Erreur serveur');
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Erreur d\'enregistrement',
+                        text2: response.message || 'Impossible de sauvegarder la performance',
+                    });
                 }
             } catch (error: any) {
                 if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {

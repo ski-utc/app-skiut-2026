@@ -161,11 +161,11 @@ export default function SkinderProfil() {
       if (modifiedPicture) {
         const response2 = await uploadImage(profileImage);
         Toast.show({
-          type: (response.success && response2.success ? 'success' : 'error'),
+          type: (response.success && response2.success ? 'success' : (response.pending || response2.pending ? 'info' : 'error')),
           text1: 'Profil modifié !',
           text2: response.message + ' ' + response2.message,
         });
-        if (response.success && response2.success) {
+        if ((response.success && response2.success) || (response.pending && response2.pending)) {
           (navigation as any).navigate('skinderDiscover');
         } else {
           setError(response.message || 'Erreur lors de la sauvegarde des données.');
@@ -173,18 +173,11 @@ export default function SkinderProfil() {
       } else {
         if (response.success) {
           Toast.show({
-            type: 'success',
+            type: (response.success ? 'success' : (response.pending ? 'info' : 'error')),
             text1: 'Profil modifié !',
             text2: response.message,
           });
           (navigation as any).navigate('skinderDiscover');
-        } else {
-          Toast.show({
-            type: 'error',
-            text1: 'Une erreur est survenue...',
-            text2: response.message,
-          });
-          setError(response.message || 'Erreur lors de la sauvegarde des données.');
         }
       }
     } catch (error: any) {

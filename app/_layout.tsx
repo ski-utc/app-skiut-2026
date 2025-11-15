@@ -226,6 +226,12 @@ const ToastConfig = {
       <Text style={[styles.toastText, TextStyles.body]}>{text2}</Text>
     </View>
   ),
+  info: ({ text1, text2, ...rest }: { text1?: string; text2?: string;[key: string]: any }) => (
+    <View style={[styles.toastContainer, { backgroundColor: Colors.primary }]}>
+      <Text style={[styles.toastText, TextStyles.bodyBold]}>{text1}</Text>
+      <Text style={[styles.toastText, TextStyles.body]}>{text2}</Text>
+    </View>
+  ),
   error: ({ text1, text2, ...rest }: { text1?: string; text2?: string;[key: string]: any }) => (
     <View style={[styles.toastContainer, { backgroundColor: Colors.error }]}>
       <Text style={[styles.toastText, TextStyles.bodyBold]}>{text1}</Text>

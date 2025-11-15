@@ -5,10 +5,10 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { apiGet } from '@/constants/api/apiCalls';
 import { useNavigation } from "@react-navigation/native";
 import { useUser } from "@/contexts/UserContext";
-import * as Device from "expo-device";
 import ErrorScreen from "@/components/pages/errorPage";
-import { Calendar, Trophy, MessageCircle, Bug, ChevronRight, MapPin, Thermometer, Wind, Droplets, Sun, Cloud, CloudRain, CloudSnow, Moon, CloudMoon, CloudLightning, CloudDrizzle, CloudFog, CloudMoonRain, Home } from 'lucide-react-native';
+import { Calendar, Trophy, MessageCircle, ChevronRight, MapPin, Thermometer, Wind, Droplets, Sun, Cloud, CloudRain, CloudSnow, Moon, CloudMoon, CloudLightning, CloudDrizzle, CloudFog, CloudMoonRain, Home } from 'lucide-react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
+import { OfflineStatusBanner, PendingRequestsWidget } from '@/components/home/offlineWidgets';
 
 interface WeatherWidgetProps {
   weatherData: any;
@@ -343,16 +343,20 @@ export default function HomeScreen() {
   const [data, setData] = useState<any>(null);
   const [weatherData, setWeatherData] = useState<any>(null);
   const [tourStatus, setTourStatus] = useState<any>(null);
+  const [isOnline, setIsOnline] = useState(true);
+  const [usingCachedData, setUsingCachedData] = useState(false);
 
   const navigation = useNavigation();
   const { setUser } = useUser();
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setUsingCachedData(false);
+
     try {
-      const response = await apiGet("home/random-data");
-      const responseWeather = await apiGet("home/weather");
-      const responseTourStatus = await apiGet("room-tours/status");
+      const response = await apiGet("home/random-data", true);
+      const responseWeather = await apiGet("home/weather", true);
+      const responseTourStatus = await apiGet("room-tours/status", true);
 
       if (response.success) {
         setData(response.data);
@@ -362,31 +366,44 @@ export default function HomeScreen() {
         if (responseTourStatus.success && responseTourStatus.data) {
           setTourStatus(responseTourStatus.data);
         }
+        setError('');
       } else {
         setError(response.message);
       }
     } catch (error: any) {
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
+      } else if (error.message === 'NetworkError_NoCache') {
+        setError('Aucune donnée disponible hors ligne. Connectez-vous à internet pour charger les données.');
+      } else if (error.message === 'NetworkError_RequestSaved') {
+        // 
       } else {
-        setError(error.message);
+        if (data) {
+          setUsingCachedData(true);
+        } else {
+          setError(error.message);
+        }
       }
     } finally {
       setLoading(false);
     }
-  }, [setUser]);
+  }, [setUser, data]);
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  if (error) {
+  const handleNetworkChange = useCallback((online: boolean) => {
+    setIsOnline(online);
+  }, []);
+
+  if (error && !data) {
     return (
       <ErrorScreen error={error} />
     );
   }
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <View style={{
         flex: 1,
@@ -425,6 +442,16 @@ export default function HomeScreen() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
+        <OfflineStatusBanner onNetworkChange={handleNetworkChange} />
+        <PendingRequestsWidget />
+
+        {usingCachedData && (
+          <View style={styles.cachedDataBanner}>
+            <Text style={styles.cachedDataText}>
+              TODO : Afficher les données en cache affichées
+            </Text>
+          </View>
+        )}
         {weatherData && <WeatherWidget weatherData={weatherData} />}
 
         {tourStatus && tourStatus.tour_active && (
@@ -493,9 +520,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 20,
     paddingBottom: 40,
+  },
+
+  cachedDataBanner: {
+    backgroundColor: Colors.lightMuted || '#f3f4f6',
+    marginHorizontal: 20,
+    marginBottom: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.muted || '#9ca3af',
+  },
+  cachedDataText: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    fontSize: FontSizes.small,
+    textAlign: 'center',
+    fontWeight: '500',
   },
 
   weatherWidget: {

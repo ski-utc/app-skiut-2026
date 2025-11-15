@@ -86,7 +86,7 @@ export default function GestionPermanencesScreen() {
 
     const { setUser } = useUser();
 
-    const showToast = (type: 'success' | 'error', text1: string, text2: string) => {
+    const showToast = (type: 'success' | 'info' | 'error', text1: string, text2: string) => {
         try {
             if (Toast && Toast.show) {
                 Toast.show({ type, text1, text2 });
@@ -96,7 +96,7 @@ export default function GestionPermanencesScreen() {
         }
     };
 
-    const showNotification = (type: 'success' | 'error', title: string, message: string) => {
+    const showNotification = (type: 'success' | 'info' | 'error', title: string, message: string) => {
         if (showCreateModal) {
             Alert.alert(title, message, [{ text: 'OK' }]);
         } else {
@@ -270,6 +270,11 @@ export default function GestionPermanencesScreen() {
                 setShowCreateModal(false);
                 resetForm();
                 fetchData();
+            } else if (response.pending) {
+                showNotification('info', 'Requête sauvegardée', response.message);
+                setShowCreateModal(false);
+                resetForm();
+                fetchData();
             } else {
                 showNotification('error', 'Erreur', response.message);
             }
@@ -294,10 +299,13 @@ export default function GestionPermanencesScreen() {
                         try {
                             const response = await apiDelete(`permanences/${permanence.id}`);
                             if (response.success) {
-                                showToast('success', 'Succès', 'Permanence supprimée avec succès.');
+                                showNotification('success', 'Succès', 'Permanence supprimée avec succès.');
+                                fetchData();
+                            } else if (response.pending) {
+                                showNotification('info', 'Requête sauvegardée', response.message);
                                 fetchData();
                             } else {
-                                showToast('error', 'Erreur', response.message);
+                                showNotification('error', 'Erreur', response.message);
                             }
                         } catch (error: any) {
                             setError(error.message || 'Une erreur est survenue.');
@@ -322,6 +330,8 @@ export default function GestionPermanencesScreen() {
                             const response = await apiPost('admin/permanences/send-reminders', {});
                             if (response.success) {
                                 showToast('success', 'Succès', 'Rappels envoyés avec succès.');
+                            } else if (response.pending) {
+                                showNotification('info', 'Requête sauvegardée', response.message);
                             } else {
                                 showToast('error', 'Erreur', response.message);
                             }

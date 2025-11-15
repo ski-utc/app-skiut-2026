@@ -54,7 +54,7 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
   const markAsRead = async (notificationId: number) => {
     try {
       const response = await apiPost(`notifications/${notificationId}/read`, { 'read': true });
-      if (response.success) {
+      if (response.success || response.pending) {
         setNotifications(prev =>
           prev.map(notif =>
             notif.id === notificationId

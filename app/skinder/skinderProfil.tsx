@@ -94,8 +94,8 @@ export default function SkinderProfil() {
       let maxFileSize = 1024 * 1024;
       try {
         const getTailleMax = await apiGet("challenges/max-file-size");
-        if (getTailleMax.success) {
-          maxFileSize = getTailleMax.data;
+        if (getTailleMax.success && getTailleMax.data) {
+          maxFileSize = getTailleMax.data.maxImageSize || 5 * 1024 * 1024;
         }
       } catch (error: any) {
         if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {

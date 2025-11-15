@@ -106,11 +106,13 @@ export default function DefisInfos() {
 
       setMediaType(isVideo ? 'video' : 'image');
 
-      let maxFileSize = 5 * 1024 * 1024;
+      let maxFileSize = isVideo ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
       try {
         const getTailleMax = await apiGet("challenges/max-file-size");
-        if (getTailleMax.success) {
-          maxFileSize = getTailleMax.data;
+        if (getTailleMax.success && getTailleMax.data) {
+          maxFileSize = isVideo
+            ? (getTailleMax.data.maxVideoSize || 15 * 1024 * 1024)
+            : (getTailleMax.data.maxImageSize || 5 * 1024 * 1024);
         }
       } catch (error: any) {
         if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
@@ -120,10 +122,10 @@ export default function DefisInfos() {
         }
       }
 
-      if (isVideo) { // TODO : implem a way to compress video through a certain lib to define
+      if (isVideo) { // Can't implem video compression because it requires huge amount of resources from client side
         const fileInfo = await fetch(uri).then((res) => res.blob());
         if (fileInfo.size > maxFileSize) {
-          Alert.alert('Erreur', 'Vidéo trop lourde. Veuillez choisir une vidéo plus courte ou de moindre qualité.');
+          Alert.alert('Erreur', 'Vidéo trop lourde. Veuillez choisir une vidéo plus courte ou de moindre qualité. La taille maximale est de ' + (maxFileSize / 1024 / 1024) + ' Mo.');
           setIsCompressing(false);
           return;
         }
@@ -158,18 +160,29 @@ export default function DefisInfos() {
         setProofMedia(compressedImage.uri);
       }
     } catch (error: any) {
-      setError('Erreur lors du traitement du média:', error);
+      setError(`Erreur lors du traitement du média: ${error.message}`);
     } finally {
       setIsCompressing(false);
     }
   };
 
-  const uploadMedia = async (uri) => {
+  const uploadMedia = async (uri: string) => {
     try {
       setIsUploading(true);
       const fileInfo = await fetch(uri).then((res) => res.blob());
 
-      const maxSize = mediaType === 'video' ? 10 * 1024 * 1024 : 5 * 1024 * 1024; // TODO : fetch this info from backend 
+      let maxSize = mediaType === 'video' ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
+      try {
+        const getTailleMax = await apiGet("challenges/max-file-size");
+        if (getTailleMax.success && getTailleMax.data) {
+          maxSize = mediaType === 'video'
+            ? (getTailleMax.data.maxVideoSize || 15 * 1024 * 1024)
+            : (getTailleMax.data.maxImageSize || 5 * 1024 * 1024);
+        }
+      } catch (error: any) {
+        // Keep default values
+      }
+
       if (fileInfo.size > maxSize) {
         Alert.alert('Erreur', `Le ${mediaType === 'video' ? 'vidéo' : 'image'} dépasse la taille maximale.`);
         setIsUploading(false);

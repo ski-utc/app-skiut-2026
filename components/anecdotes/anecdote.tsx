@@ -214,7 +214,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
             style={{
               paddingHorizontal: 10,
               paddingVertical: 8,
-              backgroundColor: Colors.accent,
+              backgroundColor: Colors.primary,
               borderRadius: 8,
               boxShadow: '0px 3px 5px rgba(0, 0, 0, 0.1)',
               justifyContent: 'center',

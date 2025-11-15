@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View,
     Text,
@@ -12,8 +12,9 @@ import {
     Modal,
     TextInput,
     ScrollView,
+    Platform,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { apiGet, apiPost, apiPut, apiDelete } from '@/constants/api/apiCalls';
 import BoutonRetour from '@/components/divers/boutonRetour';
@@ -36,7 +37,6 @@ import Toast from 'react-native-toast-message';
 interface Permanence {
     id: number;
     name: string;
-    description: string;
     start_datetime: string;
     end_datetime: string;
     location: string;
@@ -71,7 +71,6 @@ export default function GestionPermanencesScreen() {
     const [editingPermanence, setEditingPermanence] = useState<Permanence | null>(null);
 
     const [formName, setFormName] = useState('');
-    const [formDescription, setFormDescription] = useState('');
     const [formLocation, setFormLocation] = useState('');
     const [formNotes, setFormNotes] = useState('');
     const [formStartDate, setFormStartDate] = useState(new Date());
@@ -83,6 +82,82 @@ export default function GestionPermanencesScreen() {
 
     const { setUser } = useUser();
 
+    const showToast = (type: 'success' | 'error', text1: string, text2: string) => {
+        try {
+            if (Toast && Toast.show) {
+                Toast.show({ type, text1, text2 });
+            }
+        } catch (error) {
+            console.warn('Toast error:', error);
+        }
+    };
+
+    const showNotification = (type: 'success' | 'error', title: string, message: string) => {
+        if (showCreateModal) {
+            Alert.alert(title, message, [{ text: 'OK' }]);
+        } else {
+            showToast(type, title, message);
+        }
+    };
+
+    const openStartDatePicker = () => {
+        if (Platform.OS === 'android') {
+            DateTimePickerAndroid.open({
+                value: formStartDate,
+                onChange: (event: any, date?: Date) => {
+                    if (date) {
+                        setFormStartDate(date);
+                        setTimeout(() => {
+                            DateTimePickerAndroid.open({
+                                value: date,
+                                onChange: (timeEvent: any, timeDate?: Date) => {
+                                    if (timeDate) {
+                                        setFormStartDate(timeDate);
+                                    }
+                                },
+                                mode: 'time',
+                                is24Hour: true,
+                            });
+                        }, 100);
+                    }
+                },
+                mode: 'date',
+                is24Hour: true,
+            });
+        } else {
+            setShowStartDatePicker(true);
+        }
+    };
+
+    const openEndDatePicker = () => {
+        if (Platform.OS === 'android') {
+            DateTimePickerAndroid.open({
+                value: formEndDate,
+                onChange: (event: any, date?: Date) => {
+                    if (date) {
+                        setFormEndDate(date);
+                        setTimeout(() => {
+                            DateTimePickerAndroid.open({
+                                value: date,
+                                onChange: (timeEvent: any, timeDate?: Date) => {
+                                    if (timeDate) {
+                                        setFormEndDate(timeDate);
+                                    }
+                                },
+                                mode: 'time',
+                                is24Hour: true,
+                            });
+                        }, 100);
+                    }
+                },
+                mode: 'date',
+                is24Hour: true,
+            });
+        } else {
+            setShowEndDatePicker(true);
+        }
+    };
+
     const fetchData = useCallback(async () => {
         try {
             const response = await apiGet("admin");
@@ -91,7 +166,7 @@ export default function GestionPermanencesScreen() {
                 return;
             }
 
-            const permanencesResponse = await apiGet("permanences");
+            const permanencesResponse = await apiGet("admin/permanences");
             if (permanencesResponse.success) {
                 setPermanences(permanencesResponse.data);
             }
@@ -125,7 +200,6 @@ export default function GestionPermanencesScreen() {
 
     const resetForm = () => {
         setFormName('');
-        setFormDescription('');
         setFormLocation('');
         setFormNotes('');
         setFormStartDate(new Date());
@@ -141,7 +215,6 @@ export default function GestionPermanencesScreen() {
 
     const openEditModal = (permanence: Permanence) => {
         setFormName(permanence.name);
-        setFormDescription(permanence.description);
         setFormLocation(permanence.location);
         setFormNotes(permanence.notes || '');
         setFormStartDate(new Date(permanence.start_datetime));
@@ -153,20 +226,18 @@ export default function GestionPermanencesScreen() {
 
     const submitPermanence = async () => {
         if (!formName.trim() || !formResponsibleId) {
-            Toast.show({
-                type: 'error',
-                text1: 'Erreur',
-                text2: 'Veuillez remplir tous les champs obligatoires.',
-            });
+            showNotification('error', 'Erreur', 'Veuillez remplir tous les champs obligatoires.');
+            return;
+        }
+
+        const now = new Date();
+        if (formStartDate <= now) {
+            showNotification('error', 'Erreur', 'La date de début doit être dans le futur.');
             return;
         }
 
         if (formStartDate >= formEndDate) {
-            Toast.show({
-                type: 'error',
-                text1: 'Erreur',
-                text2: 'L\'heure de fin doit être postérieure à l\'heure de début.',
-            });
+            showNotification('error', 'Erreur', 'L\'heure de fin doit être postérieure à l\'heure de début.');
             return;
         }
 
@@ -175,7 +246,6 @@ export default function GestionPermanencesScreen() {
         try {
             const data = {
                 name: formName.trim(),
-                description: formDescription.trim(),
                 location: formLocation.trim(),
                 notes: formNotes.trim(),
                 start_datetime: formStartDate.toISOString(),
@@ -192,28 +262,16 @@ export default function GestionPermanencesScreen() {
             );
 
             if (response.success) {
-                Toast.show({
-                    text1: 'Succès',
-                    text2: `Permanence ${editingPermanence ? 'modifiée' : 'créée'} avec succès.`,
-                    type: 'success',
-                });
+                showNotification('success', 'Succès', `Permanence ${editingPermanence ? 'modifiée' : 'créée'} avec succès.`);
                 setShowCreateModal(false);
                 resetForm();
                 fetchData();
             } else {
-                Toast.show({
-                    text1: 'Erreur',
-                    text2: response.message,
-                    type: 'error',
-                });
+                showNotification('error', 'Erreur', response.message);
             }
         } catch (error: any) {
             setError(error.message || 'Une erreur est survenue.');
-            Toast.show({
-                type: 'error',
-                text1: 'Erreur',
-                text2: error.message || 'Une erreur est survenue.',
-            });
+            showNotification('error', 'Erreur', error.message || 'Une erreur est survenue.');
         } finally {
             setFormSubmitting(false);
         }
@@ -232,26 +290,14 @@ export default function GestionPermanencesScreen() {
                         try {
                             const response = await apiDelete(`permanences/${permanence.id}`);
                             if (response.success) {
-                                Toast.show({
-                                    text1: 'Succès',
-                                    text2: 'Permanence supprimée avec succès.',
-                                    type: 'success',
-                                });
+                                showToast('success', 'Succès', 'Permanence supprimée avec succès.');
                                 fetchData();
                             } else {
-                                Toast.show({
-                                    type: 'error',
-                                    text1: 'Erreur',
-                                    text2: response.message,
-                                });
+                                showToast('error', 'Erreur', response.message);
                             }
                         } catch (error: any) {
                             setError(error.message || 'Une erreur est survenue.');
-                            Toast.show({
-                                type: 'error',
-                                text1: 'Erreur',
-                                text2: error.message || 'Une erreur est survenue.',
-                            });
+                            showToast('error', 'Erreur', error.message || 'Une erreur est survenue.');
                         }
                     }
                 }
@@ -271,24 +317,13 @@ export default function GestionPermanencesScreen() {
                         try {
                             const response = await apiPost('admin/permanences/send-reminders', {});
                             if (response.success) {
-                                Toast.show({
-                                    type: 'success',
-                                    text1: 'Succès',
-                                    text2: 'Rappels envoyés avec succès.',
-                                });
+                                showToast('success', 'Succès', 'Rappels envoyés avec succès.');
                             } else {
-                                Toast.show({
-                                    type: 'error',
-                                    text1: 'Erreur',
-                                    text2: response.message,
-                                });
+                                showToast('error', 'Erreur', response.message);
                             }
                         } catch (error: any) {
                             setError(error.message || 'Une erreur est survenue.');
-                            Toast.show({
-                                type: 'error', text1: 'Erreur',
-                                text2: error.message || 'Une erreur est survenue.',
-                            });
+                            showToast('error', 'Erreur', error.message || 'Une erreur est survenue.');
                         }
                     }
                 }
@@ -329,8 +364,6 @@ export default function GestionPermanencesScreen() {
                         <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
                     </View>
                 </View>
-
-                <Text style={styles.cardDescription}>{item.description}</Text>
 
                 <View style={styles.cardDetails}>
                     <View style={styles.detailRow}>
@@ -485,19 +518,6 @@ export default function GestionPermanencesScreen() {
                         </View>
 
                         <View style={styles.formGroup}>
-                            <Text style={styles.label}>Description</Text>
-                            <TextInput
-                                style={[styles.input, styles.textArea]}
-                                value={formDescription}
-                                onChangeText={setFormDescription}
-                                placeholder="Description de la permanence..."
-                                placeholderTextColor={Colors.muted}
-                                multiline
-                                numberOfLines={3}
-                            />
-                        </View>
-
-                        <View style={styles.formGroup}>
                             <Text style={styles.label}>Lieu</Text>
                             <TextInput
                                 style={styles.input}
@@ -533,7 +553,7 @@ export default function GestionPermanencesScreen() {
                                 <Text style={styles.label}>Début *</Text>
                                 <TouchableOpacity
                                     style={styles.dateTimeButton}
-                                    onPress={() => setShowStartDatePicker(true)}
+                                    onPress={openStartDatePicker}
                                 >
                                     <Calendar size={16} color={Colors.muted} />
                                     <Text style={styles.dateTimeText}>
@@ -546,7 +566,7 @@ export default function GestionPermanencesScreen() {
                                 <Text style={styles.label}>Fin *</Text>
                                 <TouchableOpacity
                                     style={styles.dateTimeButton}
-                                    onPress={() => setShowEndDatePicker(true)}
+                                    onPress={openEndDatePicker}
                                 >
                                     <Calendar size={16} color={Colors.muted} />
                                     <Text style={styles.dateTimeText}>
@@ -570,34 +590,6 @@ export default function GestionPermanencesScreen() {
                         </View>
                     </ScrollView>
 
-                    {showStartDatePicker && (
-                        <DateTimePicker
-                            value={formStartDate}
-                            mode="datetime"
-                            display="default"
-                            onChange={(event, selectedDate) => {
-                                setShowStartDatePicker(false);
-                                if (selectedDate) {
-                                    setFormStartDate(selectedDate);
-                                }
-                            }}
-                        />
-                    )}
-
-                    {showEndDatePicker && (
-                        <DateTimePicker
-                            value={formEndDate}
-                            mode="datetime"
-                            display="default"
-                            onChange={(event, selectedDate) => {
-                                setShowEndDatePicker(false);
-                                if (selectedDate) {
-                                    setFormEndDate(selectedDate);
-                                }
-                            }}
-                        />
-                    )}
-
                     <View style={styles.modalFooter}>
                         <TouchableOpacity
                             onPress={() => setShowCreateModal(false)}
@@ -619,6 +611,34 @@ export default function GestionPermanencesScreen() {
                     </View>
                 </SafeAreaView>
             </Modal>
+
+            {Platform.OS === 'ios' && showStartDatePicker && (
+                <DateTimePicker
+                    value={formStartDate}
+                    mode="datetime"
+                    display="spinner"
+                    onChange={(event: any, selectedDate?: Date) => {
+                        if (selectedDate) {
+                            setFormStartDate(selectedDate);
+                        }
+                        setShowStartDatePicker(false);
+                    }}
+                />
+            )}
+
+            {Platform.OS === 'ios' && showEndDatePicker && (
+                <DateTimePicker
+                    value={formEndDate}
+                    mode="datetime"
+                    display="spinner"
+                    onChange={(event: any, selectedDate?: Date) => {
+                        if (selectedDate) {
+                            setFormEndDate(selectedDate);
+                        }
+                        setShowEndDatePicker(false);
+                    }}
+                />
+            )}
         </SafeAreaView>
     );
 }
@@ -748,11 +768,6 @@ const styles = StyleSheet.create({
         ...TextStyles.small,
         color: Colors.white,
         fontWeight: '600',
-    },
-    cardDescription: {
-        ...TextStyles.body,
-        color: Colors.muted,
-        marginBottom: 12,
     },
     cardDetails: {
         marginBottom: 16,

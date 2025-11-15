@@ -15,7 +15,6 @@ import {
     Platform,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import { Picker } from '@react-native-picker/picker';
 import { apiGet, apiPost, apiPut, apiDelete } from '@/constants/api/apiCalls';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import Header from '../../components/header';
@@ -30,7 +29,11 @@ import {
     MapPin,
     Edit3,
     Trash2,
-    Send
+    Send,
+    ChevronDown,
+    ChevronRight,
+    X as CloseIcon,
+    FileText
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
@@ -79,6 +82,7 @@ export default function GestionPermanencesScreen() {
     const [showStartDatePicker, setShowStartDatePicker] = useState(false);
     const [showEndDatePicker, setShowEndDatePicker] = useState(false);
     const [formSubmitting, setFormSubmitting] = useState(false);
+    const [showMembersPicker, setShowMembersPicker] = useState(false);
 
     const { setUser } = useUser();
 
@@ -496,120 +500,188 @@ export default function GestionPermanencesScreen() {
             <Modal
                 visible={showCreateModal}
                 animationType="slide"
-                presentationStyle="pageSheet"
+                transparent={true}
+                onRequestClose={() => setShowCreateModal(false)}
             >
-                <SafeAreaView style={styles.modalContainer}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>
-                            {editingPermanence ? 'Modifier' : 'Nouvelle'} permanence
-                        </Text>
-                    </View>
-
-                    <ScrollView style={styles.modalContent} contentContainerStyle={{ paddingBottom: 100 }}>
-                        <View style={styles.formGroup}>
-                            <Text style={styles.label}>Nom de la permanence *</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={formName}
-                                onChangeText={setFormName}
-                                placeholder="Ex: Maintenance matériel"
-                                placeholderTextColor={Colors.muted}
-                            />
-                        </View>
-
-                        <View style={styles.formGroup}>
-                            <Text style={styles.label}>Lieu</Text>
-                            <TextInput
-                                style={styles.input}
-                                value={formLocation}
-                                onChangeText={setFormLocation}
-                                placeholder="Lieu de la permanence"
-                                placeholderTextColor={Colors.muted}
-                            />
-                        </View>
-
-                        <View style={styles.formGroup}>
-                            <Text style={styles.label}>Responsable *</Text>
-                            <View style={styles.pickerContainer}>
-                                <Picker
-                                    selectedValue={formResponsibleId}
-                                    onValueChange={setFormResponsibleId}
-                                    style={styles.picker}
-                                >
-                                    <Picker.Item label="Sélectionner un responsable" value={null} />
-                                    {members.map((member) => (
-                                        <Picker.Item
-                                            key={member.id}
-                                            label={member.name}
-                                            value={member.id}
-                                        />
-                                    ))}
-                                </Picker>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalCard}>
+                        <View style={styles.modalHeader}>
+                            <View style={styles.modalHeaderContent}>
+                                <Clock size={24} color={Colors.primary} />
+                                <Text style={styles.modalTitle}>
+                                    {editingPermanence ? 'Modifier' : 'Nouvelle'} permanence
+                                </Text>
                             </View>
+                            <TouchableOpacity
+                                onPress={() => setShowCreateModal(false)}
+                                style={styles.modalCloseButton}
+                            >
+                                <CloseIcon size={24} color={Colors.primaryBorder} />
+                            </TouchableOpacity>
                         </View>
 
-                        <View style={styles.dateTimeContainer}>
-                            <View style={styles.dateTimeGroup}>
-                                <Text style={styles.label}>Début *</Text>
+                        <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+                            <View style={styles.inputSection}>
+                                <View style={styles.inputHeader}>
+                                    <FileText size={16} color={Colors.primary} />
+                                    <Text style={styles.inputLabel}>Nom de la permanence *</Text>
+                                </View>
+                                <TextInput
+                                    style={styles.titleInput}
+                                    value={formName}
+                                    onChangeText={setFormName}
+                                    placeholder="Ex: Maintenance matériel"
+                                    placeholderTextColor={Colors.muted}
+                                />
+                            </View>
+
+                            <View style={styles.inputSection}>
+                                <View style={styles.inputHeader}>
+                                    <MapPin size={16} color={Colors.primary} />
+                                    <Text style={styles.inputLabel}>Lieu</Text>
+                                </View>
+                                <TextInput
+                                    style={styles.titleInput}
+                                    value={formLocation}
+                                    onChangeText={setFormLocation}
+                                    placeholder="Lieu de la permanence"
+                                    placeholderTextColor={Colors.muted}
+                                />
+                            </View>
+
+                            <View style={styles.selectionSection}>
                                 <TouchableOpacity
-                                    style={styles.dateTimeButton}
-                                    onPress={openStartDatePicker}
+                                    style={styles.selectionHeader}
+                                    onPress={() => setShowMembersPicker(!showMembersPicker)}
                                 >
-                                    <Calendar size={16} color={Colors.muted} />
-                                    <Text style={styles.dateTimeText}>
-                                        {formStartDate.toLocaleDateString('fr-FR')} {formStartDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                                    </Text>
+                                    <View style={styles.selectionHeaderLeft}>
+                                        <User size={16} color={Colors.primary} />
+                                        <Text style={styles.selectionTitle}>
+                                            Responsable * {formResponsibleId && `(${members.find(m => m.id === formResponsibleId)?.name})`}
+                                        </Text>
+                                    </View>
+                                    {showMembersPicker ?
+                                        <ChevronDown size={20} color={Colors.primary} /> :
+                                        <ChevronRight size={20} color={Colors.primary} />
+                                    }
                                 </TouchableOpacity>
+
+                                {showMembersPicker && (
+                                    <ScrollView
+                                        style={styles.selectionList}
+                                        nestedScrollEnabled={true}
+                                        showsVerticalScrollIndicator={true}
+                                    >
+                                        {members.map(member => (
+                                            <TouchableOpacity
+                                                key={member.id}
+                                                style={[
+                                                    styles.selectionItem,
+                                                    formResponsibleId === member.id && styles.selectionItemActive
+                                                ]}
+                                                onPress={() => {
+                                                    setFormResponsibleId(member.id);
+                                                    setShowMembersPicker(false);
+                                                }}
+                                            >
+                                                <Text style={[
+                                                    styles.selectionItemText,
+                                                    formResponsibleId === member.id && styles.selectionItemTextActive
+                                                ]}>
+                                                    {member.name}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
+                                )}
                             </View>
 
-                            <View style={styles.dateTimeGroup}>
-                                <Text style={styles.label}>Fin *</Text>
-                                <TouchableOpacity
-                                    style={styles.dateTimeButton}
-                                    onPress={openEndDatePicker}
-                                >
-                                    <Calendar size={16} color={Colors.muted} />
-                                    <Text style={styles.dateTimeText}>
-                                        {formEndDate.toLocaleDateString('fr-FR')} {formEndDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                                    </Text>
-                                </TouchableOpacity>
+                            <View style={styles.dateTimeSection}>
+                                <Text style={styles.sectionTitle}>Horaires *</Text>
+
+                                <View style={styles.dateTimeRow}>
+                                    <View style={styles.dateTimeItem}>
+                                        <Text style={styles.dateTimeLabel}>Début</Text>
+                                        <TouchableOpacity
+                                            style={styles.dateTimeButton}
+                                            onPress={openStartDatePicker}
+                                        >
+                                            <Calendar size={16} color={Colors.primary} strokeWidth={2.5} />
+                                            <View style={styles.dateTimeTextContainer}>
+                                                <Text style={styles.dateTimeText}>
+                                                    {formStartDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                                                </Text>
+                                                <Text style={styles.dateTimeTime}>
+                                                    {formStartDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                                </Text>
+                                            </View>
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    <View style={styles.dateTimeItem}>
+                                        <Text style={styles.dateTimeLabel}>Fin</Text>
+                                        <TouchableOpacity
+                                            style={styles.dateTimeButton}
+                                            onPress={openEndDatePicker}
+                                        >
+                                            <Calendar size={16} color={Colors.primary} strokeWidth={2.5} />
+                                            <View style={styles.dateTimeTextContainer}>
+                                                <Text style={styles.dateTimeText}>
+                                                    {formEndDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                                                </Text>
+                                                <Text style={styles.dateTimeTime}>
+                                                    {formEndDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                                </Text>
+                                            </View>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
                             </View>
-                        </View>
 
-                        <View style={styles.formGroup}>
-                            <Text style={styles.label}>Notes</Text>
-                            <TextInput
-                                style={[styles.input, styles.textArea]}
-                                value={formNotes}
-                                onChangeText={setFormNotes}
-                                placeholder="Notes additionnelles..."
-                                placeholderTextColor={Colors.muted}
-                                multiline
-                                numberOfLines={2}
-                            />
-                        </View>
-                    </ScrollView>
+                            <View style={styles.inputSection}>
+                                <View style={styles.inputHeader}>
+                                    <FileText size={16} color={Colors.primary} />
+                                    <Text style={styles.inputLabel}>Notes</Text>
+                                </View>
+                                <TextInput
+                                    style={styles.textAreaInput}
+                                    value={formNotes}
+                                    onChangeText={setFormNotes}
+                                    placeholder="Notes additionnelles..."
+                                    placeholderTextColor={Colors.muted}
+                                    multiline
+                                    numberOfLines={4}
+                                    textAlignVertical="top"
+                                />
+                            </View>
+                        </ScrollView>
 
-                    <View style={styles.modalFooter}>
-                        <TouchableOpacity
-                            onPress={() => setShowCreateModal(false)}
-                            style={styles.modalCancelButton}
-                        >
-                            <Text style={styles.modalCancelText}>Annuler</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={submitPermanence}
-                            style={styles.modalSaveButtonBottom}
-                            disabled={formSubmitting}
-                        >
-                            {formSubmitting ? (
-                                <ActivityIndicator size="small" color={Colors.white} />
-                            ) : (
-                                <Text style={styles.modalSaveTextBottom}>Sauvegarder</Text>
-                            )}
-                        </TouchableOpacity>
+                        <View style={styles.modalFooter}>
+                            <TouchableOpacity
+                                onPress={() => setShowCreateModal(false)}
+                                style={styles.modalCancelButton}
+                            >
+                                <Text style={styles.modalCancelText}>Annuler</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={submitPermanence}
+                                style={styles.modalSaveButton}
+                                disabled={formSubmitting}
+                            >
+                                {formSubmitting ? (
+                                    <ActivityIndicator size="small" color={Colors.white} />
+                                ) : (
+                                    <>
+                                        <Send size={18} color={Colors.white} />
+                                        <Text style={styles.modalSaveText}>
+                                            {editingPermanence ? 'Modifier' : 'Créer'}
+                                        </Text>
+                                    </>
+                                )}
+                            </TouchableOpacity>
+                        </View>
                     </View>
-                </SafeAreaView>
+                </View>
             </Modal>
 
             {Platform.OS === 'ios' && showStartDatePicker && (
@@ -823,92 +895,176 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         lineHeight: 22,
     },
-    modalContainer: {
+    modalOverlay: {
         flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'flex-end',
+    },
+    modalCard: {
         backgroundColor: Colors.white,
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        maxHeight: '90%',
+        shadowColor: '#000',
+        shadowOpacity: 0.25,
+        shadowOffset: { width: 0, height: -4 },
+        shadowRadius: 12,
+        elevation: 10,
     },
     modalHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'space-between',
         paddingHorizontal: 20,
-        paddingVertical: 16,
+        paddingTop: 24,
+        paddingBottom: 16,
         borderBottomWidth: 1,
         borderBottomColor: Colors.lightMuted,
     },
-    modalCloseButton: {
-        paddingVertical: 8,
+    modalHeaderContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
     },
-    modalCloseText: {
-        ...TextStyles.body,
-        color: Colors.error,
+    modalCloseButton: {
+        padding: 4,
     },
     modalTitle: {
         ...TextStyles.h3Bold,
         color: Colors.primaryBorder,
     },
-    modalSaveButton: {
-        paddingVertical: 8,
-    },
-    modalSaveText: {
-        ...TextStyles.bodyBold,
-        color: Colors.primary,
-    },
     modalContent: {
-        flex: 1,
         paddingHorizontal: 20,
         paddingTop: 20,
+        maxHeight: '70%',
     },
-    formGroup: {
+    inputSection: {
         marginBottom: 20,
     },
-    label: {
-        ...TextStyles.bodyBold,
-        color: Colors.primaryBorder,
+    inputHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
         marginBottom: 8,
+        gap: 8,
     },
-    input: {
-        borderWidth: 1,
-        borderColor: Colors.lightMuted,
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
+    inputLabel: {
         ...TextStyles.body,
         color: Colors.primaryBorder,
+        fontWeight: '600',
     },
-    textArea: {
-        height: 80,
+    titleInput: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+        backgroundColor: Colors.white,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: Colors.primary,
+        padding: 14,
+        height: 50,
+    },
+    textAreaInput: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+        backgroundColor: Colors.white,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: Colors.primary,
+        padding: 14,
+        minHeight: 100,
         textAlignVertical: 'top',
     },
-    pickerContainer: {
+    sectionTitle: {
+        ...TextStyles.bodyBold,
+        color: Colors.primaryBorder,
+        marginBottom: 12,
+    },
+    selectionSection: {
+        marginBottom: 20,
         borderWidth: 1,
         borderColor: Colors.lightMuted,
         borderRadius: 12,
+        overflow: 'hidden',
     },
-    picker: {
-        height: 50,
-    },
-    dateTimeContainer: {
+    selectionHeader: {
         flexDirection: 'row',
-        gap: 12,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 16,
+        backgroundColor: Colors.lightMuted,
+    },
+    selectionHeaderLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        flex: 1,
+    },
+    selectionTitle: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+        fontWeight: '600',
+        flex: 1,
+    },
+    selectionList: {
+        backgroundColor: Colors.white,
+        maxHeight: 200,
+    },
+    selectionItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.lightMuted,
+    },
+    selectionItemActive: {
+        backgroundColor: Colors.lightMuted,
+    },
+    selectionItemText: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+        flex: 1,
+    },
+    selectionItemTextActive: {
+        color: Colors.primary,
+        fontWeight: '600',
+    },
+    dateTimeSection: {
         marginBottom: 20,
     },
-    dateTimeGroup: {
+    dateTimeRow: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    dateTimeItem: {
         flex: 1,
+    },
+    dateTimeLabel: {
+        ...TextStyles.small,
+        color: Colors.muted,
+        fontWeight: '600',
+        marginBottom: 8,
     },
     dateTimeButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: Colors.lightMuted,
+        gap: 8,
+        backgroundColor: Colors.lightMuted,
         borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
+        padding: 12,
+        borderWidth: 1,
+        borderColor: Colors.primary,
+    },
+    dateTimeTextContainer: {
+        flex: 1,
     },
     dateTimeText: {
-        ...TextStyles.body,
+        ...TextStyles.small,
         color: Colors.primaryBorder,
-        marginLeft: 8,
+        fontWeight: '600',
+    },
+    dateTimeTime: {
+        ...TextStyles.small,
+        color: Colors.muted,
+        marginTop: 2,
     },
     modalFooter: {
         flexDirection: 'row',
@@ -933,16 +1089,18 @@ const styles = StyleSheet.create({
         ...TextStyles.bodyBold,
         color: Colors.muted,
     },
-    modalSaveButtonBottom: {
+    modalSaveButton: {
         flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
         paddingVertical: 14,
         paddingHorizontal: 20,
         borderRadius: 12,
         backgroundColor: Colors.primary,
-        alignItems: 'center',
-        justifyContent: 'center',
     },
-    modalSaveTextBottom: {
+    modalSaveText: {
         ...TextStyles.bodyBold,
         color: Colors.white,
     },

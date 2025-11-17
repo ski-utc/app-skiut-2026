@@ -7,7 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import BoutonActiverLarge from '@/components/divers/boutonActiverLarge';
-import { Send, PenTool, Shield } from 'lucide-react-native';
+import { Send, PenTool } from 'lucide-react-native';
 import { apiPost } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import Toast from 'react-native-toast-message';

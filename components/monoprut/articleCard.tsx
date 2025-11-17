@@ -70,23 +70,6 @@ const getIconForType = (type: string) => {
     }
 };
 
-const getTypeLabel = (type: string) => {
-    const labels: { [key: string]: string } = {
-        fruit: 'Fruit',
-        veggie: 'Légume',
-        drink: 'Boisson',
-        sweet: 'Sucrerie',
-        snack: 'Snack',
-        dairy: 'Produit laitier',
-        bread: 'Pain',
-        meat: 'Viande',
-        fish: 'Poisson',
-        grain: 'Céréale',
-        other: 'Autre',
-    };
-    return labels[type] || 'Autre';
-};
-
 export default function ArticleCard({ article, onUpdate, showReserveButton = false, isReservation = false, isMyOffer = false, onMarkAsRetrieved, onCancelReservation }: ArticleCardProps) {
     const navigation = useNavigation<any>();
 
@@ -178,12 +161,6 @@ export default function ArticleCard({ article, onUpdate, showReserveButton = fal
                 },
             ]
         );
-    };
-
-    const handleRoomClick = () => {
-        if (article.receiver_room) {
-            navigation.navigate('RoomDetailsScreen', { roomId: article.receiver_room.id });
-        }
     };
 
     return (

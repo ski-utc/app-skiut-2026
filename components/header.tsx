@@ -65,7 +65,7 @@ const Header: React.FC<HeaderProps> = React.memo(({ refreshFunction, disableRefr
       </View>
       {refreshFunction === null ? null :
         <TouchableOpacity
-          style={styles.refreshButton}
+          style={[styles.refreshButton, { opacity: disableRefresh ? 0.4 : 1 }]}
           onPress={refreshFunction}
           disabled={disableRefresh}
         >
@@ -138,7 +138,6 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 8,
     borderWidth: 1,
-    opacity: disableRefresh ? 0.4 : 1,
     borderColor: Colors.muted,
     justifyContent: 'center',
     alignItems: 'center',

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { ChevronRight, Sparkles } from 'lucide-react-native';
+import { Sparkles } from 'lucide-react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 
 export default function LaunchScreen1() {

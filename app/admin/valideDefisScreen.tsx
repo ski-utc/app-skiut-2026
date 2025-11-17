@@ -6,7 +6,7 @@ import Header from '../../components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
-import { apiPost, apiGet, apiPut } from '@/constants/api/apiCalls';
+import { apiGet, apiPut } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 import Toast from 'react-native-toast-message';

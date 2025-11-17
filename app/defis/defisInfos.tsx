@@ -28,13 +28,12 @@ export default function DefisInfos() {
   const [modifiedMedia, setModifiedMedia] = useState(false);
   const [challengeSent, setChallengeSent] = useState(false);
   const [dynamicStatus, setStatus] = useState(status);
-  const [mediaAspectRatio] = useState(1.0);
   const [networkError, setNetworkError] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [videoRef, setVideoRef] = useState(null);
+  // const [videoRef, setVideoRef] = useState(null);
   const [isFullscreenVideoPlaying, setIsFullscreenVideoPlaying] = useState(false);
 
   const toggleModal = () => {
@@ -101,7 +100,7 @@ export default function DefisInfos() {
     try {
       setIsCompressing(true);
       const asset = result.assets[0];
-      const { uri, type: assetType, width, height } = asset;
+      const { uri, type: assetType, width } = asset;
       const isVideo = assetType?.includes('video') || uri.includes('.mp4') || uri.includes('.mov');
 
       setMediaType(isVideo ? 'video' : 'image');
@@ -179,7 +178,7 @@ export default function DefisInfos() {
             ? (getTailleMax.data.maxVideoSize || 15 * 1024 * 1024)
             : (getTailleMax.data.maxImageSize || 5 * 1024 * 1024);
         }
-      } catch (error: any) {
+      } catch {
         // Keep default values
       }
 

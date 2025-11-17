@@ -5,7 +5,7 @@ import Header from "../../../components/header";
 import BoutonRetour from "../../../components/divers/boutonRetour";
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { Zap, MapPin, Timer, Activity, TrendingUp, Trash2 } from "lucide-react-native";
-import { apiGet, apiPost, apiDelete } from "@/constants/api/apiCalls";
+import { apiGet, apiDelete } from "@/constants/api/apiCalls";
 import { useUser } from "@/contexts/UserContext";
 import Toast from 'react-native-toast-message';
 import ErrorScreen from "@/components/pages/errorPage";
@@ -37,7 +37,7 @@ export default function UserPerformancesScreen() {
     const [disableRefresh, setDisableRefresh] = useState(false);
 
     const { user, setUser } = useUser();
-    const navigation = useNavigation();
+    // const navigation = useNavigation();
 
     useEffect(() => {
         fetchUserPerformances();

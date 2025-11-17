@@ -6,7 +6,7 @@ import ErrorScreen from "@/components/pages/errorPage";
 import BoutonRetour from "@/components/divers/boutonRetour";
 import { apiGet } from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
-import { Calendar, Clock, MapPin, HousePlus, Info, X, User, Timer } from 'lucide-react-native';
+import { Calendar, Clock, MapPin, HousePlus, Info, X, Timer } from 'lucide-react-native';
 
 interface Activity {
   activity: string;

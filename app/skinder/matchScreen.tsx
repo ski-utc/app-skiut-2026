@@ -4,7 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Heart, Sparkles, MapPin, MessageCircle } from 'lucide-react-native';
+import { Heart, Sparkles, MapPin } from 'lucide-react-native';
 
 //@ts-ignore
 export default function MatchScreen() {

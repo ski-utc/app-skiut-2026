@@ -82,7 +82,7 @@ export const PendingRequestsWidget: React.FC = () => {
             setTimeout(() => {
                 setSyncResult(null);
             }, 5000);
-        } catch (error) {
+        } catch {
             setSyncResult({
                 success: 0,
                 failed: pendingCount,

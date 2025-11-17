@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { ChevronRight, ChevronLeft, Trophy, MessageCircle, Calendar } from 'lucide-react-native';
+import { Trophy, MessageCircle, Calendar } from 'lucide-react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 
 export default function LaunchScreen2() {

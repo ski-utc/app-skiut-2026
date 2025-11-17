@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard, SafeAreaView, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, SafeAreaView, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from "../../components/header";
@@ -7,7 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import BoutonActiverLarge from '@/components/divers/boutonActiverLarge';
-import { Send, PenTool, FileText, Shield, Users, Home, Globe, ChevronDown, ChevronRight } from 'lucide-react-native';
+import { Send, PenTool, FileText, Users, Home, Globe, ChevronDown, ChevronRight } from 'lucide-react-native';
 import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import Toast from 'react-native-toast-message';

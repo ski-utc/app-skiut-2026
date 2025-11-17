@@ -343,7 +343,7 @@ export default function HomeScreen() {
   const [data, setData] = useState<any>(null);
   const [weatherData, setWeatherData] = useState<any>(null);
   const [tourStatus, setTourStatus] = useState<any>(null);
-  const [isOnline, setIsOnline] = useState(true);
+  // const [isOnline, setIsOnline] = useState(true);
   const [usingCachedData, setUsingCachedData] = useState(false);
 
   const navigation = useNavigation();

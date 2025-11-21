@@ -150,6 +150,17 @@ export const useNotifications = () => {
         }
     }, [notificationService]);
 
+    const cleanup = useCallback(() => {
+        try {
+            notificationService.cleanup();
+            setIsInitialized(false);
+            setPermissionStatus('undetermined');
+            setPushToken(null);
+        } catch (error) {
+            console.error('Erreur cleanup notifications:', error);
+        }
+    }, [notificationService]);
+
     useEffect(() => {
         let timeoutId: NodeJS.Timeout;
 
@@ -169,7 +180,7 @@ export const useNotifications = () => {
                 clearTimeout(timeoutId);
             }
         };
-    }, [user, isInitialized]);
+    }, [user, isInitialized, initializeNotifications]);
 
     useEffect(() => {
         if (!user && isInitialized) {
@@ -193,5 +204,6 @@ export const useNotifications = () => {
         setBadgeCount,
         deactivateToken,
         deleteToken,
+        cleanup,
     };
 };

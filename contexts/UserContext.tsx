@@ -25,9 +25,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const loadUser = async () => {
-      const storedUser = await AsyncStorage.getItem('user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+      try {
+        const storedUser = await AsyncStorage.getItem('user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (error) {
+        console.error('Erreur chargement user:', error);
       }
     };
     loadUser();
@@ -43,10 +47,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const logout = React.useCallback(async () => {
-    await saveUser(null);
-    await SecureStore.deleteItemAsync('accessToken');
-    await SecureStore.deleteItemAsync('refreshToken');
-    await AsyncStorage.removeItem('notificationsRegistered');
+    try {
+      await saveUser(null);
+      await SecureStore.deleteItemAsync('accessToken');
+      await SecureStore.deleteItemAsync('refreshToken');
+      await AsyncStorage.removeItem('notificationsRegistered');
+    } catch (error) {
+      console.error('Erreur lors du logout:', error);
+    }
   }, [saveUser]);
 
   const contextValue = React.useMemo(

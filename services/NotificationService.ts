@@ -19,6 +19,7 @@ export class NotificationService {
     private static instance: NotificationService;
     private isInitialized = false;
     private pushToken: string | null = null;
+    private notificationSubscriptions: Array<() => void> = [];
 
     public static getInstance(): NotificationService {
         if (!NotificationService.instance) {
@@ -169,7 +170,7 @@ export class NotificationService {
                 await Notifications.setNotificationChannelAsync('silent', {
                     name: 'Notifications silencieuses',
                     importance: Notifications.AndroidImportance.LOW,
-                    sound: false,
+                    sound: 'default',
                     enableVibrate: false,
                     showBadge: true,
                 });
@@ -184,15 +185,36 @@ export class NotificationService {
      * Configure les listeners de notifications
      */
     private setupNotificationListeners(): void {
-        Notifications.addNotificationReceivedListener((notification) => {
+        this.cleanupNotificationListeners();
+
+        const notificationReceivedSubscription = Notifications.addNotificationReceivedListener((notification) => {
             console.log('Notification reçue:', notification);
             this.handleNotificationReceived(notification);
         });
 
-        Notifications.addNotificationResponseReceivedListener((response) => {
+        const notificationResponseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
             console.log('Interaction avec notification:', response);
             this.handleNotificationResponse(response);
         });
+
+        this.notificationSubscriptions = [
+            () => notificationReceivedSubscription.remove(),
+            () => notificationResponseSubscription.remove(),
+        ];
+    }
+
+    /**
+     * Nettoie les listeners de notifications
+     */
+    private cleanupNotificationListeners(): void {
+        this.notificationSubscriptions.forEach(unsubscribe => {
+            try {
+                unsubscribe();
+            } catch (error) {
+                console.error('Erreur lors du nettoyage du listener:', error);
+            }
+        });
+        this.notificationSubscriptions = [];
     }
 
     /**
@@ -287,6 +309,15 @@ export class NotificationService {
         } catch (error) {
             console.error('Erreur lors du nettoyage des notifications:', error);
         }
+    }
+
+    /**
+     * Nettoyage complet du service de notifications
+     */
+    public cleanup(): void {
+        this.cleanupNotificationListeners();
+        this.isInitialized = false;
+        this.pushToken = null;
     }
 
     /**

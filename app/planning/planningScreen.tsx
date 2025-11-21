@@ -339,12 +339,20 @@ export default function PlanningScreen() {
 
       <Modal
         visible={showPermanenceModal}
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         onRequestClose={closePermanenceModal}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={closePermanenceModal}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+            style={styles.modalContainer}
+          >
             <View style={styles.modalHeader}>
               <View style={styles.modalHeaderContent}>
                 <HousePlus size={28} color={Colors.primary} />
@@ -448,8 +456,8 @@ export default function PlanningScreen() {
                 </View>
               </ScrollView>
             ) : null}
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </View>
   );
@@ -662,6 +670,8 @@ const styles = StyleSheet.create({
   modalTitle: {
     ...TextStyles.h2Bold,
     color: Colors.primaryBorder,
+    flex: 1,
+    flexWrap: 'wrap',
   },
   closeButton: {
     width: 40,

@@ -202,7 +202,6 @@ export default function SkinderDiscover() {
         }
     }, [setUser, resetPosition]);
 
-
     const handleLike = async () => {
         try {
             const response = await apiPost(`skinder/profiles/${profile.id}/like`, { 'roomLiked': profile.id });

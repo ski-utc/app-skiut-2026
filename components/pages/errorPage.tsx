@@ -6,7 +6,6 @@ import { Colors, TextStyles } from "@/constants/GraphSettings";
 
 import Header from "../header";
 
-
 type ErrorScreenProps = {
   error: string;
 }

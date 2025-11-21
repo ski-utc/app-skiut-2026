@@ -56,7 +56,6 @@ const FilterButton: React.FC<FilterButtonProps> = ({ label, icon, isActive, onPr
   </TouchableOpacity>
 );
 
-
 const GestionDefisScreen = () => {
   const [defis, setDefis] = useState<DefiItem[]>([]);
   const [filteredDefis, setFilteredDefis] = useState<DefiItem[]>([]);

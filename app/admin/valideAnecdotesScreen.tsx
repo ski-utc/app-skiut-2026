@@ -110,7 +110,6 @@ export default function ValideAnecdotes() {
     }
   };
 
-
   useEffect(() => {
     fetchAnecdoteDetails();
   }, [fetchAnecdoteDetails]);

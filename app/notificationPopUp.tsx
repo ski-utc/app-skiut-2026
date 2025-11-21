@@ -96,7 +96,6 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
     }
   }, [visible, fetchNotifications]);
 
-
   if (error !== '') {
     return (
       <Modal

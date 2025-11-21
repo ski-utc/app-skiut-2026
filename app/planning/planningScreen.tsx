@@ -9,7 +9,6 @@ import BoutonRetour from "@/components/divers/boutonRetour";
 import { apiGet } from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
 
-
 type Activity = {
   activity: string;
   time: {

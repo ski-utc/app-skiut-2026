@@ -5,7 +5,6 @@ import Toast from 'react-native-toast-message';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { apiPost, apiDelete } from '@/constants/api/apiCalls';
 
-
 type Article = {
     id: number;
     product: string;

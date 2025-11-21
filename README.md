@@ -31,7 +31,6 @@ Modifie l'IP dans `constants/api/apiConfig` pour donner celle de ton serveur Lar
 2. Créé un émulateur sur Andoid Studio ([Vidéo](https://youtu.be/JdQlicAP5W4?si=-o1wGceeZI8_Ob8j))
 3. Prie pour qu'il soit détecté par ton terminale
 
-
 ## Quelques explications
 ### Authentification
 ---
@@ -40,7 +39,6 @@ Toute l'application est wrapped dans un UserProvider. Quand le userId est null, 
 Ainsi du PDV du user, il fait le tuto -> va sur la webview de login -> Récupère ses acces et refreshToken stockés en secureStorage -> Le UserContext switch sur la vraie app.
 
 Lorsque le user est déconnecté (il se déconnecte ou son refreshToken est expiré), le userContext rebascule sur le tuto.
-
 
 ### Requêtes au serveur
 ---

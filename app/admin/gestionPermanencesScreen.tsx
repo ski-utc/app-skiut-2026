@@ -48,10 +48,10 @@ interface Permanence {
         id: number;
         name: string;
     };
-    all_members: Array<{
+    all_members: {
         id: number;
         name: string;
-    }>;
+    }[];
     duration_minutes: number;
     notes?: string;
 }
@@ -93,14 +93,6 @@ export default function GestionPermanencesScreen() {
             }
         } catch (error) {
             console.warn('Toast error:', error);
-        }
-    };
-
-    const showNotification = (type: 'success' | 'info' | 'error', title: string, message: string) => {
-        if (showCreateModal) {
-            Alert.alert(title, message, [{ text: 'OK' }]);
-        } else {
-            showToast(type, title, message);
         }
     };
 
@@ -230,18 +222,18 @@ export default function GestionPermanencesScreen() {
 
     const submitPermanence = async () => {
         if (!formName.trim() || !formResponsibleId) {
-            showNotification('error', 'Erreur', 'Veuillez remplir tous les champs obligatoires.');
+            showToast('error', 'Erreur', 'Veuillez remplir tous les champs obligatoires.');
             return;
         }
 
         const now = new Date();
         if (formStartDate <= now) {
-            showNotification('error', 'Erreur', 'La date de début doit être dans le futur.');
+            showToast('error', 'Erreur', 'La date de début doit être dans le futur.');
             return;
         }
 
         if (formStartDate >= formEndDate) {
-            showNotification('error', 'Erreur', 'L\'heure de fin doit être postérieure à l\'heure de début.');
+            showToast('error', 'Erreur', 'L\'heure de fin doit être postérieure à l\'heure de début.');
             return;
         }
 
@@ -266,21 +258,20 @@ export default function GestionPermanencesScreen() {
             );
 
             if (response.success) {
-                showNotification('success', 'Succès', `Permanence ${editingPermanence ? 'modifiée' : 'créée'} avec succès.`);
+                showToast('success', 'Succès', `Permanence ${editingPermanence ? 'modifiée' : 'créée'} avec succès.`);
                 setShowCreateModal(false);
                 resetForm();
                 fetchData();
             } else if (response.pending) {
-                showNotification('info', 'Requête sauvegardée', response.message);
+                showToast('info', 'Requête sauvegardée', response.message);
                 setShowCreateModal(false);
                 resetForm();
                 fetchData();
             } else {
-                showNotification('error', 'Erreur', response.message);
+                showToast('error', 'Erreur', response.message);
             }
         } catch (error: any) {
             setError(error.message || 'Une erreur est survenue.');
-            showNotification('error', 'Erreur', error.message || 'Une erreur est survenue.');
         } finally {
             setFormSubmitting(false);
         }
@@ -297,15 +288,15 @@ export default function GestionPermanencesScreen() {
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            const response = await apiDelete(`permanences/${permanence.id}`);
+                            const response = await apiDelete(`admin/permanences/${permanence.id}`);
                             if (response.success) {
-                                showNotification('success', 'Succès', 'Permanence supprimée avec succès.');
+                                showToast('success', 'Succès', 'Permanence supprimée avec succès.');
                                 fetchData();
                             } else if (response.pending) {
-                                showNotification('info', 'Requête sauvegardée', response.message);
+                                showToast('info', 'Requête sauvegardée', response.message);
                                 fetchData();
                             } else {
-                                showNotification('error', 'Erreur', response.message);
+                                showToast('error', 'Erreur', response.message);
                             }
                         } catch (error: any) {
                             setError(error.message || 'Une erreur est survenue.');
@@ -331,7 +322,7 @@ export default function GestionPermanencesScreen() {
                             if (response.success) {
                                 showToast('success', 'Succès', 'Rappels envoyés avec succès.');
                             } else if (response.pending) {
-                                showNotification('info', 'Requête sauvegardée', response.message);
+                                showToast('info', 'Requête sauvegardée', response.message);
                             } else {
                                 showToast('error', 'Erreur', response.message);
                             }
@@ -675,8 +666,8 @@ export default function GestionPermanencesScreen() {
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={submitPermanence}
-                                style={styles.modalSaveButton}
-                                disabled={formSubmitting}
+                                style={[styles.modalSaveButton, (!formName.trim() || !formResponsibleId) && styles.modalSaveButtonDisabled]}
+                                disabled={formSubmitting || !formName.trim() || !formResponsibleId}
                             >
                                 {formSubmitting ? (
                                     <ActivityIndicator size="small" color={Colors.white} />
@@ -1109,6 +1100,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         borderRadius: 12,
         backgroundColor: Colors.primary,
+    },
+    modalSaveButtonDisabled: {
+        backgroundColor: Colors.muted,
+        opacity: 0.5,
     },
     modalSaveText: {
         ...TextStyles.bodyBold,

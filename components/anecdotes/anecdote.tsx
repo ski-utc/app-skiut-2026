@@ -16,12 +16,20 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
 
   const handleLike = async () => {
     try {
-      const response = await apiPost(`anecdotes/${id}/like`, { 'like': !isLiked });
+      const willLike = !isLiked;
+      setIsLiked(willLike);
+      setDynamicNbLikes((prev: number) => {
+        const newValue = prev + (willLike ? 1 : -1);
+        return Math.max(0, newValue);
+      });
+
+      const response = await apiPost(`anecdotes/${id}/like`, { 'like': willLike });
       if (response.success || response.pending) {
         setIsLiked(response.liked);
-        const updateLike = (response.liked) ? 1 : -1;
-        setDynamicNbLikes(dynamicNbLikes + updateLike);
+        setDynamicNbLikes(response.nbLikes || (dynamicNbLikes + (response.liked ? 1 : -1)));
       } else {
+        setIsLiked(!willLike);
+        setDynamicNbLikes((prev: number) => prev + (willLike ? -1 : 1));
         Toast.show({
           type: 'error',
           text1: 'Une erreur est survenue...',
@@ -29,6 +37,9 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
         });
       }
     } catch (error: any) {
+      setIsLiked(!isLiked);
+      setDynamicNbLikes((prev: number) => prev + (isLiked ? 1 : -1));
+
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {
@@ -39,10 +50,15 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
 
   const handleWarning = async () => {
     try {
-      const response = await apiPost(`anecdotes/${id}/warn`, { 'warn': !isWarned });
+      const willWarn = !isWarned;
+      setIsWarned(willWarn);
+
+      const response = await apiPost(`anecdotes/${id}/warn`, { 'warn': willWarn });
       if (response.success || response.pending) {
         setIsWarned(response.warn);
       } else {
+        // Revert sur erreur
+        setIsWarned(!willWarn);
         Toast.show({
           type: 'error',
           text1: 'Une erreur est survenue...',
@@ -50,6 +66,9 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
         });
       }
     } catch (error: any) {
+      // Revert sur exception
+      setIsWarned(!isWarned);
+
       if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
         setUser(null);
       } else {

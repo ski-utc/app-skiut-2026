@@ -1,14 +1,16 @@
 import { View, StyleSheet, Text, FlatList, ActivityIndicator, TouchableOpacity, Modal, ScrollView } from "react-native";
+import { useState, useCallback, useEffect } from 'react';
+import { Calendar, Clock, MapPin, HousePlus, Info, X, Timer } from 'lucide-react-native';
+
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import React, { useState, useCallback, useEffect } from 'react';
 import Header from "@/components/header";
 import ErrorScreen from "@/components/pages/errorPage";
 import BoutonRetour from "@/components/divers/boutonRetour";
 import { apiGet } from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
-import { Calendar, Clock, MapPin, HousePlus, Info, X, Timer } from 'lucide-react-native';
 
-interface Activity {
+
+type Activity = {
   activity: string;
   time: {
     start: string;
@@ -26,7 +28,7 @@ interface Activity {
   };
 }
 
-interface PermanenceDetails {
+type PermanenceDetails = {
   id: number;
   name: string;
   start_datetime: string;
@@ -56,6 +58,8 @@ export default function PlanningScreen() {
   const [permanenceDetails, setPermanenceDetails] = useState<PermanenceDetails | null>(null);
   const [loadingPermanence, setLoadingPermanence] = useState<boolean>(false);
 
+  const activeOpacity = 1;
+  const inactiveOpacity = 0.4;
 
   const sortActivitiesByTime = (activities: Activity[]) => {
     return activities.sort((a, b) => {
@@ -251,7 +255,7 @@ export default function PlanningScreen() {
                     key={index}
                     style={[
                       styles.activityCard,
-                      { opacity: (activity.status === "past") ? 0.4 : 1 }
+                      { opacity: (activity.status === "past") ? inactiveOpacity : activeOpacity }
                     ]}
                   >
                     <View style={styles.activityIndicator}>
@@ -303,20 +307,11 @@ export default function PlanningScreen() {
 
   if (loading) {
     return (
-      <View style={{
-        flex: 1,
-        backgroundColor: Colors.white,
-      }}>
+      <View style={styles.container}>
         <Header refreshFunction={undefined} disableRefresh={true} />
-        <View style={{
-          width: '100%',
-          flex: 1,
-          backgroundColor: Colors.white,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
-          <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+          <Text style={styles.loadingText}>
             Chargement...
           </Text>
         </View>
@@ -328,7 +323,7 @@ export default function PlanningScreen() {
     <View style={styles.container}>
       <Header refreshFunction={fetchPlanning} disableRefresh={disableRefresh} />
       <View style={styles.headerContainer}>
-        <BoutonRetour previousRoute="homeScreen" title="Planning" />
+        <BoutonRetour title="Planning" />
       </View>
       <FlatList
         data={data}
@@ -366,7 +361,7 @@ export default function PlanningScreen() {
             {loadingPermanence ? (
               <View style={styles.modalLoading}>
                 <ActivityIndicator size="large" color={Colors.primary} />
-                <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+                <Text style={styles.loadingText}>
                   Chargement...
                 </Text>
               </View>
@@ -464,47 +459,78 @@ export default function PlanningScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.white,
+  activitiesContainer: {
+    marginTop: 0,
   },
-  headerContainer: {
-    width: '100%',
-    paddingHorizontal: 20,
+  activitiesList: {
+    gap: 12,
+    marginBottom: 20,
   },
-  listContainer: {
-    paddingHorizontal: 20,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  activityCard: {
     alignItems: 'center',
-  },
-  daysContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-    marginBottom: 12,
-    height: 64,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: Colors.primary,
     backgroundColor: Colors.white,
-    padding: 4,
+    borderColor: Colors.lightMuted,
+    borderRadius: 12,
+    borderWidth: 1,
+    elevation: 1,
+    flexDirection: 'row',
+    padding: 16,
+    position: 'relative',
     shadowColor: Colors.primaryBorder,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  activityContent: {
+    flex: 1,
+    gap: 4,
+  },
+  activityIndicator: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  activityTime: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
+  },
+  activityTimeText: {
+    ...TextStyles.small,
+    color: Colors.muted,
+  },
+  activityTitle: {
+    ...TextStyles.bodyBold,
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  closeButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 20,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
+  },
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  dateHeader: {
+    marginBottom: 16,
+  },
+  dateTitle: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
   },
   dayButton: {
-    flex: 1,
-    paddingVertical: 8,
+    alignItems: "center",
     borderRadius: 12,
+    flex: 1,
     flexDirection: "column",
     justifyContent: "center",
-    alignItems: "center",
     marginHorizontal: 2,
+    paddingVertical: 8,
   },
   dayLetter: {
     ...TextStyles.small,
@@ -515,202 +541,37 @@ const styles = StyleSheet.create({
     ...TextStyles.body,
     fontWeight: '700',
   },
-  activitiesContainer: {
-    marginTop: 0,
-  },
-  infoCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.lightMuted,
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 10,
-    gap: 12,
-  },
-  infoText: {
-    ...TextStyles.small,
-    color: Colors.primaryBorder,
-    flex: 1,
-    lineHeight: 20,
-  },
-  primaryText: {
-    ...TextStyles.body,
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  dateHeader: {
-    marginBottom: 16,
-  },
-  dateTitle: {
-    ...TextStyles.h3Bold,
-    color: Colors.primaryBorder,
-  },
-  activitiesList: {
-    gap: 12,
-    marginBottom: 20,
-  },
-  activityCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  daysContainer: {
     backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: Colors.lightMuted,
-    shadowColor: Colors.primaryBorder,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    position: 'relative',
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  activityIndicator: {
-    marginRight: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  statusDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  activityContent: {
-    flex: 1,
-    gap: 4,
-  },
-  activityTitle: {
-    ...TextStyles.bodyBold,
-    fontSize: 16,
-    lineHeight: 20,
-  },
-  activityTime: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  activityTimeText: {
-    ...TextStyles.small,
-    color: Colors.muted,
-  },
-  permanenceButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: Colors.lightMuted,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 1,
     borderColor: Colors.primary,
-  },
-  permanenceButtonText: {
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  noActivitiesContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-    backgroundColor: Colors.lightMuted,
     borderRadius: 16,
-    marginTop: 20,
-  },
-  noActivitiesText: {
-    ...TextStyles.body,
-    textAlign: 'center',
-    color: Colors.muted,
-    marginTop: 12,
-    lineHeight: 20,
-  },
-  noDatesContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-    backgroundColor: Colors.lightMuted,
-    borderRadius: 16,
-    marginTop: 20,
-  },
-  noDatesText: {
-    ...TextStyles.body,
-    textAlign: 'center',
-    color: Colors.muted,
-    marginTop: 12,
-    lineHeight: 20,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContainer: {
-    backgroundColor: Colors.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '90%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 12,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.lightMuted,
-  },
-  modalHeaderContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  modalTitle: {
-    ...TextStyles.h2Bold,
-    color: Colors.primaryBorder,
-    flex: 1,
-    flexWrap: 'wrap',
-  },
-  closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.lightMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalLoading: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  modalContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-  },
-  detailSection: {
-    gap: 16,
-    paddingBottom: 20,
-  },
-  statusBadgeContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
+    borderWidth: 2,
+    elevation: 2,
+    flexDirection: "row",
+    height: 64,
+    justifyContent: "space-around",
+    marginBottom: 12,
+    padding: 4,
+    shadowColor: Colors.primaryBorder,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    width: "100%",
   },
   detailCard: {
     backgroundColor: Colors.white,
-    borderWidth: 1,
     borderColor: Colors.lightMuted,
     borderRadius: 12,
-    padding: 16,
+    borderWidth: 1,
     gap: 12,
+    padding: 16,
+  },
+  detailCardContent: {
+    gap: 8,
   },
   detailCardHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
     gap: 10,
     marginBottom: 4,
   },
@@ -719,17 +580,184 @@ const styles = StyleSheet.create({
     color: Colors.primaryBorder,
     fontSize: 16,
   },
-  detailCardContent: {
-    gap: 8,
+  detailSection: {
+    gap: 16,
+    paddingBottom: 20,
+  },
+  detailSeparator: {
+    ...TextStyles.body,
+    color: Colors.primary,
+    fontSize: 20,
   },
   detailValue: {
     ...TextStyles.body,
     color: Colors.primaryBorder,
     lineHeight: 22,
   },
-  timeRow: {
-    flexDirection: 'row',
+  durationBadge: {
     alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  durationText: {
+    ...TextStyles.small,
+    color: Colors.primaryBorder,
+    fontWeight: '600',
+  },
+  headerContainer: {
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  infoCard: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 12,
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 10,
+    padding: 12,
+  },
+  infoText: {
+    ...TextStyles.small,
+    color: Colors.primaryBorder,
+    flex: 1,
+    lineHeight: 20,
+  },
+  listContainer: {
+    paddingHorizontal: 20,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    flex: 1,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16,
+  },
+  modalContainer: {
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    elevation: 12,
+    maxHeight: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+  },
+  modalContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+  modalHeader: {
+    alignItems: 'center',
+    borderBottomColor: Colors.lightMuted,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+  modalHeaderContent: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalLoading: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  modalOverlay: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  modalTitle: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+    flex: 1,
+    flexWrap: 'wrap',
+  },
+  noActivitiesContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 16,
+    justifyContent: 'center',
+    marginTop: 20,
+    padding: 40,
+  },
+  noActivitiesText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    lineHeight: 20,
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  noDatesContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 16,
+    justifyContent: 'center',
+    marginTop: 20,
+    padding: 40,
+  },
+  noDatesText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    lineHeight: 20,
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  notesCard: {
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 12,
+    gap: 8,
+    padding: 16,
+  },
+  notesText: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    lineHeight: 22,
+  },
+  permanenceButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderColor: Colors.primary,
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  permanenceButtonText: {
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  primaryText: {
+    ...TextStyles.body,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  statusDot: {
+    borderRadius: 6,
+    height: 12,
+    width: 12,
+  },
+  timeRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
     gap: 12,
     marginTop: 4,
   },
@@ -737,42 +765,5 @@ const styles = StyleSheet.create({
     ...TextStyles.h3Bold,
     color: Colors.primaryBorder,
     fontSize: 18,
-  },
-  detailSeparator: {
-    ...TextStyles.body,
-    color: Colors.primary,
-    fontSize: 20,
-  },
-  durationBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: Colors.lightMuted,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-    marginTop: 8,
-  },
-  durationText: {
-    ...TextStyles.small,
-    color: Colors.primaryBorder,
-    fontWeight: '600',
-  },
-  notesCard: {
-    backgroundColor: Colors.lightMuted,
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  notesText: {
-    ...TextStyles.body,
-    color: Colors.primaryBorder,
-    lineHeight: 22,
-  },
-  statusBadgeText: {
-    ...TextStyles.bodyBold,
-    color: Colors.white,
-    fontSize: 14,
   },
 });

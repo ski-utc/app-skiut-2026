@@ -1,14 +1,16 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { StyleSheet, View, Image, Text, ActivityIndicator, Animated, TouchableOpacity, ScrollView } from 'react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
+import { Heart, X, User, MessageCircle, Settings } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
+
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Heart, X, User, MessageCircle, Settings } from 'lucide-react-native';
 import { apiGet, apiPost } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
-import { useNavigation } from '@react-navigation/native';
+
+import Header from '../../components/header';
 
 export default function SkinderDiscover() {
     const [error, setError] = useState('');
@@ -28,6 +30,10 @@ export default function SkinderDiscover() {
     const cardOpacity = useRef(new Animated.Value(1)).current;
     const likeOpacity = useRef(new Animated.Value(0)).current;
     const dislikeOpacity = useRef(new Animated.Value(0)).current;
+
+    const activeOpacity = 1;
+    const inactiveOpacity = 0.4;
+
     const handleGesture = Animated.event(
         [{ nativeEvent: { translationX: translateX } }],
         { useNativeDriver: false }
@@ -242,20 +248,11 @@ export default function SkinderDiscover() {
 
     if (loading) {
         return (
-            <View style={{
-                flex: 1,
-                backgroundColor: Colors.white,
-            }}>
+            <View style={styles.container}>
                 <Header refreshFunction={undefined} disableRefresh={true} />
-                <View style={{
-                    width: '100%',
-                    flex: 1,
-                    backgroundColor: Colors.white,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}>
+                <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={Colors.primaryBorder} />
-                    <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+                    <Text style={styles.loadingText}>
                         Chargement...
                     </Text>
                 </View>
@@ -267,7 +264,7 @@ export default function SkinderDiscover() {
         <View style={styles.container}>
             <Header refreshFunction={fetchProfil} disableRefresh={disableRefresh} />
             <View style={styles.headerContainer}>
-                <BoutonRetour previousRoute={'homeNavigator'} title={'Skinder'} />
+                <BoutonRetour title={'Skinder'} />
             </View>
 
             <View style={styles.content}>
@@ -380,14 +377,14 @@ export default function SkinderDiscover() {
                     <TouchableOpacity
                         onPress={handleDislikeButton}
                         disabled={disableButton}
-                        style={[styles.swipeButton, styles.dislikeButton, { opacity: disableButton ? 0.4 : 1 }]}
+                        style={[styles.swipeButton, styles.dislikeButton, { opacity: disableButton ? inactiveOpacity : activeOpacity }]}
                     >
                         <X size={28} color={Colors.white} />
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={handleLikeButton}
                         disabled={disableButton}
-                        style={[styles.swipeButton, styles.likeButton, { opacity: disableButton ? 0.4 : 1 }]}
+                        style={[styles.swipeButton, styles.likeButton, { opacity: disableButton ? inactiveOpacity : activeOpacity }]}
                     >
                         <Heart size={28} color={Colors.white} />
                     </TouchableOpacity>
@@ -402,37 +399,128 @@ export default function SkinderDiscover() {
             </Animated.View>
         </View>
     );
-};
+}
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
+    actionButton: {
+        backgroundColor: Colors.primary,
+        borderRadius: 12,
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+    },
+    actionButtonText: {
+        ...TextStyles.button,
+        color: Colors.white,
+        fontWeight: '600',
+    },
+    actionButtonsContainer: {
+        bottom: 40,
+        flexDirection: 'row',
+        gap: 60,
+        justifyContent: 'center',
+        left: 0,
+        position: 'absolute',
+        right: 0,
+    },
+    card: {
         backgroundColor: Colors.white,
+        borderRadius: 20,
+        elevation: 8,
+        height: '90%',
+        overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.15,
+        shadowRadius: 16,
+        width: '95%',
     },
-    headerContainer: {
-        width: '100%',
-        paddingHorizontal: 20,
-    },
-    loadingContainer: {
+    cardContainer: {
+        alignItems: 'center',
         flex: 1,
         justifyContent: 'center',
-        alignItems: 'center',
+    },
+    container: {
+        backgroundColor: Colors.white,
+        flex: 1,
+    },
+    content: {
+        flex: 1,
         paddingHorizontal: 20,
+    },
+    descriptionSection: {
+        marginBottom: 20,
+    },
+    descriptionText: {
+        ...TextStyles.body,
+        color: Colors.muted,
+        lineHeight: 22,
+    },
+    dislikeAnimation: {
+        left: '42%',
+        position: 'absolute',
+        top: '45%',
+        zIndex: 1000,
+    },
+    dislikeButton: {
+        backgroundColor: Colors.accent,
+    },
+    emptyStateContainer: {
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+        paddingHorizontal: 40,
+    },
+    emptyStateText: {
+        ...TextStyles.body,
+        color: Colors.muted,
+        lineHeight: 22,
+        marginBottom: 24,
+        textAlign: 'center',
+    },
+    emptyStateTitle: {
+        ...TextStyles.h2Bold,
+        color: Colors.primaryBorder,
+        marginBottom: 12,
+        marginTop: 24,
+        textAlign: 'center',
+    },
+    headerContainer: {
+        paddingHorizontal: 20,
+        width: '100%',
+    },
+    imageContainer: {
+        height: '40%',
+        position: 'relative',
+    },
+    imageOverlay: {
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        bottom: 0,
+        left: 0,
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        position: 'absolute',
+        right: 0,
+    },
+    likeAnimation: {
+        left: '42%',
+        position: 'absolute',
+        top: '45%',
+        zIndex: 1000,
+    },
+    likeButton: {
+        backgroundColor: Colors.primary,
+    },
+    loadingContainer: {
+        alignItems: 'center',
+        backgroundColor: Colors.white,
+        flex: 1,
+        justifyContent: 'center',
     },
     loadingText: {
         ...TextStyles.body,
         color: Colors.muted,
         marginTop: 16,
         textAlign: 'center',
-    },
-    content: {
-        flex: 1,
-        paddingHorizontal: 20,
-    },
-    navigationHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
     },
     navButton: {
         alignItems: 'center',
@@ -444,155 +532,59 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         marginTop: 4,
     },
-    titleContainer: {
+    navigationHeader: {
+        alignItems: 'center',
         flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
+        justifyContent: 'space-between',
     },
-    cardContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    card: {
-        width: '95%',
-        height: '90%',
-        backgroundColor: Colors.white,
-        borderRadius: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.15,
-        shadowRadius: 16,
-        elevation: 8,
-        overflow: 'hidden',
-    },
-    imageContainer: {
-        position: 'relative',
-        height: '40%',
-    },
-    profileImage: {
-        width: '100%',
-        height: '100%',
-    },
-    imageOverlay: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: 'rgba(0,0,0,0.6)',
-        paddingVertical: 16,
-        paddingHorizontal: 20,
-    },
-    profileName: {
-        ...TextStyles.h3Bold,
-        color: Colors.white,
-    },
-    profileInfo: {
-        flex: 1,
-        padding: 20,
-    },
-    descriptionSection: {
-        marginBottom: 20,
-    },
-    passionsSection: {
-        marginBottom: 20,
-    },
-    sectionTitle: {
-        ...TextStyles.bodyBold,
-        color: Colors.primaryBorder,
-        marginBottom: 12,
-    },
-    descriptionText: {
-        ...TextStyles.body,
-        color: Colors.muted,
-        lineHeight: 22,
+    passionChip: {
+        backgroundColor: Colors.lightMuted,
+        borderColor: Colors.primary,
+        borderRadius: 16,
+        borderWidth: 1,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
     },
     passionContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 8,
     },
-    passionChip: {
-        backgroundColor: Colors.lightMuted,
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: Colors.primary,
-    },
     passionText: {
         ...TextStyles.body,
         color: Colors.primary,
         fontWeight: '600',
     },
-    emptyStateContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 40,
+    passionsSection: {
+        marginBottom: 20,
     },
-    emptyStateTitle: {
-        ...TextStyles.h2Bold,
+    profileImage: {
+        height: '100%',
+        width: '100%',
+    },
+    profileInfo: {
+        flex: 1,
+        padding: 20,
+    },
+    profileName: {
+        ...TextStyles.h3Bold,
+        color: Colors.white,
+    },
+    sectionTitle: {
+        ...TextStyles.bodyBold,
         color: Colors.primaryBorder,
-        textAlign: 'center',
-        marginTop: 24,
         marginBottom: 12,
     },
-    emptyStateText: {
-        ...TextStyles.body,
-        color: Colors.muted,
-        textAlign: 'center',
-        lineHeight: 22,
-        marginBottom: 24,
-    },
-    actionButton: {
-        backgroundColor: Colors.primary,
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        borderRadius: 12,
-    },
-    actionButtonText: {
-        ...TextStyles.button,
-        color: Colors.white,
-        fontWeight: '600',
-    },
-    actionButtonsContainer: {
-        position: 'absolute',
-        bottom: 40,
-        left: 0,
-        right: 0,
-        flexDirection: 'row',
-        justifyContent: 'center',
-        gap: 60,
-    },
     swipeButton: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        justifyContent: 'center',
         alignItems: 'center',
+        borderRadius: 32,
+        elevation: 8,
+        height: 64,
+        justifyContent: 'center',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
-        elevation: 8,
-    },
-    dislikeButton: {
-        backgroundColor: Colors.accent,
-    },
-    likeButton: {
-        backgroundColor: Colors.primary,
-    },
-    likeAnimation: {
-        position: 'absolute',
-        top: '45%',
-        left: '42%',
-        zIndex: 1000,
-    },
-    dislikeAnimation: {
-        position: 'absolute',
-        top: '45%',
-        left: '42%',
-        zIndex: 1000,
+        width: 64,
     },
 });

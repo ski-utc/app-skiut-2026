@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -14,12 +14,6 @@ import {
     ScrollView,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { apiGet, apiPost, apiDelete } from '@/constants/api/apiCalls';
-import BoutonRetour from '@/components/divers/boutonRetour';
-import Header from '../../components/header';
-import ErrorScreen from '@/components/pages/errorPage';
-import { useUser } from '@/contexts/UserContext';
-import { Colors, TextStyles } from '@/constants/GraphSettings';
 import {
     Home,
     Plus,
@@ -30,10 +24,18 @@ import {
     Square,
     CheckCircle,
 } from 'lucide-react-native';
-import Checkbox from 'expo-checkbox';
+import { Checkbox } from 'expo-checkbox';
 import Toast from 'react-native-toast-message';
 
-interface RoomTour {
+import { apiGet, apiPost, apiDelete } from '@/constants/api/apiCalls';
+import BoutonRetour from '@/components/divers/boutonRetour';
+import ErrorScreen from '@/components/pages/errorPage';
+import { useUser } from '@/contexts/UserContext';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+
+import Header from '../../components/header';
+
+type RoomTour = {
     id: number;
     tour_date: string;
     is_active: boolean;
@@ -44,7 +46,7 @@ interface RoomTour {
     created_at: string;
 }
 
-interface Room {
+type Room = {
     room_id: string;
     occupants: {
         id: number;
@@ -53,14 +55,14 @@ interface Room {
     occupants_count: number;
 }
 
-interface Member {
+type Member = {
     id: number;
     firstName: string;
     lastName: string;
     name: string;
 }
 
-interface Binome {
+type Binome = {
     name: string;
     member_ids: number[];
     assigned_rooms: string[];
@@ -430,7 +432,7 @@ export default function GestionTourneeChambreScreen() {
         <SafeAreaView style={styles.container}>
             <Header refreshFunction={null} disableRefresh={true} />
             <View style={styles.headerContainer}>
-                <BoutonRetour previousRoute="adminScreen" title="Tournée des Chambres" />
+                <BoutonRetour title="Tournée des Chambres" />
             </View>
 
             <View style={styles.heroSection}>
@@ -487,7 +489,7 @@ export default function GestionTourneeChambreScreen() {
                         <Text style={styles.modalTitle}>Nouvelle tournée</Text>
                     </View>
 
-                    <ScrollView style={styles.modalContent} contentContainerStyle={{ paddingBottom: 100 }}>
+                    <ScrollView style={styles.modalContent} contentContainerStyle={styles.modalContentContainer}>
                         <View style={styles.formGroup}>
                             <Text style={styles.label}>Date de la tournée *</Text>
                             <TouchableOpacity
@@ -716,227 +718,107 @@ export default function GestionTourneeChambreScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.white,
-    },
-    headerContainer: {
-        width: '100%',
-        paddingHorizontal: 20,
-        paddingBottom: 8,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-    },
-    loadingText: {
-        ...TextStyles.body,
-        color: Colors.muted,
-        marginTop: 16,
-        textAlign: 'center',
-    },
-    heroSection: {
-        alignItems: 'center',
-        paddingHorizontal: 32,
-        paddingBottom: 8,
-        marginBottom: 16,
-    },
-    heroIcon: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: Colors.lightMuted,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 16,
-    },
-    heroTitle: {
-        ...TextStyles.h2Bold,
-        color: Colors.primaryBorder,
-        textAlign: 'center',
-        marginBottom: 8,
-    },
-    heroSubtitle: {
-        ...TextStyles.body,
-        color: Colors.muted,
-        textAlign: 'center',
-        lineHeight: 22,
-    },
-    actionsContainer: {
-        paddingHorizontal: 20,
-        marginBottom: 16,
-    },
-    primaryButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: Colors.primary,
-        borderRadius: 12,
-        paddingVertical: 14,
-        paddingHorizontal: 16,
-    },
-    primaryButtonText: {
-        ...TextStyles.bodyBold,
-        color: Colors.white,
-        marginLeft: 8,
-    },
-    contentContainer: {
-        flex: 1,
-        paddingHorizontal: 20,
-    },
-    listContainer: {
-        paddingBottom: 20,
-    },
-    tourCard: {
-        backgroundColor: Colors.white,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.06)',
-        shadowColor: '#000',
-        shadowOpacity: 0.08,
-        shadowOffset: { width: 2, height: 3 },
-        shadowRadius: 5,
-        elevation: 3,
-        marginBottom: 16,
-        padding: 16,
-    },
-    cardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 16,
-    },
-    cardTitle: {
-        ...TextStyles.bodyBold,
-        color: Colors.primaryBorder,
-        flex: 1,
-    },
-    statusBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    statusText: {
-        ...TextStyles.small,
-        color: Colors.white,
-        fontWeight: '600',
-    },
-    cardStats: {
-        marginBottom: 12,
-    },
-    statRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 6,
-    },
-    statText: {
-        ...TextStyles.small,
-        color: Colors.muted,
-        marginLeft: 8,
-    },
-    progressBar: {
-        height: 6,
-        backgroundColor: Colors.lightMuted,
-        borderRadius: 3,
-        marginBottom: 16,
-        overflow: 'hidden',
-    },
-    progressFill: {
-        height: '100%',
-        borderRadius: 3,
-    },
-    cardActions: {
-        flexDirection: 'row',
-        gap: 12,
-    },
     actionButton: {
+        alignItems: 'center',
+        borderRadius: 8,
         flex: 1,
         flexDirection: 'row',
-        alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 10,
         paddingHorizontal: 12,
-        borderRadius: 8,
-    },
-    toggleButton: {
-        backgroundColor: Colors.lightMuted,
-    },
-    deleteButton: {
-        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+        paddingVertical: 10,
     },
     actionButtonText: {
         ...TextStyles.body,
         fontWeight: '600',
         marginLeft: 6,
     },
-    emptyContainer: {
+    actionsContainer: {
+        marginBottom: 16,
+        paddingHorizontal: 20,
+    },
+    addBinomeButton: {
         alignItems: 'center',
-        paddingVertical: 60,
-    },
-    emptyTitle: {
-        ...TextStyles.h3Bold,
-        color: Colors.primaryBorder,
-        marginTop: 16,
-        marginBottom: 8,
-    },
-    emptySubtitle: {
-        ...TextStyles.body,
-        color: Colors.muted,
-        textAlign: 'center',
-        lineHeight: 22,
-    },
-    modalContainer: {
-        flex: 1,
-        backgroundColor: Colors.white,
-    },
-    modalHeader: {
+        backgroundColor: Colors.primary,
+        borderRadius: 8,
         flexDirection: 'row',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+    },
+    addBinomeText: {
+        ...TextStyles.small,
+        color: Colors.white,
+        fontWeight: '600',
+        marginLeft: 6,
+    },
+    binomeCard: {
+        backgroundColor: Colors.lightMuted,
+        borderRadius: 12,
+        marginBottom: 12,
+        padding: 16,
+    },
+    binomeField: {
+        marginTop: 12,
+    },
+    binomeHeader: {
         alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.lightMuted,
+        flexDirection: 'row',
+        marginBottom: 12,
     },
-    modalCloseButton: {
-        paddingVertical: 8,
-    },
-    modalCloseText: {
-        ...TextStyles.body,
-        color: Colors.error,
-    },
-    modalTitle: {
-        ...TextStyles.h3Bold,
+    binomeLabel: {
+        ...TextStyles.small,
         color: Colors.primaryBorder,
+        fontWeight: '600',
+        marginTop: 8,
     },
-    modalSaveButton: {
-        paddingVertical: 8,
-    },
-    modalSaveText: {
-        ...TextStyles.bodyBold,
-        color: Colors.primary,
-    },
-    modalContent: {
+    binomeNameInput: {
         flex: 1,
-        paddingHorizontal: 20,
-        paddingTop: 20,
+        ...TextStyles.bodyBold,
+        borderBottomColor: Colors.primary,
+        borderBottomWidth: 1,
+        color: Colors.primaryBorder,
+        paddingVertical: 4,
     },
-    formGroup: {
+    binomesHeader: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 16,
+    },
+    binomesSection: {
         marginBottom: 20,
     },
-    label: {
+    cardActions: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    cardHeader: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 16,
+    },
+    cardStats: {
+        marginBottom: 12,
+    },
+    cardTitle: {
         ...TextStyles.bodyBold,
         color: Colors.primaryBorder,
-        marginBottom: 8,
+        flex: 1,
+    },
+    container: {
+        backgroundColor: Colors.white,
+        flex: 1,
+    },
+    contentContainer: {
+        flex: 1,
+        paddingHorizontal: 20,
     },
     dateButton: {
-        flexDirection: 'row',
         alignItems: 'center',
-        borderWidth: 1,
         borderColor: Colors.lightMuted,
         borderRadius: 12,
+        borderWidth: 1,
+        flexDirection: 'row',
         paddingHorizontal: 16,
         paddingVertical: 12,
     },
@@ -945,136 +827,159 @@ const styles = StyleSheet.create({
         color: Colors.primaryBorder,
         marginLeft: 8,
     },
-    binomesSection: {
-        marginBottom: 20,
+    deleteButton: {
+        backgroundColor: 'rgba(220, 53, 69, 0.1)',
     },
-    binomesHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+    emptyContainer: {
         alignItems: 'center',
-        marginBottom: 16,
+        paddingVertical: 60,
     },
-    sectionTitle: {
+    emptySubtitle: {
+        ...TextStyles.body,
+        color: Colors.muted,
+        lineHeight: 22,
+        textAlign: 'center',
+    },
+    emptyTitle: {
         ...TextStyles.h3Bold,
         color: Colors.primaryBorder,
+        marginBottom: 8,
+        marginTop: 16,
     },
-    addBinomeButton: {
-        flexDirection: 'row',
+    formGroup: {
+        marginBottom: 20,
+    },
+    headerContainer: {
+        paddingBottom: 8,
+        paddingHorizontal: 20,
+        width: '100%',
+    },
+    heroIcon: {
         alignItems: 'center',
-        backgroundColor: Colors.primary,
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-    },
-    addBinomeText: {
-        ...TextStyles.small,
-        color: Colors.white,
-        marginLeft: 6,
-        fontWeight: '600',
-    },
-    binomeCard: {
         backgroundColor: Colors.lightMuted,
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
+        borderRadius: 32,
+        height: 64,
+        justifyContent: 'center',
+        marginBottom: 16,
+        width: 64,
     },
-    binomeHeader: {
-        flexDirection: 'row',
+    heroSection: {
         alignItems: 'center',
-        marginBottom: 12,
+        marginBottom: 16,
+        paddingBottom: 8,
+        paddingHorizontal: 32,
     },
-    binomeNameInput: {
-        flex: 1,
+    heroSubtitle: {
+        ...TextStyles.body,
+        color: Colors.muted,
+        lineHeight: 22,
+        textAlign: 'center',
+    },
+    heroTitle: {
+        ...TextStyles.h2Bold,
+        color: Colors.primaryBorder,
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    label: {
         ...TextStyles.bodyBold,
         color: Colors.primaryBorder,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.primary,
-        paddingVertical: 4,
+        marginBottom: 8,
     },
-    removeBinomeButton: {
-        padding: 8,
+    listContainer: {
+        paddingBottom: 20,
     },
-    binomeLabel: {
-        ...TextStyles.small,
-        color: Colors.primaryBorder,
-        fontWeight: '600',
-        marginTop: 8,
+    loadingContainer: {
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+        paddingHorizontal: 20,
     },
-    binomeSubLabel: {
-        ...TextStyles.small,
+    loadingText: {
+        ...TextStyles.body,
         color: Colors.muted,
-        marginTop: 2,
+        marginTop: 16,
+        textAlign: 'center',
+    },
+    modalCancelButton: {
+        alignItems: 'center',
+        borderColor: Colors.muted,
+        borderRadius: 12,
+        borderWidth: 1,
+        flex: 1,
+        justifyContent: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 14,
+    },
+    modalCancelText: {
+        ...TextStyles.bodyBold,
+        color: Colors.muted,
+    },
+    modalContainer: {
+        backgroundColor: Colors.white,
+        flex: 1,
+    },
+    modalContent: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingTop: 20,
+    },
+    modalContentContainer: {
+        paddingBottom: 100
+    },
+    modalFooter: {
+        backgroundColor: Colors.white,
+        borderTopColor: Colors.lightMuted,
+        borderTopWidth: 1,
+        flexDirection: 'row',
+        gap: 12,
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+    },
+    modalHeader: {
+        alignItems: 'center',
+        borderBottomColor: Colors.lightMuted,
+        borderBottomWidth: 1,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+    },
+    modalSaveButtonBottom: {
+        alignItems: 'center',
+        backgroundColor: Colors.primary,
+        borderRadius: 12,
+        flex: 1,
+        justifyContent: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 14,
+    },
+    modalSaveTextBottom: {
+        ...TextStyles.bodyBold,
+        color: Colors.white,
+    },
+    modalTitle: {
+        ...TextStyles.h3Bold,
+        color: Colors.primaryBorder,
     },
     noBinomesContainer: {
         alignItems: 'center',
         paddingVertical: 40,
+    },
+    noBinomesSubtext: {
+        ...TextStyles.small,
+        color: Colors.muted,
+        marginTop: 4,
+        textAlign: 'center',
     },
     noBinomesText: {
         ...TextStyles.bodyBold,
         color: Colors.primaryBorder,
         marginTop: 12,
     },
-    noBinomesSubtext: {
-        ...TextStyles.small,
-        color: Colors.muted,
-        textAlign: 'center',
-        marginTop: 4,
-    },
-    binomeField: {
-        marginTop: 12,
-    },
-    selectButton: {
-        borderWidth: 1,
-        borderColor: Colors.primary,
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        marginTop: 6,
-    },
-    selectButtonText: {
-        ...TextStyles.body,
-        color: Colors.primaryBorder,
-    },
-    modalFooter: {
-        flexDirection: 'row',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        borderTopWidth: 1,
-        borderTopColor: Colors.lightMuted,
-        backgroundColor: Colors.white,
-        gap: 12,
-    },
-    modalCancelButton: {
-        flex: 1,
-        paddingVertical: 14,
-        paddingHorizontal: 20,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: Colors.muted,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    modalCancelText: {
+    pickerModalClose: {
         ...TextStyles.bodyBold,
-        color: Colors.muted,
-    },
-    modalSaveButtonBottom: {
-        flex: 1,
-        paddingVertical: 14,
-        paddingHorizontal: 20,
-        borderRadius: 12,
-        backgroundColor: Colors.primary,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    modalSaveTextBottom: {
-        ...TextStyles.bodyBold,
-        color: Colors.white,
-    },
-    pickerModalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'flex-end',
+        color: Colors.primary,
     },
     pickerModalContent: {
         backgroundColor: Colors.white,
@@ -1083,32 +988,21 @@ const styles = StyleSheet.create({
         maxHeight: '80%',
     },
     pickerModalHeader: {
+        alignItems: 'center',
+        borderBottomColor: Colors.lightMuted,
+        borderBottomWidth: 1,
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
         paddingHorizontal: 20,
         paddingVertical: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.lightMuted,
-    },
-    pickerModalTitle: {
-        ...TextStyles.h3Bold,
-        color: Colors.primaryBorder,
-    },
-    pickerModalClose: {
-        ...TextStyles.bodyBold,
-        color: Colors.primary,
-    },
-    pickerModalList: {
-        maxHeight: 400,
     },
     pickerModalItem: {
-        flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
-        borderBottomWidth: 1,
         borderBottomColor: Colors.lightMuted,
+        borderBottomWidth: 1,
+        flexDirection: 'row',
         gap: 12,
+        padding: 16,
     },
     pickerModalItemDisabled: {
         opacity: 0.5,
@@ -1117,5 +1011,97 @@ const styles = StyleSheet.create({
         ...TextStyles.body,
         color: Colors.primaryBorder,
         flex: 1,
+    },
+    pickerModalList: {
+        maxHeight: 400,
+    },
+    pickerModalOverlay: {
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        flex: 1,
+        justifyContent: 'flex-end',
+    },
+    pickerModalTitle: {
+        ...TextStyles.h3Bold,
+        color: Colors.primaryBorder,
+    },
+    primaryButton: {
+        alignItems: 'center',
+        backgroundColor: Colors.primary,
+        borderRadius: 12,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+    },
+    primaryButtonText: {
+        ...TextStyles.bodyBold,
+        color: Colors.white,
+        marginLeft: 8,
+    },
+    progressBar: {
+        backgroundColor: Colors.lightMuted,
+        borderRadius: 3,
+        height: 6,
+        marginBottom: 16,
+        overflow: 'hidden',
+    },
+    progressFill: {
+        borderRadius: 3,
+        height: '100%',
+    },
+    removeBinomeButton: {
+        padding: 8,
+    },
+    sectionTitle: {
+        ...TextStyles.h3Bold,
+        color: Colors.primaryBorder,
+    },
+    selectButton: {
+        borderColor: Colors.primary,
+        borderRadius: 8,
+        borderWidth: 1,
+        marginTop: 6,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+    },
+    selectButtonText: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+    },
+    statRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        marginBottom: 6,
+    },
+    statText: {
+        ...TextStyles.small,
+        color: Colors.muted,
+        marginLeft: 8,
+    },
+    statusBadge: {
+        borderRadius: 12,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+    },
+    statusText: {
+        ...TextStyles.small,
+        color: Colors.white,
+        fontWeight: '600',
+    },
+    toggleButton: {
+        backgroundColor: Colors.lightMuted,
+    },
+    tourCard: {
+        backgroundColor: Colors.white,
+        borderColor: 'rgba(0,0,0,0.06)',
+        borderRadius: 16,
+        borderWidth: 1,
+        elevation: 3,
+        marginBottom: 16,
+        padding: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 2, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 5,
     },
 });

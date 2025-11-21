@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, SafeAreaView, ActivityIndicator, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
-import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { X, Apple, CupSoda, Candy, Sandwich, Milk, Croissant, Drumstick, Carrot, Fish, Wheat, Package } from 'lucide-react-native';
-import { apiPost } from '@/constants/api/apiCalls';
 import Toast from 'react-native-toast-message';
-import Checkbox from 'expo-checkbox';
+import { Checkbox } from 'expo-checkbox';
 
-interface CreateArticleModalProps {
+import { apiPost } from '@/constants/api/apiCalls';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+
+type CreateArticleModalProps = {
     onClose: () => void;
     onSuccess: () => void;
 }
@@ -33,6 +34,9 @@ export default function CreateArticleModal({ onClose, onSuccess }: CreateArticle
     const [type, setType] = useState<ArticleType>('other');
     const [loading, setLoading] = useState(false);
     const [isChecked, setChecked] = useState(false);
+
+    const activeOpacity = 1;
+    const inactiveOpacity = 0.4;
 
     const handleCheckboxPress = () => {
         setChecked(!isChecked);
@@ -198,7 +202,7 @@ export default function CreateArticleModal({ onClose, onSuccess }: CreateArticle
                             <Text style={styles.cancelButtonText}>Annuler</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            style={[styles.submitButton, loading && styles.buttonDisabled, { opacity: loading || !isChecked ? 0.5 : 1 }]}
+                            style={[styles.submitButton, loading && styles.buttonDisabled, { opacity: loading || !isChecked ? inactiveOpacity : activeOpacity }]}
                             onPress={handleSubmit}
                             disabled={loading || !isChecked}
                         >
@@ -216,58 +220,62 @@ export default function CreateArticleModal({ onClose, onSuccess }: CreateArticle
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'flex-end',
+    buttonDisabled: {
+        opacity: 0.5,
     },
-    keyboardView: {
-        flex: 1,
-        justifyContent: 'flex-end',
-    },
-    modal: {
-        backgroundColor: Colors.white,
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        maxHeight: '90%',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 12,
-        elevation: 12,
-    },
-    header: {
-        flexDirection: 'row',
+    cancelButton: {
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.lightMuted,
+        borderColor: Colors.primaryBorder,
+        borderRadius: 8,
+        borderWidth: 1,
+        flex: 1,
+        paddingVertical: 14,
     },
-    title: {
-        ...TextStyles.h2Bold,
+    cancelButtonText: {
+        ...TextStyles.bodyBold,
         color: Colors.primaryBorder,
     },
+    checkbox: {
+        height: 24,
+        marginTop: 2,
+        width: 24,
+    },
     closeButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: Colors.lightMuted,
-        justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: Colors.lightMuted,
+        borderRadius: 20,
+        height: 40,
+        justifyContent: 'center',
+        width: 40,
+    },
+    container: {
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        flex: 1,
+        justifyContent: 'flex-end',
     },
     content: {
         paddingHorizontal: 20,
         paddingVertical: 20,
     },
+    footer: {
+        borderTopColor: Colors.lightMuted,
+        borderTopWidth: 1,
+        flexDirection: 'row',
+        gap: 12,
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+    },
     formGroup: {
         marginBottom: 24,
     },
-    label: {
-        ...TextStyles.bodyBold,
-        color: Colors.primaryBorder,
-        marginBottom: 8,
+    header: {
+        alignItems: 'center',
+        borderBottomColor: Colors.lightMuted,
+        borderBottomWidth: 1,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingVertical: 20,
     },
     hint: {
         ...TextStyles.small,
@@ -276,42 +284,92 @@ const styles = StyleSheet.create({
     },
     input: {
         ...TextStyles.body,
-        color: Colors.primaryBorder,
         backgroundColor: Colors.white,
-        borderWidth: 1,
         borderColor: Colors.lightMuted,
         borderRadius: 8,
+        borderWidth: 1,
+        color: Colors.primaryBorder,
         paddingHorizontal: 16,
         paddingVertical: 12,
     },
-    typesGrid: {
+    keyboardView: {
+        flex: 1,
+        justifyContent: 'flex-end',
+    },
+    label: {
+        ...TextStyles.bodyBold,
+        color: Colors.primaryBorder,
+        marginBottom: 8,
+    },
+    modal: {
+        backgroundColor: Colors.white,
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        elevation: 12,
+        maxHeight: '90%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 12,
+    },
+    submitButton: {
+        alignItems: 'center',
+        backgroundColor: Colors.accent,
+        borderRadius: 8,
+        flex: 1,
+        paddingVertical: 14,
+    },
+    submitButtonText: {
+        ...TextStyles.bodyBold,
+        color: Colors.white,
+    },
+    termsRow: {
+        alignItems: 'flex-start',
         flexDirection: 'row',
-        flexWrap: 'wrap',
         gap: 12,
     },
+    termsSection: {
+        marginVertical: 10,
+    },
+    termsText: {
+        ...TextStyles.small,
+        color: Colors.primaryBorder,
+        flex: 1,
+        lineHeight: 18,
+    },
+    termsTextContainer: {
+        alignItems: 'flex-start',
+        flex: 1,
+        flexDirection: 'row',
+        gap: 8,
+    },
+    title: {
+        ...TextStyles.h2Bold,
+        color: Colors.primaryBorder,
+    },
     typeButton: {
-        width: '30%',
+        alignItems: 'center',
         aspectRatio: 1,
         backgroundColor: Colors.white,
-        borderWidth: 2,
         borderColor: Colors.lightMuted,
         borderRadius: 12,
-        padding: 12,
+        borderWidth: 2,
         justifyContent: 'center',
-        alignItems: 'center',
+        padding: 12,
+        width: '30%',
     },
     typeButtonSelected: {
-        borderColor: Colors.primary,
         backgroundColor: `${Colors.primary}08`,
+        borderColor: Colors.primary,
     },
     typeIconContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: `${Colors.primary}15`,
-        justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: `${Colors.primary}15`,
+        borderRadius: 24,
+        height: 48,
+        justifyContent: 'center',
         marginBottom: 8,
+        width: 48,
     },
     typeIconContainerSelected: {
         backgroundColor: Colors.primary,
@@ -319,70 +377,16 @@ const styles = StyleSheet.create({
     typeLabel: {
         ...TextStyles.small,
         color: Colors.primaryBorder,
-        textAlign: 'center',
         fontWeight: '600',
+        textAlign: 'center',
     },
     typeLabelSelected: {
         color: Colors.primary,
     },
-    termsSection: {
-        marginVertical: 10,
-    },
-    termsRow: {
+    typesGrid: {
         flexDirection: 'row',
-        alignItems: 'flex-start',
+        flexWrap: 'wrap',
         gap: 12,
-    },
-    checkbox: {
-        width: 24,
-        height: 24,
-        marginTop: 2,
-    },
-    termsTextContainer: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        gap: 8,
-    },
-    termsText: {
-        ...TextStyles.small,
-        color: Colors.primaryBorder,
-        lineHeight: 18,
-        flex: 1,
-    },
-    footer: {
-        flexDirection: 'row',
-        gap: 12,
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        borderTopWidth: 1,
-        borderTopColor: Colors.lightMuted,
-    },
-    cancelButton: {
-        flex: 1,
-        paddingVertical: 14,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: Colors.primaryBorder,
-        alignItems: 'center',
-    },
-    cancelButtonText: {
-        ...TextStyles.bodyBold,
-        color: Colors.primaryBorder,
-    },
-    submitButton: {
-        flex: 1,
-        paddingVertical: 14,
-        borderRadius: 8,
-        backgroundColor: Colors.accent,
-        alignItems: 'center',
-    },
-    submitButtonText: {
-        ...TextStyles.bodyBold,
-        color: Colors.white,
-    },
-    buttonDisabled: {
-        opacity: 0.5,
     },
 });
 

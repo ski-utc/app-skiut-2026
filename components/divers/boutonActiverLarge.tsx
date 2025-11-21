@@ -1,9 +1,9 @@
-import React from 'react';
-import { Text, TouchableOpacity, ViewStyle } from 'react-native';
-import { Colors, TextStyles } from '@/constants/GraphSettings';
+import { Text, TouchableOpacity, ViewStyle, StyleSheet } from 'react-native';
 import { LucideIcon } from 'lucide-react-native';
 
-interface BoutonActiverLargeProps {
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+
+type BoutonActiverLargeProps = {
     title: string;
     IconComponent?: LucideIcon;
     onPress?: () => void;
@@ -18,19 +18,17 @@ export default function BoutonActiverLarge({
     disabled = false,
     customStyles = {}
 }: BoutonActiverLargeProps) {
+    const activeOpacity = 1;
+    const inactiveOpacity = 0.4;
+
     return (
         <TouchableOpacity
             onPress={disabled ? () => { } : onPress}
             style={[
+                styles.button,
                 {
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: 14,
-                    borderRadius: 14,
-                    gap: 12,
                     backgroundColor: disabled ? Colors.muted : Colors.primary,
-                    opacity: disabled ? 0.5 : 1,
+                    opacity: disabled ? inactiveOpacity : activeOpacity,
                 },
                 customStyles,
             ]}
@@ -44,15 +42,27 @@ export default function BoutonActiverLarge({
                 />
             )}
             <Text
-                style={{
-                    ...TextStyles.body,
-                    color: Colors.white,
-                    fontWeight: '600',
-                    fontSize: 16,
-                }}
+                style={styles.text}
             >
                 {title}
             </Text>
         </TouchableOpacity>
     );
-};
+}
+
+const styles = StyleSheet.create({
+    button: {
+        alignItems: 'center',
+        borderRadius: 14,
+        flexDirection: 'row',
+        gap: 12,
+        justifyContent: 'center',
+        padding: 14,
+    },
+    text: {
+        ...TextStyles.body,
+        color: Colors.white,
+        fontSize: 16,
+        fontWeight: '600',
+    }
+})

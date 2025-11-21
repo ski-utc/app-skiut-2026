@@ -1,5 +1,5 @@
-import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+
 import VitesseDeGlisseScreen from './vitesseDeGlisseScreen';
 import PerformancesScreen from './performancesScreen';
 import UserPerformancesScreen from './userPerformancesScreen';

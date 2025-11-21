@@ -1,5 +1,5 @@
-import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+
 import MonoprutScreen from './monoprut/monoprutScreen';
 import MyReservationsScreen from './monoprut/myReservationsScreen';
 import MyOffersScreen from './monoprut/myOffersScreen';

@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, FlatList, ActivityIndicator, Text, TouchableOpacity, SafeAreaView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Trophy, Clock, CheckCircle, Zap, ChevronRight } from 'lucide-react-native';
+
 import BoutonRetour from '@/components/divers/boutonRetour';
-import Header from '../../components/header';
 import BoutonGestion from '@/components/admins/boutonGestion';
 import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
-import { useNavigation } from '@react-navigation/native';
-import { Trophy, Clock, CheckCircle, Zap, ChevronRight } from 'lucide-react-native';
 
-interface FilterButtonProps {
+import Header from '../../components/header';
+
+type FilterButtonProps = {
   label: string;
   icon: React.ReactNode;
   isActive: boolean;
@@ -18,7 +20,7 @@ interface FilterButtonProps {
   count?: number;
 }
 
-interface DefiItem {
+type DefiItem = {
   id: number;
   valid: boolean;
   delete: boolean;
@@ -144,7 +146,7 @@ const GestionDefisScreen = () => {
     <SafeAreaView style={styles.container}>
       <Header refreshFunction={fetchAdminDefis} disableRefresh={disableRefresh} />
       <View style={styles.headerContainer}>
-        <BoutonRetour previousRoute="adminScreen" title="Gestion des défis" />
+        <BoutonRetour title="Gestion des défis" />
       </View>
 
       <View style={styles.heroSection}>
@@ -231,68 +233,26 @@ const GestionDefisScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: Colors.white,
-  },
-  loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-  },
-  loadingText: {
-    ...TextStyles.body,
-    color: Colors.muted,
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  headerContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 8,
-  },
-  heroSection: {
-    alignItems: 'center',
-    paddingBottom: 24,
-    paddingHorizontal: 20,
-  },
-  heroIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: Colors.lightMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  heroTitle: {
-    ...TextStyles.h2Bold,
-    color: Colors.primaryBorder,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  heroSubtitle: {
-    ...TextStyles.body,
-    color: Colors.muted,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  createButtonContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 16,
   },
   createButton: {
+    alignItems: 'center',
     backgroundColor: Colors.primary,
     borderRadius: 14,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
     elevation: 4,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  createButtonContainer: {
+    paddingBottom: 16,
+    paddingHorizontal: 20,
   },
   createButtonIcon: {
     marginRight: 12,
@@ -300,87 +260,31 @@ const styles = StyleSheet.create({
   createButtonText: {
     ...TextStyles.body,
     color: Colors.white,
-    fontWeight: '600',
+    flex: 1,
     fontSize: 16,
-    flex: 1,
-  },
-  filtersContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    gap: 8,
-  },
-  filterButton: {
-    flex: 1,
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.06)',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 2, height: 3 },
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  filterButtonActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  filterButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    position: 'relative',
-  },
-  filterIcon: {
-    marginRight: 8,
-  },
-  filterButtonText: {
-    ...TextStyles.body,
-    color: Colors.primaryBorder,
     fontWeight: '600',
-    fontSize: 14,
-  },
-  filterButtonTextActive: {
-    color: Colors.white,
-  },
-  filterBadge: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
-    backgroundColor: Colors.error,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  filterBadgeText: {
-    color: Colors.white,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  list: {
-    flex: 1,
-    paddingHorizontal: 20,
   },
   emptyContainer: {
+    alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 40,
     paddingHorizontal: 20,
+    paddingVertical: 40,
   },
   emptyIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(0,0,0,0.03)',
-    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.03)',
+    borderRadius: 40,
+    height: 80,
+    justifyContent: 'center',
     marginBottom: 16,
+    width: 80,
+  },
+  emptyText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    lineHeight: 20,
+    textAlign: 'center',
   },
   emptyTitle: {
     ...TextStyles.h3Bold,
@@ -388,11 +292,109 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textAlign: 'center',
   },
-  emptyText: {
+  filterBadge: {
+    alignItems: 'center',
+    backgroundColor: Colors.error,
+    borderRadius: 10,
+    height: 20,
+    justifyContent: 'center',
+    minWidth: 20,
+    position: 'absolute',
+    right: -8,
+    top: -8,
+  },
+  filterBadgeText: {
+    color: Colors.white,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  filterButton: {
+    backgroundColor: Colors.white,
+    borderColor: 'rgba(0,0,0,0.06)',
+    borderRadius: 12,
+    borderWidth: 1,
+    elevation: 3,
+    flex: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+  },
+  filterButtonActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  filterButtonContent: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    position: 'relative',
+  },
+  filterButtonText: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  filterButtonTextActive: {
+    color: Colors.white,
+  },
+  filterIcon: {
+    marginRight: 8,
+  },
+  filtersContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
+  },
+  headerContainer: {
+    paddingBottom: 8,
+    paddingHorizontal: 20,
+  },
+  heroIcon: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 32,
+    height: 64,
+    justifyContent: 'center',
+    marginBottom: 16,
+    width: 64,
+  },
+  heroSection: {
+    alignItems: 'center',
+    paddingBottom: 24,
+    paddingHorizontal: 20,
+  },
+  heroSubtitle: {
     ...TextStyles.body,
     color: Colors.muted,
-    textAlign: 'center',
     lineHeight: 20,
+    textAlign: 'center',
+  },
+  heroTitle: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  list: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16,
+    textAlign: 'center',
   },
 });
 

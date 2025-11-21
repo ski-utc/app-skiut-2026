@@ -1,5 +1,5 @@
-import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+
 import Contact from './profil/contactScreen';
 import PlanScreen from './profil/planScreen';
 import VitesseDeGlisseNavigator from './profil/vitesseDeGlisse/vitesseDeGlisseNavigator';

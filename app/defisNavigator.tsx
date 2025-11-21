@@ -1,5 +1,5 @@
-import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+
 import DefisScreen from './defis/defisScreen';
 import DefisClassement from './defis/defisClassement';
 import DefisInfos from './defis/defisInfos';

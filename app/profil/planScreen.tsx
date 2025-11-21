@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Image, StyleSheet, TouchableOpacity, Text, ScrollView, Linking, Modal, StatusBar } from 'react-native';
 import { WebView } from 'react-native-webview';
-import ImageViewer from "react-native-image-zoom-viewer";
-import { Colors, TextStyles } from '@/constants/GraphSettings';
-import Header from '../../components/header';
-import BoutonRetour from '../../components/divers/boutonRetour';
+import { ImageViewer } from "react-native-image-zoom-viewer";
 import { Link, Download, Webcam, Map, Mountain, MapPin, Navigation, X, Maximize } from 'lucide-react-native';
+
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+import Header from '@/components/header';
+import BoutonRetour from '@/components/divers/boutonRetour';
 
 export default function PlanScreen() {
   const [isImageModalVisible, setIsImageModalVisible] = useState(false);
   const [isMapModalVisible, setIsMapModalVisible] = useState(false);
-  const pisteImage = require("../../assets/images/plan-grandvalira.jpg");
+  const pisteImage = require("@/assets/images/plan-grandvalira.jpg");
 
   const openStreetMapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=1.7233%2C42.5342%2C1.7433%2C42.5542&layer=mapnik&marker=42.5442%2C1.7333&zoom=17`;
   const toggleImageModal = () => {
@@ -54,7 +55,7 @@ export default function PlanScreen() {
     <View style={styles.container}>
       <Header refreshFunction={null} disableRefresh={true} />
       <View style={styles.headerContainer}>
-        <BoutonRetour previousRoute={"homeNavigator"} title={"Plans"} />
+        <BoutonRetour title={"Plans"} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -125,7 +126,7 @@ export default function PlanScreen() {
         </View>
 
         <View style={styles.sectionCard}>
-          <Text style={[styles.sectionTitle, { marginBottom: 16 }]}>Actions</Text>
+          <Text style={styles.sectionTitleActions}>Actions</Text>
 
           <View style={styles.actionsContainer}>
             <ActionButton
@@ -205,107 +206,118 @@ export default function PlanScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  actionButton: {
+    alignItems: 'center',
     backgroundColor: Colors.white,
+    borderColor: Colors.primary,
+    borderRadius: 12,
+    borderWidth: 2,
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  headerContainer: {
-    width: '100%',
-    paddingHorizontal: 20,
+  actionButtonIcon: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 20,
+    height: 40,
+    justifyContent: 'center',
+    marginRight: 16,
+    width: 40,
+  },
+  actionButtonIconSecondary: {
+    backgroundColor: Colors.lightMuted,
+  },
+  actionButtonSecondary: {
+    backgroundColor: Colors.white,
+    borderColor: Colors.primaryBorder,
+  },
+  actionButtonText: {
+    ...TextStyles.body,
+    color: Colors.primary,
+    flex: 1,
+    fontWeight: '600',
+  },
+  actionButtonTextSecondary: {
+    color: Colors.primaryBorder,
+  },
+  actionsContainer: {
+    gap: 12,
+  },
+  closeButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 22,
+    height: 44,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 20,
+    top: 50,
+    width: 44,
+    zIndex: 1000,
+  },
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
   },
   content: {
     flex: 1,
     paddingHorizontal: 20,
   },
-  sectionCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.06)',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 2, height: 3 },
-    shadowRadius: 5,
-    elevation: 3,
-    marginBottom: 16,
-    padding: 16,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    ...TextStyles.h4Bold,
-    color: Colors.primaryBorder,
-    marginLeft: 12,
+  fullScreenContainer: {
+    backgroundColor: Colors.primaryBorder,
     flex: 1,
+    position: 'relative',
+  },
+  fullScreenWebView: {
+    flex: 1,
+    marginTop: 0,
+  },
+  headerContainer: {
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  image: {
+    borderRadius: 12,
+    height: 200,
+    width: '100%',
   },
   imageContainer: {
     borderRadius: 12,
     overflow: 'hidden',
     position: 'relative',
   },
-  image: {
-    width: '100%',
-    height: 200,
-    borderRadius: 12,
-  },
   imageOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    bottom: 0,
+    flexDirection: 'row',
     justifyContent: 'center',
+    left: 0,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    position: 'absolute',
+    right: 0,
   },
   imageOverlayText: {
     ...TextStyles.small,
     color: Colors.white,
+    fontWeight: '500',
+    marginLeft: 6,
     textAlign: 'center',
-    fontWeight: '500',
-    marginLeft: 6,
   },
-  mapContainer: {
-    borderRadius: 12,
-    overflow: 'hidden',
-    height: 200,
-    position: 'relative',
-    marginBottom: 16,
-  },
-  webMap: {
-    width: '100%',
-    height: '100%',
-  },
-  mapOverlay: {
-    position: 'absolute',
-    bottom: 12,
-    right: 12,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  mapOverlayContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  mapOverlayText: {
+  locationCoords: {
     ...TextStyles.small,
-    color: Colors.white,
-    marginLeft: 6,
-    fontWeight: '500',
+    color: Colors.muted,
+    marginBottom: 16,
+    marginLeft: 24,
   },
   locationInfo: {
     paddingVertical: 8,
   },
   locationRow: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
     marginBottom: 8,
   },
   locationText: {
@@ -314,32 +326,30 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
   },
-  locationCoords: {
-    ...TextStyles.small,
-    color: Colors.muted,
-    marginBottom: 16,
-    marginLeft: 24,
-  },
   mapButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.lightMuted,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
     borderColor: Colors.primary,
-  },
-  mapButtonIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    flexDirection: 'row',
+    padding: 16,
   },
   mapButtonContent: {
     flex: 1,
+  },
+  mapButtonIcon: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderRadius: 20,
+    height: 40,
+    justifyContent: 'center',
+    marginRight: 16,
+    width: 40,
+  },
+  mapButtonSubtitle: {
+    ...TextStyles.small,
+    color: Colors.muted,
   },
   mapButtonTitle: {
     ...TextStyles.body,
@@ -347,67 +357,65 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 2,
   },
-  mapButtonSubtitle: {
-    ...TextStyles.small,
-    color: Colors.muted,
-  },
-  actionsContainer: {
-    gap: 12,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
+  mapContainer: {
     borderRadius: 12,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  actionButtonSecondary: {
-    borderColor: Colors.primaryBorder,
-    backgroundColor: Colors.white,
-  },
-  actionButtonIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.lightMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  actionButtonIconSecondary: {
-    backgroundColor: Colors.lightMuted,
-  },
-  actionButtonText: {
-    ...TextStyles.body,
-    color: Colors.primary,
-    fontWeight: '600',
-    flex: 1,
-  },
-  actionButtonTextSecondary: {
-    color: Colors.primaryBorder,
-  },
-  fullScreenContainer: {
-    flex: 1,
-    backgroundColor: Colors.primaryBorder,
+    height: 200,
+    marginBottom: 16,
+    overflow: 'hidden',
     position: 'relative',
   },
-  closeButton: {
+  mapOverlay: {
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 8,
+    bottom: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     position: 'absolute',
-    top: 50,
-    right: 20,
-    zIndex: 1000,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    right: 12,
   },
-  fullScreenWebView: {
+  mapOverlayContent: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  mapOverlayText: {
+    ...TextStyles.small,
+    color: Colors.white,
+    fontWeight: '500',
+    marginLeft: 6,
+  },
+  sectionCard: {
+    backgroundColor: Colors.white,
+    borderColor: 'rgba(0,0,0,0.06)',
+    borderRadius: 14,
+    borderWidth: 1,
+    elevation: 3,
+    marginBottom: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+  },
+  sectionHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    ...TextStyles.h4Bold,
+    color: Colors.primaryBorder,
     flex: 1,
-    marginTop: 0,
+    marginLeft: 12,
+  },
+  sectionTitleActions: {
+    ...TextStyles.h4Bold,
+    color: Colors.primaryBorder,
+    flex: 1,
+    marginBottom: 16,
+    marginLeft: 12
+  },
+  webMap: {
+    height: '100%',
+    width: '100%',
   },
 });

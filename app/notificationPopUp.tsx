@@ -1,13 +1,13 @@
-import React from "react";
+import { useEffect, useState, useCallback } from "react";
 import { View, Text, TouchableOpacity, ActivityIndicator, Modal, FlatList, StatusBar, StyleSheet } from "react-native";
-import { Colors, TextStyles, FontSizes } from "@/constants/GraphSettings";
 import { BlurView } from "expo-blur";
 import { X, Bell, Clock, AlertCircle, Globe, Users, Home, Check } from "lucide-react-native";
-import { useEffect, useState, useCallback } from "react";
+
+import { Colors, TextStyles, FontSizes } from "@/constants/GraphSettings";
 import { apiGet, apiPost } from "@/constants/api/apiCalls";
 import { useUser } from "@/contexts/UserContext";
 
-interface NotificationItem {
+type NotificationItem = {
   id: number;
   title: string;
   description: string;
@@ -18,7 +18,7 @@ interface NotificationItem {
   delete?: boolean;
 }
 
-interface NotificationPopupProps {
+type NotificationPopupProps = {
   visible: boolean;
   onClose: () => void;
 }
@@ -281,140 +281,130 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.2)",
-    justifyContent: "center",
+  closeButton: {
     alignItems: "center",
-  },
-  modalContainer: {
-    backgroundColor: Colors.white,
-    width: "90%",
-    height: "90%",
+    backgroundColor: Colors.primaryBorder,
     borderRadius: 24,
+    elevation: 6,
+    height: 48,
+    justifyContent: "center",
     shadowColor: Colors.primaryBorder,
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.25,
-    shadowRadius: 24,
-    elevation: 15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    width: 48,
   },
-
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 20,
-    paddingHorizontal: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.lightMuted,
-  },
-  headerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.lightMuted,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  headerTitle: {
-    ...TextStyles.h2,
-    color: Colors.primaryBorder,
-  },
-
   content: {
     flex: 1,
     paddingHorizontal: 24,
     paddingVertical: 16,
   },
 
-  errorTitle: {
-    ...TextStyles.h3,
-    color: Colors.primaryBorder,
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  errorDescription: {
+  emptyDescription: {
     ...TextStyles.body,
     color: Colors.muted,
     textAlign: "center",
+  },
+  emptyIcon: {
+    alignItems: "center",
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 40,
+    height: 80,
+    justifyContent: "center",
     marginBottom: 20,
+    width: 80,
+  },
+  emptyState: {
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+
+  emptyTitle: {
+    ...TextStyles.h4,
+    color: Colors.primaryBorder,
+    marginBottom: 8,
+    textAlign: "center",
+  },
+
+  errorDescription: {
+    ...TextStyles.body,
+    color: Colors.muted,
     lineHeight: 22,
+    marginBottom: 20,
+    textAlign: "center",
   },
   errorFooter: {
     ...TextStyles.small,
     color: Colors.muted,
-    textAlign: "center",
     fontStyle: "italic",
-  },
-
-  loadingText: {
-    ...TextStyles.body,
-    color: Colors.muted,
     textAlign: "center",
-    marginTop: 16,
+  },
+  errorTitle: {
+    ...TextStyles.h3,
+    color: Colors.primaryBorder,
+    marginBottom: 16,
+    textAlign: "center",
   },
 
+  footer: {
+    alignItems: "center",
+    borderTopColor: Colors.lightMuted,
+    borderTopWidth: 1,
+    paddingVertical: 20,
+  },
+
+  header: {
+    alignItems: "center",
+    borderBottomColor: Colors.lightMuted,
+    borderBottomWidth: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+  },
+  headerIcon: {
+    alignItems: "center",
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 20,
+    height: 40,
+    justifyContent: "center",
+    marginRight: 12,
+    width: 40,
+  },
+  headerTitle: {
+    ...TextStyles.h2,
+    color: Colors.primaryBorder,
+  },
   listContainer: {
     paddingBottom: 16,
   },
-  notificationItem: {
-    flexDirection: "row",
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16,
+    textAlign: "center",
+  },
+  modalContainer: {
     backgroundColor: Colors.white,
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: Colors.lightMuted,
+    borderRadius: 24,
+    elevation: 15,
+    height: "90%",
     shadowColor: Colors.primaryBorder,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  notificationItemUnread: {
-    backgroundColor: '#F8F9FF',
-    borderColor: Colors.primary,
-    borderWidth: 1.5,
-  },
-  notificationIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.lightMuted,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-    flexShrink: 0,
-  },
-  notificationIconUnread: {
-    backgroundColor: '#E3F2FD',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    width: "90%",
   },
   notificationContent: {
     flex: 1,
   },
-  notificationHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  notificationTitle: {
-    ...TextStyles.bodyBold,
-    color: Colors.primaryBorder,
-    flex: 1,
-  },
-  notificationTitleUnread: {
-    color: Colors.primary,
-  },
-  unreadBadge: {
-    marginLeft: 8,
-  },
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.primary,
+  notificationDate: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    fontSize: 11,
   },
   notificationDescription: {
     ...TextStyles.body,
@@ -424,30 +414,71 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   notificationFooter: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  notificationMeta: {
-    flexDirection: 'row',
+  notificationHeader: {
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  notificationIcon: {
+    alignItems: "center",
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 16,
+    flexShrink: 0,
+    height: 32,
+    justifyContent: "center",
+    marginRight: 12,
+    width: 32,
+  },
+  notificationIconUnread: {
+    backgroundColor: '#E3F2FD',
+  },
+  notificationItem: {
+    backgroundColor: Colors.white,
+    borderColor: Colors.lightMuted,
+    borderRadius: 16,
+    borderWidth: 1,
+    elevation: 2,
+    flexDirection: "row",
+    marginBottom: 12,
+    padding: 16,
+    shadowColor: Colors.primaryBorder,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+  },
+  notificationItemUnread: {
+    backgroundColor: '#F8F9FF',
+    borderColor: Colors.primary,
+    borderWidth: 1.5,
+  },
+  notificationMeta: {
+    alignItems: 'center',
+    flexDirection: 'row',
     gap: 8,
   },
-  notificationType: {
-    ...TextStyles.small,
-    color: Colors.primary,
-    fontWeight: '600',
-    fontSize: 11,
-    textTransform: 'uppercase',
+  notificationTitle: {
+    ...TextStyles.bodyBold,
+    color: Colors.primaryBorder,
+    flex: 1,
   },
-  notificationDate: {
-    ...TextStyles.small,
-    color: Colors.muted,
-    fontSize: 11,
+  notificationTitleUnread: {
+    color: Colors.primary,
+  },
+
+  overlay: {
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    flex: 1,
+    justifyContent: "center",
   },
   readIndicator: {
-    flexDirection: 'row',
     alignItems: 'center',
+    flexDirection: 'row',
     gap: 4,
   },
   readText: {
@@ -457,51 +488,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  emptyState: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+  unreadBadge: {
+    marginLeft: 8,
   },
-  emptyIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.lightMuted,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  emptyTitle: {
-    ...TextStyles.h4,
-    color: Colors.primaryBorder,
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  emptyDescription: {
-    ...TextStyles.body,
-    color: Colors.muted,
-    textAlign: "center",
-  },
-
-  footer: {
-    alignItems: "center",
-    paddingVertical: 20,
-    borderTopWidth: 1,
-    borderTopColor: Colors.lightMuted,
-  },
-  closeButton: {
-    width: 48,
-    height: 48,
-    backgroundColor: Colors.primaryBorder,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: Colors.primaryBorder,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+  unreadDot: {
+    backgroundColor: Colors.primary,
+    borderRadius: 4,
+    height: 8,
+    width: 8,
   },
 });

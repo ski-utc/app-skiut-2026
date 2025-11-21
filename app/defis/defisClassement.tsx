@@ -1,21 +1,23 @@
 import { Text, View, ActivityIndicator, Dimensions, StyleSheet, FlatList } from "react-native";
-import Header from "../../components/header";
 import React, { useState, useEffect } from "react";
-import { Colors, TextStyles, Fonts } from '@/constants/GraphSettings';
 import { Crown, Trophy, Medal } from "lucide-react-native";
+
+import { Colors, TextStyles, Fonts } from '@/constants/GraphSettings';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from "@/components/pages/errorPage";
 
+import Header from "../../components/header";
+
 const screenWidth = Dimensions.get('window').width;
 const podiumWidth = (screenWidth - 80) / 3;
 
-interface RoomData {
+type RoomData = {
     roomNumber: string;
     totalPoints: number;
 }
 
-interface PodiumPlaceProps {
+type PodiumPlaceProps = {
     position: number;
     roomNumber: string;
     points: number;
@@ -66,7 +68,7 @@ const PodiumPlace: React.FC<PodiumPlaceProps> = ({ position, roomNumber, points,
     );
 };
 
-interface RankingItemProps {
+type RankingItemProps = {
     position: number;
     roomNumber: string;
     points: number;
@@ -87,18 +89,37 @@ const RankingItem: React.FC<RankingItemProps> = ({ position, roomNumber, points 
 };
 
 const podiumStyles = StyleSheet.create({
+    iconContainer: {
+        alignItems: 'center',
+        height: 50,
+        justifyContent: 'center',
+        marginBottom: 4,
+    },
     placeContainer: {
         alignItems: 'center',
         justifyContent: 'flex-end',
-        width: podiumWidth,
-        paddingHorizontal: 8,
         marginHorizontal: 4,
+        paddingHorizontal: 8,
+        width: podiumWidth,
     },
-    iconContainer: {
-        alignItems: 'center',
-        marginBottom: 4,
-        height: 50,
-        justifyContent: 'center',
+    podiumBar: {
+        borderTopLeftRadius: 12,
+        borderTopRightRadius: 12,
+        elevation: 5,
+        shadowColor: Colors.primaryBorder,
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        width: '100%',
+    },
+    pointsText: {
+        ...TextStyles.small,
+        fontFamily: Fonts.text.regular,
+        marginBottom: 8,
+        textAlign: 'center',
     },
     positionText: {
         ...TextStyles.small,
@@ -108,73 +129,54 @@ const podiumStyles = StyleSheet.create({
     roomText: {
         ...TextStyles.small,
         fontFamily: Fonts.text.bold,
-        textAlign: 'center',
         marginBottom: 4,
-    },
-    pointsText: {
-        ...TextStyles.small,
-        fontFamily: Fonts.text.regular,
         textAlign: 'center',
-        marginBottom: 8,
-    },
-    podiumBar: {
-        width: '100%',
-        borderTopLeftRadius: 12,
-        borderTopRightRadius: 12,
-        shadowColor: Colors.primaryBorder,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 5,
     },
 });
 
 const rankingStyles = StyleSheet.create({
     container: {
-        flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: Colors.white,
-        marginHorizontal: 16,
-        marginVertical: 4,
-        paddingVertical: 16,
-        paddingHorizontal: 16,
+        borderColor: "rgba(0,0,0,0.06)",
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: "rgba(0,0,0,0.06)",
-        shadowColor: "#000",
-        shadowOpacity: 0.08,
-        shadowOffset: { width: 2, height: 3 },
-        shadowRadius: 5,
         elevation: 3,
-    },
-    positionContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: Colors.primary,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 16,
-    },
-    positionNumber: {
-        ...TextStyles.bodyLarge,
-        fontWeight: '800',
-        color: Colors.white,
+        flexDirection: 'row',
+        marginHorizontal: 16,
+        marginVertical: 4,
+        paddingHorizontal: 16,
+        paddingVertical: 16,
+        shadowColor: "#000",
+        shadowOffset: { width: 2, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 5,
     },
     contentContainer: {
         flex: 1,
+    },
+    points: {
+        ...TextStyles.small,
+        color: Colors.muted,
+    },
+    positionContainer: {
+        alignItems: 'center',
+        backgroundColor: Colors.primary,
+        borderRadius: 20,
+        height: 40,
+        justifyContent: 'center',
+        marginRight: 16,
+        width: 40,
+    },
+    positionNumber: {
+        ...TextStyles.bodyLarge,
+        color: Colors.white,
+        fontWeight: '800',
     },
     roomName: {
         ...TextStyles.bodyBold,
         color: Colors.primaryBorder,
         marginBottom: 2,
-    },
-    points: {
-        ...TextStyles.small,
-        color: Colors.muted,
     },
 });
 
@@ -187,7 +189,7 @@ export default function DefisClassement() {
 
     useEffect(() => {
         fetchClassement();
-}, []);
+    }, []);
 
     const fetchClassement = async () => {
         setLoading(true);
@@ -223,20 +225,11 @@ export default function DefisClassement() {
 
     if (loading) {
         return (
-            <View style={{
-                flex: 1,
-                backgroundColor: Colors.white,
-            }}>
+            <View style={styles.container}>
                 <Header refreshFunction={undefined} disableRefresh={true} />
-                <View style={{
-                    width: '100%',
-                    flex: 1,
-                    backgroundColor: Colors.white,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}>
+                <View style={styles.loadingContent}>
                     <ActivityIndicator size="large" color={Colors.primaryBorder} />
-                    <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+                    <Text style={styles.loadingText}>
                         Chargement...
                     </Text>
                 </View>
@@ -245,10 +238,10 @@ export default function DefisClassement() {
     }
 
     return (
-        <View style={{ flex: 1, backgroundColor: Colors.white }}>
+        <View style={styles.container}>
             <Header refreshFunction={fetchClassement} disableRefresh={disableRefresh} />
-            <View style={{ width: '100%', paddingHorizontal: 20 }}>
-                <BoutonRetour previousRoute="defisScreen" title={"Classement"} />
+            <View style={styles.headerContainer}>
+                <BoutonRetour title={"Classement"} />
             </View>
 
             <View style={styles.podiumSection}>
@@ -316,61 +309,8 @@ export default function DefisClassement() {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        backgroundColor: Colors.lightMuted,
-    },
-    headerContainer: {
-        width: '100%',
         backgroundColor: Colors.white,
-        paddingHorizontal: 20,
-        shadowColor: Colors.primaryBorder,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    sectionTitle: {
-        ...TextStyles.h3,
-        color: Colors.primaryBorder,
-        textAlign: 'center',
-        marginBottom: 26,
-    },
-    podiumSection: {
-        backgroundColor: Colors.white,
-        paddingTop: 24,
-        paddingBottom: 16,
-        marginHorizontal: 16,
-        borderRadius: 16,
-        shadowColor: Colors.primaryBorder,
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 5,
-    },
-    podiumContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'flex-end',
-        paddingHorizontal: 20,
-        height: 200,
-    },
-    rankingSection: {
         flex: 1,
-        marginTop: 8,
-        paddingTop: 16,
-    },
-    rankingScrollView: {
-        flex: 1,
-        paddingTop: 8,
-    },
-    flatListContainer: {
-        paddingBottom: 20,
     },
     emptyContainer: {
         alignItems: 'center',
@@ -379,6 +319,58 @@ const styles = StyleSheet.create({
     emptyText: {
         ...TextStyles.body,
         color: Colors.muted,
+        textAlign: 'center',
+    },
+    flatListContainer: {
+        paddingBottom: 20,
+    },
+    headerContainer: {
+        paddingHorizontal: 20,
+        width: '100%'
+    },
+    loadingContent: {
+        alignItems: 'center',
+        backgroundColor: Colors.white,
+        flex: 1,
+        justifyContent: 'center',
+        width: '100%',
+    },
+    loadingText: {
+        ...TextStyles.body,
+        color: Colors.muted,
+        marginTop: 16
+    },
+    podiumContainer: {
+        alignItems: 'flex-end',
+        flexDirection: 'row',
+        height: 200,
+        justifyContent: 'center',
+        paddingHorizontal: 20,
+    },
+    podiumSection: {
+        backgroundColor: Colors.white,
+        borderRadius: 16,
+        elevation: 5,
+        marginHorizontal: 16,
+        paddingBottom: 16,
+        paddingTop: 24,
+        shadowColor: Colors.primaryBorder,
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+    },
+    rankingSection: {
+        flex: 1,
+        marginTop: 8,
+        paddingTop: 16,
+    },
+    sectionTitle: {
+        ...TextStyles.h3,
+        color: Colors.primaryBorder,
+        marginBottom: 26,
         textAlign: 'center',
     },
 });

@@ -1,6 +1,4 @@
-import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, Image } from 'react-native';
-import { Colors, TextStyles, FontSizes } from '@/constants/GraphSettings';
 import {
     Bus,
     Map,
@@ -14,9 +12,11 @@ import {
     Cookie,
     Home
 } from 'lucide-react-native';
+
+import { Colors, TextStyles, FontSizes } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
 
-interface CustomDrawerProps {
+type CustomDrawerProps = {
     navigation: any;
     state: any;
     descriptors: any;
@@ -131,7 +131,7 @@ export default function CustomDrawer({ navigation }: CustomDrawerProps) {
                         <ChevronRight size={20} color={Colors.primaryBorder} />
                     </TouchableOpacity>
                 ))}
-                <View style={{ height: 25 }}></View>
+                <View style={styles.separator}></View>
             </ScrollView>
 
             <View style={styles.footer}>
@@ -146,32 +146,82 @@ export default function CustomDrawer({ navigation }: CustomDrawerProps) {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
         backgroundColor: Colors.white,
+        flex: 1,
+    },
+    content: {
+        flex: 1,
+        paddingTop: 20,
+    },
+    drawerItem: {
+        alignItems: 'center',
+        backgroundColor: Colors.white,
+        borderColor: 'rgba(0,0,0,0.06)',
+        borderRadius: 14,
+        borderWidth: 1,
+        elevation: 3,
+        flexDirection: 'row',
+        marginBottom: 12,
+        marginHorizontal: 16,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 2, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 5,
+    },
+    footer: {
+        borderTopColor: Colors.lightMuted,
+        borderTopWidth: 1,
+        paddingHorizontal: 20,
+        paddingVertical: 20,
     },
     header: {
         backgroundColor: Colors.primary,
-        paddingTop: 40,
         paddingBottom: 40,
         paddingHorizontal: 20,
+        paddingTop: 40,
         position: 'relative',
     },
-    userInfo: {
-        flexDirection: 'row',
+    itemIconContainer: {
         alignItems: 'center',
-        marginTop: 20,
-        paddingHorizontal: 10,
+        backgroundColor: Colors.lightMuted,
+        borderRadius: 20,
+        height: 40,
+        justifyContent: 'center',
+        marginRight: 16,
+        width: 40,
+    },
+    itemLabel: {
+        ...TextStyles.h4Bold,
+        color: Colors.primaryBorder,
+        flex: 1,
+        fontSize: FontSizes.medium,
     },
     logo: {
-        width: 80,
+        borderRadius: 100,
         height: 80,
         marginRight: 16,
-        borderRadius: 100,
+        width: 80,
     },
-    userTextContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'flex-start',
+    logoutButton: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        paddingVertical: 12,
+    },
+    logoutText: {
+        ...TextStyles.body,
+        color: Colors.error,
+        marginLeft: 12,
+    },
+    separator: {
+        height: 25
+    },
+    userInfo: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        marginTop: 20,
+        paddingHorizontal: 10,
     },
     userName: {
         ...TextStyles.h2Bold,
@@ -180,59 +230,12 @@ const styles = StyleSheet.create({
     },
     userRoom: {
         ...TextStyles.body,
-        fontWeight: '400',
         color: 'rgba(255, 255, 255, 0.8)',
+        fontWeight: '400',
     },
-    content: {
+    userTextContainer: {
+        alignItems: 'flex-start',
         flex: 1,
-        paddingTop: 20,
-    },
-    drawerItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginHorizontal: 16,
-        marginBottom: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        backgroundColor: Colors.white,
-        borderRadius: 14,
-        borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.06)',
-        shadowColor: '#000',
-        shadowOpacity: 0.08,
-        shadowOffset: { width: 2, height: 3 },
-        shadowRadius: 5,
-        elevation: 3,
-    },
-    itemIconContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: Colors.lightMuted,
         justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 16,
-    },
-    itemLabel: {
-        ...TextStyles.h4Bold,
-        fontSize: FontSizes.medium,
-        color: Colors.primaryBorder,
-        flex: 1,
-    },
-    footer: {
-        borderTopWidth: 1,
-        borderTopColor: Colors.lightMuted,
-        paddingHorizontal: 20,
-        paddingVertical: 20,
-    },
-    logoutButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 12,
-    },
-    logoutText: {
-        ...TextStyles.body,
-        color: Colors.error,
-        marginLeft: 12,
     },
 });

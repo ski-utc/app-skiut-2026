@@ -1,17 +1,18 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, Alert, TouchableOpacity, Modal, StatusBar } from 'react-native';
-import { Colors, TextStyles } from '@/constants/GraphSettings';
-import Header from '@/components/header';
-import BoutonRetour from '@/components/divers/boutonRetour';
 import { Shield, FileText, Trash2, UserX, Download, X } from 'lucide-react-native';
-import { apiPost, apiDelete } from '@/constants/api/apiCalls';
-import { useUser } from '@/contexts/UserContext';
 import Toast from 'react-native-toast-message';
 import { WebView } from 'react-native-webview';
-import * as config from '@/constants/api/apiConfig';
 import { downloadAsync, documentDirectory } from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as SecureStore from 'expo-secure-store';
+
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+import Header from '@/components/header';
+import BoutonRetour from '@/components/divers/boutonRetour';
+import { apiPost, apiDelete } from '@/constants/api/apiCalls';
+import { useUser } from '@/contexts/UserContext';
+import * as config from '@/constants/api/apiConfig';
 
 export default function RGPDScreen() {
     const { logout } = useUser();
@@ -227,7 +228,7 @@ export default function RGPDScreen() {
         <SafeAreaView style={styles.container}>
             <Header refreshFunction={null} disableRefresh={true} />
             <View style={styles.headerContainer}>
-                <BoutonRetour previousRoute="homeNavigator" title="RGPD & Données" />
+                <BoutonRetour title="RGPD & Données" />
             </View>
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -319,30 +320,77 @@ export default function RGPDScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
+    actionCard: {
+        alignItems: 'center',
         backgroundColor: Colors.white,
+        borderColor: Colors.lightMuted,
+        borderRadius: 12,
+        borderWidth: 1,
+        elevation: 2,
+        flexDirection: 'row',
+        marginBottom: 12,
+        padding: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
     },
-    headerContainer: {
-        paddingHorizontal: 20,
-        paddingBottom: 8,
+    cardContent: {
+        flex: 1,
+    },
+    cardDescription: {
+        ...TextStyles.small,
+        color: Colors.muted,
+        lineHeight: 18,
+    },
+    cardTitle: {
+        ...TextStyles.bodyBold,
+        color: Colors.primaryBorder,
+        marginBottom: 4,
+    },
+    closeButton: {
+        alignItems: 'center',
+        backgroundColor: Colors.lightMuted,
+        borderRadius: 20,
+        height: 40,
+        justifyContent: 'center',
+        width: 40,
+    },
+    container: {
+        backgroundColor: Colors.white,
+        flex: 1,
     },
     content: {
         flex: 1,
+    },
+    dangerCard: {
+        backgroundColor: Colors.error,
+        borderColor: Colors.error,
+    },
+    headerContainer: {
+        paddingBottom: 8,
+        paddingHorizontal: 20,
+    },
+    heroIcon: {
+        alignItems: 'center',
+        backgroundColor: `${Colors.primary}15`,
+        borderRadius: 40,
+        height: 80,
+        justifyContent: 'center',
+        marginBottom: 16,
+        width: 80,
     },
     heroSection: {
         alignItems: 'center',
         paddingBottom: 32,
         paddingHorizontal: 20,
     },
-    heroIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: `${Colors.primary}15`,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 16,
+    heroSubtitle: {
+        ...TextStyles.body,
+        color: Colors.muted,
+        lineHeight: 22,
+        maxWidth: '90%',
+        textAlign: 'center',
     },
     heroTitle: {
         ...TextStyles.h1Bold,
@@ -350,102 +398,55 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         textAlign: 'center',
     },
-    heroSubtitle: {
-        ...TextStyles.body,
-        color: Colors.muted,
-        textAlign: 'center',
-        lineHeight: 22,
-        maxWidth: '90%',
-    },
-    section: {
-        paddingHorizontal: 20,
-        marginBottom: 24,
-    },
-    sectionTitle: {
-        ...TextStyles.h3Bold,
-        color: Colors.primaryBorder,
-        marginBottom: 16,
-    },
-    actionCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: Colors.white,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: Colors.lightMuted,
-        padding: 16,
-        marginBottom: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    dangerCard: {
-        borderColor: Colors.error,
-        backgroundColor: Colors.error,
-    },
     iconContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        justifyContent: 'center',
         alignItems: 'center',
+        borderRadius: 24,
+        height: 48,
+        justifyContent: 'center',
         marginRight: 12,
-    },
-    cardContent: {
-        flex: 1,
-    },
-    cardTitle: {
-        ...TextStyles.bodyBold,
-        color: Colors.primaryBorder,
-        marginBottom: 4,
-    },
-    cardDescription: {
-        ...TextStyles.small,
-        color: Colors.muted,
-        lineHeight: 18,
+        width: 48,
     },
     infoBox: {
-        flexDirection: 'row',
         alignItems: 'flex-start',
         backgroundColor: `${Colors.primary}10`,
         borderRadius: 12,
-        padding: 16,
-        marginHorizontal: 20,
-        marginBottom: 32,
+        flexDirection: 'row',
         gap: 12,
+        marginBottom: 32,
+        marginHorizontal: 20,
+        padding: 16,
     },
     infoText: {
         ...TextStyles.small,
         color: Colors.primaryBorder,
-        lineHeight: 20,
         flex: 1,
+        lineHeight: 20,
     },
     modalContainer: {
-        flex: 1,
         backgroundColor: Colors.white,
+        flex: 1,
     },
     modalHeader: {
-        flexDirection: 'row',
         alignItems: 'center',
+        borderBottomColor: Colors.lightMuted,
+        borderBottomWidth: 1,
+        flexDirection: 'row',
         justifyContent: 'space-between',
         paddingHorizontal: 20,
         paddingVertical: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.lightMuted,
     },
     modalTitle: {
         ...TextStyles.h3Bold,
         color: Colors.primaryBorder,
     },
-    closeButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: Colors.lightMuted,
+    section: {
+        marginBottom: 24,
+        paddingHorizontal: 20,
+    },
+    sectionTitle: {
+        ...TextStyles.h3Bold,
+        color: Colors.primaryBorder,
+        marginBottom: 16,
     },
     webview: {
         flex: 1,

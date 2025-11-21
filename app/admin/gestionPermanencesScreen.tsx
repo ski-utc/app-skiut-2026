@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -15,12 +15,6 @@ import {
     Platform,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import { apiGet, apiPost, apiPut, apiDelete } from '@/constants/api/apiCalls';
-import BoutonRetour from '@/components/divers/boutonRetour';
-import Header from '../../components/header';
-import ErrorScreen from '@/components/pages/errorPage';
-import { useUser } from '@/contexts/UserContext';
-import { Colors, TextStyles } from '@/constants/GraphSettings';
 import {
     Clock,
     Plus,
@@ -37,7 +31,15 @@ import {
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
-interface Permanence {
+import { apiGet, apiPost, apiPut, apiDelete } from '@/constants/api/apiCalls';
+import BoutonRetour from '@/components/divers/boutonRetour';
+import ErrorScreen from '@/components/pages/errorPage';
+import { useUser } from '@/contexts/UserContext';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+
+import Header from '../../components/header';
+
+type Permanence = {
     id: number;
     name: string;
     start_datetime: string;
@@ -56,7 +58,7 @@ interface Permanence {
     notes?: string;
 }
 
-interface Member {
+type Member = {
     id: number;
     firstName: string;
     lastName: string;
@@ -446,7 +448,7 @@ export default function GestionPermanencesScreen() {
         <SafeAreaView style={styles.container}>
             <Header refreshFunction={null} disableRefresh={true} />
             <View style={styles.headerContainer}>
-                <BoutonRetour previousRoute="adminScreen" title="Gestion des Permanences" />
+                <BoutonRetour title="Gestion des Permanences" />
             </View>
 
             <View style={styles.heroSection}>
@@ -717,19 +719,177 @@ export default function GestionPermanencesScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
+    actionButton: {
+        alignItems: 'center',
+        borderRadius: 8,
         flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+    },
+    actionButtonText: {
+        ...TextStyles.small,
+        fontWeight: '600',
+        marginLeft: 6,
+    },
+    actionsContainer: {
+        flexDirection: 'row',
+        gap: 12,
+        marginBottom: 16,
+        paddingHorizontal: 20,
+    },
+    cardActions: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    cardDetails: {
+        marginBottom: 16,
+    },
+    cardHeader: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 12,
+    },
+    cardTitle: {
+        ...TextStyles.bodyBold,
+        color: Colors.primaryBorder,
+        flex: 1,
+    },
+    container: {
         backgroundColor: Colors.white,
+        flex: 1,
+    },
+    contentContainer: {
+        flex: 1,
+        paddingHorizontal: 20,
+    },
+    dateTimeButton: {
+        alignItems: 'center',
+        backgroundColor: Colors.lightMuted,
+        borderColor: Colors.primary,
+        borderRadius: 12,
+        borderWidth: 1,
+        flexDirection: 'row',
+        gap: 8,
+        padding: 12,
+    },
+    dateTimeItem: {
+        flex: 1,
+    },
+    dateTimeLabel: {
+        ...TextStyles.small,
+        color: Colors.muted,
+        fontWeight: '600',
+        marginBottom: 8,
+    },
+    dateTimeRow: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    dateTimeSection: {
+        marginBottom: 20,
+    },
+    dateTimeText: {
+        ...TextStyles.small,
+        color: Colors.primaryBorder,
+        fontWeight: '600',
+    },
+    dateTimeTextContainer: {
+        flex: 1,
+    },
+    dateTimeTime: {
+        ...TextStyles.small,
+        color: Colors.muted,
+        marginTop: 2,
+    },
+    deleteButton: {
+        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+    },
+    detailRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        marginBottom: 6,
+    },
+    detailText: {
+        ...TextStyles.small,
+        color: Colors.muted,
+        flex: 1,
+        marginLeft: 8,
+    },
+    editButton: {
+        backgroundColor: Colors.lightMuted,
+    },
+    emptyContainer: {
+        alignItems: 'center',
+        paddingVertical: 60,
+    },
+    emptySubtitle: {
+        ...TextStyles.body,
+        color: Colors.muted,
+        lineHeight: 22,
+        textAlign: 'center',
+    },
+    emptyTitle: {
+        ...TextStyles.h3Bold,
+        color: Colors.primaryBorder,
+        marginBottom: 8,
+        marginTop: 16,
     },
     headerContainer: {
-        width: '100%',
-        paddingHorizontal: 20,
         paddingBottom: 8,
+        paddingHorizontal: 20,
+        width: '100%',
+    },
+    heroIcon: {
+        alignItems: 'center',
+        backgroundColor: Colors.lightMuted,
+        borderRadius: 32,
+        height: 64,
+        justifyContent: 'center',
+        marginBottom: 16,
+        width: 64,
+    },
+    heroSection: {
+        alignItems: 'center',
+        marginBottom: 16,
+        paddingBottom: 8,
+        paddingHorizontal: 32,
+    },
+    heroSubtitle: {
+        ...TextStyles.body,
+        color: Colors.muted,
+        lineHeight: 22,
+        textAlign: 'center',
+    },
+    heroTitle: {
+        ...TextStyles.h2Bold,
+        color: Colors.primaryBorder,
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    inputHeader: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        gap: 8,
+        marginBottom: 8,
+    },
+    inputLabel: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+        fontWeight: '600',
+    },
+    inputSection: {
+        marginBottom: 20,
+    },
+    listContainer: {
+        paddingBottom: 20,
     },
     loadingContainer: {
+        alignItems: 'center',
         flex: 1,
         justifyContent: 'center',
-        alignItems: 'center',
         paddingHorizontal: 20,
     },
     loadingText: {
@@ -738,48 +898,113 @@ const styles = StyleSheet.create({
         marginTop: 16,
         textAlign: 'center',
     },
-    heroSection: {
+    modalCancelButton: {
         alignItems: 'center',
-        paddingHorizontal: 32,
-        paddingBottom: 8,
-        marginBottom: 16,
-    },
-    heroIcon: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: Colors.lightMuted,
+        borderColor: Colors.muted,
+        borderRadius: 12,
+        borderWidth: 1,
+        flex: 1,
         justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 16,
-    },
-    heroTitle: {
-        ...TextStyles.h2Bold,
-        color: Colors.primaryBorder,
-        textAlign: 'center',
-        marginBottom: 8,
-    },
-    heroSubtitle: {
-        ...TextStyles.body,
-        color: Colors.muted,
-        textAlign: 'center',
-        lineHeight: 22,
-    },
-    actionsContainer: {
-        flexDirection: 'row',
         paddingHorizontal: 20,
-        marginBottom: 16,
+        paddingVertical: 14,
+    },
+    modalCancelText: {
+        ...TextStyles.bodyBold,
+        color: Colors.muted,
+    },
+    modalCard: {
+        backgroundColor: Colors.white,
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        elevation: 10,
+        maxHeight: '90%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 12,
+    },
+    modalCloseButton: {
+        padding: 4,
+    },
+    modalContent: {
+        maxHeight: '70%',
+        paddingHorizontal: 20,
+        paddingTop: 20,
+    },
+    modalFooter: {
+        backgroundColor: Colors.white,
+        borderTopColor: Colors.lightMuted,
+        borderTopWidth: 1,
+        flexDirection: 'row',
+        gap: 12,
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+    },
+    modalHeader: {
+        alignItems: 'center',
+        borderBottomColor: Colors.lightMuted,
+        borderBottomWidth: 1,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingBottom: 16,
+        paddingHorizontal: 20,
+        paddingTop: 24,
+    },
+    modalHeaderContent: {
+        alignItems: 'center',
+        flexDirection: 'row',
         gap: 12,
     },
-    primaryButton: {
+    modalOverlay: {
+        backgroundColor: 'rgba(0,0,0,0.5)',
         flex: 1,
-        flexDirection: 'row',
+        justifyContent: 'flex-end',
+    },
+    modalSaveButton: {
         alignItems: 'center',
-        justifyContent: 'center',
         backgroundColor: Colors.primary,
         borderRadius: 12,
+        flex: 1,
+        flexDirection: 'row',
+        gap: 8,
+        justifyContent: 'center',
+        paddingHorizontal: 20,
         paddingVertical: 14,
+    },
+    modalSaveButtonDisabled: {
+        backgroundColor: Colors.muted,
+        opacity: 0.5,
+    },
+    modalSaveText: {
+        ...TextStyles.bodyBold,
+        color: Colors.white,
+    },
+    modalTitle: {
+        ...TextStyles.h3Bold,
+        color: Colors.primaryBorder,
+    },
+    permanenceCard: {
+        backgroundColor: Colors.white,
+        borderColor: 'rgba(0,0,0,0.06)',
+        borderRadius: 16,
+        borderWidth: 1,
+        elevation: 3,
+        marginBottom: 16,
+        padding: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 2, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 5,
+    },
+    primaryButton: {
+        alignItems: 'center',
+        backgroundColor: Colors.primary,
+        borderRadius: 12,
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'center',
         paddingHorizontal: 16,
+        paddingVertical: 14,
     },
     primaryButtonText: {
         ...TextStyles.bodyBold,
@@ -787,234 +1012,44 @@ const styles = StyleSheet.create({
         marginLeft: 8,
     },
     secondaryButton: {
-        flex: 1,
-        flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
         backgroundColor: Colors.lightMuted,
         borderRadius: 12,
-        paddingVertical: 14,
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'center',
         paddingHorizontal: 16,
+        paddingVertical: 14,
     },
     secondaryButtonText: {
         ...TextStyles.bodyBold,
         color: Colors.primary,
         marginLeft: 8,
     },
-    contentContainer: {
-        flex: 1,
-        paddingHorizontal: 20,
-    },
-    listContainer: {
-        paddingBottom: 20,
-    },
-    permanenceCard: {
-        backgroundColor: Colors.white,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.06)',
-        shadowColor: '#000',
-        shadowOpacity: 0.08,
-        shadowOffset: { width: 2, height: 3 },
-        shadowRadius: 5,
-        elevation: 3,
-        marginBottom: 16,
-        padding: 16,
-    },
-    cardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    cardTitle: {
-        ...TextStyles.bodyBold,
-        color: Colors.primaryBorder,
-        flex: 1,
-    },
-    statusBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 16,
-    },
-    statusText: {
-        ...TextStyles.small,
-        color: Colors.white,
-        fontWeight: '600',
-    },
-    cardDetails: {
-        marginBottom: 16,
-    },
-    detailRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 6,
-    },
-    detailText: {
-        ...TextStyles.small,
-        color: Colors.muted,
-        marginLeft: 8,
-        flex: 1,
-    },
-    cardActions: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    actionButton: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 10,
-        paddingHorizontal: 12,
-        borderRadius: 8,
-    },
-    editButton: {
-        backgroundColor: Colors.lightMuted,
-    },
-    deleteButton: {
-        backgroundColor: 'rgba(220, 53, 69, 0.1)',
-    },
-    actionButtonText: {
-        ...TextStyles.small,
-        fontWeight: '600',
-        marginLeft: 6,
-    },
-    emptyContainer: {
-        alignItems: 'center',
-        paddingVertical: 60,
-    },
-    emptyTitle: {
-        ...TextStyles.h3Bold,
-        color: Colors.primaryBorder,
-        marginTop: 16,
-        marginBottom: 8,
-    },
-    emptySubtitle: {
-        ...TextStyles.body,
-        color: Colors.muted,
-        textAlign: 'center',
-        lineHeight: 22,
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'flex-end',
-    },
-    modalCard: {
-        backgroundColor: Colors.white,
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        maxHeight: '90%',
-        shadowColor: '#000',
-        shadowOpacity: 0.25,
-        shadowOffset: { width: 0, height: -4 },
-        shadowRadius: 12,
-        elevation: 10,
-    },
-    modalHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingTop: 24,
-        paddingBottom: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.lightMuted,
-    },
-    modalHeaderContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    modalCloseButton: {
-        padding: 4,
-    },
-    modalTitle: {
-        ...TextStyles.h3Bold,
-        color: Colors.primaryBorder,
-    },
-    modalContent: {
-        paddingHorizontal: 20,
-        paddingTop: 20,
-        maxHeight: '70%',
-    },
-    inputSection: {
-        marginBottom: 20,
-    },
-    inputHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 8,
-        gap: 8,
-    },
-    inputLabel: {
-        ...TextStyles.body,
-        color: Colors.primaryBorder,
-        fontWeight: '600',
-    },
-    titleInput: {
-        ...TextStyles.body,
-        color: Colors.primaryBorder,
-        backgroundColor: Colors.white,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: Colors.primary,
-        padding: 14,
-        height: 50,
-    },
-    textAreaInput: {
-        ...TextStyles.body,
-        color: Colors.primaryBorder,
-        backgroundColor: Colors.white,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: Colors.primary,
-        padding: 14,
-        minHeight: 100,
-        textAlignVertical: 'top',
-    },
     sectionTitle: {
         ...TextStyles.bodyBold,
         color: Colors.primaryBorder,
         marginBottom: 12,
     },
-    selectionSection: {
-        marginBottom: 20,
-        borderWidth: 1,
-        borderColor: Colors.lightMuted,
-        borderRadius: 12,
-        overflow: 'hidden',
-    },
     selectionHeader: {
-        flexDirection: 'row',
         alignItems: 'center',
+        backgroundColor: Colors.lightMuted,
+        flexDirection: 'row',
         justifyContent: 'space-between',
         padding: 16,
-        backgroundColor: Colors.lightMuted,
     },
     selectionHeaderLeft: {
-        flexDirection: 'row',
         alignItems: 'center',
+        flexDirection: 'row',
+        flex: 1,
         gap: 8,
-        flex: 1,
-    },
-    selectionTitle: {
-        ...TextStyles.body,
-        color: Colors.primaryBorder,
-        fontWeight: '600',
-        flex: 1,
-    },
-    selectionList: {
-        backgroundColor: Colors.white,
-        maxHeight: 200,
     },
     selectionItem: {
-        flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
-        borderBottomWidth: 1,
         borderBottomColor: Colors.lightMuted,
+        borderBottomWidth: 1,
+        flexDirection: 'row',
+        padding: 16,
     },
     selectionItemActive: {
         backgroundColor: Colors.lightMuted,
@@ -1028,85 +1063,52 @@ const styles = StyleSheet.create({
         color: Colors.primary,
         fontWeight: '600',
     },
-    dateTimeSection: {
-        marginBottom: 20,
-    },
-    dateTimeRow: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    dateTimeItem: {
-        flex: 1,
-    },
-    dateTimeLabel: {
-        ...TextStyles.small,
-        color: Colors.muted,
-        fontWeight: '600',
-        marginBottom: 8,
-    },
-    dateTimeButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        backgroundColor: Colors.lightMuted,
-        borderRadius: 12,
-        padding: 12,
-        borderWidth: 1,
-        borderColor: Colors.primary,
-    },
-    dateTimeTextContainer: {
-        flex: 1,
-    },
-    dateTimeText: {
-        ...TextStyles.small,
-        color: Colors.primaryBorder,
-        fontWeight: '600',
-    },
-    dateTimeTime: {
-        ...TextStyles.small,
-        color: Colors.muted,
-        marginTop: 2,
-    },
-    modalFooter: {
-        flexDirection: 'row',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        borderTopWidth: 1,
-        borderTopColor: Colors.lightMuted,
+    selectionList: {
         backgroundColor: Colors.white,
-        gap: 12,
+        maxHeight: 200,
     },
-    modalCancelButton: {
-        flex: 1,
-        paddingVertical: 14,
-        paddingHorizontal: 20,
+    selectionSection: {
+        borderColor: Colors.lightMuted,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: Colors.muted,
-        alignItems: 'center',
-        justifyContent: 'center',
+        marginBottom: 20,
+        overflow: 'hidden',
     },
-    modalCancelText: {
-        ...TextStyles.bodyBold,
-        color: Colors.muted,
-    },
-    modalSaveButton: {
+    selectionTitle: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
         flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        paddingVertical: 14,
-        paddingHorizontal: 20,
-        borderRadius: 12,
-        backgroundColor: Colors.primary,
+        fontWeight: '600',
     },
-    modalSaveButtonDisabled: {
-        backgroundColor: Colors.muted,
-        opacity: 0.5,
+    statusBadge: {
+        borderRadius: 16,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
     },
-    modalSaveText: {
-        ...TextStyles.bodyBold,
+    statusText: {
+        ...TextStyles.small,
         color: Colors.white,
+        fontWeight: '600',
+    },
+    textAreaInput: {
+        ...TextStyles.body,
+        backgroundColor: Colors.white,
+        borderColor: Colors.primary,
+        borderRadius: 12,
+        borderWidth: 1,
+        color: Colors.primaryBorder,
+        minHeight: 100,
+        padding: 14,
+        textAlignVertical: 'top',
+    },
+    titleInput: {
+        ...TextStyles.body,
+        backgroundColor: Colors.white,
+        borderColor: Colors.primary,
+        borderRadius: 12,
+        borderWidth: 1,
+        color: Colors.primaryBorder,
+        height: 50,
+        padding: 14,
     },
 });

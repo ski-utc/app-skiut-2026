@@ -1,25 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, SafeAreaView, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import Checkbox from 'expo-checkbox';
-import { Colors, TextStyles } from '@/constants/GraphSettings';
-import Header from "../../components/header";
+import { Checkbox } from 'expo-checkbox';
 import { useNavigation } from '@react-navigation/native';
+import { Send, PenTool, FileText, Users, Home, Globe, ChevronDown, ChevronRight } from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
+
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import BoutonActiverLarge from '@/components/divers/boutonActiverLarge';
-import { Send, PenTool, FileText, Users, Home, Globe, ChevronDown, ChevronRight } from 'lucide-react-native';
 import { apiPost, apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
-import Toast from 'react-native-toast-message';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 
-interface User {
+import Header from "../../components/header";
+
+type User = {
     id: number;
     name: string;
     roomId: number;
     admin: boolean;
 }
 
-interface Room {
+type Room = {
     id: number;
     roomNumber: number;
     name: string;
@@ -47,12 +49,7 @@ export default function CreateNotificationScreen() {
     const navigation = useNavigation();
     const { setUser } = useUser();
 
-    useEffect(() => {
-        fetchRecipientsData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const fetchRecipientsData = async () => {
+    const fetchRecipientsData = useCallback(async () => {
         try {
             setDataLoading(true);
             const response = await apiGet('admin/notifications/recipients');
@@ -71,7 +68,11 @@ export default function CreateNotificationScreen() {
         } finally {
             setDataLoading(false);
         }
-    };
+    }, [setUser]);
+
+    useEffect(() => {
+        fetchRecipientsData();
+    }, [fetchRecipientsData]);
 
     const handleSendNotification = async () => {
         setLoading(true);
@@ -193,7 +194,7 @@ export default function CreateNotificationScreen() {
             >
                 <Header refreshFunction={null} disableRefresh={true} />
                 <View style={styles.headerContainer}>
-                    <BoutonRetour previousRoute="gestionNotificationsScreen" title="Créer une notification" />
+                    <BoutonRetour title="Créer une notification" />
                 </View>
 
                 <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -415,45 +416,59 @@ export default function CreateNotificationScreen() {
 }
 
 const styles = StyleSheet.create({
+    adminBadge: {
+        backgroundColor: Colors.primary,
+        borderRadius: 4,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+    },
+    adminBadgeText: {
+        ...TextStyles.small,
+        color: Colors.white,
+        fontWeight: '600',
+    },
+    buttonContainer: {
+        bottom: 20,
+        left: 20,
+        position: 'absolute',
+        right: 20,
+    },
+    checkbox: {
+        height: 24,
+        marginTop: 2,
+        width: 24,
+    },
     container: {
-        flex: 1,
         backgroundColor: Colors.white,
-    },
-    keyboardView: {
         flex: 1,
     },
-    scrollView: {
-        flex: 1,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: Colors.white,
-    },
-    loadingText: {
-        ...TextStyles.body,
-        color: Colors.muted,
-        marginTop: 16,
-        textAlign: 'center',
+    content: {
+        paddingBottom: 80,
+        paddingHorizontal: 20,
     },
     headerContainer: {
-        paddingHorizontal: 20,
         paddingBottom: 8,
-    },
-    heroSection: {
-        alignItems: 'center',
-        paddingVertical: 24,
         paddingHorizontal: 20,
     },
     heroIcon: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: Colors.lightMuted,
-        justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: Colors.lightMuted,
+        borderRadius: 32,
+        height: 64,
+        justifyContent: 'center',
         marginBottom: 16,
+        width: 64,
+    },
+    heroSection: {
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 24,
+    },
+    heroSubtitle: {
+        ...TextStyles.body,
+        color: Colors.primary,
+        fontWeight: '600',
+        textAlign: 'center',
     },
     heroTitle: {
         ...TextStyles.h2Bold,
@@ -461,39 +476,143 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         textAlign: 'center',
     },
-    heroSubtitle: {
-        ...TextStyles.body,
-        color: Colors.primary,
-        textAlign: 'center',
-        fontWeight: '600',
+    inputHeader: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        marginBottom: 8,
     },
-    content: {
-        paddingHorizontal: 20,
-        paddingBottom: 80,
+    inputLabel: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+        fontWeight: '600',
+        marginLeft: 8,
+    },
+    inputSection: {
+        marginBottom: 20,
+    },
+    keyboardView: {
+        flex: 1,
+    },
+    loadingContainer: {
+        alignItems: 'center',
+        backgroundColor: Colors.white,
+        flex: 1,
+        justifyContent: 'center',
+    },
+    loadingText: {
+        ...TextStyles.body,
+        color: Colors.muted,
+        marginTop: 16,
+        textAlign: 'center',
+    },
+    optionRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        gap: 12,
+        marginBottom: 12,
+    },
+    optionText: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+    },
+    optionsSection: {
+        marginBottom: 20,
+    },
+    scrollView: {
+        flex: 1,
     },
     sectionTitle: {
         ...TextStyles.bodyBold,
         color: Colors.primaryBorder,
         marginBottom: 12,
     },
-    typeSection: {
-        marginBottom: 24,
+    selectionHeader: {
+        alignItems: 'center',
+        backgroundColor: Colors.lightMuted,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        padding: 16,
     },
-    typeButtons: {
+    selectionItem: {
+        alignItems: 'center',
+        borderBottomColor: Colors.lightMuted,
+        borderBottomWidth: 1,
+        flexDirection: 'row',
+        gap: 12,
+        padding: 12,
+    },
+    selectionItemText: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+        flex: 1,
+    },
+    selectionList: {
+        backgroundColor: Colors.white,
+        maxHeight: 200,
+    },
+    selectionSection: {
+        borderColor: Colors.lightMuted,
+        borderRadius: 12,
+        borderWidth: 1,
+        marginBottom: 24,
+        overflow: 'hidden',
+    },
+    selectionTitle: {
+        ...TextStyles.bodyBold,
+        color: Colors.primaryBorder,
+    },
+    termsRow: {
+        alignItems: 'flex-start',
+        flexDirection: 'row',
+        gap: 12,
+    },
+    termsSection: {
+        marginTop: 10,
+    },
+    termsText: {
+        ...TextStyles.small,
+        color: Colors.primaryBorder,
+        flex: 1,
+        lineHeight: 18,
+    },
+    termsTextContainer: {
+        alignItems: 'flex-start',
+        flex: 1,
         flexDirection: 'row',
         gap: 8,
     },
+    textAreaInput: {
+        ...TextStyles.body,
+        backgroundColor: Colors.white,
+        borderColor: Colors.primary,
+        borderRadius: 12,
+        borderWidth: 1,
+        color: Colors.primaryBorder,
+        minHeight: 120,
+        padding: 14,
+        textAlignVertical: 'top',
+    },
+    titleInput: {
+        ...TextStyles.body,
+        backgroundColor: Colors.white,
+        borderColor: Colors.primary,
+        borderRadius: 12,
+        borderWidth: 1,
+        color: Colors.primaryBorder,
+        height: 50,
+        padding: 14,
+    },
     typeButton: {
-        flex: 1,
-        flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: 12,
+        backgroundColor: Colors.white,
+        borderColor: Colors.primary,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: Colors.primary,
-        backgroundColor: Colors.white,
+        flex: 1,
+        flexDirection: 'row',
         gap: 6,
+        justifyContent: 'center',
+        padding: 12,
     },
     typeButtonActive: {
         backgroundColor: Colors.primary,
@@ -506,129 +625,11 @@ const styles = StyleSheet.create({
     typeButtonTextActive: {
         color: Colors.white,
     },
-    selectionSection: {
-        marginBottom: 24,
-        borderWidth: 1,
-        borderColor: Colors.lightMuted,
-        borderRadius: 12,
-        overflow: 'hidden',
-    },
-    selectionHeader: {
+    typeButtons: {
         flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
-        backgroundColor: Colors.lightMuted,
-    },
-    selectionTitle: {
-        ...TextStyles.bodyBold,
-        color: Colors.primaryBorder,
-    },
-    selectionList: {
-        backgroundColor: Colors.white,
-        maxHeight: 200,
-    },
-    selectionItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.lightMuted,
-        gap: 12,
-    },
-    selectionItemText: {
-        ...TextStyles.body,
-        color: Colors.primaryBorder,
-        flex: 1,
-    },
-    adminBadge: {
-        backgroundColor: Colors.primary,
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 4,
-    },
-    adminBadgeText: {
-        ...TextStyles.small,
-        color: Colors.white,
-        fontWeight: '600',
-    },
-    inputSection: {
-        marginBottom: 20,
-    },
-    inputHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    inputLabel: {
-        ...TextStyles.body,
-        color: Colors.primaryBorder,
-        fontWeight: '600',
-        marginLeft: 8,
-    },
-    titleInput: {
-        ...TextStyles.body,
-        color: Colors.primaryBorder,
-        backgroundColor: Colors.white,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: Colors.primary,
-        padding: 14,
-        height: 50,
-    },
-    textAreaInput: {
-        ...TextStyles.body,
-        color: Colors.primaryBorder,
-        backgroundColor: Colors.white,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: Colors.primary,
-        padding: 14,
-        minHeight: 120,
-        textAlignVertical: 'top',
-    },
-    optionsSection: {
-        marginBottom: 20,
-    },
-    optionRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 12,
-        gap: 12,
-    },
-    optionText: {
-        ...TextStyles.body,
-        color: Colors.primaryBorder,
-    },
-    termsSection: {
-        marginTop: 10,
-    },
-    termsRow: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        gap: 12,
-    },
-    checkbox: {
-        width: 24,
-        height: 24,
-        marginTop: 2,
-    },
-    termsTextContainer: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'flex-start',
         gap: 8,
     },
-    termsText: {
-        ...TextStyles.small,
-        color: Colors.primaryBorder,
-        lineHeight: 18,
-        flex: 1,
-    },
-    buttonContainer: {
-        position: 'absolute',
-        bottom: 20,
-        left: 20,
-        right: 20,
+    typeSection: {
+        marginBottom: 24,
     },
 });

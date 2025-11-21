@@ -1,11 +1,12 @@
-import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { Apple, CupSoda, Candy, Sandwich, Milk, Croissant, Drumstick, Carrot, Fish, Wheat, Package, Trash2 } from 'lucide-react-native';
-import { apiPost, apiDelete } from '@/constants/api/apiCalls';
 import Toast from 'react-native-toast-message';
 
-interface Article {
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+import { apiPost, apiDelete } from '@/constants/api/apiCalls';
+
+
+type Article = {
     id: number;
     product: string;
     quantity: string;
@@ -31,7 +32,7 @@ interface Article {
     };
 }
 
-interface ArticleCardProps {
+type ArticleCardProps = {
     article: Article;
     onUpdate: () => void;
     showReserveButton?: boolean;
@@ -280,56 +281,92 @@ export default function ArticleCard({ article, onUpdate, showReserveButton = fal
 }
 
 const styles = StyleSheet.create({
+    actionButtons: {
+        flexDirection: 'column',
+        gap: 8,
+        marginLeft: 12,
+    },
+    cancelButton: {
+        alignItems: 'center',
+        backgroundColor: Colors.error,
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+    },
+    cancelButtonText: {
+        ...TextStyles.bodyBold,
+        color: Colors.white,
+        fontSize: 14,
+    },
     card: {
-        flexDirection: 'row',
+        alignItems: 'center',
         backgroundColor: Colors.white,
+        borderColor: Colors.lightMuted,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: Colors.lightMuted,
+        elevation: 2,
+        flexDirection: 'row',
         padding: 16,
-        alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
         shadowRadius: 4,
-        elevation: 2,
-    },
-    iconContainer: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: `${Colors.primary}10`,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
     },
     content: {
         flex: 1,
     },
+    deleteButton: {
+        alignItems: 'center',
+        backgroundColor: `${Colors.error}10`,
+        borderRadius: 20,
+        height: 40,
+        justifyContent: 'center',
+        marginLeft: 12,
+        width: 40,
+    },
     header: {
         flexDirection: 'column',
         marginBottom: 6,
+    },
+    iconContainer: {
+        alignItems: 'center',
+        backgroundColor: `${Colors.primary}10`,
+        borderRadius: 28,
+        height: 56,
+        justifyContent: 'center',
+        marginRight: 12,
+        width: 56,
     },
     productName: {
         ...TextStyles.h4Bold,
         color: Colors.primaryBorder,
         marginBottom: 4,
     },
-    typeBadge: {
-        backgroundColor: Colors.lightMuted,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 6,
-        alignSelf: 'flex-start',
-    },
-    typeBadgeText: {
-        ...TextStyles.small,
-        color: Colors.primaryBorder,
-        fontSize: 10,
-    },
     quantity: {
         ...TextStyles.body,
         color: Colors.muted,
+    },
+    reserveButton: {
+        backgroundColor: Colors.primary,
+        borderRadius: 8,
+        marginLeft: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+    },
+    reserveButtonText: {
+        ...TextStyles.bodyBold,
+        color: Colors.white,
+    },
+    retrievedButton: {
+        backgroundColor: Colors.success,
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+    },
+    retrievedButtonText: {
+        ...TextStyles.bodyBold,
+        color: Colors.white,
+        fontSize: 13,
     },
     roomInfo: {
         marginTop: 4,
@@ -342,59 +379,6 @@ const styles = StyleSheet.create({
     roomName: {
         ...TextStyles.body,
         color: Colors.primaryBorder,
-    },
-    availableText: {
-        ...TextStyles.body,
-        color: Colors.primary,
-        fontWeight: '600',
-    },
-    reserveButton: {
-        backgroundColor: Colors.primary,
-        paddingVertical: 10,
-        paddingHorizontal: 16,
-        borderRadius: 8,
-        marginLeft: 12,
-    },
-    reserveButtonText: {
-        ...TextStyles.bodyBold,
-        color: Colors.white,
-    },
-    deleteButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: `${Colors.error}10`,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginLeft: 12,
-    },
-    retrievedButton: {
-        backgroundColor: Colors.success,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 8,
-    },
-    retrievedButtonText: {
-        ...TextStyles.bodyBold,
-        fontSize: 13,
-        color: Colors.white,
-    },
-    actionButtons: {
-        flexDirection: 'column',
-        gap: 8,
-        marginLeft: 12,
-    },
-    cancelButton: {
-        backgroundColor: Colors.error,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    cancelButtonText: {
-        ...TextStyles.bodyBold,
-        fontSize: 14,
-        color: Colors.white,
     },
 });
 

@@ -1,19 +1,21 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView, AppState, Platform } from "react-native";
 import { useNavigation } from '@react-navigation/native';
-import Header from "../../../components/header";
-import BoutonRetour from "../../../components/divers/boutonRetour";
-import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { Trophy, Play, Square, Zap, MapPin, Timer, Gauge, Activity, TrendingUp } from "lucide-react-native";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
+import Toast from 'react-native-toast-message';
+
 import { apiPost } from "@/constants/api/apiCalls";
 import { useUser } from "@/contexts/UserContext";
-import Toast from 'react-native-toast-message';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+
+import BoutonRetour from "../../../components/divers/boutonRetour";
+import Header from "../../../components/header";
 
 const LOCATION_TASK_NAME = 'background-location-task';
 
-interface LocationTaskData {
+type LocationTaskData = {
     locations: Location.LocationObject[];
 }
 
@@ -34,12 +36,10 @@ export default function VitesseDeGlisseScreen() {
     const [maxSpeed, setMaxSpeed] = useState(0);
     const [averageSpeed, setAverageSpeed] = useState(0);
     const [currentSpeed, setCurrentSpeed] = useState(0);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_prevLocation, setPrevLocation] = useState<Location.LocationObjectCoords | null>(null);
     const [subscription, setSubscription] = useState<Location.LocationSubscription | null>(null);
     const [trackingTime, setTrackingTime] = useState(0);
     const [sessionId, setSessionId] = useState<string | null>(null);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_speedHistory, setSpeedHistory] = useState<number[]>([]);
 
     const [sessionStats, setSessionStats] = useState({
@@ -430,7 +430,7 @@ export default function VitesseDeGlisseScreen() {
         <View style={styles.container}>
             <Header refreshFunction={null} disableRefresh={true} />
             <View style={styles.headerContainer}>
-                <BoutonRetour previousRoute={"homeNavigator"} title={"Vitesse de glisse"} />
+                <BoutonRetour title={"Vitesse de glisse"} />
             </View>
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -537,74 +537,111 @@ export default function VitesseDeGlisseScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.white,
-    },
-    headerContainer: {
-        width: '100%',
+    actionButton: {
+        alignItems: 'center',
+        backgroundColor: Colors.primary,
+        borderRadius: 12,
+        flexDirection: 'row',
+        marginBottom: 12,
         paddingHorizontal: 20,
-        paddingBottom: 8,
+        paddingVertical: 16,
+    },
+    actionButtonDisabled: {
+        opacity: 0.6,
+    },
+    actionButtonIcon: {
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        borderRadius: 20,
+        height: 40,
+        justifyContent: 'center',
+        marginRight: 16,
+        width: 40,
+    },
+    actionButtonIconSecondary: {
+        backgroundColor: Colors.lightMuted,
+    },
+    actionButtonSecondary: {
+        backgroundColor: Colors.white,
+        borderColor: Colors.primaryBorder,
+        borderWidth: 2,
+    },
+    actionButtonText: {
+        ...TextStyles.button,
+        color: Colors.white,
+        flex: 1,
+        fontWeight: '600',
+    },
+    actionButtonTextSecondary: {
+        color: Colors.primaryBorder,
+    },
+    container: {
+        backgroundColor: Colors.white,
+        flex: 1,
     },
     content: {
         flex: 1,
         paddingHorizontal: 20,
     },
-    heroSection: {
-        alignItems: 'center',
-        marginBottom: 16,
-    },
-    heroIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: Colors.lightMuted,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 16,
-    },
-    heroIconActive: {
-        backgroundColor: Colors.primary,
-    },
-    heroTitle: {
-        ...TextStyles.h2Bold,
-        color: Colors.primaryBorder,
-        textAlign: 'center',
-        marginBottom: 4,
-    },
-    heroSubtitle: {
-        ...TextStyles.body,
-        color: Colors.primary,
-        textAlign: 'center',
-        fontWeight: '600',
-    },
-    statsSection: {
-        marginBottom: 16,
-        gap: 8,
-    },
-    twoColumnRow: {
-        flexDirection: 'row',
-        gap: 8,
-        width: '100%',
+    controlsSection: {
+        marginBottom: 24,
     },
     halfColumn: {
         flex: 1,
         minWidth: 0,
     },
+    headerContainer: {
+        paddingBottom: 8,
+        paddingHorizontal: 20,
+        width: '100%',
+    },
+    heroIcon: {
+        alignItems: 'center',
+        backgroundColor: Colors.lightMuted,
+        borderRadius: 40,
+        height: 80,
+        justifyContent: 'center',
+        marginBottom: 16,
+        width: 80,
+    },
+    heroIconActive: {
+        backgroundColor: Colors.primary,
+    },
+    heroSection: {
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    heroSubtitle: {
+        ...TextStyles.body,
+        color: Colors.primary,
+        fontWeight: '600',
+        textAlign: 'center',
+    },
+    heroTitle: {
+        ...TextStyles.h2Bold,
+        color: Colors.primaryBorder,
+        marginBottom: 4,
+        textAlign: 'center',
+    },
+    sectionTitle: {
+        ...TextStyles.h3Bold,
+        color: Colors.primaryBorder,
+        marginBottom: 16,
+    },
     statCard: {
-        flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: Colors.white,
+        borderColor: 'rgba(0,0,0,0.06)',
         borderRadius: 14,
         borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.06)',
-        shadowColor: '#000',
-        shadowOpacity: 0.08,
-        shadowOffset: { width: 2, height: 3 },
-        shadowRadius: 5,
         elevation: 3,
-        padding: 12,
+        flexDirection: 'row',
         overflow: 'hidden',
+        padding: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 2, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 5,
     },
     statCardCompact: {
         padding: 10,
@@ -613,23 +650,23 @@ const styles = StyleSheet.create({
         borderColor: Colors.success,
         borderWidth: 2,
     },
-    statIcon: {
-        width: 42,
-        height: 42,
-        borderRadius: 21,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-        flexShrink: 0,
-    },
-    statIconCompact: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        marginRight: 8,
-    },
     statContent: {
         flex: 1,
+    },
+    statIcon: {
+        alignItems: 'center',
+        borderRadius: 21,
+        flexShrink: 0,
+        height: 42,
+        justifyContent: 'center',
+        marginRight: 12,
+        width: 42,
+    },
+    statIconCompact: {
+        borderRadius: 18,
+        height: 36,
+        marginRight: 8,
+        width: 36,
     },
     statTitle: {
         ...TextStyles.body,
@@ -640,9 +677,13 @@ const styles = StyleSheet.create({
         ...TextStyles.small,
         marginBottom: 2,
     },
-    statValueContainer: {
-        flexDirection: 'row',
-        alignItems: 'baseline',
+    statUnit: {
+        ...TextStyles.body,
+        color: Colors.primary,
+        fontWeight: '600',
+    },
+    statUnitCompact: {
+        ...TextStyles.small,
     },
     statValue: {
         ...TextStyles.h3Bold,
@@ -652,61 +693,20 @@ const styles = StyleSheet.create({
     statValueCompact: {
         ...TextStyles.bodyBold,
     },
+    statValueContainer: {
+        alignItems: 'baseline',
+        flexDirection: 'row',
+    },
     statValueLive: {
         color: Colors.success,
     },
-    statUnit: {
-        ...TextStyles.body,
-        color: Colors.primary,
-        fontWeight: '600',
-    },
-    statUnitCompact: {
-        ...TextStyles.small,
-    },
-    controlsSection: {
-        marginBottom: 24,
-    },
-    sectionTitle: {
-        ...TextStyles.h3Bold,
-        color: Colors.primaryBorder,
+    statsSection: {
+        gap: 8,
         marginBottom: 16,
     },
-    actionButton: {
+    twoColumnRow: {
         flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: Colors.primary,
-        borderRadius: 12,
-        paddingVertical: 16,
-        paddingHorizontal: 20,
-        marginBottom: 12,
-    },
-    actionButtonSecondary: {
-        backgroundColor: Colors.white,
-        borderWidth: 2,
-        borderColor: Colors.primaryBorder,
-    },
-    actionButtonDisabled: {
-        opacity: 0.6,
-    },
-    actionButtonIcon: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255,255,255,0.2)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 16,
-    },
-    actionButtonIconSecondary: {
-        backgroundColor: Colors.lightMuted,
-    },
-    actionButtonText: {
-        ...TextStyles.button,
-        color: Colors.white,
-        fontWeight: '600',
-        flex: 1,
-    },
-    actionButtonTextSecondary: {
-        color: Colors.primaryBorder,
+        gap: 8,
+        width: '100%',
     },
 });

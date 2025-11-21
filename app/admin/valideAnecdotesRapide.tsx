@@ -1,17 +1,19 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { StyleSheet, View, Text, ActivityIndicator, Animated, TouchableOpacity, SafeAreaView } from 'react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
-import { Colors, TextStyles } from '@/constants/GraphSettings';
-import Header from '../../components/header';
-import { useUser } from '@/contexts/UserContext';
-import BoutonRetour from '@/components/divers/boutonRetour';
 import { Check, X, HelpCircle, MessageSquare, AlertTriangle } from 'lucide-react-native';
-import { apiGet, apiPut } from '@/constants/api/apiCalls';
-import ErrorScreen from '@/components/pages/errorPage';
 import { useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 
-interface Anecdote {
+import { useUser } from '@/contexts/UserContext';
+import BoutonRetour from '@/components/divers/boutonRetour';
+import { apiGet, apiPut } from '@/constants/api/apiCalls';
+import ErrorScreen from '@/components/pages/errorPage';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+
+import Header from '../../components/header';
+
+type Anecdote = {
     id: number;
     text: string;
     nbLikes: number;
@@ -44,6 +46,9 @@ export default function ValideAnecdotesRapide() {
     const cardOpacity = useRef(new Animated.Value(1)).current;
     const validOpacity = useRef(new Animated.Value(0)).current;
     const rejectOpacity = useRef(new Animated.Value(0)).current;
+
+    const activeOpacity = 1;
+    const inactiveOpacity = 0.4;
 
     const handleGesture = Animated.event(
         [{ nativeEvent: { translationX: translateX } }],
@@ -302,8 +307,7 @@ export default function ValideAnecdotesRapide() {
 
     useEffect(() => {
         fetchNextAnecdote();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [fetchNextAnecdote]);
 
     if (error) {
         return <ErrorScreen error={error} />;
@@ -325,7 +329,7 @@ export default function ValideAnecdotesRapide() {
         <SafeAreaView style={styles.container}>
             <Header refreshFunction={fetchNextAnecdote} disableRefresh={false} />
             <View style={styles.headerContainer}>
-                <BoutonRetour previousRoute="gestionAnecdotesScreen" title="Validation rapide" />
+                <BoutonRetour title="Validation rapide" />
             </View>
 
             <View style={styles.content}>
@@ -395,7 +399,7 @@ export default function ValideAnecdotesRapide() {
                             <TouchableOpacity
                                 onPress={handleRejectButton}
                                 disabled={processing}
-                                style={[styles.actionButton, styles.rejectButton, { opacity: processing ? 0.4 : 1 }]}
+                                style={[styles.actionButton, styles.rejectButton, { opacity: processing ? inactiveOpacity : activeOpacity }]}
                             >
                                 <X size={32} color={Colors.white} />
                             </TouchableOpacity>
@@ -403,7 +407,7 @@ export default function ValideAnecdotesRapide() {
                             <TouchableOpacity
                                 onPress={handleSkip}
                                 disabled={processing}
-                                style={[styles.actionButton, styles.skipButton, { opacity: processing ? 0.4 : 1 }]}
+                                style={[styles.actionButton, styles.skipButton, { opacity: processing ? inactiveOpacity : activeOpacity }]}
                             >
                                 <HelpCircle size={32} color={Colors.white} />
                             </TouchableOpacity>
@@ -411,7 +415,7 @@ export default function ValideAnecdotesRapide() {
                             <TouchableOpacity
                                 onPress={handleValidateButton}
                                 disabled={processing}
-                                style={[styles.actionButton, styles.validateButton, { opacity: processing ? 0.4 : 1 }]}
+                                style={[styles.actionButton, styles.validateButton, { opacity: processing ? inactiveOpacity : activeOpacity }]}
                             >
                                 <Check size={32} color={Colors.white} />
                             </TouchableOpacity>
@@ -447,19 +451,123 @@ export default function ValideAnecdotesRapide() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.white,
+    actionButton: {
+        alignItems: 'center',
+        borderRadius: 36,
+        elevation: 8,
+        height: 72,
+        justifyContent: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        width: 72,
     },
-    headerContainer: {
-        width: '100%',
+    actionButtonsContainer: {
+        alignItems: 'center',
+        bottom: 20,
+        flexDirection: 'row',
+        gap: 20,
+        justifyContent: 'center',
+        left: 0,
         paddingHorizontal: 20,
-        paddingBottom: 8,
+        position: 'absolute',
+        right: 0,
     },
-    loadingContainer: {
+    anecdoteText: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+        fontSize: 16,
+        lineHeight: 24,
+    },
+    backButton: {
+        backgroundColor: Colors.primary,
+        borderRadius: 12,
+        paddingHorizontal: 32,
+        paddingVertical: 14,
+    },
+    backButtonText: {
+        ...TextStyles.bodyBold,
+        color: Colors.white,
+    },
+    card: {
+        backgroundColor: Colors.white,
+        borderRadius: 20,
+        elevation: 8,
+        height: '100%',
+        justifyContent: 'space-between',
+        overflow: 'hidden',
+        padding: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.15,
+        shadowRadius: 16,
+        width: '100%',
+    },
+    cardContainer: {
+        alignItems: 'center',
         flex: 1,
         justifyContent: 'center',
+        marginBottom: 100,
+    },
+    challengeTitle: {
+        ...TextStyles.h3Bold,
+        color: Colors.primaryBorder,
+        flex: 1,
+        textAlign: 'center',
+    },
+    container: {
+        backgroundColor: Colors.white,
+        flex: 1,
+    },
+    content: {
+        flex: 1,
+        paddingHorizontal: 20,
+    },
+    emptyIcon: {
         alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.03)',
+        borderRadius: 60,
+        height: 120,
+        justifyContent: 'center',
+        marginBottom: 24,
+        width: 120,
+    },
+    emptyStateContainer: {
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+        paddingHorizontal: 40,
+    },
+    emptyStateText: {
+        ...TextStyles.body,
+        color: Colors.muted,
+        lineHeight: 22,
+        marginBottom: 32,
+        textAlign: 'center',
+    },
+    emptyStateTitle: {
+        ...TextStyles.h2Bold,
+        color: Colors.primaryBorder,
+        marginBottom: 12,
+        textAlign: 'center',
+    },
+    headerContainer: {
+        paddingBottom: 8,
+        paddingHorizontal: 20,
+        width: '100%',
+    },
+    infoSection: {
+        borderBottomColor: Colors.lightMuted,
+        borderBottomWidth: 1,
+        gap: 12,
+        marginBottom: 20,
+        paddingBottom: 20,
+    },
+    loadingContainer: {
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
         paddingHorizontal: 20,
     },
     loadingText: {
@@ -468,69 +576,61 @@ const styles = StyleSheet.create({
         marginTop: 16,
         textAlign: 'center',
     },
-    content: {
-        flex: 1,
-        paddingHorizontal: 20,
+    rejectAnimation: {
+        left: '38%',
+        position: 'absolute',
+        top: '45%',
+        zIndex: 1000,
     },
-    titleSection: {
-        flexDirection: 'row',
+    rejectButton: {
+        backgroundColor: Colors.error,
+    },
+    roomInfo: {
+        gap: 4,
+    },
+    skipButton: {
+        backgroundColor: Colors.muted,
+        borderRadius: 32,
+        height: 64,
+        width: 64,
+    },
+    statItem: {
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: 12,
-        paddingVertical: 16,
-        paddingHorizontal: 20,
         backgroundColor: Colors.lightMuted,
-        borderRadius: 16,
-        marginBottom: 16,
+        borderRadius: 12,
+        flex: 1,
+        padding: 12,
     },
-    challengeTitle: {
+    statLabel: {
+        ...TextStyles.small,
+        color: Colors.muted,
+        marginBottom: 4,
+    },
+    statValue: {
         ...TextStyles.h3Bold,
         color: Colors.primaryBorder,
-        textAlign: 'center',
-        flex: 1,
     },
-    cardContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 100,
-    },
-    card: {
-        width: '100%',
-        height: '100%',
-        backgroundColor: Colors.white,
-        borderRadius: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.15,
-        shadowRadius: 16,
-        elevation: 8,
-        overflow: 'hidden',
-        padding: 20,
-        justifyContent: 'space-between',
+    statsSection: {
+        flexDirection: 'row',
+        gap: 16,
     },
     textContainer: {
         flex: 1,
         justifyContent: 'center',
         marginBottom: 20,
     },
-    anecdoteText: {
-        ...TextStyles.body,
-        color: Colors.primaryBorder,
-        lineHeight: 24,
-        fontSize: 16,
-    },
-    infoSection: {
+    titleSection: {
+        alignItems: 'center',
+        backgroundColor: Colors.lightMuted,
+        borderRadius: 16,
+        flexDirection: 'row',
         gap: 12,
-        marginBottom: 20,
-        paddingBottom: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.lightMuted,
+        justifyContent: 'center',
+        marginBottom: 16,
+        paddingHorizontal: 20,
+        paddingVertical: 16,
     },
     userInfo: {
-        gap: 4,
-    },
-    roomInfo: {
         gap: 4,
     },
     userLabel: {
@@ -542,110 +642,14 @@ const styles = StyleSheet.create({
         ...TextStyles.bodyBold,
         color: Colors.primaryBorder,
     },
-    statsSection: {
-        flexDirection: 'row',
-        gap: 16,
-    },
-    statItem: {
-        flex: 1,
-        backgroundColor: Colors.lightMuted,
-        padding: 12,
-        borderRadius: 12,
-        alignItems: 'center',
-    },
-    statLabel: {
-        ...TextStyles.small,
-        color: Colors.muted,
-        marginBottom: 4,
-    },
-    statValue: {
-        ...TextStyles.h3Bold,
-        color: Colors.primaryBorder,
-    },
-    actionButtonsContainer: {
+    validAnimation: {
+        left: '38%',
         position: 'absolute',
-        bottom: 20,
-        left: 0,
-        right: 0,
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 20,
-        paddingHorizontal: 20,
-    },
-    actionButton: {
-        width: 72,
-        height: 72,
-        borderRadius: 36,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
-    },
-    rejectButton: {
-        backgroundColor: Colors.error,
-    },
-    skipButton: {
-        backgroundColor: Colors.muted,
-        width: 64,
-        height: 64,
-        borderRadius: 32,
+        top: '45%',
+        zIndex: 1000,
     },
     validateButton: {
         backgroundColor: '#22c55e',
-    },
-    validAnimation: {
-        position: 'absolute',
-        top: '45%',
-        left: '38%',
-        zIndex: 1000,
-    },
-    rejectAnimation: {
-        position: 'absolute',
-        top: '45%',
-        left: '38%',
-        zIndex: 1000,
-    },
-    emptyStateContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 40,
-    },
-    emptyIcon: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        backgroundColor: 'rgba(0,0,0,0.03)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 24,
-    },
-    emptyStateTitle: {
-        ...TextStyles.h2Bold,
-        color: Colors.primaryBorder,
-        textAlign: 'center',
-        marginBottom: 12,
-    },
-    emptyStateText: {
-        ...TextStyles.body,
-        color: Colors.muted,
-        textAlign: 'center',
-        lineHeight: 22,
-        marginBottom: 32,
-    },
-    backButton: {
-        backgroundColor: Colors.primary,
-        paddingVertical: 14,
-        paddingHorizontal: 32,
-        borderRadius: 12,
-    },
-    backButtonText: {
-        ...TextStyles.bodyBold,
-        color: Colors.white,
     },
 });
 

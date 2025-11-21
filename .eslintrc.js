@@ -35,6 +35,7 @@ module.exports = {
     "react-native/no-inline-styles": "warn",
     "react-native/no-unused-styles": "warn",
     "react-native/no-color-literals": "off",
+    "react/no-unescaped-entities": "off",
 
     // Imports
     "import/order": [

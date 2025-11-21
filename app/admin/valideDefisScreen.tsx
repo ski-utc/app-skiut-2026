@@ -1,19 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Text, View, StyleSheet, ActivityIndicator, Image, TouchableOpacity, ScrollView, SafeAreaView, Modal, StatusBar } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { X, Check, Trophy, Calendar, User, Image as ImageIcon, Maximize } from 'lucide-react-native';
-import Header from '../../components/header';
+import Toast from 'react-native-toast-message';
+import { ImageViewer } from "react-native-image-zoom-viewer";
+
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiGet, apiPut } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
-import Toast from 'react-native-toast-message';
-import { useNavigation } from '@react-navigation/native';
-import ImageViewer from "react-native-image-zoom-viewer";
 
-interface ChallengeDetails {
+import Header from '../../components/header';
+
+type ChallengeDetails = {
   id: number;
   valid: 0 | 1;
   created_at: string;
@@ -27,7 +28,7 @@ interface ChallengeDetails {
   };
 }
 
-interface RouteParams {
+type RouteParams = {
   id: number;
 }
 
@@ -177,7 +178,7 @@ export default function ValideDefis() {
     <SafeAreaView style={styles.container}>
       <Header refreshFunction={null} disableRefresh={true} />
       <View style={styles.headerContainer}>
-        <BoutonRetour previousRoute="gestionDefisScreen" title="Gestion défis" />
+        <BoutonRetour title="Gestion défis" />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -306,39 +307,69 @@ export default function ValideDefis() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.white,
+  buttonContainer: {
+    bottom: 20,
+    left: 20,
+    position: 'absolute',
+    right: 20,
   },
-  loadingContainer: {
+  buttonHalf: {
     flex: 1,
-    justifyContent: 'center',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  buttonSpacing: {
+    marginBottom: 16,
+  },
+  closeButton: {
     alignItems: 'center',
-    backgroundColor: Colors.white,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 22,
+    height: 44,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 20,
+    top: 50,
+    width: 44,
+    zIndex: 1000,
   },
-  loadingText: {
-    ...TextStyles.body,
-    color: Colors.muted,
-    marginTop: 16,
-    textAlign: 'center',
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+  },
+  fullScreenContainer: {
+    backgroundColor: Colors.primaryBorder,
+    flex: 1,
+    position: 'relative',
   },
   headerContainer: {
-    paddingHorizontal: 20,
     paddingBottom: 8,
+    paddingHorizontal: 20,
+  },
+  heroIcon: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 32,
+    height: 64,
+    justifyContent: 'center',
+    marginBottom: 16,
+    width: 64,
   },
   heroSection: {
     alignItems: 'center',
     paddingBottom: 24,
     paddingHorizontal: 20,
   },
-  heroIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: Colors.lightMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
+  heroSubtitle: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    lineHeight: 20,
+    textAlign: 'center',
   },
   heroTitle: {
     ...TextStyles.h2,
@@ -347,34 +378,67 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textAlign: 'center',
   },
-  heroSubtitle: {
-    ...TextStyles.body,
-    color: Colors.muted,
-    textAlign: 'center',
-    lineHeight: 20,
+  imageCard: {
+    backgroundColor: Colors.white,
+    borderColor: Colors.primary,
+    borderRadius: 14,
+    borderWidth: 2,
+    elevation: 3,
+    marginBottom: 128,
+    marginHorizontal: 20,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
   },
-  content: {
-    flex: 1,
+  imageContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  imageHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  imageOverlay: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    bottom: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    left: 0,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    position: 'absolute',
+    right: 0,
+  },
+  imageOverlayText: {
+    ...TextStyles.small,
+    color: Colors.white,
+    fontWeight: '500',
+    marginLeft: 6,
+    textAlign: 'center',
+  },
+  imageTitle: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
+    marginLeft: 8,
   },
   infoCard: {
     backgroundColor: Colors.white,
+    borderColor: 'rgba(0,0,0,0.06)',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.06)',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 2, height: 3 },
-    shadowRadius: 5,
     elevation: 3,
-    padding: 16,
     marginBottom: 16,
     marginHorizontal: 20,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    flexWrap: 'wrap',
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
   },
   infoLabel: {
     ...TextStyles.body,
@@ -384,104 +448,41 @@ const styles = StyleSheet.create({
     marginRight: 8,
     minWidth: 80,
   },
+  infoRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 12,
+  },
   infoValue: {
     ...TextStyles.body,
     color: Colors.muted,
     flex: 1,
     lineHeight: 20,
   },
-  validStatus: {
-    color: Colors.success,
-    fontWeight: '600',
+  loadingContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16,
+    textAlign: 'center',
   },
   pendingStatus: {
     color: Colors.primary,
     fontWeight: '600',
   },
-  imageCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 2, height: 3 },
-    shadowRadius: 5,
-    elevation: 3,
-    padding: 16,
-    marginBottom: 128,
-    marginHorizontal: 20,
-  },
-  imageHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  imageTitle: {
-    ...TextStyles.h3Bold,
-    color: Colors.primaryBorder,
-    marginLeft: 8,
-  },
-  imageContainer: {
-    position: 'relative',
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
   proofImage: {
-    width: '100%',
     aspectRatio: 1,
     borderRadius: 12,
+    width: '100%',
   },
-  imageOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  imageOverlayText: {
-    ...TextStyles.small,
-    color: Colors.white,
-    textAlign: 'center',
-    fontWeight: '500',
-    marginLeft: 6,
-  },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-  },
-  buttonSpacing: {
-    marginBottom: 16,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  buttonHalf: {
-    flex: 1,
-  },
-  fullScreenContainer: {
-    flex: 1,
-    backgroundColor: Colors.primaryBorder,
-    position: 'relative',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    zIndex: 1000,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  validStatus: {
+    color: Colors.success,
+    fontWeight: '600',
   },
 });

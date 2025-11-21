@@ -1,12 +1,14 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { View, Text, ActivityIndicator, FlatList, TouchableOpacity, StyleSheet, Modal, ScrollView, Image, StatusBar } from 'react-native';
+import { Heart, User, Sparkles, Eye, X, Trophy } from 'lucide-react-native';
+
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
-import { Heart, User, Sparkles, Eye, X, Trophy } from 'lucide-react-native';
+
+import Header from '../../components/header';
 
 export default function SkinderMyMatches() {
   const [loading, setLoading] = useState(false);
@@ -14,7 +16,6 @@ export default function SkinderMyMatches() {
   const [matchedRooms, setMatchedRooms] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_selectedRoom, setSelectedRoom] = useState<any>(null);
   const [roomDetails, setRoomDetails] = useState({
     id: null,
@@ -127,20 +128,11 @@ export default function SkinderMyMatches() {
 
   if (loading) {
     return (
-      <View style={{
-        flex: 1,
-        backgroundColor: Colors.white,
-      }}>
+      <View style={styles.container}>
         <Header refreshFunction={undefined} disableRefresh={true} />
-        <View style={{
-          width: '100%',
-          flex: 1,
-          backgroundColor: Colors.white,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
-          <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+          <Text style={styles.loadingText}>
             Chargement...
           </Text>
         </View>
@@ -182,7 +174,7 @@ export default function SkinderMyMatches() {
     <View style={styles.container}>
       <Header refreshFunction={fetchMatches} disableRefresh={loading} />
       <View style={styles.headerContainer}>
-        <BoutonRetour previousRoute={'homeNavigator'} title={'Mes Matches'} />
+        <BoutonRetour title={'Mes Matches'} />
       </View>
 
       <View style={styles.content}>
@@ -215,7 +207,7 @@ export default function SkinderMyMatches() {
           {loadingRoomDetails ? (
             <View style={styles.modalLoadingContainer}>
               <ActivityIndicator size="large" color={Colors.primaryBorder} />
-              <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+              <Text style={styles.loadingText}>
                 Chargement du profil...
               </Text>
             </View>
@@ -305,18 +297,58 @@ export default function SkinderMyMatches() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.white,
+  closeButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 22,
+    height: 44,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 20,
+    top: 50,
+    width: 44,
+    zIndex: 1000,
   },
-  headerContainer: {
-    width: '100%',
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  content: {
+    flex: 1,
     paddingHorizontal: 20,
   },
-  loadingContainer: {
+  emptyStateContainer: {
+    alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
+    paddingHorizontal: 40,
+    paddingTop: 60,
+  },
+  emptyStateText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    lineHeight: 22,
+    textAlign: 'center',
+  },
+  emptyStateTitle: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 12,
+    marginTop: 24,
+    textAlign: 'center',
+  },
+  headerContainer: {
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  listContainer: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
+  loadingContainer: {
     alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
     paddingHorizontal: 20,
   },
   loadingText: {
@@ -325,134 +357,128 @@ const styles = StyleSheet.create({
     marginTop: 16,
     textAlign: 'center',
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  titleContainer: {
-    flexDirection: 'row',
+  matchAction: {
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  pageTitle: {
-    ...TextStyles.h3Bold,
-    color: Colors.primaryBorder,
-  },
-  listContainer: {
-    flexGrow: 1,
-    paddingBottom: 20,
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 16,
+    height: 32,
+    justifyContent: 'center',
+    width: 32,
   },
   matchCard: {
-    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.white,
+    borderColor: 'rgba(0,0,0,0.06)',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.06)',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 2, height: 3 },
-    shadowRadius: 5,
     elevation: 3,
+    flexDirection: 'row',
     marginBottom: 12,
     padding: 16,
-  },
-  matchIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.lightMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
   },
   matchContent: {
     flex: 1,
   },
-  matchRoomNumber: {
-    ...TextStyles.bodyBold,
-    color: Colors.primaryBorder,
-    marginBottom: 4,
+  matchIconContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 24,
+    height: 48,
+    justifyContent: 'center',
+    marginRight: 16,
+    width: 48,
   },
   matchRespName: {
     ...TextStyles.body,
     color: Colors.primary,
     marginBottom: 4,
   },
+  matchRoomNumber: {
+    ...TextStyles.bodyBold,
+    color: Colors.primaryBorder,
+    marginBottom: 4,
+  },
   matchSubtitle: {
     ...TextStyles.small,
     color: Colors.muted,
   },
-  matchAction: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.lightMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyStateContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-    paddingTop: 60,
-  },
-  emptyStateTitle: {
-    ...TextStyles.h2Bold,
-    color: Colors.primaryBorder,
-    textAlign: 'center',
-    marginTop: 24,
-    marginBottom: 12,
-  },
-  emptyStateText: {
-    ...TextStyles.body,
-    color: Colors.muted,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
   modalContainer: {
-    flex: 1,
     backgroundColor: Colors.white,
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    zIndex: 1000,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalLoadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
   },
   modalContent: {
     flex: 1,
   },
-  modalImageContainer: {
-    position: 'relative',
-    height: 400,
+  modalDescriptionText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    lineHeight: 22,
   },
   modalImage: {
-    width: '100%',
     height: '100%',
+    width: '100%',
+  },
+  modalImageContainer: {
+    height: 400,
+    position: 'relative',
   },
   modalImageOverlay: {
-    position: 'absolute',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     bottom: 0,
     left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingVertical: 24,
     paddingHorizontal: 20,
+    paddingVertical: 24,
+    position: 'absolute',
+    right: 0,
+  },
+  modalInfo: {
+    padding: 20,
+  },
+  modalInfoCard: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 12,
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+    padding: 16,
+  },
+  modalInfoLabel: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    flex: 1,
+  },
+  modalInfoValue: {
+    ...TextStyles.bodyBold,
+    color: Colors.primaryBorder,
+  },
+  modalLoadingContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  modalPassionChip: {
+    backgroundColor: Colors.lightMuted,
+    borderColor: Colors.primary,
+    borderRadius: 20,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  modalPassionContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  modalPassionText: {
+    ...TextStyles.body,
+    color: Colors.primary,
+    fontWeight: '600',
   },
   modalRoomName: {
     ...TextStyles.h1Bold,
@@ -464,27 +490,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
     opacity: 0.9,
   },
-  modalInfo: {
-    padding: 20,
-  },
-  modalInfoCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.lightMuted,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    gap: 8,
-  },
-  modalInfoLabel: {
-    ...TextStyles.body,
-    color: Colors.muted,
-    flex: 1,
-  },
-  modalInfoValue: {
-    ...TextStyles.bodyBold,
-    color: Colors.primaryBorder,
-  },
   modalSection: {
     marginBottom: 24,
   },
@@ -493,50 +498,27 @@ const styles = StyleSheet.create({
     color: Colors.primaryBorder,
     marginBottom: 12,
   },
-  modalDescriptionText: {
-    ...TextStyles.body,
-    color: Colors.muted,
-    lineHeight: 22,
-  },
-  modalPassionContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  modalPassionChip: {
-    backgroundColor: Colors.lightMuted,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-  },
-  modalPassionText: {
-    ...TextStyles.body,
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  modalStatsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    gap: 16,
-  },
   modalStatItem: {
-    flex: 1,
     alignItems: 'center',
     backgroundColor: Colors.lightMuted,
     borderRadius: 12,
+    flex: 1,
     padding: 16,
-  },
-  modalStatValue: {
-    ...TextStyles.h2Bold,
-    color: Colors.primaryBorder,
-    marginTop: 8,
   },
   modalStatLabel: {
     ...TextStyles.small,
     color: Colors.muted,
     marginTop: 4,
     textAlign: 'center',
+  },
+  modalStatValue: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+    marginTop: 8,
+  },
+  modalStatsContainer: {
+    flexDirection: 'row',
+    gap: 16,
+    justifyContent: 'space-around',
   },
 });

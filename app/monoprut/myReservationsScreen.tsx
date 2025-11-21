@@ -1,16 +1,17 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
+import { ShoppingBasket, ShoppingBag, Clock, Package } from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { ShoppingBasket, ShoppingBag, Clock, Package } from 'lucide-react-native';
 import { apiGet, apiPost, apiPut } from '@/constants/api/apiCalls';
-import Toast from 'react-native-toast-message';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import ArticleCard from '@/components/monoprut/articleCard';
 import ErrorScreen from '@/components/pages/errorPage';
 
-interface Article {
+type Article = {
     id: number;
     product: string;
     quantity: string;
@@ -149,7 +150,7 @@ export default function MyReservationsScreen() {
             <SafeAreaView style={styles.container}>
                 <Header refreshFunction={handleRefresh} disableRefresh={false} />
                 <View style={styles.headerContainer}>
-                    <BoutonRetour previousRoute="MonoprutScreen" title="Mes réservations" />
+                    <BoutonRetour title="Mes réservations" />
                 </View>
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={Colors.primary} />
@@ -163,7 +164,7 @@ export default function MyReservationsScreen() {
         <SafeAreaView style={styles.container}>
             <Header refreshFunction={handleRefresh} disableRefresh={false} />
             <View style={styles.headerContainer}>
-                <BoutonRetour previousRoute="MonoprutScreen" title="Mes réservations" />
+                <BoutonRetour title="Mes réservations" />
             </View>
 
             <View style={styles.navigationBar}>
@@ -230,119 +231,93 @@ export default function MyReservationsScreen() {
 }
 
 const styles = StyleSheet.create({
+    articlesList: {
+        gap: 12,
+        paddingBottom: 24,
+        paddingHorizontal: 20,
+    },
     container: {
-        flex: 1,
         backgroundColor: Colors.white,
-    },
-    headerContainer: {
-        paddingHorizontal: 20,
-        paddingBottom: 8,
-    },
-    loadingContainer: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 16,
-    },
-    loadingText: {
-        ...TextStyles.body,
-        color: Colors.muted,
-    },
-    navigationBar: {
-        flexDirection: 'row',
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-        marginBottom: 4,
-        gap: 10,
-    },
-    navButton: {
-        flex: 1,
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 6,
-        paddingVertical: 12,
-        paddingHorizontal: 8,
-        borderRadius: 12,
-        backgroundColor: Colors.white,
-        borderWidth: 1,
-        borderColor: Colors.lightMuted,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    navButtonActive: {
-        backgroundColor: Colors.success,
-        borderColor: Colors.success,
-        shadowColor: Colors.success,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 6,
-        elevation: 6,
-    },
-    navButtonText: {
-        ...TextStyles.small,
-        fontSize: 11,
-        color: Colors.primaryBorder,
-        fontWeight: '600',
-        textAlign: 'center',
-        lineHeight: 14,
-    },
-    navButtonTextActive: {
-        color: Colors.white,
     },
     content: {
         flex: 1,
         paddingVertical: 12,
     },
-    headerSection: {
-        alignItems: 'center',
-        paddingVertical: 24,
-        paddingHorizontal: 20,
-    },
-    iconCircle: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: `${Colors.success}15`,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    title: {
-        ...TextStyles.h2Bold,
-        color: Colors.primaryBorder,
-        marginBottom: 8,
-        textAlign: 'center',
-    },
-    subtitle: {
-        ...TextStyles.body,
-        color: Colors.muted,
-        textAlign: 'center',
-        maxWidth: '85%',
-    },
-    articlesList: {
-        paddingHorizontal: 20,
-        paddingBottom: 24,
-        gap: 12,
-    },
     emptyContainer: {
         alignItems: 'center',
-        paddingVertical: 60,
         paddingHorizontal: 40,
-    },
-    emptyTitle: {
-        ...TextStyles.h3Bold,
-        color: Colors.primaryBorder,
-        marginTop: 16,
-        marginBottom: 8,
+        paddingVertical: 60,
     },
     emptyText: {
         ...TextStyles.body,
         color: Colors.muted,
         textAlign: 'center',
+    },
+    emptyTitle: {
+        ...TextStyles.h3Bold,
+        color: Colors.primaryBorder,
+        marginBottom: 8,
+        marginTop: 16,
+    },
+    headerContainer: {
+        paddingBottom: 8,
+        paddingHorizontal: 20,
+    },
+    loadingContainer: {
+        alignItems: 'center',
+        flex: 1,
+        gap: 16,
+        justifyContent: 'center',
+    },
+    loadingText: {
+        ...TextStyles.body,
+        color: Colors.muted,
+    },
+    navButton: {
+        alignItems: 'center',
+        backgroundColor: Colors.white,
+        borderColor: Colors.lightMuted,
+        borderRadius: 12,
+        borderWidth: 1,
+        elevation: 3,
+        flex: 1,
+        flexDirection: 'column',
+        gap: 6,
+        justifyContent: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+    },
+    navButtonActive: {
+        backgroundColor: Colors.success,
+        borderColor: Colors.success,
+        elevation: 6,
+        shadowColor: Colors.success,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 6,
+    },
+    navButtonText: {
+        ...TextStyles.small,
+        color: Colors.primaryBorder,
+        fontSize: 11,
+        fontWeight: '600',
+        lineHeight: 14,
+        textAlign: 'center',
+    },
+    navButtonTextActive: {
+        color: Colors.white,
+    },
+    navigationBar: {
+        flexDirection: 'row',
+        gap: 10,
+        marginBottom: 4,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
     },
 });
 

@@ -1,9 +1,9 @@
-import React from 'react';
-import { Text, TouchableOpacity } from 'react-native';
-import { Colors, TextStyles } from '@/constants/GraphSettings';
+import { Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
-interface BoutonNavigationLargeProps {
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+
+type BoutonNavigationLargeProps = {
     nextRoute?: string;
     title: string;
     IconComponent?: any;
@@ -22,7 +22,6 @@ export default function BoutonNavigationLarge({ nextRoute, title, IconComponent 
     };
 
     const onLongPress = () => {
-        // @ts-ignore - Navigation emit is not typed
         navigation.emit({
             type: 'tabLongPress',
             target: route.key,
@@ -33,24 +32,7 @@ export default function BoutonNavigationLarge({ nextRoute, title, IconComponent 
         <TouchableOpacity
             onPress={onPress}
             onLongPress={onLongPress}
-            style={{
-                position: 'absolute',
-                bottom: 16,
-                right: 10,
-                left: 10,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 14,
-                borderRadius: 14,
-                gap: 12,
-                backgroundColor: Colors.primary,
-                shadowColor: Colors.primaryBorder,
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.2,
-                shadowRadius: 3,
-                elevation: 3,
-            }}
+            style={styles.button}
         >
             {IconComponent && (
                 <IconComponent
@@ -59,15 +41,37 @@ export default function BoutonNavigationLarge({ nextRoute, title, IconComponent 
                 />
             )}
             <Text
-                style={{
-                    ...TextStyles.body,
-                    color: Colors.white,
-                    fontWeight: '600',
-                    fontSize: 16,
-                }}
+                style={styles.text}
             >
                 {title}
             </Text>
         </TouchableOpacity>
     );
-};
+}
+
+const styles = StyleSheet.create({
+    button: {
+        alignItems: 'center',
+        backgroundColor: Colors.primary,
+        borderRadius: 14,
+        bottom: 16,
+        elevation: 3,
+        flexDirection: 'row',
+        gap: 12,
+        justifyContent: 'center',
+        left: 10,
+        padding: 14,
+        position: 'absolute',
+        right: 10,
+        shadowColor: Colors.primaryBorder,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+    },
+    text: {
+        ...TextStyles.body,
+        color: Colors.white,
+        fontSize: 16,
+        fontWeight: '600',
+    }
+})

@@ -1,15 +1,14 @@
-import React from 'react';
-import { Text, TouchableOpacity } from 'react-native';
-import { TextStyles } from '@/constants/GraphSettings';
+import { Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
-interface BoutonRetourProps {
-    previousRoute?: string;
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+
+type BoutonRetourProps = {
     title: string;
 }
 
-export default function BoutonRetour({ previousRoute, title }: BoutonRetourProps) {
+export default function BoutonRetour({ title }: BoutonRetourProps) {
     const navigation = useNavigation<any>();
     const route = useRoute();
 
@@ -18,8 +17,7 @@ export default function BoutonRetour({ previousRoute, title }: BoutonRetourProps
     };
 
     const onLongPress = () => {
-        // @ts-ignore - Navigation emit is not typed
-        navigation.emit({
+        (navigation as any).emit({
             type: 'tabLongPress',
             target: route.key,
         });
@@ -29,24 +27,29 @@ export default function BoutonRetour({ previousRoute, title }: BoutonRetourProps
         <TouchableOpacity
             onPress={onPress}
             onLongPress={onLongPress}
-            style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginBottom: 16,
-            }}
+            style={styles.button}
         >
             <ChevronLeft
                 size={24}
                 color={'#8A8A8A'}
             />
             <Text
-                style={{
-                    color: '#000000',
-                    ...TextStyles.h4,
-                }}
+                style={styles.text}
             >
                 {title}
             </Text>
         </TouchableOpacity>
     );
-};
+}
+
+const styles = StyleSheet.create({
+    button: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        marginBottom: 16,
+    },
+    text: {
+        color: Colors.white,
+        ...TextStyles.h4,
+    }
+});

@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
-import Header from "../../../components/header";
-import BoutonRetour from "../../../components/divers/boutonRetour";
-import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { Zap, MapPin, Timer, Activity, TrendingUp, Trash2 } from "lucide-react-native";
+import Toast from 'react-native-toast-message';
+
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { apiGet, apiDelete } from "@/constants/api/apiCalls";
 import { useUser } from "@/contexts/UserContext";
-import Toast from 'react-native-toast-message';
 import ErrorScreen from "@/components/pages/errorPage";
 
-interface UserSession {
+import BoutonRetour from "../../../components/divers/boutonRetour";
+import Header from "../../../components/header";
+
+type UserSession = {
     id: number;
     max_speed: number;
     distance: number;
@@ -19,7 +21,7 @@ interface UserSession {
     session_id: string;
 }
 
-interface UserStats {
+type UserStats = {
     total_sessions: number;
     total_distance: number;
     total_duration: number;
@@ -37,12 +39,7 @@ export default function UserPerformancesScreen() {
 
     const { setUser } = useUser();
 
-    useEffect(() => {
-        fetchUserPerformances();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const fetchUserPerformances = async () => {
+    const fetchUserPerformances = useCallback(async () => {
         setLoading(true);
         setDisableRefresh(true);
         try {
@@ -65,7 +62,11 @@ export default function UserPerformancesScreen() {
                 setDisableRefresh(false);
             }, 3000);
         }
-    };
+    }, [setUser]);
+
+    useEffect(() => {
+        fetchUserPerformances();
+    }, [fetchUserPerformances]);
 
     const deleteSession = async (sessionId: string) => {
         try {
@@ -188,7 +189,7 @@ export default function UserPerformancesScreen() {
         <View style={styles.container}>
             <Header refreshFunction={fetchUserPerformances} disableRefresh={disableRefresh} />
             <View style={styles.headerContainer}>
-                <BoutonRetour previousRoute="VitesseDeGlisseScreen" title="Mes enregistrements" />
+                <BoutonRetour title="Mes enregistrements" />
             </View>
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -270,23 +271,54 @@ export default function UserPerformancesScreen() {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
         backgroundColor: Colors.white,
-    },
-    headerContainer: {
-        width: '100%',
-        paddingHorizontal: 20,
-        paddingBottom: 8,
+        flex: 1,
     },
     content: {
         flex: 1,
         paddingHorizontal: 20,
     },
-    loadingContainer: {
-        flex: 1,
+    deleteButton: {
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        borderRadius: 8,
+        padding: 8,
+    },
+    emptyDescription: {
+        ...TextStyles.body,
+        color: Colors.muted,
+        lineHeight: 22,
+        textAlign: 'center',
+    },
+    emptyIcon: {
+        alignItems: 'center',
+        backgroundColor: Colors.lightMuted,
+        borderRadius: 40,
+        height: 80,
         justifyContent: 'center',
+        marginBottom: 24,
+        width: 80,
+    },
+    emptyState: {
+        alignItems: 'center',
+        paddingHorizontal: 32,
+        paddingVertical: 48,
+    },
+    emptyTitle: {
+        ...TextStyles.h3Bold,
+        color: Colors.primaryBorder,
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    headerContainer: {
+        paddingBottom: 8,
+        paddingHorizontal: 20,
+        width: '100%',
+    },
+    loadingContainer: {
         alignItems: 'center',
         backgroundColor: Colors.white,
+        flex: 1,
+        justifyContent: 'center',
     },
     loadingText: {
         ...TextStyles.body,
@@ -300,108 +332,30 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         marginTop: 8,
     },
-    statsSection: {
-        marginBottom: 32,
-    },
-    statsGrid: {
-        flexDirection: 'row',
-        gap: 12,
-        marginBottom: 12,
-    },
-    statCard: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: Colors.white,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.06)',
-        shadowColor: '#000',
-        shadowOpacity: 0.08,
-        shadowOffset: { width: 1, height: 2 },
-        shadowRadius: 4,
-        elevation: 2,
-        padding: 12,
-    },
-    statIcon: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    statContent: {
-        flex: 1,
-    },
-    statTitle: {
-        ...TextStyles.small,
-        color: Colors.muted,
-        marginBottom: 2,
-    },
-    statValueContainer: {
-        flexDirection: 'row',
-        alignItems: 'baseline',
-    },
-    statValue: {
-        ...TextStyles.bodyBold,
-        color: Colors.primaryBorder,
-        marginRight: 2,
-    },
-    statUnit: {
-        ...TextStyles.small,
-        color: Colors.primary,
-        fontWeight: '600',
-    },
-    sessionsSection: {
-        marginBottom: 24,
-    },
     sessionCard: {
         backgroundColor: Colors.white,
+        borderColor: 'rgba(0,0,0,0.06)',
         borderRadius: 14,
         borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.06)',
-        shadowColor: '#000',
-        shadowOpacity: 0.08,
-        shadowOffset: { width: 2, height: 3 },
-        shadowRadius: 5,
         elevation: 3,
+        marginBottom: 12,
         padding: 16,
-        marginBottom: 12,
-    },
-    sessionHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    sessionIcon: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        backgroundColor: Colors.lightMuted,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    sessionHeaderContent: {
-        flex: 1,
+        shadowColor: '#000',
+        shadowOffset: { width: 2, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 5,
     },
     sessionDate: {
         ...TextStyles.bodyBold,
         color: Colors.primaryBorder,
     },
-    sessionId: {
-        ...TextStyles.small,
-        color: Colors.muted,
-    },
-    deleteButton: {
-        padding: 8,
-        borderRadius: 8,
-        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    },
-    sessionStats: {
+    sessionHeader: {
+        alignItems: 'center',
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        marginBottom: 12,
+    },
+    sessionHeaderContent: {
+        flex: 1,
     },
     sessionStat: {
         alignItems: 'center',
@@ -410,38 +364,72 @@ const styles = StyleSheet.create({
     sessionStatLabel: {
         ...TextStyles.small,
         color: Colors.muted,
-        marginTop: 2,
         marginBottom: 2,
+        marginTop: 2,
     },
     sessionStatValue: {
         ...TextStyles.small,
         color: Colors.primaryBorder,
         fontWeight: '600',
     },
-    emptyState: {
-        alignItems: 'center',
-        paddingVertical: 48,
-        paddingHorizontal: 32,
+    sessionStats: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
     },
-    emptyIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: Colors.lightMuted,
-        justifyContent: 'center',
-        alignItems: 'center',
+    sessionsSection: {
         marginBottom: 24,
     },
-    emptyTitle: {
-        ...TextStyles.h3Bold,
-        color: Colors.primaryBorder,
-        marginBottom: 8,
-        textAlign: 'center',
+    statCard: {
+        alignItems: 'center',
+        backgroundColor: Colors.white,
+        borderColor: 'rgba(0,0,0,0.06)',
+        borderRadius: 12,
+        borderWidth: 1,
+        elevation: 2,
+        flex: 1,
+        flexDirection: 'row',
+        padding: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 1, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
     },
-    emptyDescription: {
-        ...TextStyles.body,
+    statContent: {
+        flex: 1,
+    },
+    statIcon: {
+        alignItems: 'center',
+        borderRadius: 18,
+        height: 36,
+        justifyContent: 'center',
+        marginRight: 12,
+        width: 36,
+    },
+    statTitle: {
+        ...TextStyles.small,
         color: Colors.muted,
-        textAlign: 'center',
-        lineHeight: 22,
+        marginBottom: 2,
+    },
+    statUnit: {
+        ...TextStyles.small,
+        color: Colors.primary,
+        fontWeight: '600',
+    },
+    statValue: {
+        ...TextStyles.bodyBold,
+        color: Colors.primaryBorder,
+        marginRight: 2,
+    },
+    statValueContainer: {
+        alignItems: 'baseline',
+        flexDirection: 'row',
+    },
+    statsGrid: {
+        flexDirection: 'row',
+        gap: 12,
+        marginBottom: 12,
+    },
+    statsSection: {
+        marginBottom: 32,
     },
 });

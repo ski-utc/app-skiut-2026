@@ -1,22 +1,26 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, memo } from 'react';
 import { Text, View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { GanttChart, Bell, RotateCcw } from 'lucide-react-native';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
+
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import NotificationPopup from '@/app/notificationPopUp';
 import { useUser } from '@/contexts/UserContext';
 import { apiGet } from '@/constants/api/apiCalls';
 
-interface HeaderProps {
+type HeaderProps = {
   refreshFunction?: (() => void) | null;
   disableRefresh?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = React.memo(({ refreshFunction, disableRefresh = false }) => {
+const Header: React.FC<HeaderProps> = memo(({ refreshFunction, disableRefresh = false }) => {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const { user } = useUser();
   const navigation = useNavigation();
+
+  const activeOpacity = 1;
+  const inactiveOpacity = 0.4;
 
   const handleMenuPress = useCallback(() => {
     navigation.dispatch(DrawerActions.openDrawer());
@@ -46,8 +50,7 @@ const Header: React.FC<HeaderProps> = React.memo(({ refreshFunction, disableRefr
     updateUnreadNotifications();
     // const interval = setInterval(updateUnreadNotifications, 30000);
     // return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [updateUnreadNotifications]);
 
   return (
     <View style={styles.container}>
@@ -66,7 +69,7 @@ const Header: React.FC<HeaderProps> = React.memo(({ refreshFunction, disableRefr
       </View>
       {refreshFunction === null ? null :
         <TouchableOpacity
-          style={[styles.refreshButton, { opacity: disableRefresh ? 0.4 : 1 }]}
+          style={[styles.refreshButton, { opacity: disableRefresh ? inactiveOpacity : activeOpacity }]}
           onPress={refreshFunction}
           disabled={disableRefresh}
         >
@@ -89,81 +92,81 @@ Header.displayName = 'Header';
 export default Header;
 
 const styles = StyleSheet.create({
+  bellButton: {
+    alignItems: 'center',
+    borderColor: Colors.muted,
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 40,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 20,
+    top: Platform.OS === 'ios' ? 60 : 40,
+    width: 40,
+  },
   container: {
-    width: '100%',
+    alignItems: 'center',
     backgroundColor: Colors.white,
-    paddingTop: Platform.OS === 'ios' ? 50 : 40,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     paddingBottom: 20,
     paddingLeft: 20,
     paddingRight: 20,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexDirection: 'row',
+    paddingTop: Platform.OS === 'ios' ? 50 : 40,
+    width: '100%',
   },
   leftContainer: {
-    justifyContent: 'flex-start',
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 13,
-    marginTop: 2,
     flex: 1,
+    gap: 13,
+    justifyContent: 'flex-start',
+    marginTop: 2,
   },
   menuButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    justifyContent: 'center',
     alignItems: 'center',
-  },
-  textContainer: {
-    width: 'auto',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-    gap: 4,
-    marginTop: 0,
+    borderRadius: 8,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
   },
   nameText: {
     ...TextStyles.bodyBold,
     color: Colors.primaryBorder,
   },
+  notificationDot: {
+    backgroundColor: Colors.error,
+    borderColor: Colors.white,
+    borderRadius: 32,
+    borderWidth: 2,
+    height: 14,
+    left: -2,
+    position: 'absolute',
+    top: -2,
+    width: 14,
+  },
+  refreshButton: {
+    alignItems: 'center',
+    borderColor: Colors.muted,
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 40,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 70,
+    top: Platform.OS === 'ios' ? 60 : 40,
+    width: 40,
+  },
   roomText: {
     ...TextStyles.small,
     color: Colors.muted,
   },
-  refreshButton: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 40,
-    right: 70,
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.muted,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  bellButton: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 40,
-    right: 20,
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.muted,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  notificationDot: {
-    position: 'absolute',
-    top: -2,
-    left: -2,
-    width: 14,
-    height: 14,
-    borderRadius: 32,
-    backgroundColor: Colors.error,
-    borderWidth: 2,
-    borderColor: Colors.white,
+  textContainer: {
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+    gap: 4,
+    justifyContent: 'flex-start',
+    marginTop: 0,
+    width: 'auto',
   },
 });

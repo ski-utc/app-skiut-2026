@@ -1,10 +1,11 @@
 import React from 'react';
 import { Text, TouchableOpacity, View, StyleSheet, TextStyle } from 'react-native';
-import { TextStyles } from '@/constants/GraphSettings';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronRight } from 'lucide-react-native';
 
-interface BoutonGestionProps {
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+
+type BoutonGestionProps = {
     title: string;
     subtitle: string;
     subtitleStyle?: TextStyle;
@@ -28,7 +29,7 @@ const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, subtitle
                     <Text style={[styles.subtitleText, subtitleStyle]}>{subtitle}</Text>
                 </View>
             </View>
-            {valide != null ? <View style={{ height: 8, width: 8, borderRadius: 100, backgroundColor: valide ? 'green' : 'orange' }}></View> : null}
+            {valide != null ? <View style={[styles.valideDot, { backgroundColor: valide ? Colors.success : Colors.error }]}></View> : null}
             <ChevronRight size={20} color={'#000000'} />
         </TouchableOpacity>
     );
@@ -36,42 +37,47 @@ const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, subtitle
 
 const styles = StyleSheet.create({
     buttonContainer: {
-        width: "100%",
+        alignItems: "center",
+        backgroundColor: 'white',
+        borderBottomColor: "#EAEAEA",
+        borderBottomWidth: 1,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        paddingBottom: 14,
         paddingLeft: 20,
         paddingRight: 20,
         paddingTop: 14,
-        paddingBottom: 14,
-        borderBottomWidth: 1,
-        borderBottomColor: "#EAEAEA",
-        justifyContent: "space-between",
-        alignItems: "center",
-        flexDirection: "row",
-        backgroundColor: 'white',
+        width: "100%",
+    },
+    subtitleText: {
+        color: "#737373",
+        ...TextStyles.body,
+        flexWrap: 'wrap',
+        fontStyle: "italic",
+        fontWeight: "400",
     },
     textContainer: {
-        justifyContent: "flex-start",
         alignItems: "center",
         flexDirection: "row",
+        justifyContent: "flex-start",
         width: '85%',
     },
     textWrapper: {
-        flexDirection: 'column',
         alignItems: 'flex-start',
+        flexDirection: 'column',
         gap: 2,
     },
     titleText: {
         color: "#1E1E1E",
         ...TextStyles.bodyLarge,
+        flexWrap: 'wrap',
         fontWeight: "600",
-        flexWrap: 'wrap',
     },
-    subtitleText: {
-        color: "#737373",
-        ...TextStyles.body,
-        fontStyle: "italic",
-        fontWeight: "400",
-        flexWrap: 'wrap',
-    },
+    valideDot: {
+        borderRadius: 100,
+        height: 8,
+        width: 8,
+    }
 });
 
 export default BoutonGestion;

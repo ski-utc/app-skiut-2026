@@ -1,14 +1,17 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useState } from "react";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { WebView } from "react-native-webview";
 import * as Linking from "expo-linking";
 import * as SecureStore from "expo-secure-store";
-import { useUser } from "@/contexts/UserContext";
-import * as config from "../../constants/api/apiConfig";
-import { apiGet } from "@/constants/api/apiCalls";
-import { Colors, TextStyles } from "@/constants/GraphSettings";
 import { useNavigation } from '@react-navigation/native';
 import { X } from "lucide-react-native";
+
+import { useUser } from "@/contexts/UserContext";
+import { apiGet } from "@/constants/api/apiCalls";
+import { Colors } from "@/constants/GraphSettings";
+import ErrorScreen from "@/components/pages/errorPage";
+
+import * as config from "../../constants/api/apiConfig";
 
 export default function OAuthScreen() {
   const { setUser } = useUser();
@@ -76,72 +79,12 @@ export default function OAuthScreen() {
 
   if (error !== '') {
     return (
-      <View
-        style={{
-          height: "100%",
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Text
-          style={{
-            ...TextStyles.h1,
-            color: Colors.error,
-            padding: 10,
-            textAlign: "center",
-          }}
-        >
-          Une erreur est survenue...
-        </Text>
-        <Text
-          style={{
-            ...TextStyles.h3,
-            color: Colors.primaryBorder,
-            padding: 10,
-            paddingBottom: 32,
-            textAlign: "center",
-          }}
-        >
-          {error}
-        </Text>
-        <Text
-          style={{
-            ...TextStyles.body,
-            color: Colors.muted,
-            padding: 16,
-            textAlign: "center",
-          }}
-        >
-          Si l'erreur persiste, merci de contacter Mathis Delmaere
-        </Text>
-        <TouchableOpacity
-          onPress={() => { navigation.goBack(); }}
-          style={{
-            width: '90%',
-            alignSelf: 'center',
-            backgroundColor: Colors.accent,
-            paddingVertical: 15,
-            marginVertical: 16,
-            borderRadius: 10,
-            alignItems: 'center',
-          }}
-        >
-          <Text style={{
-            ...TextStyles.buttonLarge,
-            color: Colors.white,
-          }}>
-            Retour
-          </Text>
-        </TouchableOpacity>
-      </View>
-    )
+      <ErrorScreen error={error} />
+    );
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.container}>
       {isWebViewVisible && (
         <>
           <View style={styles.closeButtonContainer}>
@@ -155,7 +98,7 @@ export default function OAuthScreen() {
           <WebView
             source={{ uri: `${config.BASE_URL}/auth/login` }}
             originWhitelist={["*"]}
-            style={{ flex: 1 }}
+            style={styles.webView}
             onNavigationStateChange={handleNavigationStateChange}
             incognito={true}
             show
@@ -167,26 +110,33 @@ export default function OAuthScreen() {
 }
 
 const styles = StyleSheet.create({
-  closeButtonContainer: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    zIndex: 10,
-    paddingTop: 16,
-    paddingRight: 16,
-  },
   closeButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#000',
-    opacity: 0.5,
-    justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
+    backgroundColor: '#000',
+    borderRadius: 22,
     elevation: 5,
+    height: 44,
+    justifyContent: 'center',
+    opacity: 0.5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    width: 44,
   },
+  closeButtonContainer: {
+    paddingRight: 16,
+    paddingTop: 16,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 10,
+  },
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  webView: {
+    flex: 1,
+  }
 });

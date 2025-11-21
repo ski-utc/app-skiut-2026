@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator, Text, TouchableOpacity } from "react-native";
-import Header from "../../components/header";
 import { Trophy, ChevronRight, Check, X, ListTodo, Hourglass } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
+
 import BoutonNavigationLarge from "@/components/divers/boutonNavigationLarge";
 import BoutonRetour from "@/components/divers/boutonRetour";
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { apiGet } from "@/constants/api/apiCalls";
 import ErrorScreen from '@/components/pages/errorPage';
-import { useNavigation } from '@react-navigation/native';
 import { useUser } from '@/contexts/UserContext';
 
-interface BoutonDefiProps {
+import Header from "../../components/header";
+
+type BoutonDefiProps = {
   defi: {
     id: number,
     title: string,
@@ -66,7 +68,7 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
     >
       <View style={styles.defiLeft}>
         <View style={styles.statusIcon}>{getStatusIcon(defi.status)}</View>
-        <View style={{ flex: 1 }}>
+        <View style={styles.defiRight}>
           <Text style={styles.defiTitle}>{defi.title}</Text>
           <Text style={styles.defiSubtitle}>{getStatusText(defi.status)} • {defi.points} pts</Text>
         </View>
@@ -76,7 +78,6 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
   );
 };
 
-// @ts-ignore
 export default function Defis() {
   const [challenges, setChallenges] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -138,20 +139,11 @@ export default function Defis() {
 
   if (loading) {
     return (
-      <View style={{
-        flex: 1,
-        backgroundColor: Colors.white,
-      }}>
+      <View style={styles.container}>
         <Header refreshFunction={undefined} disableRefresh={true} />
-        <View style={{
-          width: '100%',
-          flex: 1,
-          backgroundColor: Colors.white,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
-          <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+          <Text style={styles.loadingText}>
             Chargement...
           </Text>
         </View>
@@ -163,13 +155,13 @@ export default function Defis() {
     <View style={styles.container}>
       <Header refreshFunction={fetchChallenges} disableRefresh={disableRefresh} />
       <View style={styles.headerContainer}>
-        <BoutonRetour previousRoute={"homeNavigator"} title={"Défis"} />
+        <BoutonRetour title={"Défis"} />
       </View>
       <FlatList
         data={challenges}
         keyExtractor={(item) => item.id.toString()}
         extraData={challenges}
-        ListFooterComponent={<View style={{ height: 70 }} />}
+        ListFooterComponent={<View style={styles.footerSeparator} />}
         renderItem={({ item }) => (
           <View>
             <BoutonDefi
@@ -194,69 +186,81 @@ export default function Defis() {
 
 const styles = StyleSheet.create({
   container: {
-    height: "100%",
-    width: "100%",
+    alignItems: "center",
+    backgroundColor: Colors.white,
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.white,
-  },
-  loadingContainer: {
     height: "100%",
+    justifyContent: "center",
     width: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "flex-start",
-  },
-  headerContainer: {
-    width: '100%',
-    paddingHorizontal: 20,
-  },
-  list: {
-    width: "100%",
-  },
-  navigationContainer: {
-    width: '100%',
-    backgroundColor: Colors.white,
-    paddingHorizontal: 20,
   },
   defiCard: {
-    width: "94%",
-    alignSelf: "center",
-    borderRadius: 14,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    flexDirection: "row",
     alignItems: "center",
+    alignSelf: "center",
+    backgroundColor: Colors.white,
+    borderColor: "rgba(0,0,0,0.06)",
+    borderRadius: 14,
+    borderWidth: 1,
+    elevation: 3,
+    flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.06)",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     shadowColor: "#000",
-    shadowOpacity: 0.08,
     shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
     shadowRadius: 5,
-    elevation: 3,
-    backgroundColor: Colors.white,
+    width: "94%",
   },
   defiLeft: {
-    flexDirection: "row",
     alignItems: "center",
+    flexDirection: "row",
     flex: 1,
   },
-  statusIcon: {
-    marginRight: 14,
-  },
-  defiTitle: {
-    ...TextStyles.body,
-    color: Colors.primaryBorder,
-    fontWeight: "600",
-    fontSize: 16,
+  defiRight: {
+    flex: 1
   },
   defiSubtitle: {
     color: Colors.muted,
     fontSize: 13,
     marginTop: 2,
+  },
+  defiTitle: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  footerSeparator: {
+    height: 70
+  },
+  headerContainer: {
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  list: {
+    width: "100%",
+  },
+  loadingContainer: {
+    alignItems: "center",
+    backgroundColor: Colors.white,
+    display: "flex",
+    height: "100%",
+    justifyContent: "flex-start",
+    width: "100%",
+  },
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16
+  },
+  navigationContainer: {
+    backgroundColor: Colors.white,
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  statusIcon: {
+    marginRight: 14,
   },
 });

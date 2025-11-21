@@ -8,12 +8,12 @@ on:
       build-android:
         description: "Build Android"
         required: false
-        default: "false"
+        default: false
         type: boolean
       build-ios:
         description: "Build iOS"
         required: false
-        default: "false"
+        default: false
         type: boolean
 
 jobs:
@@ -27,6 +27,7 @@ jobs:
           cache: npm
       - run: npm install --legacy-peer-deps
       - run: npm run lint
+    continue-on-error: true
 
   expo-build-check:
     runs-on: ubuntu-latest

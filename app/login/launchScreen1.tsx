@@ -1,9 +1,9 @@
-import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { Sparkles } from 'lucide-react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
+
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 export default function LaunchScreen1() {
   const navigation = useNavigation();
@@ -24,7 +24,7 @@ export default function LaunchScreen1() {
         <View style={styles.logoContainer}>
           <View style={styles.logoWrapper}>
             <Image
-              source={require('../../assets/images/logo.png')}
+              source={require('@/assets/images/logo.png')}
               style={styles.logo}
               resizeMode="contain"
             />
@@ -65,89 +65,24 @@ export default function LaunchScreen1() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.white,
-  },
   backgroundDecoration: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: '80%',
-    height: '60%',
     backgroundColor: Colors.primary,
-    opacity: 0.1,
     borderBottomLeftRadius: 100,
-  },
-  logoContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 60,
-  },
-  logoWrapper: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logo: {
-    width: 180,
-    height: 180,
-    borderRadius: 100,
-    zIndex: 2,
-  },
-  logoGlow: {
+    height: '60%',
+    opacity: 0.1,
     position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: Colors.primary,
-    opacity: 0.2,
-    zIndex: 1,
+    right: 0,
+    top: 0,
+    width: '80%',
+  },
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: 32,
-    paddingBottom: 20,
     gap: 24,
-  },
-  progressContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  dotsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  dot: {
-    height: 8,
-    borderRadius: 4,
-  },
-  dotActive: {
-    width: 32,
-    backgroundColor: Colors.primary,
-  },
-  dotInactive: {
-    width: 8,
-    backgroundColor: Colors.lightMuted,
-  },
-  progressText: {
-    ...TextStyles.small,
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 8,
-  },
-  title: {
-    ...TextStyles.h1Bold,
-    color: Colors.primaryBorder,
-    flex: 1,
+    paddingBottom: 20,
+    paddingHorizontal: 32,
   },
   description: {
     ...TextStyles.body,
@@ -155,25 +90,58 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     textAlign: 'left',
   },
-  nextButton: {
+  dot: {
+    borderRadius: 4,
+    height: 8,
+  },
+  dotActive: {
+    backgroundColor: Colors.primary,
+    width: 32,
+  },
+  dotInactive: {
+    backgroundColor: Colors.lightMuted,
+    width: 8,
+  },
+  dotsContainer: {
+    alignItems: 'center',
     flexDirection: 'row',
+    gap: 12,
+  },
+  logo: {
+    borderRadius: 100,
+    height: 180,
+    width: 180,
+    zIndex: 2,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    paddingTop: 60,
+  },
+  logoGlow: {
+    backgroundColor: Colors.primary,
+    borderRadius: 100,
+    height: 200,
+    opacity: 0.2,
+    position: 'absolute',
+    width: 200,
+    zIndex: 1,
+  },
+  logoWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    backgroundColor: Colors.primary,
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-    marginTop: 8,
+    position: 'relative',
   },
-  nextButtonText: {
-    ...TextStyles.button,
-    color: Colors.white,
+  progressContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  progressText: {
+    ...TextStyles.small,
+    color: Colors.primary,
     fontWeight: '600',
   },
   skipButton: {
@@ -184,5 +152,16 @@ const styles = StyleSheet.create({
     ...TextStyles.body,
     color: Colors.muted,
     fontWeight: '500',
+  },
+  title: {
+    ...TextStyles.h1Bold,
+    color: Colors.primaryBorder,
+    flex: 1,
+  },
+  titleContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 8,
   },
 });

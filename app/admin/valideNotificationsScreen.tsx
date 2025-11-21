@@ -1,18 +1,19 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Text, View, StyleSheet, ActivityIndicator, ScrollView, SafeAreaView } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { Check, Bell, Calendar, Users, X } from 'lucide-react-native';
-import Header from '../../components/header';
+import Toast from 'react-native-toast-message';
+
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
 import { apiGet, apiPut } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
-import { useNavigation } from '@react-navigation/native';
-import Toast from 'react-native-toast-message';
 
-interface NotificationDetails {
+import Header from '../../components/header';
+
+type NotificationDetails = {
   id: number;
   title: string;
   description: string;
@@ -21,7 +22,7 @@ interface NotificationDetails {
   display: boolean;
 }
 
-interface RouteParams {
+type RouteParams = {
   id: number;
 }
 
@@ -125,7 +126,7 @@ export default function ValideNotifications() {
     <SafeAreaView style={styles.container}>
       <Header refreshFunction={null} disableRefresh={true} />
       <View style={styles.headerContainer}>
-        <BoutonRetour previousRoute="gestionNotificationsScreen" title={`Gérer notification`} />
+        <BoutonRetour title={`Gérer notification`} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -194,39 +195,67 @@ export default function ValideNotifications() {
 }
 
 const styles = StyleSheet.create({
+  buttonContainer: {
+    bottom: 20,
+    left: 20,
+    position: 'absolute',
+    right: 20,
+  },
   container: {
-    flex: 1,
     backgroundColor: Colors.white,
-  },
-  loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
   },
-  loadingText: {
+  content: {
+    flex: 1,
+  },
+  contentCard: {
+    backgroundColor: Colors.white,
+    borderColor: Colors.primary,
+    borderRadius: 14,
+    borderWidth: 2,
+    elevation: 3,
+    marginBottom: 88,
+    marginHorizontal: 20,
+    minHeight: 150,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+  },
+  contentText: {
     ...TextStyles.body,
-    color: Colors.muted,
-    marginTop: 16,
-    textAlign: 'center',
+    color: Colors.primaryBorder,
+    lineHeight: 22,
+  },
+  contentTitle: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 12,
   },
   headerContainer: {
-    paddingHorizontal: 20,
     paddingBottom: 8,
+    paddingHorizontal: 20,
+  },
+  heroIcon: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 32,
+    height: 64,
+    justifyContent: 'center',
+    marginBottom: 16,
+    width: 64,
   },
   heroSection: {
     alignItems: 'center',
     paddingBottom: 24,
     paddingHorizontal: 20,
   },
-  heroIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: Colors.lightMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
+  heroSubtitle: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    lineHeight: 20,
+    textAlign: 'center',
   },
   heroTitle: {
     ...TextStyles.h2Bold,
@@ -234,34 +263,19 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textAlign: 'center',
   },
-  heroSubtitle: {
-    ...TextStyles.body,
-    color: Colors.muted,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  content: {
-    flex: 1,
-  },
   infoCard: {
     backgroundColor: Colors.white,
+    borderColor: 'rgba(0,0,0,0.06)',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.06)',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 2, height: 3 },
-    shadowRadius: 5,
     elevation: 3,
-    padding: 16,
     marginBottom: 16,
     marginHorizontal: 20,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    flexWrap: 'wrap',
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
   },
   infoLabel: {
     ...TextStyles.body,
@@ -271,41 +285,28 @@ const styles = StyleSheet.create({
     marginRight: 8,
     minWidth: 80,
   },
+  infoRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 12,
+  },
   infoValue: {
     ...TextStyles.body,
     color: Colors.muted,
     flex: 1,
     lineHeight: 20,
   },
-  contentCard: {
+  loadingContainer: {
+    alignItems: 'center',
     backgroundColor: Colors.white,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 2, height: 3 },
-    shadowRadius: 5,
-    elevation: 3,
-    padding: 16,
-    minHeight: 150,
-    marginBottom: 88,
-    marginHorizontal: 20,
+    flex: 1,
+    justifyContent: 'center',
   },
-  contentTitle: {
-    ...TextStyles.h3Bold,
-    color: Colors.primaryBorder,
-    marginBottom: 12,
-  },
-  contentText: {
+  loadingText: {
     ...TextStyles.body,
-    color: Colors.primaryBorder,
-    lineHeight: 22,
-  },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
+    color: Colors.muted,
+    marginTop: 16,
+    textAlign: 'center',
   },
 });

@@ -1,9 +1,9 @@
-import React from 'react';
-import { Text, TouchableOpacity, ViewStyle } from 'react-native';
-import { Colors, TextStyles } from '@/constants/GraphSettings';
+import { Text, TouchableOpacity, ViewStyle, StyleSheet } from 'react-native';
 import { LucideIcon } from 'lucide-react-native';
 
-interface BoutonActiverProps {
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+
+type BoutonActiverProps = {
     title: string;
     IconComponent?: LucideIcon;
     color?: string;
@@ -20,19 +20,17 @@ export default function BoutonActiver({
     disabled = false,
     customStyles = {}
 }: BoutonActiverProps) {
+    const activeOpacity = 1;
+    const inactiveOpacity = 0.4;
+
     return (
         <TouchableOpacity
             onPress={disabled ? () => { } : onPress}
             style={[
+                styles.button,
                 {
-                    padding: 14,
                     backgroundColor: disabled ? Colors.muted : color,
-                    borderRadius: 8,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    flexDirection: 'row',
-                    gap: 10,
-                    opacity: disabled ? 0.5 : 1,
+                    opacity: disabled ? inactiveOpacity : activeOpacity,
                 },
                 customStyles,
             ]}
@@ -55,4 +53,15 @@ export default function BoutonActiver({
             )}
         </TouchableOpacity>
     );
-};
+}
+
+const styles = StyleSheet.create({
+    button: {
+        alignItems: 'center',
+        borderRadius: 8,
+        flexDirection: 'row',
+        gap: 10,
+        justifyContent: 'center',
+        padding: 14,
+    }
+})

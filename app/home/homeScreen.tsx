@@ -1,16 +1,18 @@
 import { Text, View, ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, Linking, Dimensions, Animated } from "react-native";
-import { Colors, FontSizes, TextStyles } from '@/constants/GraphSettings';
-import Header from "../../components/header";
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { apiGet } from '@/constants/api/apiCalls';
 import { useNavigation } from "@react-navigation/native";
-import { useUser } from "@/contexts/UserContext";
-import ErrorScreen from "@/components/pages/errorPage";
 import { Calendar, Trophy, MessageCircle, ChevronRight, MapPin, Thermometer, Wind, Droplets, Sun, Cloud, CloudRain, CloudSnow, Moon, CloudMoon, CloudLightning, CloudDrizzle, CloudFog, CloudMoonRain, Home } from 'lucide-react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
+
+import { apiGet } from '@/constants/api/apiCalls';
+import { useUser } from "@/contexts/UserContext";
+import ErrorScreen from "@/components/pages/errorPage";
+import { Colors, FontSizes, TextStyles } from '@/constants/GraphSettings';
 import { OfflineStatusBanner, PendingRequestsWidget } from '@/components/home/offlineWidgets';
 
-interface WeatherWidgetProps {
+import Header from "../../components/header";
+
+type WeatherWidgetProps = {
   weatherData: any;
 }
 
@@ -242,7 +244,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
   );
 };
 
-interface WidgetCardProps {
+type WidgetCardProps = {
   title: string;
   subtitles: {
     text: string;
@@ -391,8 +393,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchData]);
 
   if (error && !data) {
     return (
@@ -402,20 +403,11 @@ export default function HomeScreen() {
 
   if (loading && !data) {
     return (
-      <View style={{
-        flex: 1,
-        backgroundColor: Colors.white,
-      }}>
+      <View style={styles.container}>
         <Header refreshFunction={undefined} disableRefresh={true} />
-        <View style={{
-          width: '100%',
-          flex: 1,
-          backgroundColor: Colors.white,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
-          <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+          <Text style={styles.loadingText}>
             Chargement...
           </Text>
         </View>
@@ -509,44 +501,202 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.white,
-  },
-  scrollContainer: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 40,
-  },
-
   cachedDataBanner: {
     backgroundColor: Colors.lightMuted || '#f3f4f6',
-    marginHorizontal: 20,
-    marginBottom: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    borderColor: Colors.muted || '#9ca3af',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.muted || '#9ca3af',
+    marginBottom: 16,
+    marginHorizontal: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   cachedDataText: {
     ...TextStyles.small,
     color: Colors.muted,
     fontSize: FontSizes.small,
-    textAlign: 'center',
     fontWeight: '500',
+    textAlign: 'center',
+  },
+  chevronIcon: {
+    marginTop: 2,
+    opacity: 0.7,
   },
 
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  contentContainer: {
+    paddingBottom: 40,
+    paddingHorizontal: 16,
+    paddingTop: 20,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    flex: 1,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16,
+  },
+
+  scrollContainer: {
+    flex: 1,
+  },
+
+  weatherCondition: {
+    ...TextStyles.bodyLarge,
+    color: Colors.muted,
+    fontSize: FontSizes.large,
+  },
+  weatherContainer: {
+    flex: 1,
+    overflow: 'hidden',
+  },
+  weatherCurrentView: {
+    flex: 1,
+    width: '95%',
+  },
+  weatherDetailItem: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  weatherDetailText: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    fontSize: FontSizes.medium,
+    marginLeft: 6,
+  },
+  weatherDetails: {
+    borderTopColor: Colors.lightMuted,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 16,
+  },
+  weatherHeader: {
+    marginBottom: 16,
+  },
+  weatherHourlyGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  weatherHourlyHeader: {
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  weatherHourlyIcon: {
+    alignItems: 'center',
+    height: 20,
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  weatherHourlyItem: {
+    alignItems: 'center',
+    flex: 1,
+    maxWidth: 50,
+  },
+
+  weatherHourlyTemp: {
+    ...TextStyles.small,
+    color: Colors.primaryBorder,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  weatherHourlyTime: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    fontSize: 12,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  weatherHourlyTitle: {
+    ...TextStyles.h4Bold,
+    color: Colors.primaryBorder,
+    fontSize: FontSizes.large,
+    marginBottom: 8,
+  },
+  weatherHourlyView: {
+    flex: 1,
+    width: '90%',
+  },
+  weatherIconContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 28,
+    height: 56,
+    justifyContent: 'center',
+    marginRight: 16,
+    width: 56,
+  },
+  weatherIndicator: {
+    borderRadius: 3,
+    height: 6,
+    width: 6,
+  },
+  weatherIndicatorTouchable: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 8,
+  },
+  weatherIndicators: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+
+  weatherLocation: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  weatherLocationText: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    fontSize: FontSizes.large,
+    marginLeft: 4,
+  },
+  weatherMainInfo: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginBottom: 24,
+  },
+
+  weatherSlide: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  weatherSlider: {
+    flexDirection: 'row',
+    height: '100%',
+  },
+  weatherTemp: {
+    ...TextStyles.h1Bold,
+    color: Colors.primaryBorder,
+    fontSize: 32,
+    marginBottom: 6,
+  },
+  weatherTempInfo: {
+    flex: 1,
+  },
   weatherWidget: {
     backgroundColor: Colors.white,
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 24,
-    borderWidth: 1,
     borderColor: Colors.lightMuted,
+    borderRadius: 20,
+    borderWidth: 1,
+    elevation: 3,
+    marginBottom: 24,
+    minHeight: 180,
+    padding: 20,
     shadowColor: Colors.primaryBorder,
     shadowOffset: {
       width: 0,
@@ -554,154 +704,10 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.08,
     shadowRadius: 12,
-    elevation: 3,
-    minHeight: 180,
   },
-
-  weatherContainer: {
-    flex: 1,
-    overflow: 'hidden',
-  },
-
-  weatherSlider: {
-    flexDirection: 'row',
-    height: '100%',
-  },
-
-  weatherSlide: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-
-  weatherCurrentView: {
-    flex: 1,
-    width: '95%',
-  },
-  weatherHeader: {
-    marginBottom: 16,
-  },
-  weatherMainInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  weatherIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.lightMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  weatherTempInfo: {
-    flex: 1,
-  },
-  weatherTemp: {
-    ...TextStyles.h1Bold,
-    color: Colors.primaryBorder,
-    marginBottom: 6,
-    fontSize: 32,
-  },
-  weatherCondition: {
-    ...TextStyles.bodyLarge,
-    color: Colors.muted,
-    fontSize: FontSizes.large,
-  },
-  weatherLocation: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  weatherLocationText: {
-    ...TextStyles.small,
-    color: Colors.muted,
-    marginLeft: 4,
-    fontSize: FontSizes.large,
-  },
-  weatherDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: Colors.lightMuted,
-  },
-  weatherDetailItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-  },
-  weatherDetailText: {
-    ...TextStyles.small,
-    color: Colors.muted,
-    marginLeft: 6,
-    fontSize: FontSizes.medium,
-  },
-
-  weatherHourlyView: {
-    flex: 1,
-    width: '90%',
-  },
-  weatherHourlyHeader: {
-    marginBottom: 8,
-    alignItems: 'center',
-  },
-  weatherHourlyTitle: {
-    ...TextStyles.h4Bold,
-    color: Colors.primaryBorder,
-    marginBottom: 8,
-    fontSize: FontSizes.large,
-  },
-  weatherHourlyGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  weatherHourlyItem: {
-    flex: 1,
-    alignItems: 'center',
-    maxWidth: 50,
-  },
-  weatherHourlyTime: {
-    ...TextStyles.small,
-    color: Colors.muted,
-    fontSize: 12,
-    marginBottom: 2,
-    fontWeight: '500',
-  },
-  weatherHourlyIcon: {
-    marginBottom: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: 20,
-  },
-  weatherHourlyTemp: {
-    ...TextStyles.small,
-    color: Colors.primaryBorder,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-
-  weatherIndicators: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  weatherIndicatorTouchable: {
-    padding: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  weatherIndicator: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-
   widgetCard: {
     borderRadius: 16,
+    elevation: 3,
     marginBottom: 16,
     shadowColor: Colors.primaryBorder,
     shadowOffset: {
@@ -710,31 +716,31 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 3,
-  },
-  widgetHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    padding: 20,
-  },
-  widgetIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-    flexShrink: 0,
   },
   widgetContent: {
     flex: 1,
     marginRight: 8,
   },
-  widgetTitle: {
-    ...TextStyles.bodyBold,
-    fontSize: FontSizes.large,
-    marginBottom: 8,
-    lineHeight: 24,
+
+  widgetHeader: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    padding: 20,
+  },
+  widgetIconContainer: {
+    alignItems: 'center',
+    borderRadius: 24,
+    flexShrink: 0,
+    height: 48,
+    justifyContent: 'center',
+    marginRight: 16,
+    width: 48,
+  },
+  widgetLink: {
+    ...TextStyles.body,
+    fontSize: FontSizes.medium,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
   widgetSubtitle: {
     ...TextStyles.body,
@@ -742,52 +748,10 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 4,
   },
-  widgetLink: {
-    ...TextStyles.body,
-    fontSize: FontSizes.medium,
-    textDecorationLine: 'underline',
-    fontWeight: '600',
-  },
-  chevronIcon: {
-    opacity: 0.7,
-    marginTop: 2,
-  },
-
-  widgetContainer: {
-    padding: 16,
-    borderRadius: 16,
-    marginVertical: 8,
-  },
-  errorContainer: {
-    width: "100%",
-    flex: 1,
-    backgroundColor: Colors.success,
-    paddingBottom: 16,
-  },
-  image: {
-    width: "100%",
-    height: 390,
-    resizeMode: "cover",
-    position: "absolute",
-    bottom: 0,
-  },
-  title: {
-    ...TextStyles.h1,
-    paddingTop: 60,
-    paddingBottom: 15,
-    paddingLeft: 21,
-    lineHeight: 45,
-    fontSize: 35,
-    textAlign: "left",
-    maxWidth: "95%",
-    color: Colors.white,
-  },
-  errorMessage: {
-    ...TextStyles.h3,
-    paddingLeft: 21,
-    fontSize: 25,
-    textAlign: "left",
-    maxWidth: "90%",
-    color: Colors.white,
+  widgetTitle: {
+    ...TextStyles.bodyBold,
+    fontSize: FontSizes.large,
+    lineHeight: 24,
+    marginBottom: 8,
   },
 });

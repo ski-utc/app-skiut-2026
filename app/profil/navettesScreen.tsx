@@ -1,13 +1,15 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, ActivityIndicator, StyleSheet, Text, FlatList } from "react-native";
+
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import Header from "../../components/header";
-import BoutonRetour from "../../components/divers/boutonRetour";
 import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
-interface NavettesTabProps {
+import BoutonRetour from "../../components/divers/boutonRetour";
+import Header from "../../components/header";
+
+type NavettesTabProps = {
   navettesMap: { [key: string]: any[] };
 }
 
@@ -58,26 +60,18 @@ const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap }) => {
 };
 
 const navettesStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  innerContainer: {
-    flex: 1,
-  },
   cardContainer: {
     backgroundColor: Colors.white,
+    borderColor: 'rgba(0,0,0,0.06)',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.06)',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 2, height: 3 },
-    shadowRadius: 5,
     elevation: 3,
     marginBottom: 16,
     padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
   },
   cardTitle: {
     ...TextStyles.h3Bold,
@@ -85,22 +79,44 @@ const navettesStyles = StyleSheet.create({
     marginBottom: 12,
     textAlign: 'center',
   },
-  navetteContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.lightMuted,
+  container: {
+    flex: 1,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
   },
-  navetteIndicator: {
-    width: 4,
-    height: '100%',
-    borderRadius: 2,
-    marginRight: 12,
-    minHeight: 40,
+  emptyContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  emptyText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    textAlign: 'center',
+  },
+  innerContainer: {
+    flex: 1,
+  },
+  navetteContainer: {
+    alignItems: 'center',
+    borderBottomColor: Colors.lightMuted,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    paddingVertical: 12,
+  },
+  navetteCouleurText: {
+    ...TextStyles.body,
+    color: Colors.primary,
+    fontWeight: '500',
   },
   navetteDetails: {
     flex: 1,
+  },
+  navetteIndicator: {
+    borderRadius: 2,
+    height: '100%',
+    marginRight: 12,
+    minHeight: 40,
+    width: 4,
   },
   navetteText: {
     ...TextStyles.h4,
@@ -112,20 +128,6 @@ const navettesStyles = StyleSheet.create({
     ...TextStyles.body,
     color: Colors.muted,
     marginBottom: 2,
-  },
-  navetteCouleurText: {
-    ...TextStyles.body,
-    color: Colors.primary,
-    fontWeight: '500',
-  },
-  emptyContainer: {
-    paddingVertical: 20,
-    alignItems: 'center',
-  },
-  emptyText: {
-    ...TextStyles.body,
-    color: Colors.muted,
-    textAlign: 'center',
   },
 });
 
@@ -186,20 +188,11 @@ export default function NavettesScreen() {
 
   if (loading) {
     return (
-      <View style={{
-        flex: 1,
-        backgroundColor: Colors.white,
-      }}>
+      <View style={styles.container}>
         <Header refreshFunction={undefined} disableRefresh={true} />
-        <View style={{
-          width: '100%',
-          flex: 1,
-          backgroundColor: Colors.white,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
+        <View style={styles.loadingContent}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
-          <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+          <Text style={styles.loadingText}>
             Chargement...
           </Text>
         </View>
@@ -211,7 +204,7 @@ export default function NavettesScreen() {
     <View style={styles.container}>
       <Header refreshFunction={null} disableRefresh={true} />
       <View style={styles.headerContainer}>
-        <BoutonRetour previousRoute="homeNavigator" title="Vos Navettes" />
+        <BoutonRetour title="Vos Navettes" />
       </View>
       <NavettesTab
         navettesMap={navettesMap}
@@ -222,19 +215,20 @@ export default function NavettesScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: Colors.white,
+    flex: 1,
   },
   headerContainer: {
-    width: '100%',
-    paddingHorizontal: 20,
     paddingBottom: 8,
+    paddingHorizontal: 20,
+    width: '100%',
   },
   loadingContent: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
+    width: '100%',
   },
   loadingText: {
     ...TextStyles.body,

@@ -1,8 +1,9 @@
 import { Text, View, ActivityIndicator, Dimensions, StyleSheet, FlatList, TouchableOpacity } from "react-native";
-import Header from "@/components/header";
 import React, { useState, useEffect, useCallback } from "react";
-import { Colors, TextStyles, Fonts } from '@/constants/GraphSettings';
 import { Crown, Trophy, Medal, ChevronDown } from "lucide-react-native";
+
+import Header from "@/components/header";
+import { Colors, TextStyles, Fonts } from '@/constants/GraphSettings';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from "@/components/pages/errorPage";
@@ -10,72 +11,94 @@ import ErrorScreen from "@/components/pages/errorPage";
 const screenWidth = Dimensions.get('window').width;
 const podiumWidth = (screenWidth - 80) / 3;
 
-type RankingType = 'speed' | 'distance' | 'duration';
+const goldColor = "#EFBF04";
+const silverColor = "#C0C0C0";
+const bronzeColor = "#CD7F32";
 
-interface PerformanceData {
+type RankingType = 'speed' | 'distance' | 'duration';
+type PerformanceData = {
     user_id: number;
     full_name: string;
     max_speed: number;
     total_distance?: number;
     duration?: number;
 }
-
-interface PodiumPlaceProps {
+type PodiumPlaceProps = {
     position: number;
     fullName: string;
     speed: string;
     height: number;
 }
+type RankingItemProps = {
+    position: number;
+    fullName: string;
+    speed: string;
+}
 
 const PodiumPlace: React.FC<PodiumPlaceProps> = ({ position, fullName, speed, height }) => {
-    const getIcon = () => {
-        switch (position) {
-            case 1: return <Crown size={32} color="#EFBF04" />;
-            case 2: return <Trophy size={28} color="#C0C0C0" />;
-            case 3: return <Medal size={28} color="#CD7F32" />;
-            default: return null;
-        }
-    };
-
-    const getBackgroundColor = () => {
-        switch (position) {
-            case 1: return "#EFBF04";
-            case 2: return "#C0C0C0";
-            case 3: return "#CD7F32";
-            default: return "#EBEBEB";
-        }
-    };
-
     return (
         <View style={podiumStyles.placeContainer}>
             <View style={podiumStyles.iconContainer}>
-                {getIcon()}
-                <Text style={[podiumStyles.positionText, { color: Colors.primaryBorder }]}>
-                    {position}
-                </Text>
+                {position === 1 && <Crown size={32} color={goldColor} />}
+                {position === 2 && <Trophy size={28} color={silverColor} />}
+                {position === 3 && <Medal size={28} color={bronzeColor} />}
+                <Text style={podiumStyles.positionText}>{position}</Text>
             </View>
-            <Text style={[podiumStyles.roomText, { color: Colors.primaryBorder }]} numberOfLines={1}>
-                {fullName}
-            </Text>
-            <Text style={[podiumStyles.pointsText, { color: Colors.primaryBorder }]}>
-                {speed}
-            </Text>
+            <Text style={podiumStyles.roomText} numberOfLines={1}>{fullName}</Text>
+            <Text style={podiumStyles.pointsText}>{speed}</Text>
             <View style={[
                 podiumStyles.podiumBar,
-                {
-                    height: height,
-                    backgroundColor: getBackgroundColor(),
-                }
+                { height, backgroundColor: position === 1 ? goldColor : position === 2 ? silverColor : bronzeColor }
             ]} />
         </View>
     );
 };
 
-interface RankingItemProps {
-    position: number;
-    fullName: string;
-    speed: string;
-}
+const podiumStyles = StyleSheet.create({
+    iconContainer: {
+        alignItems: 'center',
+        height: 50,
+        justifyContent: 'center',
+        marginBottom: 4,
+    },
+    placeContainer: {
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        marginHorizontal: 4,
+        paddingHorizontal: 8,
+        width: podiumWidth,
+    },
+    podiumBar: {
+        borderTopLeftRadius: 12,
+        borderTopRightRadius: 12,
+        elevation: 5,
+        shadowColor: Colors.primaryBorder,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        width: '100%',
+    },
+    pointsText: {
+        ...TextStyles.small,
+        color: Colors.primaryBorder,
+        fontFamily: Fonts.text.regular,
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    positionText: {
+        ...TextStyles.small,
+        color: Colors.primaryBorder,
+        fontFamily: Fonts.text.bold,
+        marginTop: 4,
+    },
+    roomText: {
+        ...TextStyles.small,
+        color: Colors.primaryBorder,
+        fontFamily: Fonts.text.bold,
+        marginBottom: 4,
+        textAlign: 'center',
+    },
+});
 
 const RankingItem: React.FC<RankingItemProps> = ({ position, fullName, speed }) => {
     return (
@@ -91,95 +114,49 @@ const RankingItem: React.FC<RankingItemProps> = ({ position, fullName, speed }) 
     );
 };
 
-const podiumStyles = StyleSheet.create({
-    placeContainer: {
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        width: podiumWidth,
-        paddingHorizontal: 8,
-        marginHorizontal: 4,
-    },
-    iconContainer: {
-        alignItems: 'center',
-        marginBottom: 4,
-        height: 50,
-        justifyContent: 'center',
-    },
-    positionText: {
-        ...TextStyles.small,
-        fontFamily: Fonts.text.bold,
-        marginTop: 4,
-    },
-    roomText: {
-        ...TextStyles.small,
-        fontFamily: Fonts.text.bold,
-        textAlign: 'center',
-        marginBottom: 4,
-    },
-    pointsText: {
-        ...TextStyles.small,
-        fontFamily: Fonts.text.regular,
-        textAlign: 'center',
-        marginBottom: 8,
-    },
-    podiumBar: {
-        width: '100%',
-        borderTopLeftRadius: 12,
-        borderTopRightRadius: 12,
-        shadowColor: Colors.primaryBorder,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 5,
-    },
-});
-
 const rankingStyles = StyleSheet.create({
     container: {
-        flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: Colors.white,
-        marginHorizontal: 16,
-        marginVertical: 4,
-        paddingVertical: 16,
-        paddingHorizontal: 16,
+        borderColor: "rgba(0,0,0,0.06)",
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: "rgba(0,0,0,0.06)",
-        shadowColor: "#000",
-        shadowOpacity: 0.08,
-        shadowOffset: { width: 2, height: 3 },
-        shadowRadius: 5,
         elevation: 3,
-    },
-    positionContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: Colors.primary,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 16,
-    },
-    positionNumber: {
-        ...TextStyles.bodyLarge,
-        fontWeight: '800',
-        color: Colors.white,
+        flexDirection: 'row',
+        marginHorizontal: 16,
+        marginVertical: 4,
+        paddingHorizontal: 16,
+        paddingVertical: 16,
+        shadowColor: "#000",
+        shadowOffset: { width: 2, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 5,
     },
     contentContainer: {
         flex: 1,
+    },
+    points: {
+        ...TextStyles.small,
+        color: Colors.muted,
+    },
+    positionContainer: {
+        alignItems: 'center',
+        backgroundColor: Colors.primary,
+        borderRadius: 20,
+        height: 40,
+        justifyContent: 'center',
+        marginRight: 16,
+        width: 40,
+    },
+    positionNumber: {
+        ...TextStyles.bodyLarge,
+        color: Colors.white,
+        fontWeight: '800',
     },
     roomName: {
         ...TextStyles.bodyBold,
         color: Colors.primaryBorder,
         marginBottom: 2,
-    },
-    points: {
-        ...TextStyles.small,
-        color: Colors.muted,
     },
 });
 
@@ -201,7 +178,6 @@ export default function PerformancesScreen() {
                 const allPerformances = Object.values(response.data as any[]);
                 const podiumData = allPerformances.slice(0, 3);
                 const restData = allPerformances.slice(3);
-
                 setPodium(podiumData);
                 setRest(restData);
             } else {
@@ -243,39 +219,26 @@ export default function PerformancesScreen() {
     };
 
     if (error) {
-        return (
-            <ErrorScreen error={error} />
-        );
+        return <ErrorScreen error={error} />;
     }
 
     if (loading) {
         return (
-            <View style={{
-                flex: 1,
-                backgroundColor: Colors.white,
-            }}>
+            <View style={styles.pageContainer}>
                 <Header refreshFunction={undefined} disableRefresh={true} />
-                <View style={{
-                    width: '100%',
-                    flex: 1,
-                    backgroundColor: Colors.white,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}>
+                <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={Colors.primaryBorder} />
-                    <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
-                        Chargement...
-                    </Text>
+                    <Text style={styles.loadingText}>Chargement...</Text>
                 </View>
             </View>
         );
     }
 
     return (
-        <View style={{ flex: 1, backgroundColor: Colors.white }}>
+        <View style={styles.pageContainer}>
             <Header refreshFunction={fetchPerformances} disableRefresh={disableRefresh} />
-            <View style={{ width: '100%', paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000 }}>
-                <BoutonRetour previousRoute="VitesseDeGlisseScreen" title={"Classement"} />
+            <View style={styles.headerRow}>
+                <BoutonRetour title={"Classement"} />
                 <View style={styles.dropdownContainer}>
                     <TouchableOpacity
                         style={styles.rankingButton}
@@ -285,12 +248,9 @@ export default function PerformancesScreen() {
                         <ChevronDown
                             size={16}
                             color={Colors.primary}
-                            style={{
-                                transform: [{ rotate: showRankingMenu ? '180deg' : '0deg' }]
-                            }}
+                            style={showRankingMenu ? styles.chevronIconRotated : styles.chevronIcon}
                         />
                     </TouchableOpacity>
-
                     {showRankingMenu && (
                         <View style={styles.dropdownMenu}>
                             <TouchableOpacity
@@ -304,7 +264,6 @@ export default function PerformancesScreen() {
                                     Vitesse max
                                 </Text>
                             </TouchableOpacity>
-
                             <TouchableOpacity
                                 style={[styles.dropdownOption, rankingType === 'distance' && styles.dropdownOptionActive]}
                                 onPress={() => {
@@ -316,7 +275,6 @@ export default function PerformancesScreen() {
                                     Distance
                                 </Text>
                             </TouchableOpacity>
-
                             <TouchableOpacity
                                 style={[
                                     styles.dropdownOption,
@@ -336,7 +294,6 @@ export default function PerformancesScreen() {
                     )}
                 </View>
             </View>
-
             <View style={styles.podiumSection}>
                 <Text style={styles.sectionTitle}>Podium</Text>
                 <View style={styles.podiumContainer}>
@@ -366,7 +323,6 @@ export default function PerformancesScreen() {
                     )}
                 </View>
             </View>
-
             <FlatList
                 data={rest}
                 keyExtractor={(item) => item.user_id.toString()}
@@ -374,9 +330,7 @@ export default function PerformancesScreen() {
                 ListHeaderComponent={() => (
                     <View style={styles.rankingSection}>
                         {rest.length > 0 && (
-                            <Text style={styles.sectionTitle}>
-                                Classement
-                            </Text>
+                            <Text style={styles.sectionTitle}>Classement</Text>
                         )}
                     </View>
                 )}
@@ -401,62 +355,53 @@ export default function PerformancesScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.lightMuted,
+    chevronIcon: {
+        transform: [{ rotate: '0deg' }],
     },
-    headerContainer: {
-        width: '100%',
+    chevronIconRotated: {
+        transform: [{ rotate: '180deg' }],
+    },
+    dropdownContainer: {
+        marginBottom: 8,
+        position: 'relative',
+    },
+    dropdownMenu: {
         backgroundColor: Colors.white,
-        paddingHorizontal: 20,
-        shadowColor: Colors.primaryBorder,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    sectionTitle: {
-        ...TextStyles.h3,
-        color: Colors.primaryBorder,
-        textAlign: 'center',
-        marginBottom: 26,
-    },
-    podiumSection: {
-        backgroundColor: Colors.white,
-        paddingTop: 24,
-        paddingBottom: 16,
-        marginHorizontal: 16,
-        borderRadius: 16,
-        shadowColor: Colors.primaryBorder,
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
+        borderColor: Colors.lightMuted,
+        borderRadius: 8,
+        borderWidth: 1,
         elevation: 5,
+        marginTop: 4,
+        minWidth: 140,
+        overflow: 'hidden',
+        position: 'absolute',
+        right: 0,
+        shadowColor: Colors.primaryBorder,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+        top: '100%',
     },
-    podiumContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'flex-end',
-        paddingHorizontal: 20,
-        height: 200,
+    dropdownOption: {
+        borderBottomColor: Colors.lightMuted,
+        borderBottomWidth: 1,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
     },
-    rankingSection: {
-        flex: 1,
-        marginTop: 12,
-        paddingTop: 16,
+    dropdownOptionActive: {
+        backgroundColor: Colors.primary,
     },
-    rankingScrollView: {
-        flex: 1,
-        paddingTop: 8,
+    dropdownOptionLast: {
+        borderBottomWidth: 0,
     },
-    flatListContainer: {
-        paddingBottom: 20,
+    dropdownOptionText: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+        textAlign: 'left',
+    },
+    dropdownOptionTextActive: {
+        color: Colors.white,
+        fontWeight: '600',
     },
     emptyContainer: {
         alignItems: 'center',
@@ -467,65 +412,76 @@ const styles = StyleSheet.create({
         color: Colors.muted,
         textAlign: 'center',
     },
-    dropdownContainer: {
-        position: 'relative',
-        marginBottom: 8,
+    flatListContainer: {
+        paddingBottom: 20,
     },
-    rankingButton: {
+    headerRow: {
+        alignItems: 'center',
         flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        width: '100%',
+        zIndex: 1000,
+    },
+    loadingContainer: {
         alignItems: 'center',
         backgroundColor: Colors.white,
-        paddingHorizontal: 12,
-        paddingVertical: 8,
+        flex: 1,
+        justifyContent: 'center',
+    },
+    loadingText: {
+        ...TextStyles.body,
+        color: Colors.muted,
+        marginTop: 16,
+    },
+    pageContainer: {
+        backgroundColor: Colors.white,
+        flex: 1,
+    },
+    podiumContainer: {
+        alignItems: 'flex-end',
+        flexDirection: 'row',
+        height: 200,
+        justifyContent: 'center',
+        paddingHorizontal: 20,
+    },
+    podiumSection: {
+        backgroundColor: Colors.white,
+        borderRadius: 16,
+        elevation: 5,
+        marginHorizontal: 16,
+        paddingBottom: 16,
+        paddingTop: 24,
+        shadowColor: Colors.primaryBorder,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+    },
+    rankingButton: {
+        alignItems: 'center',
+        backgroundColor: Colors.white,
+        borderColor: Colors.primary,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: Colors.primary,
+        flexDirection: 'row',
         gap: 4,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
     },
     rankingButtonText: {
         ...TextStyles.small,
         color: Colors.primary,
         fontWeight: '600',
     },
-    dropdownMenu: {
-        position: 'absolute',
-        top: '100%',
-        right: 0,
-        marginTop: 4,
-        backgroundColor: Colors.white,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: Colors.lightMuted,
-        shadowColor: Colors.primaryBorder,
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-        elevation: 5,
-        minWidth: 140,
-        overflow: 'hidden',
+    rankingSection: {
+        flex: 1,
+        marginTop: 12,
+        paddingTop: 16,
     },
-    dropdownOption: {
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.lightMuted,
-    },
-    dropdownOptionLast: {
-        borderBottomWidth: 0,
-    },
-    dropdownOptionActive: {
-        backgroundColor: Colors.primary,
-    },
-    dropdownOptionText: {
-        ...TextStyles.body,
+    sectionTitle: {
+        ...TextStyles.h3,
         color: Colors.primaryBorder,
-        textAlign: 'left',
-    },
-    dropdownOptionTextActive: {
-        color: Colors.white,
-        fontWeight: '600',
+        marginBottom: 26,
+        textAlign: 'center',
     },
 });

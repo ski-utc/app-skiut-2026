@@ -1,16 +1,18 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, FlatList, ActivityIndicator, Text } from 'react-native';
+import { useEffect, useState, useCallback } from 'react';
+import { View, FlatList, ActivityIndicator, Text, StyleSheet } from 'react-native';
+import { MessageCirclePlus } from 'lucide-react-native';
+
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import Header from '../../components/header';
 import { useUser } from '@/contexts/UserContext';
-import Anecdote from '../../components/anecdotes/anecdote';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import BoutonNavigationLarge from '@/components/divers/boutonNavigationLarge';
-import { MessageCirclePlus } from 'lucide-react-native';
 import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 
-interface AnecdoteType {
+import Anecdote from '../../components/anecdotes/anecdote';
+import Header from '../../components/header';
+
+type AnecdoteType = {
   id: string;
   text: string;
   room: string;
@@ -85,20 +87,11 @@ export default function AnecdotesScreen() {
 
   if (loading) {
     return (
-      <View style={{
-        flex: 1,
-        backgroundColor: Colors.white,
-      }}>
+      <View style={styles.container}>
         <Header refreshFunction={undefined} disableRefresh={true} />
-        <View style={{
-          width: '100%',
-          flex: 1,
-          backgroundColor: Colors.white,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
-          <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+          <Text style={styles.loadingText}>
             Chargement...
           </Text>
         </View>
@@ -108,25 +101,11 @@ export default function AnecdotesScreen() {
 
   return (
     <View
-      style={{
-        height: '100%',
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
+      style={styles.container}
     >
       <Header refreshFunction={refreshAnecdotes} disableRefresh={disableRefresh} />
-      <View
-        style={{
-          width: '100%',
-          flex: 1,
-          backgroundColor: Colors.white,
-          paddingHorizontal: 20,
-        }}
-      >
-        <BoutonRetour previousRoute={'homeNavigator'} title={'Anecdotes'} />
+      <View style={styles.content} >
+        <BoutonRetour title={'Anecdotes'} />
         <FlatList
           data={anecdotes}
           renderItem={({ item }) => (
@@ -143,10 +122,10 @@ export default function AnecdotesScreen() {
             />
           )}
           keyExtractor={item => item.id}
-          ItemSeparatorComponent={() => <View style={{ height: 36 }} />}
+          ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
           onEndReached={handleLoadMore}
           ListFooterComponent={() =>
-            loadingMore ? <ActivityIndicator size="large" color={Colors.primaryBorder} /> : <View style={{ height: 90 }} />
+            loadingMore ? <ActivityIndicator size="large" color={Colors.primaryBorder} /> : <View style={styles.footerSeparator} />
           }
         />
         <BoutonNavigationLarge
@@ -158,3 +137,34 @@ export default function AnecdotesScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  content: {
+    backgroundColor: Colors.white,
+    flex: 1,
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  footerSeparator: {
+    height: 90
+  },
+  itemSeparator: {
+    height: 36
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    flex: 1,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16
+  },
+});

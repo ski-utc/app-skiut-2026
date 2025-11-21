@@ -1,22 +1,24 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert, Modal, StatusBar } from 'react-native';
+import { useEffect, useState, useCallback } from 'react';
+import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert, Modal, StatusBar, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Video, ResizeMode } from 'expo-av';
 import * as ImageManipulator from "expo-image-manipulator";
 import { useRoute } from '@react-navigation/native';
-import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { LandPlot, Trash, Check, Hourglass, X, Upload, CloudOff, Maximize, Play, Pause, Image as ImageIcon, Video as VideoIcon } from 'lucide-react-native';
-import Header from '../../components/header';
+import Toast from 'react-native-toast-message';
+import { ImageViewer } from "react-native-image-zoom-viewer";
+
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { apiPost, apiGet, apiDelete } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
-import Toast from 'react-native-toast-message';
-import ImageViewer from "react-native-image-zoom-viewer";
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+
+import Header from '../../components/header';
 
 export default function DefisInfos() {
   const route = useRoute();
-  const { id, title, points, status } = route.params;
+  const { id, title, points, status } = route.params as { id: number, title: string, points: number, status: string };
 
   const [proofMedia, setProofMedia] = useState(null);
   const [mediaType, setMediaType] = useState('image'); // 'image' ou 'video'
@@ -315,109 +317,49 @@ export default function DefisInfos() {
   };
 
   if (error) {
-    return (
-      <ErrorScreen error={error} />
-    );
+    return <ErrorScreen error={error} />;
   }
 
   if (loading) {
     return (
-      <View style={{
-        flex: 1,
-        backgroundColor: Colors.white,
-      }}>
-        <Header refreshFunction={null} disableRefresh={undefined} />
-        <View style={{
-          width: '100%',
-          flex: 1,
-          backgroundColor: Colors.white,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
+      <View style={styles.container}>
+        <Header refreshFunction={undefined} disableRefresh={true} />
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
-          <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
-            Chargement...
-          </Text>
+          <Text style={styles.loadingText}>Chargement...</Text>
         </View>
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.white }}>
+    <View style={styles.pageContainer}>
       <Header refreshFunction={null} disableRefresh={undefined} />
-      <View style={{ width: '100%', paddingHorizontal: 20, paddingRight: 30 }}>
-        <BoutonRetour previousRoute="defisScreen" title={title} />
+      <View style={styles.headerTitleContainer}>
+        <BoutonRetour title={title} />
       </View>
-      <View style={{ width: '100%', paddingHorizontal: 20, marginBottom: 32 }}>
-        <Text style={{ ...TextStyles.h2Bold, color: Colors.primaryBorder }}>
-          Points : {points}
-        </Text>
+      <View style={styles.pointsContainer}>
+        <Text style={styles.pointsText}>Points : {points}</Text>
       </View>
-
-      <View style={{ width: '100%', paddingHorizontal: 20 }}>
+      <View style={styles.mediaContainer}>
         <TouchableOpacity
           onPress={status === 'empty' ? handleMediaPick : toggleModal}
-          style={{
-            width: '100%',
-            backgroundColor: Colors.white,
-            borderRadius: 14,
-            borderWidth: 1,
-            borderColor: 'rgba(0,0,0,0.06)',
-            shadowColor: '#000',
-            shadowOpacity: 0.08,
-            shadowOffset: { width: 2, height: 3 },
-            shadowRadius: 5,
-            elevation: 3,
-            padding: 16,
-          }}
+          style={styles.mediaTouchable}
           disabled={(challengeSent && status === 'empty') || isCompressing || isUploading}
           activeOpacity={0.8}
         >
           {networkError ? (
-            <View style={{
-              width: '100%',
-              aspectRatio: 1,
-              borderWidth: 1,
-              borderColor: Colors.lightMuted,
-              borderRadius: 12,
-              justifyContent: 'center',
-              alignItems: 'center',
-              padding: 40,
-              backgroundColor: Colors.white,
-            }}>
+            <View style={styles.networkErrorContainer}>
               <CloudOff size={80} color={Colors.muted} />
-              <Text style={{
-                ...TextStyles.body,
-                color: Colors.muted,
-                marginTop: 16,
-                textAlign: 'center',
-                fontWeight: '600',
-              }}>
-                Problème de connexion
-              </Text>
-              <Text style={{
-                ...TextStyles.small,
-                color: Colors.muted,
-                marginTop: 8,
-                textAlign: 'center',
-              }}>
-                Impossible de charger l'image
-              </Text>
+              <Text style={styles.networkErrorTitle}>Problème de connexion</Text>
+              <Text style={styles.networkErrorSubtitle}>Impossible de charger l'image</Text>
             </View>
           ) : proofMedia ? (
-            <View style={{
-              width: '100%',
-              aspectRatio: 1,
-              borderRadius: 12,
-              overflow: 'hidden',
-              position: 'relative',
-            }}>
+            <View style={styles.mediaPreviewContainer}>
               {mediaType === 'video' ? (
                 <Video
-                  ref={setVideoRef}
                   source={{ uri: proofMedia }}
-                  style={{ width: '100%', height: '100%' }}
+                  style={styles.mediaPreview}
                   resizeMode={ResizeMode.COVER}
                   shouldPlay={isPlaying}
                   isLooping={false}
@@ -426,268 +368,95 @@ export default function DefisInfos() {
               ) : (
                 <Image
                   source={{ uri: proofMedia }}
-                  style={{ width: '100%', height: '100%' }}
+                  style={styles.mediaPreview}
                   resizeMode="cover"
                   onError={() => setNetworkError(true)}
                 />
               )}
-
-              <View style={{
-                position: 'absolute',
-                top: 12,
-                left: 12,
-                backgroundColor: 'rgba(0,0,0,0.7)',
-                paddingVertical: 4,
-                paddingHorizontal: 8,
-                borderRadius: 6,
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}>
+              <View style={styles.mediaTypeBadge}>
                 {mediaType === 'video' ? (
                   <VideoIcon size={14} color={Colors.white} />
                 ) : (
                   <ImageIcon size={14} color={Colors.white} />
                 )}
-                <Text style={{
-                  ...TextStyles.small,
-                  color: Colors.white,
-                  marginLeft: 4,
-                  fontWeight: '600',
-                }}>
-                  {mediaType === 'video' ? 'Vidéo' : 'Image'}
-                </Text>
+                <Text style={styles.mediaTypeText}>{mediaType === 'video' ? 'Vidéo' : 'Image'}</Text>
               </View>
-
               {mediaType === 'video' && !isPlaying && (
-                <TouchableOpacity
-                  style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: [{ translateX: -30 }, { translateY: -30 }],
-                    width: 60,
-                    height: 60,
-                    borderRadius: 30,
-                    backgroundColor: 'rgba(0,0,0,0.7)',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                  onPress={() => setIsPlaying(true)}
-                >
+                <TouchableOpacity style={styles.playButton} onPress={() => setIsPlaying(true)}>
                   <Play size={28} color={Colors.white} />
                 </TouchableOpacity>
               )}
-
               {mediaType === 'video' && isPlaying && (
-                <TouchableOpacity
-                  style={{
-                    position: 'absolute',
-                    top: 12,
-                    right: 12,
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    backgroundColor: 'rgba(0,0,0,0.7)',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                  onPress={() => setIsPlaying(false)}
-                >
+                <TouchableOpacity style={styles.pauseButton} onPress={() => setIsPlaying(false)}>
                   <Pause size={20} color={Colors.white} />
                 </TouchableOpacity>
               )}
-
               {status !== 'empty' && !isCompressing && !isUploading && (
-                <View style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  backgroundColor: 'rgba(0,0,0,0.5)',
-                  paddingVertical: 8,
-                  paddingHorizontal: 12,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
+                <View style={styles.fullscreenHintContainer}>
                   <Maximize size={16} color={Colors.white} />
-                  <Text style={{
-                    ...TextStyles.small,
-                    color: Colors.white,
-                    textAlign: 'center',
-                    fontWeight: '500',
-                    marginLeft: 6,
-                  }}>Appuyez pour agrandir</Text>
+                  <Text style={styles.fullscreenHintText}>Appuyez pour agrandir</Text>
                 </View>
               )}
-
               {(isCompressing || isUploading) && (
-                <View style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  backgroundColor: 'rgba(0,0,0,0.6)',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}>
+                <View style={styles.uploadOverlay}>
                   <ActivityIndicator size="large" color={Colors.white} />
-                  <Text style={{
-                    ...TextStyles.body,
-                    color: Colors.white,
-                    marginTop: 12,
-                    fontWeight: '600',
-                  }}>
+                  <Text style={styles.uploadOverlayText}>
                     {isCompressing ? 'Traitement...' : 'Upload en cours...'}
                   </Text>
                 </View>
               )}
             </View>
           ) : (isCompressing || isUploading) ? (
-            <View style={{
-              width: '100%',
-              aspectRatio: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
+            <View style={styles.processingContainer}>
               <ActivityIndicator size="large" color={Colors.primaryBorder} />
-              <Text style={{
-                ...TextStyles.body,
-                color: Colors.muted,
-                marginTop: 12,
-              }}>
+              <Text style={styles.processingText}>
                 {isCompressing ? 'Compression...' : 'Upload en cours...'}
               </Text>
             </View>
           ) : (
-            <View style={{
-              width: '100%',
-              aspectRatio: 1,
-              borderWidth: 2,
-              borderColor: Colors.primaryBorder,
-              borderRadius: 12,
-              borderStyle: 'dashed',
-              justifyContent: 'center',
-              alignItems: 'center',
-              padding: 40,
-            }}>
+            <View style={styles.emptyMediaContainer}>
               <Upload size={80} color={Colors.primary} />
-              <Text style={{
-                ...TextStyles.h3Bold,
-                color: Colors.primaryBorder,
-                marginTop: 16,
-                textAlign: 'center',
-              }}>
-                Ajouter un média
-              </Text>
-              <Text style={{
-                ...TextStyles.body,
-                color: Colors.muted,
-                marginTop: 8,
-                textAlign: 'center',
-              }}>
-                Photo ou vidéo (max 60s)
-              </Text>
+              <Text style={styles.emptyMediaTitle}>Ajouter un média</Text>
+              <Text style={styles.emptyMediaSubtitle}>Photo ou vidéo (max 60s)</Text>
             </View>
           )}
         </TouchableOpacity>
       </View>
-
-      <View style={{ position: 'absolute', width: '100%', bottom: 0 }}>
+      <View style={styles.bottomActions}>
         {dynamicStatus !== 'empty' ? (
           dynamicStatus !== 'done' ? (
-            <View style={{ width: '100%', alignItems: 'center' }}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: Colors.muted,
-                  borderRadius: 8,
-                  padding: 10,
-                  marginBottom: 8,
-                  width: '90%',
-                  justifyContent: 'center',
-                }}
-              >
-                <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
+            <>
+              <View style={styles.statusBadgeRejected}>
+                <Text style={styles.statusBadgeText}>
                   {dynamicStatus !== 'pending' ? 'Défi refusé' : 'En attente de validation'}
                 </Text>
                 {dynamicStatus !== 'pending' ? <X color="white" size={20} /> : <Hourglass color="white" size={20} />}
               </View>
-              <TouchableOpacity
-                style={{
-                  width: '90%',
-                  backgroundColor: Colors.error,
-                  borderRadius: 10,
-                  padding: 12,
-                  marginBottom: 10,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                onPress={handleRemoveDefi}
-              >
-                <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
-                  Supprimer
-                </Text>
+              <TouchableOpacity style={styles.deleteButton} onPress={handleRemoveDefi}>
+                <Text style={styles.deleteButtonText}>Supprimer</Text>
                 <Trash color="white" size={20} />
               </TouchableOpacity>
-            </View>
+            </>
           ) : (
-            <View style={{ width: '100%', alignItems: 'center' }}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: Colors.success,
-                  borderRadius: 10,
-                  padding: 12,
-                  marginBottom: 10,
-                  width: '90%',
-                  justifyContent: 'center',
-                }}
-              >
-                <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
-                  Défi validé
-                </Text>
-                <Check color="white" size={20} />
-              </View>
+            <View style={styles.statusBadgeValidated}>
+              <Text style={styles.statusBadgeText}>Défi validé</Text>
+              <Check color="white" size={20} />
             </View>
           )
         ) : (
-          <View style={{ width: '100%', alignItems: 'center' }}>
-            <TouchableOpacity
-              style={{
-                paddingVertical: 16,
-                paddingHorizontal: 20,
-                backgroundColor: Colors.primary,
-                borderRadius: 10,
-                justifyContent: 'center',
-                alignItems: 'center',
-                flexDirection: 'row',
-                width: '90%',
-                marginBottom: 20,
-                gap: 10,
-                shadowColor: Colors.primaryBorder,
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.2,
-                shadowRadius: 3,
-                elevation: 3,
-                opacity: (modifiedMedia && !isUploading && !isCompressing) ? 1 : 0.4
-              }}
-              onPress={handleSendDefi}
-              disabled={!modifiedMedia || isUploading || isCompressing}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-                <Text style={{ ...TextStyles.button, color: Colors.white }}>Publier mon défi</Text>
-                <LandPlot color="white" size={20} />
-              </View>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={[
+              styles.publishButton,
+              (!modifiedMedia || isUploading || isCompressing) && styles.publishButtonDisabled
+            ]}
+            onPress={handleSendDefi}
+            disabled={!modifiedMedia || isUploading || isCompressing}
+          >
+            <Text style={styles.publishButtonText}>Publier mon défi</Text>
+            <LandPlot color="white" size={20} />
+          </TouchableOpacity>
         )}
       </View>
-
       {proofMedia && (
         <Modal
           visible={isModalVisible}
@@ -696,42 +465,15 @@ export default function DefisInfos() {
           onRequestClose={toggleModal}
         >
           <StatusBar hidden />
-          <View style={{
-            flex: 1,
-            backgroundColor: Colors.primaryBorder,
-            position: 'relative',
-          }}>
-            <TouchableOpacity
-              style={{
-                position: 'absolute',
-                top: 50,
-                right: 20,
-                zIndex: 1000,
-                width: 44,
-                height: 44,
-                borderRadius: 22,
-                backgroundColor: 'rgba(0,0,0,0.6)',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-              onPress={toggleModal}
-              activeOpacity={0.7}
-            >
+          <View style={styles.modalContainer}>
+            <TouchableOpacity style={styles.modalCloseButton} onPress={toggleModal} activeOpacity={0.7}>
               <X size={24} color={Colors.white} />
             </TouchableOpacity>
-
             {mediaType === 'video' ? (
-              <View style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}>
+              <View style={styles.modalVideoContainer}>
                 <Video
                   source={{ uri: proofMedia }}
-                  style={{
-                    width: '100%',
-                    height: '80%',
-                  }}
+                  style={styles.modalVideo}
                   resizeMode={ResizeMode.CONTAIN}
                   shouldPlay={isFullscreenVideoPlaying}
                   isLooping={false}
@@ -744,18 +486,7 @@ export default function DefisInfos() {
                 />
                 {!isFullscreenVideoPlaying && (
                   <TouchableOpacity
-                    style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: [{ translateX: -30 }, { translateY: -10 }],
-                      width: 60,
-                      height: 60,
-                      borderRadius: 30,
-                      backgroundColor: 'rgba(0,0,0,0.7)',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
+                    style={styles.modalPlayButton}
                     onPress={() => setIsFullscreenVideoPlaying(true)}
                   >
                     <Play size={28} color={Colors.white} />
@@ -777,3 +508,316 @@ export default function DefisInfos() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  bottomActions: {
+    alignItems: 'center',
+    bottom: 0,
+    position: 'absolute',
+    width: '100%',
+  },
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  deleteButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.error,
+    borderRadius: 10,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 10,
+    padding: 12,
+    width: '90%',
+  },
+  deleteButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 10,
+  },
+  emptyMediaContainer: {
+    alignItems: 'center',
+    aspectRatio: 1,
+    borderColor: Colors.primaryBorder,
+    borderRadius: 12,
+    borderStyle: 'dashed',
+    borderWidth: 2,
+    justifyContent: 'center',
+    padding: 40,
+    width: '100%',
+  },
+  emptyMediaSubtitle: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  emptyMediaTitle: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+
+  fullscreenHintContainer: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    bottom: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    left: 0,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    position: 'absolute',
+    right: 0,
+  },
+  fullscreenHintText: {
+    ...TextStyles.small,
+    color: Colors.white,
+    fontWeight: '500',
+    marginLeft: 6,
+    textAlign: 'center',
+  },
+  headerTitleContainer: {
+    paddingHorizontal: 20,
+    paddingRight: 30,
+    width: '100%',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    flex: 1,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16,
+  },
+  mediaContainer: {
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  mediaPreview: {
+    height: '100%',
+    width: '100%',
+  },
+  mediaPreviewContainer: {
+    aspectRatio: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+    width: '100%',
+  },
+  mediaTouchable: {
+    backgroundColor: Colors.white,
+    borderColor: 'rgba(0,0,0,0.06)',
+    borderRadius: 14,
+    borderWidth: 1,
+    elevation: 3,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+    width: '100%',
+  },
+  mediaTypeBadge: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 6,
+    flexDirection: 'row',
+    left: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    position: 'absolute',
+    top: 12,
+  },
+  mediaTypeText: {
+    ...TextStyles.small,
+    color: Colors.white,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  modalCloseButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 22,
+    height: 44,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 20,
+    top: 50,
+    width: 44,
+    zIndex: 1000,
+  },
+  modalContainer: {
+    backgroundColor: Colors.primaryBorder,
+    flex: 1,
+    position: 'relative',
+  },
+
+  modalPlayButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 30,
+    height: 60,
+    justifyContent: 'center',
+    left: '50%',
+    position: 'absolute',
+    top: '50%',
+    transform: [{ translateX: -30 }, { translateY: -10 }],
+    width: 60,
+  },
+  modalVideo: {
+    height: '80%',
+    width: '100%',
+  },
+  modalVideoContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  networkErrorContainer: {
+    alignItems: 'center',
+    aspectRatio: 1,
+    backgroundColor: Colors.white,
+    borderColor: Colors.lightMuted,
+    borderRadius: 12,
+    borderWidth: 1,
+    justifyContent: 'center',
+    padding: 40,
+    width: '100%',
+  },
+  networkErrorSubtitle: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  networkErrorTitle: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    fontWeight: '600',
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  pageContainer: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  pauseButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 20,
+    height: 40,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 12,
+    top: 12,
+    width: 40,
+  },
+
+  playButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 30,
+    height: 60,
+    justifyContent: 'center',
+    left: '50%',
+    position: 'absolute',
+    top: '50%',
+    transform: [{ translateX: -30 }, { translateY: -30 }],
+    width: 60,
+  },
+  pointsContainer: {
+    marginBottom: 32,
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  pointsText: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+  },
+  processingContainer: {
+    alignItems: 'center',
+    aspectRatio: 1,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  processingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 12,
+  },
+  publishButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: 10,
+    elevation: 3,
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    shadowColor: Colors.primaryBorder,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    width: '90%',
+  },
+  publishButtonDisabled: {
+    opacity: 0.4,
+  },
+  publishButtonText: {
+    ...TextStyles.button,
+    color: Colors.white,
+  },
+
+  statusBadgeRejected: {
+    alignItems: 'center',
+    backgroundColor: Colors.muted,
+    borderRadius: 8,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 8,
+    padding: 10,
+    width: '90%',
+  },
+  statusBadgeText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 10,
+  },
+
+  statusBadgeValidated: {
+    alignItems: 'center',
+    backgroundColor: Colors.success,
+    borderRadius: 10,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 10,
+    padding: 12,
+    width: '90%',
+  },
+  uploadOverlay: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    bottom: 0,
+    justifyContent: 'center',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  uploadOverlayText: {
+    ...TextStyles.body,
+    color: Colors.white,
+    fontWeight: '600',
+    marginTop: 12,
+  },
+});

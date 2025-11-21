@@ -1,9 +1,9 @@
-import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { Calendar, Map, LogIn, PartyPopper, Cookie } from 'lucide-react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
+
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 export default function LaunchScreen3() {
   const navigation = useNavigation();
@@ -84,108 +84,28 @@ export default function LaunchScreen3() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.white,
-  },
   backgroundDecoration: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: '50%',
-    height: '45%',
     backgroundColor: Colors.primary,
-    opacity: 0.1,
     borderBottomLeftRadius: 100,
+    height: '45%',
+    opacity: 0.1,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    width: '50%',
   },
-  illustrationContainer: {
-    flex: 1,
-    paddingHorizontal: 32,
-    paddingTop: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
+  buttonsContainer: {
+    gap: 12,
+    marginTop: 8,
   },
-  featureCard: {
+  container: {
     backgroundColor: Colors.white,
-    borderRadius: 16,
-    padding: 10,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
-    minWidth: 140,
-  },
-  featureCardSecondary: {
-    backgroundColor: Colors.lightMuted,
-    transform: [{ scale: 1.1 }],
-  },
-  featureIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.lightMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  featureTitle: {
-    ...TextStyles.bodyBold,
-    color: Colors.primaryBorder,
-    marginBottom: 6,
-  },
-  featureDescription: {
-    ...TextStyles.small,
-    color: Colors.muted,
-    textAlign: 'center',
-    lineHeight: 18,
+    flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: 32,
-    paddingBottom: 40,
     gap: 24,
-  },
-  progressContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  dotsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  dot: {
-    height: 8,
-    borderRadius: 4,
-  },
-  dotActive: {
-    width: 32,
-    backgroundColor: Colors.primary,
-  },
-  dotInactive: {
-    width: 8,
-    backgroundColor: Colors.lightMuted,
-  },
-  progressText: {
-    ...TextStyles.small,
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  title: {
-    ...TextStyles.h2Bold,
-    color: Colors.primaryBorder,
-    flex: 1,
+    paddingBottom: 40,
+    paddingHorizontal: 32,
   },
   description: {
     ...TextStyles.body,
@@ -193,59 +113,108 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     textAlign: 'left',
   },
-  buttonsContainer: {
+  dot: {
+    borderRadius: 4,
+    height: 8,
+  },
+  dotActive: {
+    backgroundColor: Colors.primary,
+    width: 32,
+  },
+  dotInactive: {
+    backgroundColor: Colors.lightMuted,
+    width: 8,
+  },
+  dotsContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
     gap: 12,
-    marginTop: 8,
+  },
+  featureCard: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 16,
+    borderWidth: 1,
+    elevation: 4,
+    minWidth: 140,
+    padding: 10,
+    paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  featureCardSecondary: {
+    backgroundColor: Colors.lightMuted,
+    transform: [{ scale: 1.1 }],
+  },
+  featureDescription: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  featureIconContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 28,
+    height: 56,
+    justifyContent: 'center',
+    marginBottom: 12,
+    width: 56,
+  },
+  featureTitle: {
+    ...TextStyles.bodyBold,
+    color: Colors.primaryBorder,
+    marginBottom: 6,
+  },
+  illustrationContainer: {
+    alignItems: 'center',
+    flex: 1,
+    gap: 16,
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingTop: 40,
   },
   loginButton: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
     backgroundColor: Colors.primary,
-    paddingVertical: 18,
-    paddingHorizontal: 24,
     borderRadius: 16,
+    elevation: 6,
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 18,
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 6,
   },
   loginButtonText: {
     ...TextStyles.button,
     color: Colors.white,
     fontWeight: '600',
   },
-  backButton: {
+  progressContainer: {
+    alignItems: 'center',
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: Colors.white,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: Colors.primary,
+    justifyContent: 'space-between',
   },
-  backButtonText: {
-    ...TextStyles.button,
+  progressText: {
+    ...TextStyles.small,
     color: Colors.primary,
     fontWeight: '600',
   },
-  encouragementContainer: {
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    backgroundColor: Colors.lightMuted,
-    borderRadius: 16,
-    marginTop: 8,
+  title: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+    flex: 1,
   },
-  encouragementText: {
-    ...TextStyles.body,
-    color: Colors.primary,
-    fontWeight: '600',
-    textAlign: 'center',
+  titleContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
   },
 });

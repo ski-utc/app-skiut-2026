@@ -1,15 +1,17 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, FlatList, Text, TouchableOpacity, ActivityIndicator } from "react-native";
-import Header from "../../components/header";
 import * as Linking from 'expo-linking';
-import { Colors, TextStyles } from '@/constants/GraphSettings';
-import BoutonRetour from "../../components/divers/boutonRetour";
 import { Phone } from "lucide-react-native";
+
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { apiGet } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
-interface ContactInterface {
+import BoutonRetour from "../../components/divers/boutonRetour";
+import Header from "../../components/header";
+
+type ContactInterface = {
     name: string;
     role?: string | null;
     phoneNumber: string;
@@ -85,20 +87,11 @@ export default function Contact() {
 
     if (loading) {
         return (
-            <View style={{
-                flex: 1,
-                backgroundColor: Colors.white,
-            }}>
+            <View style={styles.container}>
                 <Header refreshFunction={undefined} disableRefresh={true} />
-                <View style={{
-                    width: '100%',
-                    flex: 1,
-                    backgroundColor: Colors.white,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}>
+                <View style={styles.loadingContent}>
                     <ActivityIndicator size="large" color={Colors.primaryBorder} />
-                    <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+                    <Text style={styles.loadingText}>
                         Chargement...
                     </Text>
                 </View>
@@ -136,19 +129,93 @@ export default function Contact() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.white,
-    },
-    loadingContainer: {
-        flex: 1,
-        backgroundColor: Colors.white,
-    },
-    loadingContent: {
+    cardContent: {
+        alignItems: 'center',
         flex: 1,
         justifyContent: 'center',
+    },
+    cardHeader: {
         alignItems: 'center',
+        marginBottom: 12,
+    },
+    contactCard: {
+        backgroundColor: Colors.white,
+        borderColor: 'rgba(0,0,0,0.06)',
+        borderRadius: 14,
+        borderWidth: 1,
+        elevation: 3,
+        flex: 1,
+        marginHorizontal: 6,
+        minHeight: 120,
+        paddingHorizontal: 12,
+        paddingVertical: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 2, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 5,
+    },
+    contactName: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+        fontSize: 14,
+        fontWeight: '600',
+        lineHeight: 18,
+        marginBottom: 4,
+        textAlign: 'center',
+    },
+    contactPhone: {
+        ...TextStyles.small,
+        color: Colors.muted,
+        fontSize: 12,
+        fontWeight: '500',
+        textAlign: 'center',
+    },
+    contactRole: {
+        ...TextStyles.small,
+        color: Colors.primary,
+        fontSize: 12,
+        fontWeight: '500',
+        marginBottom: 6,
+        textAlign: 'center',
+    },
+    container: {
+        backgroundColor: Colors.white,
+        flex: 1,
+    },
+    content: {
+        backgroundColor: Colors.white,
+        flex: 1,
         paddingHorizontal: 20,
+    },
+    emptyContainer: {
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+        paddingTop: 40,
+    },
+    emptyText: {
+        ...TextStyles.bodyLarge,
+        color: Colors.muted,
+        paddingHorizontal: 20,
+        textAlign: 'center',
+    },
+    iconContainer: {
+        alignItems: 'center',
+        backgroundColor: Colors.lightMuted,
+        borderRadius: 18,
+        height: 36,
+        justifyContent: 'center',
+        width: 36,
+    },
+    listContainer: {
+        paddingBottom: 20,
+    },
+    loadingContent: {
+        alignItems: 'center',
+        backgroundColor: Colors.white,
+        flex: 1,
+        justifyContent: 'center',
+        width: '100%',
     },
     loadingText: {
         ...TextStyles.body,
@@ -156,85 +223,8 @@ const styles = StyleSheet.create({
         marginTop: 16,
         textAlign: 'center',
     },
-    content: {
-        flex: 1,
-        backgroundColor: Colors.white,
-        paddingHorizontal: 20,
-    },
-    listContainer: {
-        paddingBottom: 20,
-    },
     row: {
         justifyContent: 'space-between',
         marginBottom: 12,
-    },
-    contactCard: {
-        flex: 1,
-        backgroundColor: Colors.white,
-        marginHorizontal: 6,
-        paddingVertical: 16,
-        paddingHorizontal: 12,
-        borderRadius: 14,
-        borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.06)',
-        shadowColor: '#000',
-        shadowOpacity: 0.08,
-        shadowOffset: { width: 2, height: 3 },
-        shadowRadius: 5,
-        elevation: 3,
-        minHeight: 120,
-    },
-    cardHeader: {
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    iconContainer: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: Colors.lightMuted,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    cardContent: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    contactName: {
-        ...TextStyles.body,
-        color: Colors.primaryBorder,
-        fontWeight: '600',
-        fontSize: 14,
-        textAlign: 'center',
-        marginBottom: 4,
-        lineHeight: 18,
-    },
-    contactRole: {
-        ...TextStyles.small,
-        color: Colors.primary,
-        fontWeight: '500',
-        fontSize: 12,
-        textAlign: 'center',
-        marginBottom: 6,
-    },
-    contactPhone: {
-        ...TextStyles.small,
-        color: Colors.muted,
-        fontSize: 12,
-        textAlign: 'center',
-        fontWeight: '500',
-    },
-    emptyContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingTop: 40,
-    },
-    emptyText: {
-        ...TextStyles.bodyLarge,
-        color: Colors.muted,
-        textAlign: 'center',
-        paddingHorizontal: 20,
     },
 });

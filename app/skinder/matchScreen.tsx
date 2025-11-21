@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Image, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { Heart, Sparkles, MapPin } from 'lucide-react-native';
+
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Heart, Sparkles, MapPin } from 'lucide-react-native';
 
-//@ts-ignore
 export default function MatchScreen() {
     const navigation = useNavigation();
     const route = useRoute();
@@ -24,7 +24,7 @@ export default function MatchScreen() {
         <View style={styles.container}>
             <Header refreshFunction={null} disableRefresh={true} />
             <View style={styles.headerContainer}>
-                <BoutonRetour previousRoute={'homeNavigator'} title={'Skinder'} />
+                <BoutonRetour title={'Skinder'} />
             </View>
 
             <View style={styles.content}>
@@ -87,112 +87,112 @@ export default function MatchScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.white,
-    },
-    headerContainer: {
-        width: '100%',
-        paddingHorizontal: 20,
-        paddingBottom: 8,
-    },
-    content: {
-        flex: 1,
-        paddingHorizontal: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 32,
-    },
     celebrationContainer: {
-        flexDirection: 'row',
         alignItems: 'center',
+        flexDirection: 'row',
         gap: 16,
         marginBottom: 16,
     },
-    matchTitle: {
-        ...TextStyles.h1Bold,
-        color: Colors.primary,
-        textAlign: 'center',
-    },
-    profilesContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 24,
-        width: '100%',
-    },
-    profileImageContainer: {
-        alignItems: 'center',
-    },
-    profileImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        borderWidth: 4,
-        borderColor: Colors.primary,
-    },
-    profileLabel: {
-        backgroundColor: Colors.primary,
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 12,
-        marginTop: 12,
-    },
-    profileLabelText: {
-        ...TextStyles.small,
-        color: Colors.white,
-        fontWeight: '600',
-    },
-    heartContainer: {
-        backgroundColor: Colors.lightMuted,
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
     contactCard: {
         backgroundColor: Colors.white,
+        borderColor: 'rgba(0,0,0,0.06)',
         borderRadius: 14,
         borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.06)',
-        shadowColor: '#000',
-        shadowOpacity: 0.08,
-        shadowOffset: { width: 2, height: 3 },
-        shadowRadius: 5,
         elevation: 3,
         padding: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 2, height: 3 },
+        shadowOpacity: 0.08,
+        shadowRadius: 5,
         width: '100%',
     },
     contactHeader: {
-        flexDirection: 'row',
         alignItems: 'center',
+        flexDirection: 'row',
         gap: 8,
         marginBottom: 12,
-    },
-    contactTitle: {
-        ...TextStyles.bodyBold,
-        color: Colors.primaryBorder,
     },
     contactText: {
         ...TextStyles.body,
         color: Colors.muted,
         lineHeight: 22,
     },
+    contactTitle: {
+        ...TextStyles.bodyBold,
+        color: Colors.primaryBorder,
+    },
+    container: {
+        backgroundColor: Colors.white,
+        flex: 1,
+    },
+    content: {
+        alignItems: 'center',
+        flex: 1,
+        gap: 32,
+        justifyContent: 'center',
+        paddingHorizontal: 20,
+    },
     continueButton: {
         backgroundColor: Colors.primary,
-        paddingVertical: 16,
-        paddingHorizontal: 32,
         borderRadius: 14,
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 4,
         elevation: 3,
+        paddingHorizontal: 32,
+        paddingVertical: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
     continueButtonText: {
         ...TextStyles.button,
         color: Colors.white,
         fontWeight: '600',
+    },
+    headerContainer: {
+        paddingBottom: 8,
+        paddingHorizontal: 20,
+        width: '100%',
+    },
+    heartContainer: {
+        alignItems: 'center',
+        backgroundColor: Colors.lightMuted,
+        borderRadius: 32,
+        height: 64,
+        justifyContent: 'center',
+        width: 64,
+    },
+    matchTitle: {
+        ...TextStyles.h1Bold,
+        color: Colors.primary,
+        textAlign: 'center',
+    },
+    profileImage: {
+        borderColor: Colors.primary,
+        borderRadius: 60,
+        borderWidth: 4,
+        height: 120,
+        width: 120,
+    },
+    profileImageContainer: {
+        alignItems: 'center',
+    },
+    profileLabel: {
+        backgroundColor: Colors.primary,
+        borderRadius: 12,
+        marginTop: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+    },
+    profileLabelText: {
+        ...TextStyles.small,
+        color: Colors.white,
+        fontWeight: '600',
+    },
+    profilesContainer: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        gap: 24,
+        justifyContent: 'center',
+        width: '100%',
     },
 });

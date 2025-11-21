@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Colors, FontSizes, TextStyles } from '@/constants/GraphSettings';
 import { WifiOff, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react-native';
 import NetInfo from '@react-native-community/netinfo';
+
+import { Colors, FontSizes, TextStyles } from '@/constants/GraphSettings';
 import { getPendingRequests, syncPendingRequests } from '@/constants/api/apiCalls';
 
-interface OfflineStatusProps {
+type OfflineStatusProps = {
     onNetworkChange?: (isConnected: boolean) => void;
 }
 
@@ -159,32 +160,51 @@ export const PendingRequestsWidget: React.FC = () => {
 
 const styles = StyleSheet.create({
     offlineBanner: {
-        backgroundColor: Colors.error || '#ef4444',
-        flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        marginHorizontal: 20,
-        marginBottom: 16,
+        backgroundColor: Colors.error || '#ef4444',
         borderRadius: 12,
+        flexDirection: 'row',
         gap: 8,
+        justifyContent: 'center',
+        marginBottom: 16,
+        marginHorizontal: 20,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
     },
     offlineBannerText: {
         ...TextStyles.small,
         color: Colors.white,
+        flex: 1,
         fontSize: FontSizes.medium,
         fontWeight: '600',
-        flex: 1,
     },
 
+    pendingDescription: {
+        ...TextStyles.body,
+        color: Colors.muted,
+        fontSize: FontSizes.medium,
+        lineHeight: 20,
+        marginBottom: 16,
+    },
+    pendingHeader: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        gap: 8,
+        marginBottom: 8,
+    },
+    pendingTitle: {
+        ...TextStyles.bodyBold,
+        color: Colors.primaryBorder,
+        fontSize: FontSizes.large,
+    },
     pendingWidget: {
         backgroundColor: Colors.white,
-        borderRadius: 16,
-        padding: 20,
-        marginBottom: 16,
-        borderWidth: 1,
         borderColor: Colors.accent || '#f59e0b',
+        borderRadius: 16,
+        borderWidth: 1,
+        elevation: 3,
+        marginBottom: 16,
+        padding: 20,
         shadowColor: Colors.primaryBorder,
         shadowOffset: {
             width: 0,
@@ -192,35 +212,16 @@ const styles = StyleSheet.create({
         },
         shadowOpacity: 0.1,
         shadowRadius: 8,
-        elevation: 3,
-    },
-    pendingHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 8,
-        gap: 8,
-    },
-    pendingTitle: {
-        ...TextStyles.bodyBold,
-        color: Colors.primaryBorder,
-        fontSize: FontSizes.large,
-    },
-    pendingDescription: {
-        ...TextStyles.body,
-        color: Colors.muted,
-        fontSize: FontSizes.medium,
-        marginBottom: 16,
-        lineHeight: 20,
     },
     syncButton: {
-        backgroundColor: Colors.primary,
-        flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
+        backgroundColor: Colors.primary,
         borderRadius: 12,
+        flexDirection: 'row',
         gap: 8,
+        justifyContent: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 12,
     },
     syncButtonDisabled: {
         backgroundColor: Colors.muted,
@@ -236,14 +237,14 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     syncResultRow: {
-        flexDirection: 'row',
         alignItems: 'center',
+        flexDirection: 'row',
         gap: 8,
     },
     syncResultText: {
         ...TextStyles.body,
         color: Colors.primaryBorder,
-        fontSize: FontSizes.medium,
         flex: 1,
+        fontSize: FontSizes.medium,
     },
 });

@@ -16,12 +16,6 @@ import DraggableFlatList, {
 } from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Collapsible from 'react-native-collapsible';
-import { apiGet, apiPost } from '@/constants/api/apiCalls';
-import BoutonRetour from '@/components/divers/boutonRetour';
-import Header from '../../components/header';
-import ErrorScreen from '@/components/pages/errorPage';
-import { useUser } from '@/contexts/UserContext';
-import { Colors, TextStyles } from '@/constants/GraphSettings';
 import {
     Home,
     Users,
@@ -32,7 +26,15 @@ import {
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
-interface Visit {
+import { apiGet, apiPost } from '@/constants/api/apiCalls';
+import BoutonRetour from '@/components/divers/boutonRetour';
+import ErrorScreen from '@/components/pages/errorPage';
+import { useUser } from '@/contexts/UserContext';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+
+import Header from '../../components/header';
+
+type Visit = {
     id: number;
     room_id: string;
     room_info: {
@@ -51,7 +53,7 @@ interface Visit {
     notes: string | null;
 }
 
-interface TourData {
+type TourData = {
     tour_id: number;
     tour_date: string;
     binome: {
@@ -371,20 +373,11 @@ export default function TourneeChambreScreen() {
 
     if (loading) {
         return (
-            <View style={{
-                flex: 1,
-                backgroundColor: Colors.white,
-            }}>
+            <View style={styles.container}>
                 <Header refreshFunction={undefined} disableRefresh={true} />
-                <View style={{
-                    width: '100%',
-                    flex: 1,
-                    backgroundColor: Colors.white,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}>
+                <View style={styles.loadingContent}>
                     <ActivityIndicator size="large" color={Colors.primaryBorder} />
-                    <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+                    <Text style={styles.loadingText}>
                         Chargement...
                     </Text>
                 </View>
@@ -397,7 +390,7 @@ export default function TourneeChambreScreen() {
             <SafeAreaView style={styles.container}>
                 <Header refreshFunction={null} disableRefresh={true} />
                 <View style={styles.headerContainer}>
-                    <BoutonRetour previousRoute="homeNavigator" title="Tournée des chambres" />
+                    <BoutonRetour title="Tournée des chambres" />
                 </View>
                 <ScrollView
                     contentContainerStyle={styles.centerContainer}
@@ -420,7 +413,7 @@ export default function TourneeChambreScreen() {
             <SafeAreaView style={styles.container}>
                 <Header refreshFunction={null} disableRefresh={true} />
                 <View style={styles.headerContainer}>
-                    <BoutonRetour previousRoute="homeNavigator" title="Tournée des chambres" />
+                    <BoutonRetour title="Tournée des chambres" />
                 </View>
 
                 <View style={styles.binomeCard}>
@@ -444,7 +437,7 @@ export default function TourneeChambreScreen() {
                     </Text>
                 </View>
 
-                <View style={{ flex: 1 }}>
+                <View style={styles.flatListContainer}>
                     <DraggableFlatList
                         data={visits}
                         onDragEnd={onDragEnd}
@@ -479,200 +472,116 @@ export default function TourneeChambreScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.white,
-    },
-    headerContainer: {
-        paddingHorizontal: 20,
-        paddingBottom: 8,
-    },
-    centerContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-    },
     binomeCard: {
         backgroundColor: Colors.primary,
+        borderRadius: 12,
+        marginBottom: 12,
         marginHorizontal: 16,
         marginTop: 0,
-        marginBottom: 12,
         padding: 16,
-        borderRadius: 12,
     },
     binomeHeader: {
+        alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    binomeTitleRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        flex: 1,
-    },
-    binomeTitle: {
-        ...TextStyles.h3,
-        color: Colors.white,
     },
     binomeStats: {
         ...TextStyles.h3,
         color: Colors.white,
         fontWeight: '700',
     },
-    titleSection: {
-        paddingHorizontal: 16,
-        marginBottom: 8,
-    },
-    sectionTitle: {
+    binomeTitle: {
         ...TextStyles.h3,
-        color: Colors.primaryBorder,
-        marginBottom: 4,
-    },
-    dragHint: {
-        ...TextStyles.small,
-        color: Colors.muted,
-    },
-    flatListContent: {
-        paddingBottom: 20,
-    },
-    roomCard: {
-        backgroundColor: Colors.white,
-        padding: 12,
-        width: '90%',
-        alignSelf: 'center',
-        borderRadius: 8,
-        marginBottom: 8,
-        borderWidth: 1,
-        borderColor: Colors.lightMuted,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-    },
-    roomCardVisited: {
-        backgroundColor: Colors.lightMuted,
-        opacity: 0.7,
-    },
-    roomCardDragging: {
-        opacity: 0.95,
-        transform: [{ scale: 1.01 }],
-    },
-    roomMainRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    roomInfo: {
-        flex: 1,
-    },
-    roomHeaderRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        flexWrap: 'wrap',
-    },
-    moodBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        borderRadius: 12,
-        borderWidth: 1,
-    },
-    moodBadgeText: {
-        ...TextStyles.small,
-        fontSize: 10,
-        fontWeight: '600',
-    },
-    roomNumber: {
-        ...TextStyles.body,
-        fontWeight: '600',
-        color: Colors.primaryBorder,
-    },
-    roomName: {
-        ...TextStyles.small,
-        color: Colors.muted,
-        marginTop: 2,
-    },
-    occupantsCount: {
-        ...TextStyles.small,
-        color: Colors.muted,
-        marginTop: 2,
-    },
-    textVisited: {
-        color: Colors.muted,
-    },
-    roomActions: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    visitedButtonCompact: {
-        backgroundColor: Colors.success,
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 6,
-        gap: 4,
-    },
-    visitedButtonTextCompact: {
-        ...TextStyles.small,
         color: Colors.white,
-        fontWeight: '600',
+    },
+    binomeTitleRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        flex: 1,
+        gap: 8,
     },
     cancelButtonCompact: {
         backgroundColor: Colors.error,
+        borderRadius: 6,
         paddingHorizontal: 10,
         paddingVertical: 6,
-        borderRadius: 6,
     },
     cancelButtonTextCompact: {
         ...TextStyles.small,
         color: Colors.white,
         fontWeight: '600',
     },
+    centerContainer: {
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+        padding: 20,
+    },
+    container: {
+        backgroundColor: Colors.white,
+        flex: 1,
+    },
     dragHandle: {
         padding: 4,
     },
+    dragHint: {
+        ...TextStyles.small,
+        color: Colors.muted,
+    },
     expandButton: {
-        flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        paddingTop: 8,
-        marginTop: 8,
-        borderTopWidth: 1,
         borderTopColor: Colors.lightMuted,
+        borderTopWidth: 1,
+        flexDirection: 'row',
         gap: 4,
+        justifyContent: 'center',
+        marginTop: 8,
+        paddingTop: 8,
     },
     expandButtonText: {
         ...TextStyles.small,
         color: Colors.primary,
         fontWeight: '500',
     },
-    occupantsList: {
-        paddingTop: 8,
-        paddingLeft: 8,
+    flatListContainer: {
+        flex: 1,
     },
-    occupantName: {
-        ...TextStyles.small,
-        color: Colors.primaryBorder,
-        marginBottom: 3,
+    flatListContent: {
+        paddingBottom: 20,
     },
-    saveButtonContainer: {
-        padding: 16,
+    headerContainer: {
+        paddingBottom: 8,
+        paddingHorizontal: 20,
     },
-    saveButton: {
-        backgroundColor: Colors.primary,
-        padding: 14,
-        borderRadius: 8,
+    loadingContent: {
         alignItems: 'center',
+        backgroundColor: Colors.white,
+        flex: 1,
+        justifyContent: 'center',
+        width: '100%',
     },
-    saveButtonText: {
-        ...TextStyles.button,
-        color: Colors.white,
+    loadingText: {
+        ...TextStyles.body,
+        color: Colors.muted,
+        marginTop: 16,
+        textAlign: 'center',
+    },
+    moodBadge: {
+        borderRadius: 12,
+        borderWidth: 1,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+    },
+    moodBadgeText: {
+        ...TextStyles.small,
+        fontSize: 10,
         fontWeight: '600',
+    },
+    noTourSubtext: {
+        ...TextStyles.body,
+        color: Colors.muted,
+        marginTop: 8,
+        textAlign: 'center',
     },
     noTourText: {
         ...TextStyles.h2,
@@ -680,10 +589,105 @@ const styles = StyleSheet.create({
         marginTop: 16,
         textAlign: 'center',
     },
-    noTourSubtext: {
-        ...TextStyles.body,
+    occupantName: {
+        ...TextStyles.small,
+        color: Colors.primaryBorder,
+        marginBottom: 3,
+    },
+    occupantsList: {
+        paddingLeft: 8,
+        paddingTop: 8,
+    },
+    roomActions: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        gap: 8,
+    },
+    roomCard: {
+        alignSelf: 'center',
+        backgroundColor: Colors.white,
+        borderColor: Colors.lightMuted,
+        borderRadius: 8,
+        borderWidth: 1,
+        elevation: 5,
+        marginBottom: 8,
+        padding: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        width: '90%',
+    },
+    roomCardDragging: {
+        opacity: 0.95,
+        transform: [{ scale: 1.01 }],
+    },
+    roomCardVisited: {
+        backgroundColor: Colors.lightMuted,
+        opacity: 0.7,
+    },
+    roomHeaderRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    roomInfo: {
+        flex: 1,
+    },
+    roomMainRow: {
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    roomName: {
+        ...TextStyles.small,
         color: Colors.muted,
-        marginTop: 8,
-        textAlign: 'center',
+        marginTop: 2,
+    },
+    roomNumber: {
+        ...TextStyles.body,
+        color: Colors.primaryBorder,
+        fontWeight: '600',
+    },
+    saveButton: {
+        alignItems: 'center',
+        backgroundColor: Colors.primary,
+        borderRadius: 8,
+        padding: 14,
+    },
+    saveButtonContainer: {
+        padding: 16,
+    },
+    saveButtonText: {
+        ...TextStyles.button,
+        color: Colors.white,
+        fontWeight: '600',
+    },
+    sectionTitle: {
+        ...TextStyles.h3,
+        color: Colors.primaryBorder,
+        marginBottom: 4,
+    },
+    textVisited: {
+        color: Colors.muted,
+    },
+    titleSection: {
+        marginBottom: 8,
+        paddingHorizontal: 16,
+    },
+    visitedButtonCompact: {
+        alignItems: 'center',
+        backgroundColor: Colors.success,
+        borderRadius: 6,
+        flexDirection: 'row',
+        gap: 4,
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+    },
+    visitedButtonTextCompact: {
+        ...TextStyles.small,
+        color: Colors.white,
+        fontWeight: '600',
     },
 });

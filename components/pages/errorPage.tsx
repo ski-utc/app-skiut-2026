@@ -1,11 +1,13 @@
-import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { Colors, TextStyles } from "@/constants/GraphSettings";
 import { useNavigation } from "@react-navigation/native";
-import Header from "../header";
 import { AlertTriangle, ArrowLeft } from "lucide-react-native";
 
-interface ErrorScreenProps {
+import { Colors, TextStyles } from "@/constants/GraphSettings";
+
+import Header from "../header";
+
+
+type ErrorScreenProps = {
   error: string;
 }
 
@@ -54,68 +56,68 @@ export default function ErrorScreen({ error }: ErrorScreenProps) {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: Colors.white,
+    flex: 1,
   },
   content: {
+    alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
     paddingHorizontal: 32,
-  },
-  iconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: Colors.lightMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  title: {
-    ...TextStyles.h2,
-    color: Colors.primaryBorder,
-    textAlign: 'center',
-    marginBottom: 16,
   },
   errorContainer: {
     backgroundColor: Colors.lightMuted,
     borderRadius: 12,
-    padding: 16,
     marginBottom: 24,
+    padding: 16,
     width: '100%',
   },
   errorText: {
     ...TextStyles.body,
     color: Colors.primaryBorder,
-    textAlign: 'center',
     lineHeight: 20,
+    textAlign: 'center',
   },
   helpText: {
     ...TextStyles.body,
     color: Colors.muted,
-    textAlign: 'center',
-    marginBottom: 32,
     lineHeight: 18,
+    marginBottom: 32,
+    textAlign: 'center',
+  },
+  iconContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 60,
+    height: 120,
+    justifyContent: 'center',
+    marginBottom: 24,
+    width: 120,
   },
   retourButton: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: Colors.primary,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
     borderRadius: 14,
+    elevation: 3,
+    flexDirection: 'row',
     gap: 8,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
     shadowColor: Colors.primaryBorder,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 3,
   },
   retourButtonText: {
     ...TextStyles.button,
     color: Colors.white,
     fontSize: 16,
+  },
+  title: {
+    ...TextStyles.h2,
+    color: Colors.primaryBorder,
+    marginBottom: 16,
+    textAlign: 'center',
   },
 });

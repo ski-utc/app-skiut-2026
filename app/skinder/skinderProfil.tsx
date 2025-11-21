@@ -1,16 +1,18 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert, TextInput, KeyboardAvoidingView, ScrollView, Platform, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from "expo-image-manipulator";
-import { Colors, TextStyles } from '@/constants/GraphSettings';
-import Header from '../../components/header';
-import { useUser } from '@/contexts/UserContext';
 import { useNavigation } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
+import { Camera, Save, X } from 'lucide-react-native';
+
+import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { apiPost, apiGet, apiPut } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
-import Toast from 'react-native-toast-message';
-import { Camera, Save, X } from 'lucide-react-native';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+
+import Header from '../../components/header';
 
 export default function SkinderProfil() {
   const [profile, setProfile] = useState({
@@ -199,20 +201,11 @@ export default function SkinderProfil() {
 
   if (loading) {
     return (
-      <View style={{
-        flex: 1,
-        backgroundColor: Colors.white,
-      }}>
+      <View style={styles.container}>
         <Header refreshFunction={undefined} disableRefresh={true} />
-        <View style={{
-          width: '100%',
-          flex: 1,
-          backgroundColor: Colors.white,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
-          <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
+          <Text style={styles.loadingText}>
             Chargement...
           </Text>
         </View>
@@ -227,7 +220,7 @@ export default function SkinderProfil() {
     >
       <Header refreshFunction={null} disableRefresh={true} />
       <View style={styles.headerContainer}>
-        <BoutonRetour previousRoute={'homeNavigator'} title={'Informations de ma chambre'} />
+        <BoutonRetour title={'Informations de ma chambre'} />
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
@@ -315,19 +308,66 @@ export default function SkinderProfil() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  actionsContainer: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 24,
+  },
+  cancelButton: {
+    alignItems: 'center',
     backgroundColor: Colors.white,
+    borderColor: Colors.muted,
+    borderRadius: 12,
+    borderWidth: 1,
+    flex: 1,
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  cancelButtonText: {
+    ...TextStyles.button,
+    color: Colors.muted,
+    fontWeight: '600',
+  },
+  characterCount: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    marginTop: 8,
+    textAlign: 'right',
+  },
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+  },
+  descriptionInput: {
+    backgroundColor: Colors.white,
+    borderColor: 'rgba(0,0,0,0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 16,
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    elevation: 2,
+    minHeight: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
   },
   headerContainer: {
-    width: '100%',
-    paddingHorizontal: 20,
     paddingBottom: 8,
+    paddingHorizontal: 20,
+    width: '100%',
   },
   loadingContainer: {
+    alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
     paddingHorizontal: 20,
   },
   loadingText: {
@@ -336,155 +376,108 @@ const styles = StyleSheet.create({
     marginTop: 16,
     textAlign: 'center',
   },
-  content: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-  photoSection: {
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  photoContainer: {
-    position: 'relative',
-    marginBottom: 16,
-  },
-  profileImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    borderWidth: 4,
-    borderColor: Colors.primary,
-  },
-  photoOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: Colors.primary,
-    borderRadius: 20,
-    padding: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  photoOverlayText: {
+  passionError: {
     ...TextStyles.small,
-    color: Colors.white,
-    fontWeight: '600',
-  },
-  profileName: {
-    ...TextStyles.h2Bold,
-    color: Colors.primaryBorder,
+    color: Colors.accent,
+    marginTop: 4,
     textAlign: 'center',
   },
-  section: {
-    marginBottom: 0,
-  },
-  sectionTitle: {
-    ...TextStyles.h3Bold,
-    color: Colors.primaryBorder,
-    marginBottom: 8,
-  },
-  sectionSubtitle: {
-    ...TextStyles.small,
-    color: Colors.muted,
-    marginBottom: 16,
-  },
-  descriptionInput: {
+  passionInput: {
     backgroundColor: Colors.white,
+    borderColor: Colors.primary,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.1)',
-    borderRadius: 12,
-    padding: 16,
-    ...TextStyles.body,
-    color: Colors.primaryBorder,
-    minHeight: 100,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  characterCount: {
+    padding: 12,
     ...TextStyles.small,
-    color: Colors.muted,
-    textAlign: 'right',
-    marginTop: 8,
+    color: Colors.primaryBorder,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    textAlign: 'center',
+  },
+  passionInputContainer: {
+    minWidth: 100,
+    width: '30%',
   },
   passionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
   },
-  passionInputContainer: {
-    width: '30%',
-    minWidth: 100,
+  photoContainer: {
+    marginBottom: 16,
+    position: 'relative',
   },
-  passionInput: {
-    backgroundColor: Colors.white,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    borderRadius: 8,
-    padding: 12,
-    ...TextStyles.small,
-    color: Colors.primaryBorder,
-    textAlign: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  passionError: {
-    ...TextStyles.small,
-    color: Colors.accent,
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  actionsContainer: {
-    flexDirection: 'row',
-    gap: 16,
-    marginTop: 24,
-  },
-  cancelButton: {
-    flex: 1,
-    flexDirection: 'row',
+  photoOverlay: {
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: Colors.white,
-    borderWidth: 1,
-    borderColor: Colors.muted,
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    backgroundColor: Colors.primary,
+    borderRadius: 20,
+    bottom: 0,
+    flexDirection: 'row',
+    gap: 4,
+    padding: 8,
+    position: 'absolute',
+    right: 0,
   },
-  cancelButtonText: {
-    ...TextStyles.button,
-    color: Colors.muted,
+  photoOverlayText: {
+    ...TextStyles.small,
+    color: Colors.white,
     fontWeight: '600',
   },
-  saveButton: {
-    flex: 1,
-    flexDirection: 'row',
+  photoSection: {
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
+    marginVertical: 24,
+  },
+  profileImage: {
+    borderColor: Colors.primary,
+    borderRadius: 75,
+    borderWidth: 4,
+    height: 150,
+    width: 150,
+  },
+  profileName: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+    textAlign: 'center',
+  },
+  saveButton: {
+    alignItems: 'center',
     backgroundColor: Colors.primary,
     borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
     elevation: 3,
+    flex: 1,
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   saveButtonText: {
     ...TextStyles.button,
     color: Colors.white,
     fontWeight: '600',
+  },
+  scrollContent: {
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+  },
+  section: {
+    marginBottom: 0,
+  },
+  sectionSubtitle: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 8,
   },
 });

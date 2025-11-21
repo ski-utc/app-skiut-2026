@@ -5,8 +5,11 @@ import { useNavigation } from "@react-navigation/native";
 import Header from "../header";
 import { AlertTriangle, ArrowLeft } from "lucide-react-native";
 
-//@ts-ignore
-export default function ErrorScreen({ error }) {
+interface ErrorScreenProps {
+  error: string;
+}
+
+export default function ErrorScreen({ error }: ErrorScreenProps) {
   const navigation = useNavigation();
   return (
     <View style={styles.container}>
@@ -31,7 +34,12 @@ export default function ErrorScreen({ error }) {
         </Text>
 
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'homeScreen' as any }],
+            });
+          }}
           style={styles.retourButton}
         >
           <ArrowLeft size={20} color={Colors.white} />

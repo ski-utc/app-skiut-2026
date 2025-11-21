@@ -8,7 +8,7 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useNavigation } from '@react-navigation/native';
-import { MessageSquare, AlertTriangle, Clock, CheckCircle } from 'lucide-react-native';
+import { MessageSquare, AlertTriangle, Clock, CheckCircle, Zap, ChevronRight } from 'lucide-react-native';
 
 interface FilterButtonProps {
   label: string;
@@ -16,6 +16,18 @@ interface FilterButtonProps {
   isActive: boolean;
   onPress: () => void;
   count?: number;
+}
+
+interface AnecdoteItem {
+  id: number;
+  valid: boolean;
+  alert: boolean;
+  nbWarns: number;
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+  };
 }
 
 const FilterButton: React.FC<FilterButtonProps> = ({ label, icon, isActive, onPress, count }) => {
@@ -41,8 +53,8 @@ const FilterButton: React.FC<FilterButtonProps> = ({ label, icon, isActive, onPr
 };
 
 const GestionAnecdotesScreen = () => {
-  const [anecdotes, setAnecdotes] = useState([]);
-  const [filteredAnecdotes, setFilteredAnecdotes] = useState([]);
+  const [anecdotes, setAnecdotes] = useState<AnecdoteItem[]>([]);
+  const [filteredAnecdotes, setFilteredAnecdotes] = useState<AnecdoteItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);
@@ -77,24 +89,24 @@ const GestionAnecdotesScreen = () => {
     }
   }, [setUser]);
 
-  const handleFilter = (filter: string) => {
+  const handleFilter = useCallback((filter: string) => {
     setActiveFilter(filter);
     switch (filter) {
       case 'pending':
-        setFilteredAnecdotes(anecdotes.filter((item: any) => !item.valid && !item.alert));
+        setFilteredAnecdotes(anecdotes.filter((item) => !item.valid && !item.alert));
         break;
       case 'reported':
-        setFilteredAnecdotes(anecdotes.filter((item: any) => item.nbWarns > 0));
+        setFilteredAnecdotes(anecdotes.filter((item) => item.nbWarns > 0));
         break;
       default:
         setFilteredAnecdotes(anecdotes);
         break;
     }
-  };
+  }, [anecdotes]);
 
   const getFilterCounts = () => {
-    const pending = anecdotes.filter((item: any) => !item.valid && !item.alert).length;
-    const reported = anecdotes.filter((item: any) => item.nbWarns > 0).length;
+    const pending = anecdotes.filter((item) => !item.valid && !item.alert).length;
+    const reported = anecdotes.filter((item) => item.nbWarns > 0).length;
     return { pending, reported, all: anecdotes.length };
   };
 
@@ -102,10 +114,11 @@ const GestionAnecdotesScreen = () => {
     fetchAdminAnecdotes();
     const unsubscribe = navigation.addListener('focus', () => {
       fetchAdminAnecdotes();
+      handleFilter(activeFilter);
     });
 
     return unsubscribe;
-  }, [navigation, fetchAdminAnecdotes]);
+  }, [navigation, fetchAdminAnecdotes, activeFilter, handleFilter]);
 
   if (error !== '') {
     return <ErrorScreen error={error} />;
@@ -140,6 +153,19 @@ const GestionAnecdotesScreen = () => {
         <Text style={styles.heroSubtitle}>
           Gérez et validez les anecdotes partagées par les utilisateurs
         </Text>
+      </View>
+
+      <View style={styles.createButtonContainer}>
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={() => (navigation as any).navigate('valideAnecdotesRapide')}
+        >
+          <View style={styles.createButtonIcon}>
+            <Zap size={20} color={Colors.white} />
+          </View>
+          <Text style={styles.createButtonText}>Mode Rapide</Text>
+          <ChevronRight size={16} color={Colors.white} />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.filtersContainer}>
@@ -179,7 +205,7 @@ const GestionAnecdotesScreen = () => {
               valide={item.valid}
             />
           )}
-          keyExtractor={(item: any) => item.id.toString()}
+          keyExtractor={(item) => item.id.toString()}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <MessageSquare size={48} color={Colors.lightMuted} />
@@ -245,6 +271,34 @@ const styles = StyleSheet.create({
     color: Colors.muted,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  createButtonContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  createButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  createButtonIcon: {
+    marginRight: 12,
+  },
+  createButtonText: {
+    ...TextStyles.body,
+    color: Colors.white,
+    fontWeight: '600',
+    fontSize: 16,
+    flex: 1,
   },
   filtersContainer: {
     flexDirection: 'row',

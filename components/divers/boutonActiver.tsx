@@ -1,16 +1,25 @@
 import React from 'react';
-import { Text, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity, ViewStyle } from 'react-native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
+import { LucideIcon } from 'lucide-react-native';
 
-// @ts-ignore
+interface BoutonActiverProps {
+    title: string;
+    IconComponent?: LucideIcon;
+    color?: string;
+    onPress?: () => void;
+    disabled?: boolean;
+    customStyles?: ViewStyle;
+}
+
 export default function BoutonActiver({
     title,
     IconComponent,
-    color,
+    color = Colors.primary,
     onPress = () => { },
     disabled = false,
     customStyles = {}
-}) {
+}: BoutonActiverProps) {
     return (
         <TouchableOpacity
             onPress={disabled ? () => { } : onPress}

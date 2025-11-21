@@ -23,7 +23,6 @@ interface NotificationPopupProps {
   onClose: () => void;
 }
 
-// @ts-ignore
 export default function NotificationPopup({ visible, onClose }: NotificationPopupProps) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [error, setError] = useState('');

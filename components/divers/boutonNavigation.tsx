@@ -2,15 +2,21 @@ import React from 'react';
 import { Text, TouchableOpacity } from 'react-native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { LucideIcon } from 'lucide-react-native';
 
-// @ts-ignore
-export default function BoutonNavigation({ nextRoute, title, IconComponent }) {
+interface BoutonNavigationProps {
+    nextRoute?: string;
+    title: string;
+    IconComponent?: LucideIcon;
+}
+
+export default function BoutonNavigation({ nextRoute, title, IconComponent }: BoutonNavigationProps) {
     const navigation = useNavigation();
     const route = useRoute();
 
     const onPress = () => {
         if (nextRoute) {
-            navigation.navigate(nextRoute);
+            (navigation as any).navigate(nextRoute);
         } else {
             navigation.goBack();
         }

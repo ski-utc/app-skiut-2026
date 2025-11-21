@@ -13,13 +13,17 @@ import Toast from 'react-native-toast-message';
 
 const LOCATION_TASK_NAME = 'background-location-task';
 
-TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }) => {
+interface LocationTaskData {
+    locations: Location.LocationObject[];
+}
+
+TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }: { data?: LocationTaskData; error?: Error | null }) => {
     if (error) {
         console.error('Erreur dans la tâche de localisation:', error);
         return;
     }
     if (data) {
-        const { locations } = data as any;
+        const { locations } = data;
         console.log('Localisation reçue en arrière-plan:', locations);
     }
 });
@@ -30,11 +34,13 @@ export default function VitesseDeGlisseScreen() {
     const [maxSpeed, setMaxSpeed] = useState(0);
     const [averageSpeed, setAverageSpeed] = useState(0);
     const [currentSpeed, setCurrentSpeed] = useState(0);
-    const [prevLocation, setPrevLocation] = useState<Location.LocationObjectCoords | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_prevLocation, setPrevLocation] = useState<Location.LocationObjectCoords | null>(null);
     const [subscription, setSubscription] = useState<Location.LocationSubscription | null>(null);
     const [trackingTime, setTrackingTime] = useState(0);
     const [sessionId, setSessionId] = useState<string | null>(null);
-    const [speedHistory, setSpeedHistory] = useState<number[]>([]);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_speedHistory, setSpeedHistory] = useState<number[]>([]);
 
     const [sessionStats, setSessionStats] = useState({
         startTime: 0,

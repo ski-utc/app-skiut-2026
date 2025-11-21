@@ -5,7 +5,7 @@ import { Colors } from "@/constants/GraphSettings";
 export default function LoginScreen() {
     return (
         <SafeAreaView style={styles.container}>
-          <OAuthScreen/>
+            <OAuthScreen />
         </SafeAreaView>
     );
 }

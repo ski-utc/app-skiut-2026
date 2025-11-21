@@ -391,10 +391,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     fetchData();
-  }, []);
-
-  const handleNetworkChange = useCallback((online: boolean) => {
-    setIsOnline(online);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (error && !data) {
@@ -460,12 +457,12 @@ export default function HomeScreen() {
             subtitles={[
               {
                 text: tourStatus.rooms_before === 0
-                  ? 'Votre chambre est la prochaine sur la liste !'
-                  : `${tourStatus.rooms_before} chambre${tourStatus.rooms_before !== 1 ? 's' : ''} à visiter avant la vôtre`
+                  ? '• Votre chambre est la prochaine sur la liste !'
+                  : `• ${tourStatus.rooms_before} chambre${tourStatus.rooms_before !== 1 ? 's' : ''} à visiter avant la vôtre`
               },
-              { text: `Binôme qui viendra vous voir :` },
+              { text: `• Binôme qui viendra vous voir :` },
               ...tourStatus.binome.members.map((member: any) => ({
-                text: `• ${member.firstName} ${member.lastName}`
+                text: `  • ${member.firstName} ${member.lastName}`
               }))
             ]}
             icon={Home}

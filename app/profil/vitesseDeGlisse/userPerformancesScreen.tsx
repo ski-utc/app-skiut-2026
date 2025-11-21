@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
-import { useNavigation } from '@react-navigation/native';
 import Header from "../../../components/header";
 import BoutonRetour from "../../../components/divers/boutonRetour";
 import { Colors, TextStyles } from '@/constants/GraphSettings';
@@ -36,11 +35,11 @@ export default function UserPerformancesScreen() {
     const [stats, setStats] = useState<UserStats | null>(null);
     const [disableRefresh, setDisableRefresh] = useState(false);
 
-    const { user, setUser } = useUser();
-    // const navigation = useNavigation();
+    const { setUser } = useUser();
 
     useEffect(() => {
         fetchUserPerformances();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const fetchUserPerformances = async () => {

@@ -147,7 +147,7 @@ export default function App() {
 function Content() {
   const { user } = useUser();
   const [isLoading, setIsLoading] = useState(true);
-  const { initializeNotifications, isInitialized } = useNotifications();
+  const { isInitialized } = useNotifications();
 
   useEffect(() => {
     const loadAsyncFonts = async () => {

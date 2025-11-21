@@ -4,7 +4,6 @@ import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { Apple, CupSoda, Candy, Sandwich, Milk, Croissant, Drumstick, Carrot, Fish, Wheat, Package, Trash2 } from 'lucide-react-native';
 import { apiPost, apiDelete } from '@/constants/api/apiCalls';
 import Toast from 'react-native-toast-message';
-import { useNavigation } from '@react-navigation/native';
 
 interface Article {
     id: number;
@@ -71,8 +70,6 @@ const getIconForType = (type: string) => {
 };
 
 export default function ArticleCard({ article, onUpdate, showReserveButton = false, isReservation = false, isMyOffer = false, onMarkAsRetrieved, onCancelReservation }: ArticleCardProps) {
-    const navigation = useNavigation<any>();
-
     const handleReserve = async () => {
         Alert.alert(
             'Réserver cet article',

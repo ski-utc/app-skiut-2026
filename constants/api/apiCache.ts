@@ -20,7 +20,6 @@ class ApiCache {
 
         const now = Date.now();
         if (now - entry.timestamp > entry.expiresIn) {
-            // Le cache a expiré
             this.cache.delete(key);
             return null;
         }

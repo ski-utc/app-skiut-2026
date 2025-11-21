@@ -306,6 +306,7 @@ export default function ValideDefisRapide() {
 
     useEffect(() => {
         fetchNextDefi();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (error) {

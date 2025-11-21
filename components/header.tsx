@@ -46,6 +46,7 @@ const Header: React.FC<HeaderProps> = React.memo(({ refreshFunction, disableRefr
     updateUnreadNotifications();
     // const interval = setInterval(updateUnreadNotifications, 30000);
     // return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

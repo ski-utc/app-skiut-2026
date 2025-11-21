@@ -46,10 +46,10 @@ interface RoomTour {
 
 interface Room {
     room_id: string;
-    occupants: Array<{
+    occupants: {
         id: number;
         name: string;
-    }>;
+    }[];
     occupants_count: number;
 }
 

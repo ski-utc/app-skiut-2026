@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, Alert, TouchableOpacity, Modal, StatusBar } from 'react-native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
@@ -30,7 +30,7 @@ export default function RGPDScreen() {
                     onPress: async () => {
                         setLoading(true);
                         try {
-                            const response = await apiPost('rgpd/anonymize-my-data');
+                            const response = await apiPost('rgpd/anonymize-my-data', null);
                             if (response.success) {
                                 Toast.show({
                                     type: 'success',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
+import { Text, TouchableOpacity, View, StyleSheet, TextStyle } from 'react-native';
 import { TextStyles } from '@/constants/GraphSettings';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronRight } from 'lucide-react-native';
@@ -7,17 +7,17 @@ import { ChevronRight } from 'lucide-react-native';
 interface BoutonGestionProps {
     title: string;
     subtitle: string;
-    subtitleStyle?: object;
+    subtitleStyle?: TextStyle;
     nextRoute: string;
     id: number;
     valide: boolean;
 }
 
 const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, subtitleStyle, nextRoute, id, valide }) => {
-    const navigation = useNavigation<any>();
+    const navigation = useNavigation();
 
     const handleGestionClick = () => {
-        navigation.navigate(nextRoute, { id });
+        (navigation as any).navigate(nextRoute, { id });
     };
 
     return (
@@ -63,14 +63,14 @@ const styles = StyleSheet.create({
         color: "#1E1E1E",
         ...TextStyles.bodyLarge,
         fontWeight: "600",
-        wordWrap: 'break-word',
+        flexWrap: 'wrap',
     },
     subtitleText: {
         color: "#737373",
         ...TextStyles.body,
         fontStyle: "italic",
         fontWeight: "400",
-        wordWrap: 'break-word',
+        flexWrap: 'wrap',
     },
 });
 

@@ -39,10 +39,10 @@ interface Visit {
         room_id: string;
         room_name?: string;
         mood?: string;
-        occupants: Array<{
+        occupants: {
             id: number;
             name: string;
-        }>;
+        }[];
         occupants_count: number;
     };
     visit_order: number;
@@ -57,10 +57,10 @@ interface TourData {
     binome: {
         id: number;
         name: string;
-        members: Array<{
+        teammate: {
             id: number;
             name: string;
-        }>;
+        };
         stats: {
             total_rooms: number;
             visited_rooms: number;
@@ -243,7 +243,11 @@ export default function TourneeChambreScreen() {
 
             if (response.success) {
                 setHasChanges(false);
-                Alert.alert('Succès', 'L\'ordre des chambres a été enregistré');
+                Toast.show({
+                    type: 'success',
+                    text1: 'Succès',
+                    text2: 'L\'ordre des chambres a été enregistré',
+                });
                 fetchTourData();
             } else if (response.pending) {
                 Toast.show({
@@ -423,7 +427,7 @@ export default function TourneeChambreScreen() {
                     <View style={styles.binomeHeader}>
                         <View style={styles.binomeTitleRow}>
                             <Users size={16} color={Colors.white} />
-                            <Text style={styles.binomeTitle}>{tourData.binome.name}</Text>
+                            <Text style={styles.binomeTitle}>Avec {tourData.binome.teammate.name}</Text>
                         </View>
                         <Text style={styles.binomeStats}>
                             {tourData.binome.stats.visited_rooms}/{tourData.binome.stats.total_rooms}

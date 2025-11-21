@@ -18,6 +18,13 @@ interface FilterButtonProps {
   count?: number;
 }
 
+interface NotificationItem {
+  id: number;
+  title: string;
+  display: boolean;
+  created_at: string;
+}
+
 const FilterButton: React.FC<FilterButtonProps> = ({ label, icon, isActive, onPress, count }) => (
   <TouchableOpacity
     style={[styles.filterButton, isActive && styles.filterButtonActive]}
@@ -43,33 +50,33 @@ const GestionNotificationsScreen = () => {
   const navigation = useNavigation();
   const { setUser } = useUser();
 
-  const [notifications, setNotifications] = useState([]);
-  const [filteredNotifications, setFilteredNotifications] = useState([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [filteredNotifications, setFilteredNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'displayed'>('all');
 
-  const handleFilter = (filter: 'all' | 'active' | 'displayed') => {
+  const handleFilter = useCallback((filter: 'all' | 'active' | 'displayed') => {
     setActiveFilter(filter);
     switch (filter) {
       case 'active':
-        setFilteredNotifications(notifications.filter((item: any) => !item.display));
+        setFilteredNotifications(notifications.filter((item) => !item.display));
         break;
       case 'displayed':
-        setFilteredNotifications(notifications.filter((item: any) => item.display));
+        setFilteredNotifications(notifications.filter((item) => item.display));
         break;
       default:
         setFilteredNotifications(notifications);
         break;
     }
-  };
+  }, [notifications]);
 
   const getFilterCounts = () => {
     return {
       all: notifications.length,
-      active: notifications.filter((item: any) => !item.display).length,
-      displayed: notifications.filter((item: any) => item.display).length,
+      active: notifications.filter((item) => !item.display).length,
+      displayed: notifications.filter((item) => item.display).length,
     };
   };
 
@@ -102,10 +109,11 @@ const GestionNotificationsScreen = () => {
     fetchAdminNotifications();
     const unsubscribe = navigation.addListener('focus', () => {
       fetchAdminNotifications();
+      handleFilter(activeFilter);
     });
 
     return unsubscribe;
-  }, [navigation, fetchAdminNotifications]);
+  }, [navigation, fetchAdminNotifications, activeFilter, handleFilter]);
 
   if (error !== '') {
     return <ErrorScreen error={error} />;
@@ -180,7 +188,7 @@ const GestionNotificationsScreen = () => {
       <View style={styles.list}>
         <FlatList
           data={filteredNotifications}
-          renderItem={({ item }: { item: any }) => (
+          renderItem={({ item }) => (
             <BoutonGestion
               title={item.title}
               subtitle={`Date : ${item?.created_at ? new Date(item.created_at).toLocaleDateString('fr-FR', {
@@ -198,7 +206,7 @@ const GestionNotificationsScreen = () => {
               valide={item.display}
             />
           )}
-          keyExtractor={(item: any) => item.id.toString()}
+          keyExtractor={(item) => item.id.toString()}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <View style={styles.emptyIcon}>

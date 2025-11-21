@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Text, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard, Pressable, StyleSheet } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { Colors, TextStyles } from '@/constants/GraphSettings';

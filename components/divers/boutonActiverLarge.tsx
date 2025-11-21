@@ -1,15 +1,23 @@
 import React from 'react';
-import { Text, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity, ViewStyle } from 'react-native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
+import { LucideIcon } from 'lucide-react-native';
 
-// @ts-ignore
+interface BoutonActiverLargeProps {
+    title: string;
+    IconComponent?: LucideIcon;
+    onPress?: () => void;
+    disabled?: boolean;
+    customStyles?: ViewStyle;
+}
+
 export default function BoutonActiverLarge({
     title,
     IconComponent,
     onPress = () => { },
     disabled = false,
     customStyles = {}
-}) {
+}: BoutonActiverLargeProps) {
     return (
         <TouchableOpacity
             onPress={disabled ? () => { } : onPress}

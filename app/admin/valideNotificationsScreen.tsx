@@ -39,7 +39,7 @@ export default function ValideNotifications() {
   const fetchNotificationDetails = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiGet(`notifications/${id}`);
+      const response = await apiGet(`admin/notifications/${id}`);
       if (response.success) {
         setNotificationDetails(response.data);
       } else {
@@ -59,7 +59,7 @@ export default function ValideNotifications() {
   const handleDelete = async (displayFlag: boolean) => {
     setLoading(true);
     try {
-      const response = await apiPut(`notifications/${id}/display`, { display_flag: displayFlag });
+      const response = await apiPut(`admin/notifications/${id}/display`, { display_flag: displayFlag });
       if (response.success) {
         if (displayFlag === true) {
           Toast.show({

@@ -1,6 +1,6 @@
 import { Text, View, ActivityIndicator, Dimensions, StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import Header from "@/components/header";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Colors, TextStyles, Fonts } from '@/constants/GraphSettings';
 import { Crown, Trophy, Medal, ChevronDown } from "lucide-react-native";
 import BoutonRetour from '@/components/divers/boutonRetour';
@@ -192,11 +192,7 @@ export default function PerformancesScreen() {
     const [rankingType, setRankingType] = useState<RankingType>('speed');
     const [showRankingMenu, setShowRankingMenu] = useState(false);
 
-    useEffect(() => {
-        fetchPerformances();
-    }, [rankingType]);
-
-    const fetchPerformances = async () => {
+    const fetchPerformances = useCallback(async () => {
         setLoading(true);
         setDisableRefresh(true);
         try {
@@ -224,7 +220,11 @@ export default function PerformancesScreen() {
                 setDisableRefresh(false);
             }, 5000);
         }
-    };
+    }, [rankingType]);
+
+    useEffect(() => {
+        fetchPerformances();
+    }, [fetchPerformances]);
 
     const getRankingLabel = () => {
         switch (rankingType) {

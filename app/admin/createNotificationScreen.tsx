@@ -21,6 +21,7 @@ interface User {
 
 interface Room {
     id: number;
+    roomNumber: number;
     name: string;
 }
 
@@ -48,6 +49,7 @@ export default function CreateNotificationScreen() {
 
     useEffect(() => {
         fetchRecipientsData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const fetchRecipientsData = async () => {
@@ -320,7 +322,7 @@ export default function CreateNotificationScreen() {
                                                     onValueChange={() => handleRoomSelection(room.id)}
                                                     color={Colors.primary}
                                                 />
-                                                <Text style={styles.selectionItemText}>{room.name}</Text>
+                                                <Text style={styles.selectionItemText}>{room.roomNumber} - {room.name}</Text>
                                             </TouchableOpacity>
                                         ))}
                                     </ScrollView>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Text, View, StyleSheet, ActivityIndicator, Image, TouchableOpacity, ScrollView, SafeAreaView, Modal, StatusBar } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { X, Check, Trophy, Calendar, User, Image as ImageIcon, Maximize } from 'lucide-react-native';

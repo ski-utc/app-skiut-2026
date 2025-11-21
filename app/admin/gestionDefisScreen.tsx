@@ -18,6 +18,21 @@ interface FilterButtonProps {
   count?: number;
 }
 
+interface DefiItem {
+  id: number;
+  valid: boolean;
+  delete: boolean;
+  challenge: {
+    id: number;
+    title: string;
+  };
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+  };
+}
+
 const FilterButton: React.FC<FilterButtonProps> = ({ label, icon, isActive, onPress, count }) => (
   <TouchableOpacity
     style={[styles.filterButton, isActive && styles.filterButtonActive]}
@@ -41,8 +56,8 @@ const FilterButton: React.FC<FilterButtonProps> = ({ label, icon, isActive, onPr
 
 
 const GestionDefisScreen = () => {
-  const [defis, setDefis] = useState([]);
-  const [filteredDefis, setFilteredDefis] = useState([]);
+  const [defis, setDefis] = useState<DefiItem[]>([]);
+  const [filteredDefis, setFilteredDefis] = useState<DefiItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);
@@ -76,26 +91,26 @@ const GestionDefisScreen = () => {
     }
   }, [setUser]);
 
-  const handleFilter = (filter: 'all' | 'pending' | 'valid') => {
+  const handleFilter = useCallback((filter: 'all' | 'pending' | 'valid') => {
     setActiveFilter(filter);
     switch (filter) {
       case 'pending':
-        setFilteredDefis(defis.filter((item: any) => !item.valid && !item.delete));
+        setFilteredDefis(defis.filter((item) => !item.valid && !item.delete));
         break;
       case 'valid':
-        setFilteredDefis(defis.filter((item: any) => !item.delete && item.valid));
+        setFilteredDefis(defis.filter((item) => !item.delete && item.valid));
         break;
       default:
-        setFilteredDefis(defis.filter((item: any) => !item.delete));
+        setFilteredDefis(defis.filter((item) => !item.delete));
         break;
     }
-  };
+  }, [defis]);
 
   const getFilterCounts = () => {
     return {
-      all: defis.filter((item: any) => !item.delete).length,
-      pending: defis.filter((item: any) => !item.valid && !item.delete).length,
-      valid: defis.filter((item: any) => !item.delete && item.valid).length,
+      all: defis.filter((item) => !item.delete).length,
+      pending: defis.filter((item) => !item.valid && !item.delete).length,
+      valid: defis.filter((item) => !item.delete && item.valid).length,
     };
   };
 
@@ -103,10 +118,11 @@ const GestionDefisScreen = () => {
     fetchAdminDefis();
     const unsubscribe = navigation.addListener('focus', () => {
       fetchAdminDefis();
+      handleFilter(activeFilter);
     });
 
     return unsubscribe;
-  }, [navigation, fetchAdminDefis]);
+  }, [navigation, fetchAdminDefis, activeFilter, handleFilter]);
 
   if (error !== '') {
     return <ErrorScreen error={error} />;
@@ -181,7 +197,7 @@ const GestionDefisScreen = () => {
       <View style={styles.list}>
         <FlatList
           data={filteredDefis}
-          renderItem={({ item }: { item: any }) => (
+          renderItem={({ item }) => (
             <BoutonGestion
               title={`Défi ${item.id} : ${item.challenge.title}`}
               subtitle={`Auteur : ${item?.user?.firstName} ${item?.user?.lastName || 'Nom inconnu'}`}
@@ -191,7 +207,7 @@ const GestionDefisScreen = () => {
               valide={item.valid}
             />
           )}
-          keyExtractor={(item: any) => item.id.toString()}
+          keyExtractor={(item) => item.id.toString()}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <View style={styles.emptyIcon}>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, FlatList, ActivityIndicator, Text, TouchableOpacity, SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { MessageSquare, AlertTriangle, Clock, CheckCircle, Zap, ChevronRight } from 'lucide-react-native';
 
 import BoutonRetour from '@/components/divers/boutonRetour';
@@ -11,6 +11,12 @@ import { useUser } from '@/contexts/UserContext';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import Header from '../../components/header';
+
+type GestionAnecdotesStackParamList = {
+  gestionAnecdotesScreen: undefined;
+  valideAnecdotesScreen: undefined;
+  valideAnecdotesRapide: undefined;
+}
 
 type FilterButtonProps = {
   label: string;
@@ -63,7 +69,7 @@ const GestionAnecdotesScreen = () => {
   const [activeFilter, setActiveFilter] = useState('all');
 
   const { setUser } = useUser();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<GestionAnecdotesStackParamList>>();
 
   const fetchAdminAnecdotes = useCallback(async () => {
     setLoading(true);
@@ -77,11 +83,11 @@ const GestionAnecdotesScreen = () => {
       } else {
         setError(response.message);
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+    } catch (error: unknown) {
+      if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
         setUser(null);
-      } else {
-        setError(error.message);
+      } else if (error instanceof Error) {
+        setError(error.message || 'Une erreur est survenue.');
       }
     } finally {
       setLoading(false);
@@ -160,7 +166,7 @@ const GestionAnecdotesScreen = () => {
       <View style={styles.createButtonContainer}>
         <TouchableOpacity
           style={styles.createButton}
-          onPress={() => (navigation as any).navigate('valideAnecdotesRapide')}
+          onPress={() => navigation.navigate('valideAnecdotesRapide')}
         >
           <View style={styles.createButtonIcon}>
             <Zap size={20} color={Colors.white} />

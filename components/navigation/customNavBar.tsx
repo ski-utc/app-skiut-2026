@@ -1,13 +1,20 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
-export default function CustomNavBar({ state, navigation }) {
+type TabItem = {
+  name: string;
+  label: string;
+  Icon: React.ComponentType<{ size: number; color: string }>;
+};
+
+export default function CustomNavBar({ state, navigation }: BottomTabBarProps) {
   const activeColor = Colors.primary;
   const unactiveColor = Colors.muted;
 
-  const tabs = [
+  const tabs: TabItem[] = [
     { name: 'homeNavigator', label: 'Home', Icon: Home },
     { name: 'planningNavigator', label: 'Planning', Icon: CalendarFold },
     { name: 'defisNavigator', label: 'Défi', Icon: LandPlot },

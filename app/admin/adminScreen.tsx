@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, FlatList, ActivityIndicator, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { ChevronRight, Shield, MessageSquare, Trophy, Bell, Clock, Home } from 'lucide-react-native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 
 import { apiGet } from '@/constants/api/apiCalls';
 import BoutonRetour from '@/components/divers/boutonRetour';
@@ -11,22 +11,38 @@ import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import Header from '../../components/header';
 
+type AdminStackParamList = {
+  adminScreen: undefined;
+  gestionDefisScreen: undefined;
+  gestionAnecdotesScreen: undefined;
+  gestionNotificationsScreen: undefined;
+  gestionPermanencesScreen: undefined;
+  gestionTourneeChambreScreen: undefined;
+};
+
 type BoutonAdminProps = {
-  nextRoute: string;
+  nextRoute: keyof AdminStackParamList;
   title: string;
   icon: React.ReactNode;
   description: string;
-}
+};
+
+type AdminControl = {
+  title: string;
+  nextRoute: keyof AdminStackParamList;
+  icon: React.ReactNode;
+  description: string;
+};
 
 const BoutonAdmin: React.FC<BoutonAdminProps> = ({ nextRoute, title, icon, description }) => {
-  const navigation = useNavigation();
-
-  const onPress = () => {
-    (navigation as any).navigate(nextRoute);
-  };
+  const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
 
   return (
-    <TouchableOpacity onPress={onPress} style={styles.adminCard} activeOpacity={0.8}>
+    <TouchableOpacity
+      onPress={() => navigation.navigate(nextRoute)}
+      style={styles.adminCard}
+      activeOpacity={0.8}
+    >
       <View style={styles.cardIconContainer}>
         {icon}
       </View>
@@ -41,7 +57,7 @@ const BoutonAdmin: React.FC<BoutonAdminProps> = ({ nextRoute, title, icon, descr
   );
 };
 
-const adminControls = [
+const adminControls: AdminControl[] = [
   {
     title: 'Gestion des défis',
     nextRoute: 'gestionDefisScreen',
@@ -77,24 +93,22 @@ const adminControls = [
 export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
   const { setUser } = useUser();
 
   const fetchAdmin = useCallback(async () => {
     setLoading(true);
-
     try {
       const response = await apiGet("admin");
       if (!response.success) {
         navigation.goBack();
         return null;
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+    } catch (error: unknown) {
+      if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
         setUser(null);
-      } else {
-        setError(error.message);
+      } else if (error instanceof Error) {
+        setError(error.message || 'Une erreur est survenue.');
       }
     } finally {
       setLoading(false);
@@ -141,7 +155,7 @@ export default function Admin() {
       <View style={styles.contentContainer}>
         <FlatList
           data={adminControls}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={(index) => index.toString()}
           renderItem={({ item }) => (
             <BoutonAdmin
               nextRoute={item.nextRoute}

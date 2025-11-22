@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { StyleSheet, View, Text, ActivityIndicator, Animated, TouchableOpacity, SafeAreaView } from 'react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import { Check, X, HelpCircle, MessageSquare, AlertTriangle } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 
 import { useUser } from '@/contexts/UserContext';
@@ -12,6 +12,10 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import Header from '../../components/header';
+
+type ValideAnecdotesRapideStackParamList = {
+    valideAnecdotesRapide: undefined;
+}
 
 type Anecdote = {
     id: number;
@@ -39,7 +43,7 @@ export default function ValideAnecdotesRapide() {
     const [processing, setProcessing] = useState(false);
 
     const { setUser } = useUser();
-    const navigation = useNavigation();
+    const navigation = useNavigation<NavigationProp<ValideAnecdotesRapideStackParamList>>();
 
     const translateX = useRef(new Animated.Value(0)).current;
     const translateY = useRef(new Animated.Value(0)).current;

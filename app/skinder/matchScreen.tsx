@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { View, Image, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { NavigationProp, useNavigation, useRoute } from '@react-navigation/native';
 import { Heart, Sparkles, MapPin } from 'lucide-react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 
+type MatchStackParamList = {
+    matchScreen: undefined;
+}
+
 export default function MatchScreen() {
-    const navigation = useNavigation();
+    const navigation = useNavigation<NavigationProp<MatchStackParamList>>();
     const route = useRoute();
 
     const { myImage, roomImage, roomNumber, roomResp } = (route.params as any) || {};

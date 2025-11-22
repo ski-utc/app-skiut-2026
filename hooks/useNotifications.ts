@@ -65,7 +65,7 @@ export const useNotifications = () => {
             } else {
                 setIsInitialized(true);
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('[useNotifications] Erreur initialisation notifications:', error);
 
             Toast.show({

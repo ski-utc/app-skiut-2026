@@ -1,6 +1,6 @@
 import { Text, View, ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, Linking, Dimensions, Animated } from "react-native";
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useNavigation } from "@react-navigation/native";
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Calendar, Trophy, MessageCircle, ChevronRight, MapPin, Thermometer, Wind, Droplets, Sun, Cloud, CloudRain, CloudSnow, Moon, CloudMoon, CloudLightning, CloudDrizzle, CloudFog, CloudMoonRain, Home } from 'lucide-react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 
@@ -11,6 +11,10 @@ import { Colors, FontSizes, TextStyles } from '@/constants/GraphSettings';
 import { OfflineStatusBanner, PendingRequestsWidget } from '@/components/home/offlineWidgets';
 
 import Header from "../../components/header";
+
+type HomeStackParamList = {
+  homeScreen: undefined;
+}
 
 type WeatherWidgetProps = {
   weatherData: any;
@@ -348,7 +352,7 @@ export default function HomeScreen() {
   // const [isOnline, setIsOnline] = useState(true);
   const [usingCachedData, setUsingCachedData] = useState(false);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
   const { setUser } = useUser();
 
   const fetchData = useCallback(async () => {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Text, View, StyleSheet, ActivityIndicator, ScrollView, SafeAreaView } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, NavigationProp, useNavigation } from '@react-navigation/native';
 import { X, Check, MessageSquare, Calendar, User, Heart, AlertTriangle } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
@@ -12,6 +12,10 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
 import Header from '../../components/header';
+
+type ValideAnecdotesStackParamList = {
+  valideAnecdotesScreen: undefined;
+}
 
 type AnecdoteDetails = {
   id: number;
@@ -33,7 +37,7 @@ export default function ValideAnecdotes() {
   const route = useRoute();
   const { id } = (route.params as RouteParams) || { id: 0 };
   const { setUser } = useUser();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<ValideAnecdotesStackParamList>>();
 
   const [anecdoteDetails, setAnecdoteDetails] = useState<AnecdoteDetails | null>(null);
   const [nbLikes, setNbLikes] = useState<number | null>(null);

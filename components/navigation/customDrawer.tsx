@@ -35,7 +35,7 @@ export default function CustomDrawer({ navigation }: CustomDrawerProps) {
 
         setTimeout(() => {
             navigation.navigate('MainTabs', {
-                screen: 'profilNavigator',
+                screen: 'drawerNavigator',
                 params: {
                     screen: screenName
                 }

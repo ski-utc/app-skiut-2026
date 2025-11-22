@@ -1,12 +1,20 @@
 import React, { useState, useCallback, useEffect, memo } from 'react';
 import { Text, View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { GanttChart, Bell, RotateCcw } from 'lucide-react-native';
-import { useNavigation, DrawerActions } from '@react-navigation/native';
+import { NavigationProp, useNavigation, DrawerActions } from '@react-navigation/native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import NotificationPopup from '@/app/notificationPopUp';
 import { useUser } from '@/contexts/UserContext';
 import { apiGet } from '@/constants/api/apiCalls';
+
+type HeaderStackParamList = {
+  homeScreen: undefined;
+  planningScreen: undefined;
+  defisScreen: undefined;
+  anecdotesScreen: undefined;
+  profilScreen: undefined;
+}
 
 type HeaderProps = {
   refreshFunction?: (() => void) | null;
@@ -17,7 +25,7 @@ const Header: React.FC<HeaderProps> = memo(({ refreshFunction, disableRefresh = 
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const { user } = useUser();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<HeaderStackParamList>>();
 
   const activeOpacity = 1;
   const inactiveOpacity = 0.4;

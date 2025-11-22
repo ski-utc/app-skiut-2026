@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, FlatList, ActivityIndicator, Text, TouchableOpacity, SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Trophy, Clock, CheckCircle, Zap, ChevronRight } from 'lucide-react-native';
 
 import BoutonRetour from '@/components/divers/boutonRetour';
@@ -11,6 +11,12 @@ import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
 
 import Header from '../../components/header';
+
+type GestionDefisStackParamList = {
+  gestionDefisScreen: undefined;
+  valideDefisScreen: undefined;
+  valideDefisRapide: undefined;
+}
 
 type FilterButtonProps = {
   label: string;
@@ -65,7 +71,7 @@ const GestionDefisScreen = () => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'valid'>('all');
 
   const { setUser } = useUser();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<GestionDefisStackParamList>>();
 
   const fetchAdminDefis = useCallback(async () => {
     setLoading(true);
@@ -78,11 +84,11 @@ const GestionDefisScreen = () => {
       } else {
         setError('Erreur lors de la récupération des défis');
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+    } catch (error: unknown) {
+      if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
         setUser(null);
-      } else {
-        setError(error.message);
+      } else if (error instanceof Error) {
+        setError(error.message || 'Une erreur est survenue.');
       }
     } finally {
       setLoading(false);
@@ -161,7 +167,7 @@ const GestionDefisScreen = () => {
       <View style={styles.createButtonContainer}>
         <TouchableOpacity
           style={styles.createButton}
-          onPress={() => (navigation as any).navigate('valideDefisRapide')}
+          onPress={() => navigation.navigate('valideDefisRapide')}
         >
           <View style={styles.createButtonIcon}>
             <Zap size={20} color={Colors.white} />

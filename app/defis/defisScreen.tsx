@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator, Text, TouchableOpacity } from "react-native";
 import { Trophy, ChevronRight, Check, X, ListTodo, Hourglass } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 
 import BoutonNavigationLarge from "@/components/divers/boutonNavigationLarge";
 import BoutonRetour from "@/components/divers/boutonRetour";
@@ -11,6 +11,11 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
 import Header from "../../components/header";
+
+type DefisStackParamList = {
+  defisScreen: undefined;
+  defisInfos: { id: number, title: string, points: number, status: string, onUpdate: (id: number, status: string) => void };
+}
 
 type BoutonDefiProps = {
   defi: {
@@ -23,10 +28,10 @@ type BoutonDefiProps = {
 }
 
 const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<DefisStackParamList>>();
 
   const onPress = () => {
-    (navigation as any).navigate("defisInfos", {
+    navigation.navigate("defisInfos", {
       id: defi.id,
       title: defi.title,
       points: defi.points,
@@ -84,7 +89,7 @@ export default function Defis() {
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<DefisStackParamList>>();
   const { setUser } = useUser();
 
   const fetchChallenges = useCallback(async () => {

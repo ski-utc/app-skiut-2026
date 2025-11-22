@@ -174,10 +174,10 @@ export default function GestionPermanencesScreen() {
                 setMembers(membersResponse.data);
             }
 
-        } catch (error: any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        } catch (error: unknown) {
+            if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
                 setUser(null);
-            } else {
+            } else if (error instanceof Error) {
                 setError(error.message);
             }
         } finally {
@@ -272,8 +272,12 @@ export default function GestionPermanencesScreen() {
             } else {
                 showToast('error', 'Erreur', response.message);
             }
-        } catch (error: any) {
-            setError(error.message || 'Une erreur est survenue.');
+        } catch (error: unknown) {
+            if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
+                setUser(null);
+            } else if (error instanceof Error) {
+                setError(error.message || 'Une erreur est survenue.');
+            }
         } finally {
             setFormSubmitting(false);
         }
@@ -300,7 +304,7 @@ export default function GestionPermanencesScreen() {
                             } else {
                                 showToast('error', 'Erreur', response.message);
                             }
-                        } catch (error: any) {
+                        } catch (error: unknown) {
                             setError(error.message || 'Une erreur est survenue.');
                             showToast('error', 'Erreur', error.message || 'Une erreur est survenue.');
                         }

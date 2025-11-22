@@ -1,12 +1,18 @@
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Calendar, Map, LogIn, PartyPopper, Cookie } from 'lucide-react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
+type Launch3StackParamList = {
+  launchScreen2: undefined;
+  launchScreen3: undefined;
+  loginScreen: undefined;
+}
+
 export default function LaunchScreen3() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<Launch3StackParamList>>();
 
   const handleGestureEvent = ({ nativeEvent }: any) => {
     if (nativeEvent.state === State.END) {
@@ -69,7 +75,7 @@ export default function LaunchScreen3() {
 
           <View style={styles.buttonsContainer}>
             <TouchableOpacity
-              onPress={() => (navigation as any).navigate("loginScreen")}
+              onPress={() => navigation.navigate("loginScreen")}
               style={styles.loginButton}
               activeOpacity={0.8}
             >

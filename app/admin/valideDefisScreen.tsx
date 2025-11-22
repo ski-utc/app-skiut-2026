@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Text, View, StyleSheet, ActivityIndicator, Image, TouchableOpacity, ScrollView, SafeAreaView, Modal, StatusBar } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, NavigationProp, useNavigation } from '@react-navigation/native';
 import { X, Check, Trophy, Calendar, User, Image as ImageIcon, Maximize } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import { ImageViewer } from "react-native-image-zoom-viewer";
@@ -13,6 +13,10 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
 import Header from '../../components/header';
+
+type ValideDefisStackParamList = {
+  valideDefisScreen: undefined;
+}
 
 type ChallengeDetails = {
   id: number;
@@ -36,7 +40,7 @@ export default function ValideDefis() {
   const route = useRoute();
   const { id } = (route.params as RouteParams) || { id: 0 };
   const { setUser } = useUser();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<ValideDefisStackParamList>>();
 
   const [challengeDetails, setChallengeDetails] = useState<ChallengeDetails | null>(null);
   const [proofImage, setProofImage] = useState("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg");

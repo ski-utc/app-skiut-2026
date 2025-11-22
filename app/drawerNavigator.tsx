@@ -7,12 +7,12 @@ import SkinderNavigator from './skinder/skinderNavigator';
 import NavettesScreen from './profil/navettesScreen';
 import RGPDScreen from './profil/rgpdScreen';
 import TourneeChambreScreen from './profil/tourneeChambreScreen';
-import AdminNavigator from './adminNavigator';
+import AdminNavigator from './admin/adminNavigator';
 import MonoprutNavigator from './monoprutNavigator';
 
 const Stack = createStackNavigator();
 
-export default function ProfilNavigator() {
+export default function DrawerNavigator() {
     const getScreenListeners = ({ navigation }: any) => ({
         beforeRemove: (e: any) => {
             if (e.data.action.type === 'GO_BACK' || e.data.action.type === 'POP') {

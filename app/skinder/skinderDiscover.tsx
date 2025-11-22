@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { StyleSheet, View, Image, Text, ActivityIndicator, Animated, TouchableOpacity, ScrollView } from 'react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import { Heart, X, User, MessageCircle, Settings } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
@@ -11,6 +11,13 @@ import { apiGet, apiPost } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 
 import Header from '../../components/header';
+
+type SkinderDiscoverStackParamList = {
+    skinderDiscover: undefined;
+    skinderProfil: undefined;
+    matchScreen: { myImage: string, roomImage: string, roomNumber: number, roomResp: string };
+    skinderMyMatches: undefined;
+}
 
 export default function SkinderDiscover() {
     const [error, setError] = useState('');
@@ -23,7 +30,7 @@ export default function SkinderDiscover() {
     const [loading, setLoading] = useState(false);
 
     const { setUser } = useUser();
-    const navigation = useNavigation();
+    const navigation = useNavigation<NavigationProp<SkinderDiscoverStackParamList>>();
 
     const translateX = useRef(new Animated.Value(0)).current;
     const translateY = useRef(new Animated.Value(0)).current;
@@ -207,7 +214,7 @@ export default function SkinderDiscover() {
             const response = await apiPost(`skinder/profiles/${profile.id}/like`, { 'roomLiked': profile.id });
             if (response.success) {
                 if (response.match) {
-                    (navigation as any).navigate('matchScreen', {
+                    navigation.navigate('matchScreen', {
                         myImage: response.myRoomImage,
                         roomImage: response.otherRoomImage,
                         roomNumber: response.otherRoomNumber,
@@ -269,7 +276,7 @@ export default function SkinderDiscover() {
             <View style={styles.content}>
                 <View style={styles.navigationHeader}>
                     <TouchableOpacity
-                        onPress={() => (navigation as any).navigate('skinderMyMatches')}
+                        onPress={() => navigation.navigate('skinderMyMatches')}
                         style={styles.navButton}
                     >
                         <MessageCircle size={20} color={Colors.primary} />
@@ -277,7 +284,7 @@ export default function SkinderDiscover() {
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        onPress={() => (navigation as any).navigate('skinderProfil')}
+                        onPress={() => navigation.navigate('skinderProfil')}
                         style={styles.navButton}
                     >
                         <Settings size={20} color={Colors.primary} />
@@ -362,7 +369,7 @@ export default function SkinderDiscover() {
                             Définissez les informations de votre chambre et ajoutez une photo de profil pour commencer à utiliser Skinder
                         </Text>
                         <TouchableOpacity
-                            onPress={() => (navigation as any).navigate('skinderProfil')}
+                            onPress={() => navigation.navigate('skinderProfil')}
                             style={styles.actionButton}
                         >
                             <Text style={styles.actionButtonText}>Modifier mon profil</Text>

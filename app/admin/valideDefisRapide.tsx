@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { StyleSheet, View, Image, Text, ActivityIndicator, Animated, TouchableOpacity, SafeAreaView } from 'react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import { Check, X, HelpCircle, Trophy } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Video, ResizeMode } from 'expo-av';
 import Toast from 'react-native-toast-message';
 
@@ -13,6 +13,10 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import Header from '../../components/header';
+
+type ValideDefisRapideStackParamList = {
+    valideDefisRapide: undefined;
+}
 
 type Defi = {
     id: number;
@@ -43,7 +47,7 @@ export default function ValideDefisRapide() {
     const [processing, setProcessing] = useState(false);
 
     const { setUser } = useUser();
-    const navigation = useNavigation();
+    const navigation = useNavigation<NavigationProp<ValideDefisRapideStackParamList>>();
 
     const translateX = useRef(new Animated.Value(0)).current;
     const translateY = useRef(new Animated.Value(0)).current;

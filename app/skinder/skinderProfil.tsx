@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert, TextInput, KeyboardAvoidingView, ScrollView, Platform, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from "expo-image-manipulator";
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import { Camera, Save, X } from 'lucide-react-native';
 
@@ -13,6 +13,11 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import Header from '../../components/header';
+
+type SkinderProfilStackParamList = {
+  skinderProfil: undefined;
+  skinderDiscover: undefined;
+}
 
 export default function SkinderProfil() {
   const [profile, setProfile] = useState({
@@ -28,7 +33,7 @@ export default function SkinderProfil() {
   const [charLimits, setCharLimits] = useState(Array(6).fill(0));
 
   const { setUser } = useUser();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<SkinderProfilStackParamList>>();
   const fetchProfil = useCallback(async () => {
     setLoading(true);
     try {
@@ -168,7 +173,7 @@ export default function SkinderProfil() {
           text2: response.message + ' ' + response2.message,
         });
         if ((response.success && response2.success) || (response.pending && response2.pending)) {
-          (navigation as any).navigate('skinderDiscover');
+          navigation.navigate('skinderDiscover');
         } else {
           setError(response.message || 'Erreur lors de la sauvegarde des données.');
         }
@@ -179,7 +184,7 @@ export default function SkinderProfil() {
             text1: 'Profil modifié !',
             text2: response.message,
           });
-          (navigation as any).navigate('skinderDiscover');
+          navigation.navigate('skinderDiscover');
         }
       }
     } catch (error: any) {

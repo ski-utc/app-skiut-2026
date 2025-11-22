@@ -1,17 +1,21 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { AlertTriangle, ArrowLeft } from "lucide-react-native";
 
 import { Colors, TextStyles } from "@/constants/GraphSettings";
 
 import Header from "../header";
 
+type ErrorStackParamList = {
+  errorScreen: undefined;
+}
+
 type ErrorScreenProps = {
   error: string;
 }
 
 export default function ErrorScreen({ error }: ErrorScreenProps) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<ErrorStackParamList>>();
   return (
     <View style={styles.container}>
       <Header refreshFunction={null} disableRefresh={true} />

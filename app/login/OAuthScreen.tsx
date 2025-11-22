@@ -3,7 +3,7 @@ import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { WebView } from "react-native-webview";
 import * as Linking from "expo-linking";
 import * as SecureStore from "expo-secure-store";
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { X } from "lucide-react-native";
 
 import { useUser } from "@/contexts/UserContext";
@@ -13,9 +13,13 @@ import ErrorScreen from "@/components/pages/errorPage";
 
 import * as config from "../../constants/api/apiConfig";
 
+type OauthStackParamList = {
+  loginScreen: undefined;
+}
+
 export default function OAuthScreen() {
   const { setUser } = useUser();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<OauthStackParamList>>();
   const [error, setError] = useState('');
   const [canEnter, setCanEnter] = useState(true);
   const [isWebViewVisible, setWebViewVisible] = useState(true);

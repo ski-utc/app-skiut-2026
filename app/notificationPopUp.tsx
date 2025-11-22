@@ -39,11 +39,11 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
       } else {
         setError('Une erreur est survenue lors de la récupération des notifications');
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+    } catch (error: unknown) {
+      if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
         setUser(null);
-      } else {
-        setError(error.message);
+      } else if (error instanceof Error) {
+        setError(error.message || 'Une erreur est survenue.');
       }
     } finally {
       setLoading(false);
@@ -62,8 +62,12 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
           )
         );
       }
-    } catch (error: any) {
-      console.log('Erreur lors du marquage comme lue:', error);
+    } catch (error: unknown) {
+      if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
+        setUser(null);
+      } else if (error instanceof Error) {
+        setError(error.message || 'Une erreur est survenue.');
+      }
     }
   };
 

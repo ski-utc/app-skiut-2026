@@ -1,17 +1,23 @@
 import { View, Text, Image, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Sparkles } from 'lucide-react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
+type Launch1StackParamList = {
+  launchScreen1: undefined;
+  launchScreen2: undefined;
+  loginScreen: undefined;
+}
+
 export default function LaunchScreen1() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<Launch1StackParamList>>();
 
   const handleGestureEvent = ({ nativeEvent }: any) => {
     if (nativeEvent.state === State.END) {
       if (nativeEvent.velocityX < -500) {
-        (navigation as any).navigate("launchScreen2");
+        navigation.navigate("launchScreen2");
       }
     }
   };
@@ -53,7 +59,7 @@ export default function LaunchScreen1() {
           </Text>
 
           <TouchableOpacity
-            onPress={() => (navigation as any).navigate("loginScreen")}
+            onPress={() => navigation.navigate("loginScreen")}
             style={styles.skipButton}
           >
             <Text style={styles.skipButtonText}>Passer l'introduction</Text>

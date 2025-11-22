@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView, AppState, Platform } from "react-native";
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Trophy, Play, Square, Zap, MapPin, Timer, Gauge, Activity, TrendingUp } from "lucide-react-native";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
@@ -14,6 +14,12 @@ import BoutonRetour from "../../../components/divers/boutonRetour";
 import Header from "../../../components/header";
 
 const LOCATION_TASK_NAME = 'background-location-task';
+
+type VitesseDeGlisseStackParamList = {
+    VitesseDeGlisseMain: undefined;
+    PerformancesScreen: undefined;
+    UserPerformancesScreen: undefined;
+}
 
 type LocationTaskData = {
     locations: Location.LocationObject[];
@@ -50,7 +56,7 @@ export default function VitesseDeGlisseScreen() {
     });
 
     const { user, setUser } = useUser();
-    const navigation = useNavigation();
+    const navigation = useNavigation<NavigationProp<VitesseDeGlisseStackParamList>>();
     const appState = useRef(AppState.currentState);
     const trackingInterval = useRef<NodeJS.Timeout | null>(null);
 
@@ -518,7 +524,7 @@ export default function VitesseDeGlisseScreen() {
                     <ActionButton
                         title="Voir le classement"
                         icon={Trophy}
-                        onPress={() => (navigation as any).navigate('PerformancesScreen')}
+                        onPress={() => navigation.navigate('PerformancesScreen')}
                         variant="secondary"
                         disabled={isTracking}
                     />
@@ -526,7 +532,7 @@ export default function VitesseDeGlisseScreen() {
                     <ActionButton
                         title="Mes enregistrements"
                         icon={Gauge}
-                        onPress={() => (navigation as any).navigate('UserPerformancesScreen')}
+                        onPress={() => navigation.navigate('UserPerformancesScreen')}
                         variant="secondary"
                         disabled={isTracking}
                     />

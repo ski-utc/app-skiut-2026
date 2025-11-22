@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, SafeAreaView, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Checkbox } from 'expo-checkbox';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Send, PenTool, FileText, Users, Home, Globe, ChevronDown, ChevronRight } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
@@ -13,6 +13,10 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import Header from "../../components/header";
+
+type CreateNotificationStackParamList = {
+    createNotificationScreen: undefined;
+}
 
 type User = {
     id: number;
@@ -46,7 +50,7 @@ export default function CreateNotificationScreen() {
     const [loading, setLoading] = useState(false);
     const [dataLoading, setDataLoading] = useState(true);
 
-    const navigation = useNavigation();
+    const navigation = useNavigation<NavigationProp<CreateNotificationStackParamList>>();
     const { setUser } = useUser();
 
     const fetchRecipientsData = useCallback(async () => {
@@ -59,11 +63,11 @@ export default function CreateNotificationScreen() {
             } else {
                 setError('Erreur lors du chargement des données');
             }
-        } catch (error: any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        } catch (error: unknown) {
+            if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
                 setUser(null);
-            } else {
-                setError(error.message);
+            } else if (error instanceof Error) {
+                setError(error.message || 'Une erreur est survenue.');
             }
         } finally {
             setDataLoading(false);
@@ -109,11 +113,11 @@ export default function CreateNotificationScreen() {
                     text2: response.message,
                 });
             }
-        } catch (error: any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+        } catch (error: unknown) {
+            if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
                 setUser(null);
-            } else {
-                setError(error.message);
+            } else if (error instanceof Error) {
+                setError(error.message || 'Une erreur est survenue.');
             }
         } finally {
             setLoading(false);

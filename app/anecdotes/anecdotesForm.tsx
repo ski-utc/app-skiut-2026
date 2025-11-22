@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard, Pressable, StyleSheet } from 'react-native';
 import { Checkbox } from 'expo-checkbox';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Send, PenTool } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
@@ -14,13 +14,17 @@ import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import Header from "../../components/header";
 
+type AnecdotesFormParamList = {
+  anecdotesForm: undefined;
+}
+
 export default function AnecdotesForm() {
   const [text, setText] = useState('');
   const [isChecked, setChecked] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<AnecdotesFormParamList>>();
   const { setUser } = useUser();
 
   const handleSendAnecdote = async () => {

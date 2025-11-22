@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, FlatList, ActivityIndicator, Text, TouchableOpacity, SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Bell, PenLine, Send, CheckCircle, Clock, AlertTriangle } from 'lucide-react-native';
 
 import BoutonGestion from '@/components/admins/boutonGestion';
@@ -11,6 +11,11 @@ import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
 
 import Header from '../../components/header';
+
+type GestionNotificationsStackParamList = {
+  gestionNotificationsScreen: undefined;
+  createNotificationScreen: undefined;
+}
 
 type FilterButtonProps = {
   label: string;
@@ -49,7 +54,7 @@ const FilterButton: React.FC<FilterButtonProps> = ({ label, icon, isActive, onPr
 );
 
 const GestionNotificationsScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<GestionNotificationsStackParamList>>();
   const { setUser } = useUser();
 
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -93,11 +98,11 @@ const GestionNotificationsScreen = () => {
       } else {
         setError('Erreur lors de la récupération des notifications');
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
+    } catch (error: unknown) {
+      if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
         setUser(null);
-      } else {
-        setError(error.message);
+      } else if (error instanceof Error) {
+        setError(error.message || 'Une erreur est survenue.');
       }
     } finally {
       setLoading(false);
@@ -153,7 +158,7 @@ const GestionNotificationsScreen = () => {
       <View style={styles.createButtonContainer}>
         <TouchableOpacity
           style={styles.createButton}
-          onPress={() => (navigation as any).navigate('createNotificationScreen')}
+          onPress={() => navigation.navigate('createNotificationScreen')}
         >
           <View style={styles.createButtonIcon}>
             <PenLine size={20} color={Colors.white} />

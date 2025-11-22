@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Text, View, StyleSheet, ActivityIndicator, ScrollView, SafeAreaView } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, NavigationProp, useNavigation } from '@react-navigation/native';
 import { Check, Bell, Calendar, Users, X } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
@@ -12,6 +12,10 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
 import Header from '../../components/header';
+
+type ValideNotificationsStackParamList = {
+  valideNotificationsScreen: undefined;
+};
 
 type NotificationDetails = {
   id: number;
@@ -28,7 +32,7 @@ type RouteParams = {
 
 export default function ValideNotifications() {
   const route = useRoute();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<ValideNotificationsStackParamList>>();
 
   const { id } = (route.params as RouteParams) || { id: 0 };
   const { setUser } = useUser();

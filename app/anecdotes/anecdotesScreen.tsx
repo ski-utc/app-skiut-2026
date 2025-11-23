@@ -6,13 +6,13 @@ import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import BoutonNavigationLarge from '@/components/divers/boutonNavigationLarge';
-import { apiGet } from '@/constants/api/apiCalls';
+import { apiGet, isSuccessResponse, handleApiErrorScreen, handleApiErrorToast } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 
-import Anecdote from '../../components/anecdotes/anecdote';
+import AnecdoteComponent from '../../components/anecdotes/anecdote';
 import Header from '../../components/header';
 
-type AnecdoteType = {
+type Anecdote = {
   id: string;
   text: string;
   room: string;
@@ -23,51 +23,56 @@ type AnecdoteType = {
 }
 
 export default function AnecdotesScreen() {
-  const [anecdotes, setAnecdotes] = useState<AnecdoteType[]>([]);
+  const [anecdotes, setAnecdotes] = useState<Anecdote[]>([]);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+
   const [quantity, setQuantity] = useState(10);
   const [hasMoreData, setHasMoreData] = useState(true);
-  const [disableRefresh, setDisableRefresh] = useState(false);
 
   const { setUser } = useUser();
 
-  const fetchAnecdotes = useCallback(async (requestedQuantity = 10, incrementalLoad = false) => {
-    if (!incrementalLoad) setLoading(true);
-    else setLoadingMore(true);
-    setDisableRefresh(true);
+  const fetchAnecdotes = useCallback(async (requestedQuantity: number, isIncremental: boolean) => {
+    if (isIncremental) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+      setError('');
+    }
 
     try {
-      const response = await apiGet(`anecdotes?quantity=${requestedQuantity}`);
-      if (response.success) {
-        if (response.data.length < requestedQuantity) {
+      const response = await apiGet<Anecdote[]>(`anecdotes?quantity=${requestedQuantity}`);
+
+      if (isSuccessResponse(response)) {
+        const data = response.data || [];
+
+        if (data.length < requestedQuantity) {
           setHasMoreData(false);
         }
-        setAnecdotes(response.data);
-      } else {
-        setError('Une erreur est survenue lors de la récupération des anecdotes');
+
+        setAnecdotes(data);
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
+    } catch (err: unknown) {
+      if (isIncremental) {
+        handleApiErrorToast(err, setUser);
       } else {
-        setError(error.message);
+        handleApiErrorScreen(err, setUser, setError);
       }
     } finally {
       setLoading(false);
       setLoadingMore(false);
-      setTimeout(() => {
-        setDisableRefresh(false);
-      }, 5000);
     }
   }, [setUser]);
 
-  const refreshAnecdotes = useCallback(() => {
-    fetchAnecdotes(quantity, false);
-  }, [fetchAnecdotes, quantity]);
-
   useEffect(() => {
+    fetchAnecdotes(10, false);
+  }, [fetchAnecdotes]);
+
+  const handleRefresh = useCallback(() => {
+    setQuantity(10);
+    setHasMoreData(true);
     fetchAnecdotes(10, false);
   }, [fetchAnecdotes]);
 
@@ -80,36 +85,33 @@ export default function AnecdotesScreen() {
   };
 
   if (error) {
-    return (
-      <ErrorScreen error={error} />
-    );
+    return <ErrorScreen error={error} />;
   }
 
-  if (loading) {
+  if (loading && anecdotes.length === 0) {
     return (
       <View style={styles.container}>
         <Header refreshFunction={undefined} disableRefresh={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
-          <Text style={styles.loadingText}>
-            Chargement...
-          </Text>
+          <Text style={styles.loadingText}>Chargement...</Text>
         </View>
       </View>
     );
   }
 
   return (
-    <View
-      style={styles.container}
-    >
-      <Header refreshFunction={refreshAnecdotes} disableRefresh={disableRefresh} />
-      <View style={styles.content} >
+    <View style={styles.container}>
+      <Header refreshFunction={handleRefresh} disableRefresh={loading} />
+
+      <View style={styles.content}>
         <BoutonRetour title={'Anecdotes'} />
+
         <FlatList
           data={anecdotes}
+          keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <Anecdote
+            <AnecdoteComponent
               id={item.id}
               text={item.text}
               room={item.room}
@@ -117,17 +119,21 @@ export default function AnecdotesScreen() {
               liked={item.liked}
               warned={item.warned}
               authorId={item.authorId}
-              refresh={refreshAnecdotes}
-              setError={setError}
+              refresh={handleRefresh}
             />
           )}
-          keyExtractor={item => item.id}
           ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
           onEndReached={handleLoadMore}
-          ListFooterComponent={() =>
-            loadingMore ? <ActivityIndicator size="large" color={Colors.primaryBorder} /> : <View style={styles.footerSeparator} />
-          }
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={() => (
+            <View style={styles.footerContainer}>
+              {loadingMore && <ActivityIndicator size="small" color={Colors.primaryBorder} />}
+              <View style={styles.footerSeparator} />
+            </View>
+          )}
+          showsVerticalScrollIndicator={false}
         />
+
         <BoutonNavigationLarge
           nextRoute={'anecdotesForm'}
           title={'Rédiger un potin'}
@@ -148,6 +154,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     width: '100%',
+  },
+  footerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   footerSeparator: {
     height: 90

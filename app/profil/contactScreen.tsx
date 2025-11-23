@@ -4,7 +4,7 @@ import * as Linking from 'expo-linking';
 import { Phone } from "lucide-react-native";
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { apiGet } from '@/constants/api/apiCalls';
+import { apiGet, isSuccessResponse, handleApiErrorScreen } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
@@ -26,19 +26,16 @@ export default function Contact() {
 
     const fetchContacts = useCallback(async () => {
         setLoading(true);
+        setError('');
+
         try {
-            const response = await apiGet('contacts');
-            if (response.success) {
-                setContacts(response.data);
-            } else {
-                setError(response.message);
+            const response = await apiGet<ContactInterface[]>('contacts');
+
+            if (isSuccessResponse(response)) {
+                setContacts(response.data || []);
             }
-        } catch (error: any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
-            } else {
-                setError(error.message);
-            }
+        } catch (err: unknown) {
+            handleApiErrorScreen(err, setUser, setError);
         } finally {
             setLoading(false);
         }
@@ -101,15 +98,15 @@ export default function Contact() {
 
     return (
         <View style={styles.container}>
-            <Header refreshFunction={null} disableRefresh={true} />
+            <Header refreshFunction={fetchContacts} disableRefresh={false} />
+
             <View style={styles.content}>
                 <BoutonRetour
-                    previousRoute={"homeNavigator"}
                     title={"Contact"}
                 />
                 <FlatList
                     data={contacts}
-                    keyExtractor={(item, index) => index.toString()}
+                    keyExtractor={(item, index) => `${item.name}-${index}`}
                     renderItem={renderItem}
                     numColumns={2}
                     columnWrapperStyle={styles.row}

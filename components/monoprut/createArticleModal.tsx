@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, SafeAreaView, ActivityIndicator, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
-import { X, Apple, CupSoda, Candy, Sandwich, Milk, Croissant, Drumstick, Carrot, Fish, Wheat, Package } from 'lucide-react-native';
+import { X, Apple, CupSoda, Candy, Sandwich, Milk, Croissant, Drumstick, Carrot, Fish, Wheat, Package, LucideProps } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import { Checkbox } from 'expo-checkbox';
 
-import { apiPost } from '@/constants/api/apiCalls';
+import { useUser } from '@/contexts/UserContext';
+import { apiPost, handleApiErrorToast } from '@/constants/api/apiCalls';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 type CreateArticleModalProps = {
@@ -14,7 +15,7 @@ type CreateArticleModalProps = {
 
 type ArticleType = 'fruit' | 'veggie' | 'drink' | 'sweet' | 'snack' | 'dairy' | 'bread' | 'meat' | 'fish' | 'grain' | 'other';
 
-const foodTypes: { value: ArticleType; label: string; icon: any }[] = [
+const foodTypes: { value: ArticleType; label: string; icon: React.FC<LucideProps> }[] = [
     { value: 'fruit', label: 'Fruit', icon: Apple },
     { value: 'veggie', label: 'Légume', icon: Carrot },
     { value: 'drink', label: 'Boisson', icon: CupSoda },
@@ -34,6 +35,8 @@ export default function CreateArticleModal({ onClose, onSuccess }: CreateArticle
     const [type, setType] = useState<ArticleType>('other');
     const [loading, setLoading] = useState(false);
     const [isChecked, setChecked] = useState(false);
+
+    const { setUser } = useUser();
 
     const activeOpacity = 1;
     const inactiveOpacity = 0.4;
@@ -90,12 +93,8 @@ export default function CreateArticleModal({ onClose, onSuccess }: CreateArticle
                     text2: response.message || 'Impossible de créer l\'article.',
                 });
             }
-        } catch (error: any) {
-            Toast.show({
-                type: 'error',
-                text1: 'Erreur',
-                text2: error.message || 'Une erreur est survenue.',
-            });
+        } catch (error: unknown) {
+            handleApiErrorToast(error, setUser);
         } finally {
             setLoading(false);
         }

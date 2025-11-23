@@ -1,23 +1,90 @@
-import { Text, View, ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, Linking, Dimensions, Animated } from "react-native";
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { Text, View, ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, Linking, Dimensions, Animated } from "react-native";
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { Calendar, Trophy, MessageCircle, ChevronRight, MapPin, Thermometer, Wind, Droplets, Sun, Cloud, CloudRain, CloudSnow, Moon, CloudMoon, CloudLightning, CloudDrizzle, CloudFog, CloudMoonRain, Home } from 'lucide-react-native';
-import { PanGestureHandler } from 'react-native-gesture-handler';
+import { Calendar, Trophy, MessageCircle, ChevronRight, MapPin, Thermometer, Wind, Droplets, Sun, Cloud, CloudRain, CloudSnow, Moon, CloudMoon, CloudLightning, CloudDrizzle, CloudFog, CloudMoonRain, Home, LucideProps } from 'lucide-react-native';
+import { PanGestureHandler, PanGestureHandlerEventPayload, PanGestureHandlerGestureEvent, HandlerStateChangeEvent, State } from 'react-native-gesture-handler';
 
-import { apiGet } from '@/constants/api/apiCalls';
+import { apiGet, isSuccessResponse, handleApiErrorToast, AppError } from '@/constants/api/apiCalls';
 import { useUser } from "@/contexts/UserContext";
 import ErrorScreen from "@/components/pages/errorPage";
-import { Colors, FontSizes, TextStyles } from '@/constants/GraphSettings';
+import { Colors, TextStyles, FontSizes } from '@/constants/GraphSettings';
 import { OfflineStatusBanner, PendingRequestsWidget } from '@/components/home/offlineWidgets';
 
 import Header from "../../components/header";
 
 type HomeStackParamList = {
   homeScreen: undefined;
+  planningNavigator: undefined;
+  defisNavigator: undefined;
+  anecdotesNavigator: undefined;
+}
+
+type WeatherCondition = {
+  text: string;
+  code: number;
+}
+
+type WeatherHour = {
+  time: string;
+  temp_c: number;
+  is_day: number;
+  condition: WeatherCondition;
+}
+
+type WeatherData = {
+  location: {
+    name: string;
+  };
+  current: {
+    temp_c: number;
+    is_day: number;
+    condition: WeatherCondition;
+    feelslike_c: number;
+    wind_kph: number;
+    humidity: number;
+  };
+  forecast: {
+    forecastday: Array<{
+      hour: WeatherHour[];
+    }>;
+  };
+}
+
+type Activity = {
+  text: string;
+  date: number;
+  startTime: string;
+  endTime: string;
+}
+
+type HomeData = {
+  closestActivity?: Activity;
+  randomChallenge?: string;
+  bestAnecdote?: string;
+}
+
+type TeamMember = {
+  firstName: string;
+  lastName: string;
+}
+
+type TourStatus = {
+  tour_active: boolean;
+  rooms_before: number;
+  binome: {
+    members: TeamMember[];
+  };
 }
 
 type WeatherWidgetProps = {
-  weatherData: any;
+  weatherData: WeatherData;
+}
+
+type HourlyDisplayData = {
+  time: string;
+  temp: number;
+  icon: React.JSX.Element;
+  condition: string;
 }
 
 const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
@@ -33,7 +100,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
   const { location, current, forecast } = weatherData;
 
   const getWeatherIcon = (conditionCode: number, isDay: number, size: number = 24) => {
-    const iconProps = {
+    const iconProps: LucideProps = {
       size,
       strokeWidth: 1.5,
       color: Colors.primary
@@ -68,13 +135,13 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
     }
   };
 
-  const getHourlyData = () => {
+  const getHourlyData = (): HourlyDisplayData[] => {
     if (!forecast?.forecastday?.[0]?.hour) return [];
 
     const hours = forecast.forecastday[0].hour;
     const now = new Date();
     const currentHour = now.getHours();
-    const hourlyData = [];
+    const hourlyData: HourlyDisplayData[] = [];
 
     let startHour = currentHour;
     if (currentHour % 2 !== 0) {
@@ -111,20 +178,23 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
     setActiveView(viewIndex);
   };
 
-  const handleGesture = Animated.event(
+  const handleGesture = Animated.event<PanGestureHandlerGestureEvent>(
     [{ nativeEvent: { translationX: gestureX } }],
     { useNativeDriver: false }
   );
 
-  const handleGestureEnd = ({ nativeEvent }: any) => {
-    const threshold = screenWidth * 0.3;
+  const handleGestureStateChange = (event: HandlerStateChangeEvent<PanGestureHandlerEventPayload>) => {
+    if (event.nativeEvent.state === State.END) {
+      const threshold = screenWidth * 0.3;
+      const { translationX } = event.nativeEvent;
 
-    if (nativeEvent.translationX > threshold && activeView === 1) {
-      animateToView(0);
-    } else if (nativeEvent.translationX < -threshold && activeView === 0) {
-      animateToView(1);
-    } else {
-      animateToView(activeView);
+      if (translationX > threshold && activeView === 1) {
+        animateToView(0);
+      } else if (translationX < -threshold && activeView === 0) {
+        animateToView(1);
+      } else {
+        animateToView(activeView);
+      }
     }
   };
 
@@ -200,7 +270,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
   };
 
   return (
-    <PanGestureHandler onGestureEvent={handleGesture} onEnded={handleGestureEnd}>
+    <PanGestureHandler onGestureEvent={handleGesture} onHandlerStateChange={handleGestureStateChange}>
       <View style={styles.weatherWidget}>
         <View style={styles.weatherContainer}>
           <Animated.View
@@ -254,7 +324,7 @@ type WidgetCardProps = {
     text: string;
     link?: string;
   }[];
-  icon: React.ComponentType<any>;
+  icon: React.FC<LucideProps>;
   onPress?: () => void;
   variant?: 'primary' | 'secondary' | 'white';
 }
@@ -292,6 +362,10 @@ const WidgetCard: React.FC<WidgetCardProps> = ({
     ? Colors.white
     : Colors.primary;
 
+  const widgetBorderWidth = variant === 'primary' || variant === 'secondary'
+    ? 0
+    : 1;
+
   return (
     <TouchableOpacity
       style={[
@@ -299,7 +373,7 @@ const WidgetCard: React.FC<WidgetCardProps> = ({
         {
           backgroundColor,
           borderColor,
-          borderWidth: variant === 'primary' || variant === 'secondary' ? 0 : 1
+          borderWidth: widgetBorderWidth
         }
       ]}
       onPress={onPress}
@@ -316,13 +390,13 @@ const WidgetCard: React.FC<WidgetCardProps> = ({
         </View>
         <View style={styles.widgetContent}>
           <Text style={[styles.widgetTitle, { color: textColor }]}>{title}</Text>
-          {subtitles.map((subtitle: any, index: number) => (
+          {subtitles.map((subtitle, index) => (
             <Text key={index} style={[styles.widgetSubtitle, { color: textColor }]}>
               {subtitle.text}
               {subtitle.link && (
                 <Text
                   style={[styles.widgetLink, { color: Colors.accent }]}
-                  onPress={() => Linking.openURL(subtitle.link)}
+                  onPress={() => subtitle.link && Linking.openURL(subtitle.link)}
                 >
                   {' '}
                   {subtitle.link}
@@ -346,66 +420,54 @@ const WidgetCard: React.FC<WidgetCardProps> = ({
 export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [data, setData] = useState<any>(null);
-  const [weatherData, setWeatherData] = useState<any>(null);
-  const [tourStatus, setTourStatus] = useState<any>(null);
-  // const [isOnline, setIsOnline] = useState(true);
-  const [usingCachedData, setUsingCachedData] = useState(false);
+  const [homeData, setHomeData] = useState<HomeData | null>(null);
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [tourStatus, setTourStatus] = useState<TourStatus | null>(null);
 
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
   const { setUser } = useUser();
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    setUsingCachedData(false);
+    setError('');
 
     try {
-      const response = await apiGet("home/random-data", true);
-      const responseWeather = await apiGet("home/weather", true);
-      const responseTourStatus = await apiGet("room-tours/status", true);
+      const [homeRes, weatherRes, tourRes] = await Promise.all([
+        apiGet<HomeData>("home/random-data"),
+        apiGet<WeatherData>("home/weather"),
+        apiGet<TourStatus>("room-tours/status")
+      ]);
 
-      if (response.success) {
-        setData(response.data);
-        if (responseWeather.success) {
-          setWeatherData(responseWeather.data);
-        }
-        if (responseTourStatus.success && responseTourStatus.data) {
-          setTourStatus(responseTourStatus.data);
-        }
-        setError('');
-      } else {
-        setError(response.message);
+      if (isSuccessResponse(homeRes) && homeRes.data) {
+        setHomeData(homeRes.data);
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else if (error.message === 'NetworkError_NoCache') {
-        setError('Aucune donnée disponible hors ligne. Connectez-vous à internet pour charger les données.');
-      } else if (error.message === 'NetworkError_RequestSaved') {
-        // 
-      } else {
-        if (data) {
-          setUsingCachedData(true);
-        } else {
-          setError(error.message);
-        }
+
+      if (isSuccessResponse(weatherRes) && weatherRes.data) {
+        setWeatherData(weatherRes.data);
       }
+
+      if (isSuccessResponse(tourRes) && tourRes.data) {
+        setTourStatus(tourRes.data);
+      }
+
+    } catch (err: unknown) {
+      handleApiErrorToast(err as AppError, setUser);
     } finally {
       setLoading(false);
     }
-  }, [setUser, data]);
+  }, [setUser]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  if (error && !data) {
+  if (error) {
     return (
       <ErrorScreen error={error} />
     );
   }
 
-  if (loading && !data) {
+  if (loading) {
     return (
       <View style={styles.container}>
         <Header refreshFunction={undefined} disableRefresh={true} />
@@ -429,22 +491,16 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Header refreshFunction={null} disableRefresh={undefined} />
+      <Header refreshFunction={fetchData} disableRefresh={false} />
+
       <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <OfflineStatusBanner onNetworkChange={handleNetworkChange} />
+        <OfflineStatusBanner />
         <PendingRequestsWidget />
 
-        {usingCachedData && (
-          <View style={styles.cachedDataBanner}>
-            <Text style={styles.cachedDataText}>
-              TODO : Afficher les données en cache affichées
-            </Text>
-          </View>
-        )}
         {weatherData && <WeatherWidget weatherData={weatherData} />}
 
         {tourStatus && tourStatus.tour_active && (
@@ -457,7 +513,7 @@ export default function HomeScreen() {
                   : `• ${tourStatus.rooms_before} chambre${tourStatus.rooms_before !== 1 ? 's' : ''} à visiter avant la vôtre`
               },
               { text: `• Binôme qui viendra vous voir :` },
-              ...tourStatus.binome.members.map((member: any) => ({
+              ...tourStatus.binome.members.map((member) => ({
                 text: `  • ${member.firstName} ${member.lastName}`
               }))
             ]}
@@ -466,37 +522,37 @@ export default function HomeScreen() {
           />
         )}
 
-        {data && data.closestActivity && (
+        {homeData?.closestActivity && (
           <WidgetCard
-            title={`Prochaine activité : ${data.closestActivity.text}`}
+            title={`Prochaine activité : ${homeData.closestActivity.text}`}
             subtitles={[
-              { text: `Jour : ${formatDate(data.closestActivity.date)}` },
-              { text: `Début : ${data.closestActivity.startTime}` },
-              { text: `Fin : ${data.closestActivity.endTime}` },
+              { text: `Jour : ${formatDate(homeData.closestActivity.date)}` },
+              { text: `Début : ${homeData.closestActivity.startTime}` },
+              { text: `Fin : ${homeData.closestActivity.endTime}` },
             ]}
             icon={Calendar}
             variant="primary"
-            onPress={() => (navigation as any).navigate('planningNavigator')}
+            onPress={() => navigation.navigate('planningNavigator')}
           />
         )}
 
-        {data && data.randomChallenge && (
+        {homeData?.randomChallenge && (
           <WidgetCard
             title="Nouveau défi disponible !"
-            subtitles={[{ text: data.randomChallenge }]}
+            subtitles={[{ text: homeData.randomChallenge }]}
             icon={Trophy}
             variant="white"
-            onPress={() => (navigation as any).navigate('defisNavigator')}
+            onPress={() => navigation.navigate('defisNavigator')}
           />
         )}
 
-        {data && data.bestAnecdote && (
+        {homeData?.bestAnecdote && (
           <WidgetCard
             title="L'anecdote la plus likée"
-            subtitles={[{ text: data.bestAnecdote }]}
+            subtitles={[{ text: homeData.bestAnecdote }]}
             icon={MessageCircle}
             variant="primary"
-            onPress={() => (navigation as any).navigate('anecdotesNavigator')}
+            onPress={() => navigation.navigate('anecdotesNavigator')}
           />
         )}
       </ScrollView>
@@ -505,23 +561,6 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  cachedDataBanner: {
-    backgroundColor: Colors.lightMuted || '#f3f4f6',
-    borderColor: Colors.muted || '#9ca3af',
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: 16,
-    marginHorizontal: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  cachedDataText: {
-    ...TextStyles.small,
-    color: Colors.muted,
-    fontSize: FontSizes.small,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
   chevronIcon: {
     marginTop: 2,
     opacity: 0.7,

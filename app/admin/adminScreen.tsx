@@ -3,7 +3,7 @@ import { View, FlatList, ActivityIndicator, Text, TouchableOpacity, StyleSheet, 
 import { ChevronRight, Shield, MessageSquare, Trophy, Bell, Clock, Home } from 'lucide-react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 
-import { apiGet } from '@/constants/api/apiCalls';
+import { apiGet, AppError, handleApiErrorScreen, handleApiErrorToast, isSuccessResponse } from '@/constants/api/apiCalls';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
@@ -93,6 +93,7 @@ const adminControls: AdminControl[] = [
 export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
   const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
   const { setUser } = useUser();
 
@@ -100,16 +101,13 @@ export default function Admin() {
     setLoading(true);
     try {
       const response = await apiGet("admin");
-      if (!response.success) {
+      if (!isSuccessResponse(response)) {
         navigation.goBack();
+        handleApiErrorToast("Accès non autorisé", setUser);
         return null;
       }
     } catch (error: unknown) {
-      if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
-        setUser(null);
-      } else if (error instanceof Error) {
-        setError(error.message || 'Une erreur est survenue.');
-      }
+      handleApiErrorScreen(error as AppError, setUser, setError);
     } finally {
       setLoading(false);
     }
@@ -155,7 +153,7 @@ export default function Admin() {
       <View style={styles.contentContainer}>
         <FlatList
           data={adminControls}
-          keyExtractor={(index) => index.toString()}
+          keyExtractor={(item) => item.title}
           renderItem={({ item }) => (
             <BoutonAdmin
               nextRoute={item.nextRoute}

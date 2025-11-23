@@ -8,8 +8,7 @@ import Toast from 'react-native-toast-message';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import BoutonActiverLarge from '@/components/divers/boutonActiverLarge';
-import { apiPost } from '@/constants/api/apiCalls';
-import ErrorScreen from '@/components/pages/errorPage';
+import { apiPost, isSuccessResponse, isPendingResponse, handleApiErrorToast, AppError } from '@/constants/api/apiCalls';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import Header from "../../components/header";
@@ -21,57 +20,49 @@ type AnecdotesFormParamList = {
 export default function AnecdotesForm() {
   const [text, setText] = useState('');
   const [isChecked, setChecked] = useState(false);
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const navigation = useNavigation<NavigationProp<AnecdotesFormParamList>>();
   const { setUser } = useUser();
 
   const handleSendAnecdote = async () => {
+    if (text.trim().length <= 5 || !isChecked) return;
+
     setLoading(true);
     try {
-      const response = await apiPost("anecdotes", {
-        texte: text
-      });
-      if (response.success) {
+      const response = await apiPost("anecdotes", { texte: text });
+
+      if (isSuccessResponse(response)) {
         Toast.show({
           type: 'success',
           text1: 'Anecdote postée !',
-          text2: response.message,
+          text2: response.message || 'Anecdote postée ! Elle sera visible une fois validée par le bureau',
         });
-        navigation.goBack();
-      } else if (response.pending) {
+      } else if (isPendingResponse(response)) {
         Toast.show({
           type: 'info',
-          text1: 'Requête sauvegardée',
-          text2: response.message,
+          text1: 'Mode Hors Ligne',
+          text2: 'Anecdote sauvegardée, elle sera envoyée dès que possible.',
         });
-        navigation.goBack();
       } else {
         Toast.show({
           type: 'error',
-          text1: 'Une erreur est survenue...',
-          text2: response.message,
+          text1: 'Erreur',
+          text2: response.message || 'Une erreur est survenue...',
         });
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message);
-      }
+      navigation.goBack();
+    } catch (err: unknown) {
+      handleApiErrorToast(err as AppError, setUser);
+    } finally {
+      setLoading(false);
     }
   };
+
   const handleCheckboxPress = () => {
     setChecked(!isChecked);
     Keyboard.dismiss();
   };
-
-  if (error) {
-    return (
-      <ErrorScreen error={error} />
-    );
-  }
 
   if (loading) {
     return (
@@ -80,7 +71,7 @@ export default function AnecdotesForm() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
           <Text style={styles.loadingText}>
-            Chargement...
+            Envoi en cours...
           </Text>
         </View>
       </View>

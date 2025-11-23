@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
-import { Zap, MapPin, Timer, Activity, TrendingUp, Trash2 } from "lucide-react-native";
+import { Zap, MapPin, Timer, Activity, TrendingUp, Trash2, LucideProps } from "lucide-react-native";
 import Toast from 'react-native-toast-message';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { apiGet, apiDelete } from "@/constants/api/apiCalls";
+import { apiGet, apiDelete, isSuccessResponse, handleApiErrorScreen, handleApiErrorToast, AppError, isPendingResponse } from "@/constants/api/apiCalls";
 import { useUser } from "@/contexts/UserContext";
 import ErrorScreen from "@/components/pages/errorPage";
 
@@ -30,63 +30,95 @@ type UserStats = {
     best_distance: number;
 }
 
+type UserPerformanceResponse = {
+    sessions: UserSession[];
+    stats: UserStats;
+}
+
+const StatCard = ({ icon: IconComponent, title, value, unit, color = Colors.primary }: {
+    icon: React.FC<LucideProps>;
+    title: string;
+    value: string;
+    unit: string;
+    color?: string;
+}) => (
+    <View style={styles.statCard}>
+        <View style={[styles.statIcon, { backgroundColor: color }]}>
+            <IconComponent size={20} color={Colors.white} />
+        </View>
+        <View style={styles.statContent}>
+            <Text style={styles.statTitle}>{title}</Text>
+            <View style={styles.statValueContainer}>
+                <Text style={styles.statValue}>{value}</Text>
+                <Text style={styles.statUnit}>{unit}</Text>
+            </View>
+        </View>
+    </View>
+);
+
 export default function UserPerformancesScreen() {
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [sessions, setSessions] = useState<UserSession[]>([]);
     const [stats, setStats] = useState<UserStats | null>(null);
-    const [disableRefresh, setDisableRefresh] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     const { setUser } = useUser();
 
-    const fetchUserPerformances = useCallback(async () => {
-        setLoading(true);
-        setDisableRefresh(true);
+    const fetchUserPerformances = useCallback(async (isRefresh = false) => {
+        if (isRefresh) setRefreshing(true);
+        else if (sessions.length === 0) setLoading(true);
+
+        if (!isRefresh) setError('');
+
         try {
-            const response = await apiGet('user-performances');
-            if (response.success) {
-                setSessions(response.sessions);
-                setStats(response.stats);
-            } else {
-                setError('Erreur lors de la récupération des performances');
+            const response = await apiGet<UserPerformanceResponse>('user-performances');
+
+            if (isSuccessResponse(response)) {
+                setSessions(response.data.sessions || []);
+                setStats(response.data.stats || null);
             }
-        } catch (error: any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
+        } catch (err: unknown) {
+            if (isRefresh) {
+                handleApiErrorToast(err as AppError, setUser);
             } else {
-                setError(error.message);
+                handleApiErrorScreen(err, setUser, setError);
             }
         } finally {
             setLoading(false);
-            setTimeout(() => {
-                setDisableRefresh(false);
-            }, 3000);
+            setRefreshing(false);
         }
-    }, [setUser]);
+    }, [setUser, sessions.length]);
 
     useEffect(() => {
         fetchUserPerformances();
     }, [fetchUserPerformances]);
 
     const deleteSession = async (sessionId: string) => {
-        try {
-            Alert.alert('Supprimer la session', 'Voulez-vous vraiment supprimer cette session ?', [
-                { text: 'Annuler', style: 'cancel' },
-                {
-                    text: 'Supprimer', style: 'destructive', onPress: async () => {
+        Alert.alert('Supprimer la session', 'Voulez-vous vraiment supprimer cette session ?', [
+            { text: 'Annuler', style: 'cancel' },
+            {
+                text: 'Supprimer',
+                style: 'destructive',
+                onPress: async () => {
+                    try {
                         const response = await apiDelete(`user-performances/${sessionId}`);
-                        if (response.success) {
-                            fetchUserPerformances();
+
+                        if (isSuccessResponse(response)) {
+                            setSessions(prev => prev.filter(s => s.session_id !== sessionId));
+                            Toast.show({ type: 'success', text1: 'Session supprimée' });
+                            fetchUserPerformances(true);
+                        } else if (isPendingResponse(response)) {
+                            setSessions(prev => prev.filter(s => s.session_id !== sessionId));
+                            Toast.show({ type: 'info', text1: 'Suppression sauvegardée (Hors ligne)' });
+                        } else {
+                            Toast.show({ type: 'error', text1: 'Erreur', text2: response.message });
                         }
+                    } catch (err: unknown) {
+                        handleApiErrorToast(err as AppError, setUser);
                     }
-                }]);
-        } catch (error: any) {
-            Toast.show({
-                type: 'error',
-                text1: 'Erreur',
-                text2: error.message || 'Impossible de supprimer la session',
-            });
-        }
+                }
+            }]);
     };
 
     const formatDate = (dateString: string) => {
@@ -105,27 +137,6 @@ export default function UserPerformancesScreen() {
         if (mins === 0) return `${secs}s`;
         return `${mins}m ${secs}s`;
     };
-
-    const StatCard = ({ icon: IconComponent, title, value, unit, color = Colors.primary }: {
-        icon: any;
-        title: string;
-        value: string;
-        unit: string;
-        color?: string;
-    }) => (
-        <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: color }]}>
-                <IconComponent size={20} color={Colors.white} />
-            </View>
-            <View style={styles.statContent}>
-                <Text style={styles.statTitle}>{title}</Text>
-                <View style={styles.statValueContainer}>
-                    <Text style={styles.statValue}>{value}</Text>
-                    <Text style={styles.statUnit}>{unit}</Text>
-                </View>
-            </View>
-        </View>
-    );
 
     const SessionCard = ({ session }: { session: UserSession }) => (
         <View style={styles.sessionCard}>
@@ -173,10 +184,10 @@ export default function UserPerformancesScreen() {
         return <ErrorScreen error={error} />;
     }
 
-    if (loading) {
+    if (loading && sessions.length === 0) {
         return (
             <View style={styles.container}>
-                <Header refreshFunction={null} disableRefresh={true} />
+                <Header refreshFunction={undefined} disableRefresh={true} />
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={Colors.primary} />
                     <Text style={styles.loadingText}>Chargement de vos performances...</Text>
@@ -187,7 +198,7 @@ export default function UserPerformancesScreen() {
 
     return (
         <View style={styles.container}>
-            <Header refreshFunction={fetchUserPerformances} disableRefresh={disableRefresh} />
+            <Header refreshFunction={() => fetchUserPerformances(true)} disableRefresh={refreshing} />
             <View style={styles.headerContainer}>
                 <BoutonRetour title="Mes enregistrements" />
             </View>
@@ -329,8 +340,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         ...TextStyles.h3Bold,
         color: Colors.primaryBorder,
-        marginBottom: 16,
-        marginTop: 8,
+        marginBottom: 8,
     },
     sessionCard: {
         backgroundColor: Colors.white,

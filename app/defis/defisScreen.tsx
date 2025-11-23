@@ -1,29 +1,38 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, FlatList, StyleSheet, ActivityIndicator, Text, TouchableOpacity } from "react-native";
 import { Trophy, ChevronRight, Check, X, ListTodo, Hourglass } from 'lucide-react-native';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import BoutonNavigationLarge from "@/components/divers/boutonNavigationLarge";
 import BoutonRetour from "@/components/divers/boutonRetour";
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { apiGet } from "@/constants/api/apiCalls";
+import { apiGet, isSuccessResponse, handleApiErrorScreen } from "@/constants/api/apiCalls";
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
 import Header from "../../components/header";
 
+type Challenge = {
+  id: number;
+  title: string;
+  nbPoints: number;
+  status: 'todo' | 'pending' | 'done' | 'refused';
+}
+
 type DefisStackParamList = {
   defisScreen: undefined;
-  defisInfos: { id: number, title: string, points: number, status: string, onUpdate: (id: number, status: string) => void };
+  defisClassement: undefined;
+  defisInfos: {
+    id: number;
+    title: string;
+    points: number;
+    status: string;
+    onUpdate: (id: number, status: string) => void
+  };
 }
 
 type BoutonDefiProps = {
-  defi: {
-    id: number,
-    title: string,
-    points: number,
-    status: string,
-  };
+  defi: Challenge;
   onUpdate: (id: number, status: string) => void;
 }
 
@@ -34,7 +43,7 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
     navigation.navigate("defisInfos", {
       id: defi.id,
       title: defi.title,
-      points: defi.points,
+      points: defi.nbPoints,
       status: defi.status,
       onUpdate
     });
@@ -66,16 +75,13 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.85}
-      style={[
-        styles.defiCard,
-        { backgroundColor: Colors.white }
-      ]}
+      style={styles.defiCard}
     >
       <View style={styles.defiLeft}>
         <View style={styles.statusIcon}>{getStatusIcon(defi.status)}</View>
         <View style={styles.defiRight}>
           <Text style={styles.defiTitle}>{defi.title}</Text>
-          <Text style={styles.defiSubtitle}>{getStatusText(defi.status)} • {defi.points} pts</Text>
+          <Text style={styles.defiSubtitle}>{getStatusText(defi.status)} • {defi.nbPoints} pts</Text>
         </View>
       </View>
       <ChevronRight size={22} color={Colors.primaryBorder} />
@@ -84,73 +90,57 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
 };
 
 export default function Defis() {
-  const [challenges, setChallenges] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState('');
-  const [disableRefresh, setDisableRefresh] = useState(false);
 
-  const navigation = useNavigation<NavigationProp<DefisStackParamList>>();
   const { setUser } = useUser();
 
   const fetchChallenges = useCallback(async () => {
-    setLoading(true);
-    setDisableRefresh(true);
+    setError('');
 
     try {
-      const response = await apiGet("challenges");
-      if (response.success) {
+      const response = await apiGet<Challenge[]>("challenges");
+
+      if (isSuccessResponse(response) && response.data) {
         setChallenges(response.data);
-      } else {
-        setError(response.message);
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message);
-      }
+    } catch (err: unknown) {
+      handleApiErrorScreen(err, setUser, setError);
     } finally {
       setLoading(false);
-      setTimeout(() => {
-        setDisableRefresh(false);
-      }, 5000);
     }
   }, [setUser]);
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchChallenges();
+    }, [fetchChallenges])
+  );
+
   const onUpdateDefiStatus = (updatedDefiId: number, newStatus: string) => {
+    const validStatus = newStatus as Challenge['status'];
+
     setChallenges((prevChallenges) =>
       prevChallenges.map((challenge) =>
         challenge.id === updatedDefiId
-          ? { ...challenge, status: newStatus }
+          ? { ...challenge, status: validStatus }
           : challenge
       )
     );
   };
 
-  useEffect(() => {
-    fetchChallenges();
-    const unsubscribe = navigation.addListener('focus', () => {
-      fetchChallenges();
-    });
-
-    return unsubscribe;
-  }, [navigation, fetchChallenges]);
-
   if (error) {
-    return (
-      <ErrorScreen error={error} />
-    );
+    return <ErrorScreen error={error} />;
   }
 
-  if (loading) {
+  if (loading && challenges.length === 0) {
     return (
       <View style={styles.container}>
         <Header refreshFunction={undefined} disableRefresh={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
-          <Text style={styles.loadingText}>
-            Chargement...
-          </Text>
+          <Text style={styles.loadingText}>Chargement...</Text>
         </View>
       </View>
     );
@@ -158,32 +148,33 @@ export default function Defis() {
 
   return (
     <View style={styles.container}>
-      <Header refreshFunction={fetchChallenges} disableRefresh={disableRefresh} />
+      <Header refreshFunction={fetchChallenges} disableRefresh={false} />
       <View style={styles.headerContainer}>
         <BoutonRetour title={"Défis"} />
       </View>
+
       <FlatList
         data={challenges}
         keyExtractor={(item) => item.id.toString()}
         extraData={challenges}
-        ListFooterComponent={<View style={styles.footerSeparator} />}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        ListFooterComponent={() => <View style={styles.footerSeparator} />}
         renderItem={({ item }) => (
-          <View>
-            <BoutonDefi
-              defi={{
-                id: item.id,
-                title: item.title,
-                points: item.nbPoints,
-                status: item.status
-              }}
-              onUpdate={onUpdateDefiStatus}
-            />
-          </View>
+          <BoutonDefi
+            defi={item}
+            onUpdate={onUpdateDefiStatus}
+          />
         )}
         style={styles.list}
       />
+
       <View style={styles.navigationContainer}>
-        <BoutonNavigationLarge nextRoute={"defisClassement"} title={"Classement"} IconComponent={Trophy} />
+        <BoutonNavigationLarge
+          nextRoute={"defisClassement"}
+          title={"Classement"}
+          IconComponent={Trophy}
+        />
       </View>
     </View>
   );
@@ -216,7 +207,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 2, height: 3 },
     shadowOpacity: 0.08,
     shadowRadius: 5,
-    width: "94%",
+    width: "100%",
   },
   defiLeft: {
     alignItems: "center",
@@ -238,21 +229,27 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   footerSeparator: {
-    height: 70
+    height: 20
   },
   headerContainer: {
     paddingHorizontal: 20,
     width: '100%',
   },
   list: {
+    flex: 1,
     width: "100%",
+  },
+  listContent: {
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    paddingTop: 10,
   },
   loadingContainer: {
     alignItems: "center",
     backgroundColor: Colors.white,
     display: "flex",
     height: "100%",
-    justifyContent: "flex-start",
+    justifyContent: "center",
     width: "100%",
   },
   loadingText: {
@@ -262,7 +259,9 @@ const styles = StyleSheet.create({
   },
   navigationContainer: {
     backgroundColor: Colors.white,
+    paddingBottom: 20,
     paddingHorizontal: 20,
+    paddingTop: 10,
     width: '100%',
   },
   statusIcon: {

@@ -7,7 +7,7 @@ import Toast from 'react-native-toast-message';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
-import { apiGet, apiPut } from '@/constants/api/apiCalls';
+import { ApiError, apiGet, apiPut, handleApiErrorScreen, handleApiErrorToast } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
@@ -44,18 +44,14 @@ export default function ValideNotifications() {
   const fetchNotificationDetails = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiGet(`admin/notifications/${id}`);
+      const response = await apiGet<NotificationDetails>(`admin/notifications/${id}`);
       if (response.success) {
         setNotificationDetails(response.data);
       } else {
-        setError('Erreur lors de la récupération des détails de la notification');
+        handleApiErrorScreen(new ApiError(response.message), setUser, setError);
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message);
-      }
+    } catch (error: unknown) {
+      handleApiErrorScreen(error, setUser, setError);
     } finally {
       setLoading(false);
     }
@@ -95,12 +91,8 @@ export default function ValideNotifications() {
           text2: response.message,
         });
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message);
-      }
+    } catch (error: unknown) {
+      handleApiErrorToast(error, setUser);
     } finally {
       setLoading(false);
     }

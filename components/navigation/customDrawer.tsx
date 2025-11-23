@@ -1,25 +1,17 @@
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, Image } from 'react-native';
-import {
-    Bus,
-    Map,
-    Phone,
-    LogOut,
-    ChevronRight,
-    Gauge,
-    Heart,
-    UserRoundCheck,
-    Shield,
-    Cookie,
-    Home
-} from 'lucide-react-native';
+import { Bus, Map, Phone, LogOut, ChevronRight, Gauge, Heart, UserRoundCheck, Shield, Cookie, Home, LucideProps } from 'lucide-react-native';
+import { DrawerContentComponentProps } from '@react-navigation/drawer';
 
 import { Colors, TextStyles, FontSizes } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
+import logoImage from '@/assets/images/logo.png';
 
-type CustomDrawerProps = {
-    navigation: any;
-    state: any;
-    descriptors: any;
+type CustomDrawerProps = DrawerContentComponentProps;
+
+type DrawerItem = {
+    label: string;
+    icon: React.FC<LucideProps>;
+    onPress: () => void;
 }
 
 export default function CustomDrawer({ navigation }: CustomDrawerProps) {
@@ -28,6 +20,13 @@ export default function CustomDrawer({ navigation }: CustomDrawerProps) {
     const handleLogout = () => {
         setUser(null);
         navigation.closeDrawer();
+        /* navigation.dispatch(
+            CommonActions.reset({
+                index: 0,
+                routes: [{ name: 'LoginScreen' }],
+            })
+        ); 
+        */
     };
 
     const navigateToScreen = (screenName: string) => {
@@ -43,7 +42,7 @@ export default function CustomDrawer({ navigation }: CustomDrawerProps) {
         }, 100);
     };
 
-    const drawerItems = [
+    const drawerItems: DrawerItem[] = [
         {
             label: 'Contact',
             icon: Phone,
@@ -102,7 +101,7 @@ export default function CustomDrawer({ navigation }: CustomDrawerProps) {
             <View style={styles.header}>
                 <View style={styles.userInfo}>
                     <Image
-                        source={require('../../assets/images/logo.png')}
+                        source={logoImage}
                         style={styles.logo}
                         resizeMode="contain"
                     />
@@ -123,6 +122,7 @@ export default function CustomDrawer({ navigation }: CustomDrawerProps) {
                         key={index}
                         style={styles.drawerItem}
                         onPress={item.onPress}
+                        activeOpacity={0.7}
                     >
                         <View style={styles.itemIconContainer}>
                             <item.icon size={20} color={Colors.primary} />
@@ -131,11 +131,15 @@ export default function CustomDrawer({ navigation }: CustomDrawerProps) {
                         <ChevronRight size={20} color={Colors.primaryBorder} />
                     </TouchableOpacity>
                 ))}
-                <View style={styles.separator}></View>
+                <View style={styles.separator} />
             </ScrollView>
 
             <View style={styles.footer}>
-                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                <TouchableOpacity
+                    style={styles.logoutButton}
+                    onPress={handleLogout}
+                    activeOpacity={0.7}
+                >
                     <LogOut size={20} color={Colors.error} />
                     <Text style={styles.logoutText}>Déconnexion</Text>
                 </TouchableOpacity>

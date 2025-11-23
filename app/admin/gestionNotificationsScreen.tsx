@@ -4,7 +4,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Bell, PenLine, Send, CheckCircle, Clock, AlertTriangle } from 'lucide-react-native';
 
 import BoutonGestion from '@/components/admins/boutonGestion';
-import { apiGet } from '@/constants/api/apiCalls';
+import { ApiError, apiGet, AppError, handleApiErrorScreen } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
@@ -91,19 +91,15 @@ const GestionNotificationsScreen = () => {
     setLoading(true);
     setDisableRefresh(true);
     try {
-      const response = await apiGet('admin/notifications');
+      const response = await apiGet<NotificationItem[]>('admin/notifications');
       if (response.success) {
         setNotifications(response.data);
         setFilteredNotifications(response.data);
       } else {
-        setError('Erreur lors de la récupération des notifications');
+        handleApiErrorScreen(new ApiError(response.message), setUser, setError);
       }
     } catch (error: unknown) {
-      if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
-        setUser(null);
-      } else if (error instanceof Error) {
-        setError(error.message || 'Une erreur est survenue.');
-      }
+      handleApiErrorScreen(error as AppError, setUser, setError);
     } finally {
       setLoading(false);
       setTimeout(() => {

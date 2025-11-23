@@ -1,41 +1,39 @@
 import { Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, NavigationProp, ParamListBase } from '@react-navigation/native';
 
-import { Colors, TextStyles } from '@/constants/GraphSettings';
+import { TextStyles } from '@/constants/GraphSettings';
 
 type BoutonRetourProps = {
     title: string;
+    onCustomPress?: () => void;
 }
 
-export default function BoutonRetour({ title }: BoutonRetourProps) {
-    const navigation = useNavigation<any>();
-    const route = useRoute();
+export default function BoutonRetour({ title, onCustomPress }: BoutonRetourProps) {
+    const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
-    const onPress = () => {
-        navigation.goBack();
-    };
+    const handlePress = () => {
+        if (onCustomPress) {
+            onCustomPress();
+            return;
+        }
 
-    const onLongPress = () => {
-        (navigation as any).emit({
-            type: 'tabLongPress',
-            target: route.key,
-        });
+        if (navigation.canGoBack()) {
+            navigation.goBack();
+        }
     };
 
     return (
         <TouchableOpacity
-            onPress={onPress}
-            onLongPress={onLongPress}
+            onPress={handlePress}
             style={styles.button}
+            activeOpacity={0.7}
         >
             <ChevronLeft
                 size={24}
                 color={'#8A8A8A'}
             />
-            <Text
-                style={styles.text}
-            >
+            <Text style={styles.text}>
                 {title}
             </Text>
         </TouchableOpacity>
@@ -47,9 +45,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flexDirection: 'row',
         marginBottom: 16,
+        paddingRight: 12,
+        paddingVertical: 8,
     },
     text: {
-        color: Colors.white,
+        color: '#000000',
         ...TextStyles.h4,
-    }
+    },
 });

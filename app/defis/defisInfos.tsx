@@ -1,41 +1,61 @@
 import { useEffect, useState, useCallback } from 'react';
 import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert, Modal, StatusBar, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { Video, ResizeMode } from 'expo-av';
+import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 import * as ImageManipulator from "expo-image-manipulator";
-import { useRoute } from '@react-navigation/native';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import { LandPlot, Trash, Check, Hourglass, X, Upload, CloudOff, Maximize, Play, Pause, Image as ImageIcon, Video as VideoIcon } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import { ImageViewer } from "react-native-image-zoom-viewer";
 
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiPost, apiGet, apiDelete } from '@/constants/api/apiCalls';
+import { apiPost, apiGet, apiDelete, isSuccessResponse, isPendingResponse, handleApiErrorToast, AppError } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import Header from '../../components/header';
 
-export default function DefisInfos() {
-  const route = useRoute();
-  const { id, title, points, status } = route.params as { id: number, title: string, points: number, status: string };
+type DefisInfosParams = {
+  id: number;
+  title: string;
+  points: number;
+  status: string;
+  onUpdate?: (id: number, status: string) => void;
+};
 
-  const [proofMedia, setProofMedia] = useState(null);
-  const [mediaType, setMediaType] = useState('image'); // 'image' ou 'video'
+type DefisInfosRouteProp = RouteProp<{ params: DefisInfosParams }, 'params'>;
+
+type ProofMediaResponse = {
+  media: string | null;
+  mediaType: 'image' | 'video' | null;
+}
+
+type MaxFileSizeResponse = {
+  maxImageSize: number;
+  maxVideoSize: number;
+}
+
+export default function DefisInfos() {
+  const route = useRoute<DefisInfosRouteProp>();
+  const { id, title, points, status: initialStatus } = route.params;
+
+  const [proofMedia, setProofMedia] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [networkError, setNetworkError] = useState(false);
 
   const { setUser, user } = useUser();
 
   const [modifiedMedia, setModifiedMedia] = useState(false);
-  const [challengeSent, setChallengeSent] = useState(false);
-  const [dynamicStatus, setStatus] = useState(status);
-  const [networkError, setNetworkError] = useState(false);
+  const [dynamicStatus, setDynamicStatus] = useState(initialStatus);
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  // const [videoRef, setVideoRef] = useState(null);
   const [isFullscreenVideoPlaying, setIsFullscreenVideoPlaying] = useState(false);
 
   const toggleModal = () => {
@@ -51,36 +71,33 @@ export default function DefisInfos() {
   const fetchProof = useCallback(async () => {
     setLoading(true);
     setNetworkError(false);
+    setError('');
+
     try {
-      const response = await apiGet(`challenges/proof-media/${id}`);
-      if (response.success) {
-        setProofMedia(response.media);
-        setMediaType(response.mediaType || 'image');
-      } else {
-        setError(response.message || 'Une erreur est survenue lors de la récupération du média.');
+      const response = await apiGet<ProofMediaResponse>(`challenges/proof-media/${id}`);
+
+      if (isSuccessResponse(response)) {
+        setProofMedia(response.data.media);
+        setMediaType(response.data.mediaType || 'image');
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setNetworkError(true);
-        setError(error.message || 'Erreur réseau.');
-      }
+    } catch (err: unknown) {
+      handleApiErrorToast(err as AppError, setUser);
+      setNetworkError(true);
     } finally {
       setLoading(false);
     }
   }, [id, setUser]);
 
   useEffect(() => {
-    if (status !== 'empty') {
+    if (initialStatus !== 'empty' && initialStatus !== 'todo') {
       fetchProof();
     }
-  }, [status, fetchProof]);
+  }, [initialStatus, fetchProof]);
 
   const handleMediaPick = async (type: 'image' | 'video' | 'both' = 'both') => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.status !== 'granted') {
-      Alert.alert('Permission requise', 'Nous avons besoin de votre permission pour accéder à votre galerie.');
+      Toast.show({ type: 'error', text1: 'Permission requise', text2: 'Nous avons besoin de votre permission pour accéder à votre galerie.' });
       return;
     }
 
@@ -92,177 +109,133 @@ export default function DefisInfos() {
       mediaTypes,
       quality: 1,
       videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium,
-      videoMaxDuration: 60, // 60 secondes max
+      videoMaxDuration: 60,
     });
 
-    if (result.canceled) {
-      return;
-    }
+    if (result.canceled) return;
 
     try {
       setIsCompressing(true);
       const asset = result.assets[0];
-      const { uri, type: assetType, width } = asset;
-      const isVideo = assetType?.includes('video') || uri.includes('.mp4') || uri.includes('.mov');
+      const { uri, width } = asset;
 
-      setMediaType(isVideo ? 'video' : 'image');
+      const isVideo = asset.type === 'video' || uri.endsWith('.mp4') || uri.endsWith('.mov');
+      const currentMediaType = isVideo ? 'video' : 'image';
+      setMediaType(currentMediaType);
 
       let maxFileSize = isVideo ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
+
       try {
-        const getTailleMax = await apiGet("challenges/max-file-size");
-        if (getTailleMax.success && getTailleMax.data) {
+        const sizeRes = await apiGet<MaxFileSizeResponse>("challenges/max-file-size");
+        if (isSuccessResponse(sizeRes)) {
           maxFileSize = isVideo
-            ? (getTailleMax.data.maxVideoSize || 15 * 1024 * 1024)
-            : (getTailleMax.data.maxImageSize || 5 * 1024 * 1024);
+            ? (sizeRes.data.maxVideoSize || maxFileSize)
+            : (sizeRes.data.maxImageSize || maxFileSize);
         }
-      } catch (error: any) {
-        if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-          setUser(null);
-        } else {
-          setError(error.message);
-        }
+      } catch {
+        maxFileSize = isVideo ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
       }
 
-      if (isVideo) { // Can't implem video compression because it requires huge amount of resources from client side
-        const fileInfo = await fetch(uri).then((res) => res.blob());
+      if (isVideo) {
+        const fileInfo = await fetch(uri).then(r => r.blob());
         if (fileInfo.size > maxFileSize) {
-          Alert.alert('Erreur', 'Vidéo trop lourde. Veuillez choisir une vidéo plus courte ou de moindre qualité. La taille maximale est de ' + (maxFileSize / 1024 / 1024) + ' Mo.');
-          setIsCompressing(false);
+          Toast.show({ type: 'error', text1: 'Erreur', text2: `Vidéo trop lourde (Max ${Math.round(maxFileSize / 1024 / 1024)} Mo).` });
           return;
         }
         setModifiedMedia(true);
         setProofMedia(uri);
       } else {
         let compressQuality = 1;
-        let compressedImage = await ImageManipulator.manipulateAsync(
-          uri,
-          [{ resize: { width: width > 1080 ? 1080 : width } }],
-          { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
-        );
+        let compressedUri = uri;
+        let fileSize = Infinity;
 
-        let fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
-
-        while (fileInfo.size > maxFileSize && compressQuality > 0.1) {
-          compressQuality -= 0.1;
-          compressedImage = await ImageManipulator.manipulateAsync(
+        do {
+          const manipResult = await ImageManipulator.manipulateAsync(
             uri,
             [{ resize: { width: width > 1080 ? 1080 : width } }],
             { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
           );
-          fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
-        }
 
-        if (fileInfo.size > maxFileSize) {
-          Alert.alert('Erreur', 'Image trop lourde même après compression');
-          setIsCompressing(false);
+          const fileInfo = await fetch(manipResult.uri).then(r => r.blob());
+          fileSize = fileInfo.size;
+          compressedUri = manipResult.uri;
+
+          if (fileSize > maxFileSize) {
+            compressQuality -= 0.1;
+          }
+        } while (fileSize > maxFileSize && compressQuality > 0.1);
+
+        if (fileSize > maxFileSize) {
+          Toast.show({ type: 'error', text1: 'Erreur', text2: 'Image trop lourde même après compression.' });
           return;
         }
+
         setModifiedMedia(true);
-        setProofMedia(compressedImage.uri);
+        setProofMedia(compressedUri);
       }
-    } catch (error: any) {
-      setError(`Erreur lors du traitement du média: ${error.message}`);
+    } catch (err: unknown) {
+      handleApiErrorToast(err as AppError, setUser);
     } finally {
       setIsCompressing(false);
     }
   };
 
   const uploadMedia = async (uri: string) => {
+    if (!uri) return;
+
     try {
       setIsUploading(true);
-      const fileInfo = await fetch(uri).then((res) => res.blob());
-
-      let maxSize = mediaType === 'video' ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
-      try {
-        const getTailleMax = await apiGet("challenges/max-file-size");
-        if (getTailleMax.success && getTailleMax.data) {
-          maxSize = mediaType === 'video'
-            ? (getTailleMax.data.maxVideoSize || 15 * 1024 * 1024)
-            : (getTailleMax.data.maxImageSize || 5 * 1024 * 1024);
-        }
-      } catch {
-        // Keep default values
-      }
-
-      if (fileInfo.size > maxSize) {
-        Alert.alert('Erreur', `Le ${mediaType === 'video' ? 'vidéo' : 'image'} dépasse la taille maximale.`);
-        setIsUploading(false);
-        return;
-      }
 
       const formData = new FormData();
-      const extension = mediaType === 'video' ? '.mp4' : '.jpg';
       const mimeType = mediaType === 'video' ? 'video/mp4' : 'image/jpeg';
+      const extension = mediaType === 'video' ? '.mp4' : '.jpg';
+      const fileName = `challenge_${id}_user_${user?.id}_${Date.now()}${extension}`;
 
-      formData.append('media', {
-        uri,
-        name: `challenge_${id}_room_${user?.room}_${Date.now()}${extension}`,
-        type: mimeType,
-      });
-      formData.append('defiId', id);
+      formData.append('media', new Blob([uri], { type: mimeType }), fileName); // Todo : verify this semantics
+      formData.append('defiId', id.toString());
       formData.append('mediaType', mediaType);
 
       const response = await apiPost('challenges/proof-media', formData, true);
-      if (response.success) {
-        setStatus('pending');
-        try {
-          if (route.params?.onUpdate) {
-            route.params.onUpdate(id, 'pending');
-          }
-        } catch (error: any) {
-          setError(error.message || 'Erreur lors de la mise à jour du défi');
+      const handleSuccessOrPending = (isPending: boolean) => {
+        const newStatus = 'pending';
+        setDynamicStatus(newStatus);
+
+        if (route.params?.onUpdate) {
+          route.params.onUpdate(id, newStatus);
         }
+
         Toast.show({
-          type: 'success',
-          text1: 'Défi posté !',
+          type: isPending ? 'info' : 'success',
+          text1: isPending ? 'Sauvegardé (Hors ligne)' : 'Défi envoyé !',
           text2: response.message,
         });
-        setChallengeSent(true);
-      } else if (response.pending) {
-        setStatus('pending');
-        try {
-          if (route.params?.onUpdate) {
-            route.params.onUpdate(id, 'pending');
-          }
-        } catch (error: any) {
-          setError(error.message || 'Erreur lors de la mise à jour du défi');
-        }
-        Toast.show({
-          type: 'success',
-          text1: 'Requête sauvegardée',
-          text2: response.message,
-        });
-        setChallengeSent(true);
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Une erreur est survenue...',
-          text2: response.message,
-        });
+
+        setModifiedMedia(false);
+      };
+
+      if (isSuccessResponse(response)) {
+        handleSuccessOrPending(false);
+      } else if (isPendingResponse(response)) {
+        handleSuccessOrPending(true);
       }
-    } catch (error: any) {
-      setError(error.message || "Erreur lors du téléversement du média");
+
+    } catch (err: unknown) {
+      handleApiErrorToast(err as AppError, setUser);
     } finally {
       setIsUploading(false);
     }
   };
 
   const handleSendDefi = async () => {
-    try {
+    if (proofMedia) {
       await uploadMedia(proofMedia);
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message || 'Erreur réseau ou serveur.');
-      }
     }
   };
 
   const handleRemoveDefi = async () => {
     Alert.alert(
       'Confirmation',
-      'Êtes-vous sûr de vouloir supprimer ce défi ?',
+      'Voulez-vous vraiment supprimer ce défi ?',
       [
         { text: 'Annuler', style: 'cancel' },
         {
@@ -271,48 +244,28 @@ export default function DefisInfos() {
           onPress: async () => {
             try {
               const response = await apiDelete(`challenges/proof-media/${id}`);
-              if (response.success) {
+
+              if (isSuccessResponse(response) || isPendingResponse(response)) {
                 setProofMedia(null);
                 setMediaType('image');
-                setStatus('empty');
+                setDynamicStatus('todo');
+
                 if (route.params?.onUpdate) {
-                  route.params.onUpdate(id, 'empty');
+                  route.params.onUpdate(id, 'todo');
                 }
-                setChallengeSent(false);
+
                 Toast.show({
                   type: 'success',
-                  text1: 'Défi supprimé !',
-                  text2: response.message,
+                  text1: 'Défi supprimé',
+                  text2: response.message
                 });
-              } else if (response.pending) {
-                setProofMedia(null);
-                setMediaType('image');
-                setStatus('empty');
-                if (route.params?.onUpdate) {
-                  route.params.onUpdate(id, 'empty');
-                }
-                setChallengeSent(false);
-                Toast.show({
-                  type: 'info',
-                  text1: 'Requête sauvegardée',
-                  text2: response.message,
-                });
-              } else {
-                setError(response.message || 'Une erreur est survenue.');
               }
-            } catch (error: any) {
-              if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
-              } else {
-                setError(error.message || 'Erreur réseau.');
-              }
-            } finally {
-              setLoading(false);
+            } catch (err: unknown) {
+              handleApiErrorToast(err as AppError, setUser);
             }
           },
         },
-      ],
-      { cancelable: true }
+      ]
     );
   };
 
@@ -332,20 +285,25 @@ export default function DefisInfos() {
     );
   }
 
+  const isEmptyStatus = dynamicStatus === 'empty' || dynamicStatus === 'todo';
+
   return (
     <View style={styles.pageContainer}>
       <Header refreshFunction={null} disableRefresh={undefined} />
+
       <View style={styles.headerTitleContainer}>
         <BoutonRetour title={title} />
       </View>
+
       <View style={styles.pointsContainer}>
         <Text style={styles.pointsText}>Points : {points}</Text>
       </View>
+
       <View style={styles.mediaContainer}>
         <TouchableOpacity
-          onPress={status === 'empty' ? handleMediaPick : toggleModal}
+          onPress={isEmptyStatus ? () => handleMediaPick() : toggleModal}
           style={styles.mediaTouchable}
-          disabled={(challengeSent && status === 'empty') || isCompressing || isUploading}
+          disabled={(!isEmptyStatus && !proofMedia) || isCompressing || isUploading}
           activeOpacity={0.8}
         >
           {networkError ? (
@@ -373,14 +331,12 @@ export default function DefisInfos() {
                   onError={() => setNetworkError(true)}
                 />
               )}
+
               <View style={styles.mediaTypeBadge}>
-                {mediaType === 'video' ? (
-                  <VideoIcon size={14} color={Colors.white} />
-                ) : (
-                  <ImageIcon size={14} color={Colors.white} />
-                )}
+                {mediaType === 'video' ? <VideoIcon size={14} color={Colors.white} /> : <ImageIcon size={14} color={Colors.white} />}
                 <Text style={styles.mediaTypeText}>{mediaType === 'video' ? 'Vidéo' : 'Image'}</Text>
               </View>
+
               {mediaType === 'video' && !isPlaying && (
                 <TouchableOpacity style={styles.playButton} onPress={() => setIsPlaying(true)}>
                   <Play size={28} color={Colors.white} />
@@ -391,17 +347,19 @@ export default function DefisInfos() {
                   <Pause size={20} color={Colors.white} />
                 </TouchableOpacity>
               )}
-              {status !== 'empty' && !isCompressing && !isUploading && (
+
+              {!isEmptyStatus && !isCompressing && !isUploading && (
                 <View style={styles.fullscreenHintContainer}>
                   <Maximize size={16} color={Colors.white} />
                   <Text style={styles.fullscreenHintText}>Appuyez pour agrandir</Text>
                 </View>
               )}
+
               {(isCompressing || isUploading) && (
                 <View style={styles.uploadOverlay}>
                   <ActivityIndicator size="large" color={Colors.white} />
                   <Text style={styles.uploadOverlayText}>
-                    {isCompressing ? 'Traitement...' : 'Upload en cours...'}
+                    {isCompressing ? 'Traitement...' : 'Envoi en cours...'}
                   </Text>
                 </View>
               )}
@@ -410,27 +368,28 @@ export default function DefisInfos() {
             <View style={styles.processingContainer}>
               <ActivityIndicator size="large" color={Colors.primaryBorder} />
               <Text style={styles.processingText}>
-                {isCompressing ? 'Compression...' : 'Upload en cours...'}
+                {isCompressing ? 'Compression...' : 'Envoi en cours...'}
               </Text>
             </View>
           ) : (
             <View style={styles.emptyMediaContainer}>
               <Upload size={80} color={Colors.primary} />
-              <Text style={styles.emptyMediaTitle}>Ajouter un média</Text>
+              <Text style={styles.emptyMediaTitle}>Ajouter une preuve</Text>
               <Text style={styles.emptyMediaSubtitle}>Photo ou vidéo (max 60s)</Text>
             </View>
           )}
         </TouchableOpacity>
       </View>
+
       <View style={styles.bottomActions}>
-        {dynamicStatus !== 'empty' ? (
+        {!isEmptyStatus ? (
           dynamicStatus !== 'done' ? (
             <>
               <View style={styles.statusBadgeRejected}>
                 <Text style={styles.statusBadgeText}>
-                  {dynamicStatus !== 'pending' ? 'Défi refusé' : 'En attente de validation'}
+                  {dynamicStatus === 'refused' ? 'Défi refusé' : 'En attente de validation'}
                 </Text>
-                {dynamicStatus !== 'pending' ? <X color="white" size={20} /> : <Hourglass color="white" size={20} />}
+                {dynamicStatus === 'refused' ? <X color="white" size={20} /> : <Hourglass color="white" size={20} />}
               </View>
               <TouchableOpacity style={styles.deleteButton} onPress={handleRemoveDefi}>
                 <Text style={styles.deleteButtonText}>Supprimer</Text>
@@ -457,6 +416,7 @@ export default function DefisInfos() {
           </TouchableOpacity>
         )}
       </View>
+
       {proofMedia && (
         <Modal
           visible={isModalVisible}
@@ -469,6 +429,7 @@ export default function DefisInfos() {
             <TouchableOpacity style={styles.modalCloseButton} onPress={toggleModal} activeOpacity={0.7}>
               <X size={24} color={Colors.white} />
             </TouchableOpacity>
+
             {mediaType === 'video' ? (
               <View style={styles.modalVideoContainer}>
                 <Video
@@ -478,8 +439,8 @@ export default function DefisInfos() {
                   shouldPlay={isFullscreenVideoPlaying}
                   isLooping={false}
                   useNativeControls={true}
-                  onPlaybackStatusUpdate={(status) => {
-                    if (status.isPlaying) {
+                  onPlaybackStatusUpdate={(status: AVPlaybackStatus) => {
+                    if (status.isLoaded && status.isPlaying) {
                       setIsFullscreenVideoPlaying(true);
                     }
                   }}
@@ -500,6 +461,7 @@ export default function DefisInfos() {
                 backgroundColor="transparent"
                 enableSwipeDown={true}
                 onSwipeDown={toggleModal}
+                renderIndicator={() => <View />}
               />
             )}
           </View>
@@ -512,7 +474,9 @@ export default function DefisInfos() {
 const styles = StyleSheet.create({
   bottomActions: {
     alignItems: 'center',
+    backgroundColor: Colors.white,
     bottom: 0,
+    paddingBottom: 20,
     position: 'absolute',
     width: '100%',
   },
@@ -606,6 +570,7 @@ const styles = StyleSheet.create({
   },
   mediaPreviewContainer: {
     aspectRatio: 1,
+    backgroundColor: '#000000',
     borderRadius: 12,
     overflow: 'hidden',
     position: 'relative',
@@ -634,6 +599,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     position: 'absolute',
     top: 12,
+    zIndex: 10,
   },
   mediaTypeText: {
     ...TextStyles.small,
@@ -654,7 +620,7 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   modalContainer: {
-    backgroundColor: Colors.primaryBorder,
+    backgroundColor: '#000000',
     flex: 1,
     position: 'relative',
   },
@@ -670,13 +636,15 @@ const styles = StyleSheet.create({
     top: '50%',
     transform: [{ translateX: -30 }, { translateY: -10 }],
     width: 60,
+    zIndex: 20,
   },
   modalVideo: {
-    height: '80%',
+    height: '100%',
     width: '100%',
   },
   modalVideoContainer: {
     alignItems: 'center',
+    backgroundColor: '#000000',
     flex: 1,
     justifyContent: 'center',
   },
@@ -718,6 +686,7 @@ const styles = StyleSheet.create({
     right: 12,
     top: 12,
     width: 40,
+    zIndex: 20,
   },
 
   playButton: {
@@ -731,6 +700,7 @@ const styles = StyleSheet.create({
     top: '50%',
     transform: [{ translateX: -30 }, { translateY: -30 }],
     width: 60,
+    zIndex: 20,
   },
   pointsContainer: {
     marginBottom: 32,
@@ -813,6 +783,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 0,
     top: 0,
+    zIndex: 30,
   },
   uploadOverlayText: {
     ...TextStyles.body,

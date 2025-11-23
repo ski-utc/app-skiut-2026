@@ -1,33 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    SafeAreaView,
-    FlatList,
-    TouchableOpacity,
-    ActivityIndicator,
-    Alert,
-    RefreshControl,
-    Modal,
-    TextInput,
-    ScrollView,
-} from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import {
-    Home,
-    Plus,
-    Calendar,
-    Users,
-    Trash2,
-    Play,
-    Square,
-    CheckCircle,
-} from 'lucide-react-native';
+import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, ActivityIndicator, Alert, RefreshControl, Modal, TextInput, ScrollView, Platform } from 'react-native';
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import { Home, Plus, Calendar, Users, Trash2, Play, Square, CheckCircle } from 'lucide-react-native';
 import { Checkbox } from 'expo-checkbox';
 import Toast from 'react-native-toast-message';
 
-import { apiGet, apiPost, apiDelete } from '@/constants/api/apiCalls';
+import { apiGet, apiPost, apiDelete, isSuccessResponse, isPendingResponse, handleApiErrorScreen, handleApiErrorToast, AppError } from '@/constants/api/apiCalls';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
@@ -68,10 +46,16 @@ type Binome = {
     assigned_rooms: string[];
 }
 
+type TourPayload = {
+    tour_date: string;
+    binomes: Binome[];
+}
+
 export default function GestionTourneeChambreScreen() {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState('');
+
     const [tours, setTours] = useState<RoomTour[]>([]);
     const [rooms, setRooms] = useState<Room[]>([]);
     const [members, setMembers] = useState<Member[]>([]);
@@ -80,7 +64,6 @@ export default function GestionTourneeChambreScreen() {
     const [formSubmitting, setFormSubmitting] = useState(false);
     const [showMemberPicker, setShowMemberPicker] = useState<number | null>(null);
     const [showRoomPicker, setShowRoomPicker] = useState<number | null>(null);
-
     const [formDate, setFormDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [binomes, setBinomes] = useState<Binome[]>([]);
@@ -88,39 +71,31 @@ export default function GestionTourneeChambreScreen() {
     const { setUser } = useUser();
 
     const fetchData = useCallback(async () => {
+        if (!refreshing) setLoading(true);
+        setError('');
+
         try {
-            const response = await apiGet("admin");
-            if (!response.success) {
-                setError("Accès non autorisé");
-                return;
-            }
+            const [toursRes, roomsRes, membersRes] = await Promise.all([
+                apiGet<RoomTour[]>("admin/room-tours"),
+                apiGet<Room[]>("admin/room-tours/available-rooms"),
+                apiGet<Member[]>("admin/permanences/members")
+            ]);
 
-            const toursResponse = await apiGet("admin/room-tours");
-            if (toursResponse.success) {
-                setTours(toursResponse.data);
-            }
+            if (isSuccessResponse(toursRes)) setTours(toursRes.data);
+            if (isSuccessResponse(roomsRes)) setRooms(roomsRes.data);
+            if (isSuccessResponse(membersRes)) setMembers(membersRes.data);
 
-            const roomsResponse = await apiGet("admin/room-tours/available-rooms");
-            if (roomsResponse.success) {
-                setRooms(roomsResponse.data);
-            }
-
-            const membersResponse = await apiGet("admin/permanences/members");
-            if (membersResponse.success) {
-                setMembers(membersResponse.data);
-            }
-
-        } catch (error: any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
+        } catch (err: unknown) {
+            if (refreshing) {
+                handleApiErrorToast(err as AppError, setUser);
             } else {
-                setError(error.message);
+                handleApiErrorScreen(err, setUser, setError);
             }
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [setUser]);
+    }, [refreshing, setUser]);
 
     useEffect(() => {
         fetchData();
@@ -128,7 +103,6 @@ export default function GestionTourneeChambreScreen() {
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
-        setError('');
         fetchData();
     }, [fetchData]);
 
@@ -150,9 +124,9 @@ export default function GestionTourneeChambreScreen() {
         }]);
     };
 
-    const updateBinome = (index: number, field: keyof Binome, value: any) => {
+    const updateBinome = <K extends keyof Binome>(index: number, field: K, value: Binome[K]) => {
         const updatedBinomes = [...binomes];
-        updatedBinomes[index] = { ...updatedBinomes[index], [field]: value };
+        updatedBinomes[index][field] = value;
         setBinomes(updatedBinomes);
     };
 
@@ -162,22 +136,13 @@ export default function GestionTourneeChambreScreen() {
 
     const submitTour = async () => {
         if (binomes.length === 0) {
-            Toast.show({
-                type: 'error',
-                text1: 'Erreur',
-                text2: 'Veuillez ajouter au moins un binôme.',
-            });
+            Toast.show({ type: 'error', text1: 'Erreur', text2: 'Veuillez ajouter au moins un binôme.' });
             return;
         }
 
-        for (let i = 0; i < binomes.length; i++) {
-            const binome = binomes[i];
+        for (const binome of binomes) {
             if (binome.member_ids.length === 0 || binome.assigned_rooms.length === 0) {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Erreur',
-                    text2: `Le ${binome.name} doit avoir au moins un membre et une chambre assignée.`,
-                });
+                Toast.show({ type: 'error', text1: 'Erreur', text2: `Le ${binome.name} est incomplet.` });
                 return;
             }
         }
@@ -185,45 +150,28 @@ export default function GestionTourneeChambreScreen() {
         setFormSubmitting(true);
 
         try {
-            const data = {
+            const data: TourPayload = {
                 tour_date: formDate.toISOString().split('T')[0],
                 binomes: binomes
             };
 
             const response = await apiPost('admin/room-tours', data);
 
-            if (response.success) {
-                Toast.show({
-                    type: 'success',
-                    text1: 'Succès',
-                    text2: 'Tournée créée avec succès.',
-                });
+            if (isSuccessResponse(response)) {
+                Toast.show({ type: 'success', text1: 'Succès', text2: 'Tournée créée avec succès.' });
                 setShowCreateModal(false);
                 resetForm();
                 fetchData();
-            } else if (response.pending) {
-                Toast.show({
-                    type: 'info',
-                    text1: 'Requête sauvegardée',
-                    text2: response.message,
-                });
+            } else if (isPendingResponse(response)) {
+                Toast.show({ type: 'info', text1: 'Sauvegardé', text2: 'Création en attente de connexion.' });
                 setShowCreateModal(false);
                 resetForm();
                 fetchData();
             } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Erreur',
-                    text2: response.message,
-                });
+                Toast.show({ type: 'error', text1: 'Erreur', text2: response.message });
             }
-        } catch (error: any) {
-            setError(error.message || 'Une erreur est survenue.');
-            Toast.show({
-                type: 'error',
-                text1: 'Erreur',
-                text2: error.message || 'Une erreur est survenue.',
-            });
+        } catch (err: unknown) {
+            handleApiErrorToast(err as AppError, setUser);
         } finally {
             setFormSubmitting(false);
         }
@@ -234,55 +182,42 @@ export default function GestionTourneeChambreScreen() {
             const action = tour.is_active ? 'désactiver' : 'activer';
             Alert.alert(
                 `${action.charAt(0).toUpperCase() + action.slice(1)} la tournée`,
-                `Voulez-vous ${action} la tournée du ${new Date(tour.tour_date).toLocaleDateString('fr-FR')} ?`,
+                `Confirmer l'action sur la tournée du ${new Date(tour.tour_date).toLocaleDateString('fr-FR')} ?`,
                 [
                     { text: 'Annuler', style: 'cancel' },
                     {
                         text: action.charAt(0).toUpperCase() + action.slice(1),
                         onPress: async () => {
-                            const response = await apiPost(`admin/room-tours/${tour.id}/toggle`, {
-                                activate: !tour.is_active
-                            });
+                            try {
+                                const response = await apiPost(`admin/room-tours/${tour.id}/toggle`, {
+                                    activate: !tour.is_active
+                                });
 
-                            if (response.success) {
-                                Toast.show({
-                                    type: 'success',
-                                    text1: 'Succès',
-                                    text2: response.message,
-                                });
-                                fetchData();
-                            } else if (response.pending) {
-                                Toast.show({
-                                    type: 'info',
-                                    text1: 'Requête sauvegardée',
-                                    text2: response.message,
-                                });
-                                fetchData();
-                            } else {
-                                Toast.show({
-                                    type: 'error',
-                                    text1: 'Erreur',
-                                    text2: response.message,
-                                });
+                                if (isSuccessResponse(response)) {
+                                    Toast.show({ type: 'success', text1: 'Succès', text2: response.message });
+                                    fetchData();
+                                } else if (isPendingResponse(response)) {
+                                    Toast.show({ type: 'info', text1: 'Sauvegardé', text2: 'Action en attente.' });
+                                    setTours(prev => prev.map(t => t.id === tour.id ? { ...t, is_active: !t.is_active } : t));
+                                } else {
+                                    Toast.show({ type: 'error', text1: 'Erreur', text2: response.message });
+                                }
+                            } catch (err: unknown) {
+                                handleApiErrorToast(err as AppError, setUser);
                             }
                         }
                     }
                 ]
             );
-        } catch (error: any) {
-            setError(error.message || 'Une erreur est survenue.');
-            Toast.show({
-                type: 'error',
-                text1: 'Erreur',
-                text2: error.message || 'Une erreur est survenue.',
-            });
+        } catch (err: unknown) {
+            handleApiErrorToast(err as AppError, setUser);
         }
     };
 
     const deleteTour = (tour: RoomTour) => {
         Alert.alert(
             'Supprimer la tournée',
-            `Voulez-vous vraiment supprimer la tournée du ${new Date(tour.tour_date).toLocaleDateString('fr-FR')} ?`,
+            `Supprimer définitivement la tournée du ${new Date(tour.tour_date).toLocaleDateString('fr-FR')} ?`,
             [
                 { text: 'Annuler', style: 'cancel' },
                 {
@@ -291,34 +226,18 @@ export default function GestionTourneeChambreScreen() {
                     onPress: async () => {
                         try {
                             const response = await apiDelete(`admin/room-tours/${tour.id}`);
-                            if (response.success) {
-                                Toast.show({
-                                    type: 'success',
-                                    text1: 'Succès',
-                                    text2: 'Tournée supprimée avec succès.',
-                                });
-                                fetchData();
-                            } else if (response.pending) {
-                                Toast.show({
-                                    type: 'info',
-                                    text1: 'Requête sauvegardée',
-                                    text2: response.message,
-                                });
-                                fetchData();
+
+                            if (isSuccessResponse(response)) {
+                                Toast.show({ type: 'success', text1: 'Succès', text2: 'Tournée supprimée.' });
+                                setTours(prev => prev.filter(t => t.id !== tour.id));
+                            } else if (isPendingResponse(response)) {
+                                Toast.show({ type: 'info', text1: 'Sauvegardé', text2: 'Suppression en attente.' });
+                                setTours(prev => prev.filter(t => t.id !== tour.id));
                             } else {
-                                Toast.show({
-                                    type: 'error',
-                                    text1: 'Erreur',
-                                    text2: response.message,
-                                });
+                                Toast.show({ type: 'error', text1: 'Erreur', text2: response.message });
                             }
-                        } catch (error: any) {
-                            setError(error.message || 'Une erreur est survenue.');
-                            Toast.show({
-                                type: 'error',
-                                text1: 'Erreur',
-                                text2: error.message || 'Une erreur est survenue.',
-                            });
+                        } catch (err: unknown) {
+                            handleApiErrorToast(err as AppError, setUser);
                         }
                     }
                 }
@@ -391,9 +310,7 @@ export default function GestionTourneeChambreScreen() {
                         ) : (
                             <Play size={16} color={Colors.white} />
                         )}
-                        <Text style={[styles.actionButtonText, {
-                            color: Colors.white
-                        }]}>
+                        <Text style={[styles.actionButtonText, { color: Colors.white }]}>
                             {item.is_active ? 'Pause' : 'Lancer'}
                         </Text>
                     </TouchableOpacity>
@@ -412,14 +329,14 @@ export default function GestionTourneeChambreScreen() {
         );
     };
 
-    if (error !== '') {
+    if (error) {
         return <ErrorScreen error={error} />;
     }
 
     if (loading) {
         return (
             <SafeAreaView style={styles.container}>
-                <Header refreshFunction={null} disableRefresh={true} />
+                <Header refreshFunction={undefined} disableRefresh={true} />
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={Colors.primary} />
                     <Text style={styles.loadingText}>Chargement des tournées...</Text>
@@ -430,9 +347,9 @@ export default function GestionTourneeChambreScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header refreshFunction={null} disableRefresh={true} />
+            <Header refreshFunction={onRefresh} disableRefresh={refreshing} />
             <View style={styles.headerContainer}>
-                <BoutonRetour title="Tournée des Chambres" />
+                <BoutonRetour title="Gestion des Tournées" />
             </View>
 
             <View style={styles.heroSection}>
@@ -483,6 +400,7 @@ export default function GestionTourneeChambreScreen() {
                 visible={showCreateModal}
                 animationType="slide"
                 presentationStyle="pageSheet"
+                onRequestClose={() => setShowCreateModal(false)}
             >
                 <SafeAreaView style={styles.modalContainer}>
                     <View style={styles.modalHeader}>
@@ -492,15 +410,36 @@ export default function GestionTourneeChambreScreen() {
                     <ScrollView style={styles.modalContent} contentContainerStyle={styles.modalContentContainer}>
                         <View style={styles.formGroup}>
                             <Text style={styles.label}>Date de la tournée *</Text>
-                            <TouchableOpacity
-                                style={styles.dateButton}
-                                onPress={() => setShowDatePicker(true)}
-                            >
-                                <Calendar size={16} color={Colors.muted} />
-                                <Text style={styles.dateText}>
-                                    {formDate.toLocaleDateString('fr-FR')}
-                                </Text>
-                            </TouchableOpacity>
+                            {Platform.OS === 'android' ? (
+                                <TouchableOpacity
+                                    style={styles.dateButton}
+                                    onPress={() => {
+                                        DateTimePickerAndroid.open({
+                                            value: formDate,
+                                            mode: 'date',
+                                            minimumDate: new Date(),
+                                            onChange: (event, selectedDate) => {
+                                                if (event && selectedDate) setFormDate(selectedDate);
+                                            },
+                                        });
+                                    }}
+                                >
+                                    <Calendar size={16} color={Colors.muted} />
+                                    <Text style={styles.dateText}>
+                                        {formDate.toLocaleDateString('fr-FR')}
+                                    </Text>
+                                </TouchableOpacity>
+                            ) : (
+                                <TouchableOpacity
+                                    style={styles.dateButton}
+                                    onPress={() => setShowDatePicker(true)}
+                                >
+                                    <Calendar size={16} color={Colors.muted} />
+                                    <Text style={styles.dateText}>
+                                        {formDate.toLocaleDateString('fr-FR')}
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
                         </View>
 
                         <View style={styles.binomesSection}>
@@ -575,7 +514,7 @@ export default function GestionTourneeChambreScreen() {
                         </View>
                     </ScrollView>
 
-                    {showDatePicker && (
+                    {Platform.OS === 'ios' && showDatePicker && (
                         <DateTimePicker
                             value={formDate}
                             mode="date"
@@ -583,7 +522,7 @@ export default function GestionTourneeChambreScreen() {
                             minimumDate={new Date()}
                             onChange={(event, selectedDate) => {
                                 setShowDatePicker(false);
-                                if (selectedDate) {
+                                if (event && selectedDate) {
                                     setFormDate(selectedDate);
                                 }
                             }}
@@ -628,14 +567,14 @@ export default function GestionTourneeChambreScreen() {
                                         const binomeIndex = showMemberPicker!;
                                         const currentBinome = binomes[binomeIndex];
                                         const isSelected = currentBinome?.member_ids.includes(member.id) || false;
-                                        const canSelect = currentBinome?.member_ids.length < 2 || isSelected;
+                                        const canSelect = (currentBinome?.member_ids.length < 2) || isSelected;
 
                                         return (
                                             <TouchableOpacity
                                                 key={member.id}
                                                 style={[styles.pickerModalItem, !canSelect && styles.pickerModalItemDisabled]}
                                                 onPress={() => {
-                                                    if (!canSelect) return;
+                                                    if (!canSelect && !isSelected) return;
                                                     const newBinomes = [...binomes];
                                                     if (isSelected) {
                                                         newBinomes[binomeIndex].member_ids = newBinomes[binomeIndex].member_ids.filter(id => id !== member.id);
@@ -646,13 +585,13 @@ export default function GestionTourneeChambreScreen() {
                                                     }
                                                     setBinomes(newBinomes);
                                                 }}
-                                                disabled={!canSelect}
+                                                disabled={!canSelect && !isSelected}
                                             >
                                                 <Checkbox
                                                     value={isSelected}
                                                     onValueChange={() => { }}
                                                     color={Colors.primary}
-                                                    disabled={!canSelect}
+                                                    disabled={!canSelect && !isSelected}
                                                 />
                                                 <Text style={styles.pickerModalItemText}>{member.name}</Text>
                                             </TouchableOpacity>
@@ -702,7 +641,7 @@ export default function GestionTourneeChambreScreen() {
                                                     color={Colors.primary}
                                                 />
                                                 <Text style={styles.pickerModalItemText}>
-                                                    Chambre {room.room_id} ({room.occupants_count} occupant{room.occupants_count !== 1 ? 's' : ''})
+                                                    Chambre {room.room_id} ({room.occupants_count})
                                                 </Text>
                                             </TouchableOpacity>
                                         );

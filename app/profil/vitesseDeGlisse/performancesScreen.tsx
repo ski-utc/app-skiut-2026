@@ -5,8 +5,9 @@ import { Crown, Trophy, Medal, ChevronDown } from "lucide-react-native";
 import Header from "@/components/header";
 import { Colors, TextStyles, Fonts } from '@/constants/GraphSettings';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiGet } from '@/constants/api/apiCalls';
+import { apiGet, isSuccessResponse, handleApiErrorScreen } from '@/constants/api/apiCalls';
 import ErrorScreen from "@/components/pages/errorPage";
+import { useUser } from "@/contexts/UserContext";
 
 const screenWidth = Dimensions.get('window').width;
 const podiumWidth = (screenWidth - 80) / 3;
@@ -16,6 +17,7 @@ const silverColor = "#C0C0C0";
 const bronzeColor = "#CD7F32";
 
 type RankingType = 'speed' | 'distance' | 'duration';
+
 type PerformanceData = {
     user_id: number;
     full_name: string;
@@ -23,19 +25,23 @@ type PerformanceData = {
     total_distance?: number;
     duration?: number;
 }
+
+type PerformanceResponse = PerformanceData[] | Record<string, PerformanceData>;
+
 type PodiumPlaceProps = {
     position: number;
     fullName: string;
-    speed: string;
+    valueDisplay: string;
     height: number;
 }
+
 type RankingItemProps = {
     position: number;
     fullName: string;
-    speed: string;
+    valueDisplay: string;
 }
 
-const PodiumPlace: React.FC<PodiumPlaceProps> = ({ position, fullName, speed, height }) => {
+const PodiumPlace: React.FC<PodiumPlaceProps> = ({ position, fullName, valueDisplay, height }) => {
     return (
         <View style={podiumStyles.placeContainer}>
             <View style={podiumStyles.iconContainer}>
@@ -45,11 +51,25 @@ const PodiumPlace: React.FC<PodiumPlaceProps> = ({ position, fullName, speed, he
                 <Text style={podiumStyles.positionText}>{position}</Text>
             </View>
             <Text style={podiumStyles.roomText} numberOfLines={1}>{fullName}</Text>
-            <Text style={podiumStyles.pointsText}>{speed}</Text>
+            <Text style={podiumStyles.pointsText}>{valueDisplay}</Text>
             <View style={[
                 podiumStyles.podiumBar,
                 { height, backgroundColor: position === 1 ? goldColor : position === 2 ? silverColor : bronzeColor }
             ]} />
+        </View>
+    );
+};
+
+const RankingItem: React.FC<RankingItemProps> = ({ position, fullName, valueDisplay }) => {
+    return (
+        <View style={rankingStyles.container}>
+            <View style={rankingStyles.positionContainer}>
+                <Text style={rankingStyles.positionNumber}>{position}</Text>
+            </View>
+            <View style={rankingStyles.contentContainer}>
+                <Text style={rankingStyles.roomName}>{fullName}</Text>
+                <Text style={rankingStyles.points}>{valueDisplay}</Text>
+            </View>
         </View>
     );
 };
@@ -100,20 +120,6 @@ const podiumStyles = StyleSheet.create({
     },
 });
 
-const RankingItem: React.FC<RankingItemProps> = ({ position, fullName, speed }) => {
-    return (
-        <View style={rankingStyles.container}>
-            <View style={rankingStyles.positionContainer}>
-                <Text style={rankingStyles.positionNumber}>{position}</Text>
-            </View>
-            <View style={rankingStyles.contentContainer}>
-                <Text style={rankingStyles.roomName}>{fullName}</Text>
-                <Text style={rankingStyles.points}>{speed}</Text>
-            </View>
-        </View>
-    );
-};
-
 const rankingStyles = StyleSheet.create({
     container: {
         alignItems: 'center',
@@ -161,42 +167,45 @@ const rankingStyles = StyleSheet.create({
 });
 
 export default function PerformancesScreen() {
-    const [loading, setLoading] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState('');
+
     const [podium, setPodium] = useState<PerformanceData[]>([]);
     const [rest, setRest] = useState<PerformanceData[]>([]);
-    const [disableRefresh, setDisableRefresh] = useState(false);
+
     const [rankingType, setRankingType] = useState<RankingType>('speed');
     const [showRankingMenu, setShowRankingMenu] = useState(false);
 
+    const { setUser } = useUser();
+
     const fetchPerformances = useCallback(async () => {
         setLoading(true);
-        setDisableRefresh(true);
+        setError('');
+
         try {
-            const response = await apiGet(`classement-performances?type=${rankingType}`);
-            if (response.success && response.data) {
-                const allPerformances = Object.values(response.data as any[]);
-                const podiumData = allPerformances.slice(0, 3);
-                const restData = allPerformances.slice(3);
-                setPodium(podiumData);
-                setRest(restData);
-            } else {
-                setError(response.message || 'Erreur lors du chargement des performances');
+            const response = await apiGet<PerformanceResponse>(`classement-performances?type=${rankingType}`);
+
+            if (isSuccessResponse(response) && response.data) {
+                let allPerformances: PerformanceData[] = [];
+
+                if (Array.isArray(response.data)) {
+                    allPerformances = response.data;
+                } else if (typeof response.data === 'object') {
+                    allPerformances = Object.values(response.data);
+                }
+
+                // Découpage Podium / Reste
+                setPodium(allPerformances.slice(0, 3));
+                setRest(allPerformances.slice(3));
             }
-        } catch (error: any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setPodium([]);
-                setRest([]);
-            } else {
-                setError(error.message);
-            }
+        } catch (err: unknown) {
+            handleApiErrorScreen(err, setUser, setError);
+            setPodium([]);
+            setRest([]);
         } finally {
             setLoading(false);
-            setTimeout(() => {
-                setDisableRefresh(false);
-            }, 5000);
         }
-    }, [rankingType]);
+    }, [rankingType, setUser]);
 
     useEffect(() => {
         fetchPerformances();
@@ -210,11 +219,12 @@ export default function PerformancesScreen() {
         }
     };
 
-    const getValue = (item: PerformanceData) => {
+    const getValueDisplay = (item: PerformanceData) => {
         switch (rankingType) {
             case 'speed': return `${Number(item.max_speed).toFixed(1)} km/h`;
             case 'distance': return `${Number(item.total_distance || 0).toFixed(2)} km`;
-            case 'duration': return `${Math.floor(Number(item.duration || 0) / 60 / 60)}h${Math.floor(Number(item.duration || 0) % 60)}min`;
+            case 'duration': return `${Math.floor(Number(item.duration || 0) / 3600)}h${Math.floor((Number(item.duration || 0) % 3600) / 60)}min`;
+            default: return '';
         }
     };
 
@@ -222,7 +232,7 @@ export default function PerformancesScreen() {
         return <ErrorScreen error={error} />;
     }
 
-    if (loading) {
+    if (loading && podium.length === 0 && rest.length === 0) {
         return (
             <View style={styles.pageContainer}>
                 <Header refreshFunction={undefined} disableRefresh={true} />
@@ -236,13 +246,16 @@ export default function PerformancesScreen() {
 
     return (
         <View style={styles.pageContainer}>
-            <Header refreshFunction={fetchPerformances} disableRefresh={disableRefresh} />
+            <Header refreshFunction={fetchPerformances} disableRefresh={loading} />
+
             <View style={styles.headerRow}>
                 <BoutonRetour title={"Classement"} />
+
                 <View style={styles.dropdownContainer}>
                     <TouchableOpacity
                         style={styles.rankingButton}
                         onPress={() => setShowRankingMenu(!showRankingMenu)}
+                        activeOpacity={0.8}
                     >
                         <Text style={styles.rankingButtonText}>{getRankingLabel()}</Text>
                         <ChevronDown
@@ -251,49 +264,35 @@ export default function PerformancesScreen() {
                             style={showRankingMenu ? styles.chevronIconRotated : styles.chevronIcon}
                         />
                     </TouchableOpacity>
+
                     {showRankingMenu && (
                         <View style={styles.dropdownMenu}>
-                            <TouchableOpacity
-                                style={[styles.dropdownOption, rankingType === 'speed' && styles.dropdownOptionActive]}
-                                onPress={() => {
-                                    setRankingType('speed');
-                                    setShowRankingMenu(false);
-                                }}
-                            >
-                                <Text style={[styles.dropdownOptionText, rankingType === 'speed' && styles.dropdownOptionTextActive]}>
-                                    Vitesse max
-                                </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.dropdownOption, rankingType === 'distance' && styles.dropdownOptionActive]}
-                                onPress={() => {
-                                    setRankingType('distance');
-                                    setShowRankingMenu(false);
-                                }}
-                            >
-                                <Text style={[styles.dropdownOptionText, rankingType === 'distance' && styles.dropdownOptionTextActive]}>
-                                    Distance
-                                </Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[
-                                    styles.dropdownOption,
-                                    styles.dropdownOptionLast,
-                                    rankingType === 'duration' && styles.dropdownOptionActive
-                                ]}
-                                onPress={() => {
-                                    setRankingType('duration');
-                                    setShowRankingMenu(false);
-                                }}
-                            >
-                                <Text style={[styles.dropdownOptionText, rankingType === 'duration' && styles.dropdownOptionTextActive]}>
-                                    Temps
-                                </Text>
-                            </TouchableOpacity>
+                            {(['speed', 'distance', 'duration'] as const).map((type) => (
+                                <TouchableOpacity
+                                    key={type}
+                                    style={[
+                                        styles.dropdownOption,
+                                        rankingType === type && styles.dropdownOptionActive,
+                                        type === 'duration' && styles.dropdownOptionLast
+                                    ]}
+                                    onPress={() => {
+                                        setRankingType(type);
+                                        setShowRankingMenu(false);
+                                    }}
+                                >
+                                    <Text style={[
+                                        styles.dropdownOptionText,
+                                        rankingType === type && styles.dropdownOptionTextActive
+                                    ]}>
+                                        {type === 'speed' ? 'Vitesse max' : type === 'distance' ? 'Distance' : 'Temps'}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
                         </View>
                     )}
                 </View>
             </View>
+
             <View style={styles.podiumSection}>
                 <Text style={styles.sectionTitle}>Podium</Text>
                 <View style={styles.podiumContainer}>
@@ -301,7 +300,7 @@ export default function PerformancesScreen() {
                         <PodiumPlace
                             position={2}
                             fullName={podium[1].full_name}
-                            speed={getValue(podium[1])}
+                            valueDisplay={getValueDisplay(podium[1])}
                             height={80}
                         />
                     )}
@@ -309,7 +308,7 @@ export default function PerformancesScreen() {
                         <PodiumPlace
                             position={1}
                             fullName={podium[0].full_name}
-                            speed={getValue(podium[0])}
+                            valueDisplay={getValueDisplay(podium[0])}
                             height={120}
                         />
                     )}
@@ -317,12 +316,13 @@ export default function PerformancesScreen() {
                         <PodiumPlace
                             position={3}
                             fullName={podium[2].full_name}
-                            speed={getValue(podium[2])}
+                            valueDisplay={getValueDisplay(podium[2])}
                             height={60}
                         />
                     )}
                 </View>
             </View>
+
             <FlatList
                 data={rest}
                 keyExtractor={(item) => item.user_id.toString()}
@@ -338,16 +338,16 @@ export default function PerformancesScreen() {
                     <RankingItem
                         position={index + 4}
                         fullName={item.full_name}
-                        speed={getValue(item)}
+                        valueDisplay={getValueDisplay(item)}
                     />
                 )}
                 contentContainerStyle={styles.flatListContainer}
                 ListEmptyComponent={() =>
-                    rest.length === 0 ? null : (
+                    rest.length === 0 && !loading ? (
                         <View style={styles.emptyContainer}>
-                            <Text style={styles.emptyText}>Aucune autre performance dans le classement</Text>
+                            <Text style={styles.emptyText}>Aucune autre performance</Text>
                         </View>
-                    )
+                    ) : null
                 }
             />
         </View>
@@ -364,6 +364,7 @@ const styles = StyleSheet.create({
     dropdownContainer: {
         marginBottom: 8,
         position: 'relative',
+        zIndex: 2000,
     },
     dropdownMenu: {
         backgroundColor: Colors.white,
@@ -456,6 +457,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
         shadowRadius: 8,
+        zIndex: 1,
     },
     rankingButton: {
         alignItems: 'center',

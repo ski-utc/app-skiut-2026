@@ -2,15 +2,32 @@ import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, RefreshControl, ActivityIndicator, Modal } from 'react-native';
 import { UtensilsCrossed, Plus, ShoppingBag, Clock, Package } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, NavigationProp } from '@react-navigation/native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiGet } from '@/constants/api/apiCalls';
+import { apiGet, isSuccessResponse, handleApiErrorToast, handleApiErrorScreen } from '@/constants/api/apiCalls';
 import ArticleCard from '@/components/monoprut/articleCard';
 import CreateArticleModal from '@/components/monoprut/createArticleModal';
 import ErrorScreen from '@/components/pages/errorPage';
+import { useUser } from '@/contexts/UserContext';
+
+type MonoprutStackParamList = {
+    MonoprutScreen: undefined;
+    MyReservationsScreen: undefined;
+    MyOffersScreen: undefined;
+};
+
+type RoomInfo = {
+    roomNumber: string;
+    name: string;
+};
+
+type GiverInfo = {
+    responsible_name: string;
+    room: string;
+};
 
 type Article = {
     id: number;
@@ -19,76 +36,74 @@ type Article = {
     type: 'fruit' | 'veggie' | 'drink' | 'sweet' | 'snack' | 'dairy' | 'bread' | 'meat' | 'fish' | 'grain' | 'other';
     giver_room_id: number;
     receiver_room_id: number | null;
-    giver_room?: {
-        roomNumber: string;
-        name: string;
-    };
-    giver_info?: {
-        responsible_name: string;
-        room: string;
-    };
+    giver_room?: RoomInfo;
+    giver_info?: GiverInfo;
 }
 
 export default function MonoprutScreen() {
-    const navigation = useNavigation<any>();
+    const navigation = useNavigation<NavigationProp<MonoprutStackParamList>>();
+    const { setUser } = useUser();
+
     const [articles, setArticles] = useState<Article[]>([]);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
 
-    const fetchArticles = async () => {
+    const fetchArticles = useCallback(async (isRefresh = false) => {
+        if (isRefresh) {
+            setRefreshing(true);
+        } else {
+            setError('');
+        }
+
         try {
-            const response = await apiGet('articles');
-            if (response.success) {
+            const response = await apiGet<Article[]>('articles');
+
+            if (isSuccessResponse(response)) {
                 setArticles(response.data || []);
-            } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Erreur',
-                    text2: response.message || 'Impossible de récupérer les articles.',
-                });
             }
-        } catch (error: any) {
-            setError(error.message || 'Une erreur est survenue.');
-            Toast.show({
-                type: 'error',
-                text1: 'Erreur',
-                text2: error.message || 'Une erreur est survenue.',
-            });
+        } catch (err: unknown) {
+            if (isRefresh) {
+                handleApiErrorToast(err, setUser);
+            } else {
+                handleApiErrorScreen(err, setUser, setError);
+            }
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
-    };
+    }, [setUser]);
 
     useFocusEffect(
         useCallback(() => {
-            setLoading(true);
-            fetchArticles();
-        }, [])
+            if (articles.length === 0) setLoading(true);
+            fetchArticles(false);
+        }, [articles.length, fetchArticles])
     );
 
     const handleRefresh = () => {
-        setRefreshing(true);
-        fetchArticles();
+        fetchArticles(true);
     };
 
     const handleArticleCreated = () => {
         setShowCreateModal(false);
-        fetchArticles();
+        Toast.show({
+            type: 'success',
+            text1: 'Article créé avec succès !',
+            text2: "Esperons qu'il ait du succès !"
+        });
+        fetchArticles(true);
     };
 
     if (error) {
-        return (
-            <ErrorScreen error={error} />
-        );
+        return <ErrorScreen error={error} />;
     }
 
-    if (loading) {
+    if (loading && articles.length === 0) {
         return (
             <SafeAreaView style={styles.container}>
-                <Header refreshFunction={handleRefresh} disableRefresh={false} />
+                <Header refreshFunction={undefined} disableRefresh={true} />
                 <View style={styles.headerContainer}>
                     <BoutonRetour title="Monoprut" />
                 </View>
@@ -102,7 +117,7 @@ export default function MonoprutScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header refreshFunction={handleRefresh} disableRefresh={false} />
+            <Header refreshFunction={handleRefresh} disableRefresh={refreshing} />
             <View style={styles.headerContainer}>
                 <BoutonRetour title="Monoprut" />
             </View>
@@ -117,6 +132,7 @@ export default function MonoprutScreen() {
                         Disponibles
                     </Text>
                 </TouchableOpacity>
+
                 <TouchableOpacity
                     style={styles.navButton}
                     onPress={() => navigation.navigate('MyReservationsScreen')}
@@ -125,6 +141,7 @@ export default function MonoprutScreen() {
                     <Clock size={18} color={Colors.primaryBorder} strokeWidth={2.5} />
                     <Text style={styles.navButtonText}>Réservations</Text>
                 </TouchableOpacity>
+
                 <TouchableOpacity
                     style={styles.navButton}
                     onPress={() => navigation.navigate('MyOffersScreen')}
@@ -139,7 +156,12 @@ export default function MonoprutScreen() {
                 style={styles.content}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={handleRefresh}
+                        colors={[Colors.primary]}
+                        tintColor={Colors.primary}
+                    />
                 }
             >
                 {articles.length === 0 ? (
@@ -156,7 +178,7 @@ export default function MonoprutScreen() {
                             <ArticleCard
                                 key={article.id}
                                 article={article}
-                                onUpdate={fetchArticles}
+                                onUpdate={() => fetchArticles(true)}
                                 showReserveButton={true}
                             />
                         ))}
@@ -293,4 +315,3 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
     },
 });
-

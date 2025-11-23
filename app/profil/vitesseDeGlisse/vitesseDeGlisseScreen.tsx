@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView, AppState, Platform } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, AppState, Platform, AppStateStatus } from "react-native";
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { Trophy, Play, Square, Zap, MapPin, Timer, Gauge, Activity, TrendingUp } from "lucide-react-native";
+import { Trophy, Play, Square, Zap, MapPin, Timer, Gauge, Activity, TrendingUp, LucideProps } from "lucide-react-native";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import Toast from 'react-native-toast-message';
 
-import { apiPost } from "@/constants/api/apiCalls";
+import { apiPost, isSuccessResponse, isPendingResponse, handleApiErrorToast, AppError } from "@/constants/api/apiCalls";
 import { useUser } from "@/contexts/UserContext";
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
@@ -25,14 +25,20 @@ type LocationTaskData = {
     locations: Location.LocationObject[];
 }
 
-TaskManager.defineTask(LOCATION_TASK_NAME, ({ data, error }: { data?: LocationTaskData; error?: Error | null }) => {
+type SessionStats = {
+    startTime: number;
+    totalSpeed: number;
+    speedReadings: number;
+    validReadings: number;
+}
+
+TaskManager.defineTask<LocationTaskData>(LOCATION_TASK_NAME, async ({ data, error }) => {
     if (error) {
-        console.error('Erreur dans la tâche de localisation:', error);
         return;
     }
     if (data) {
-        const { locations } = data;
-        console.log('Localisation reçue en arrière-plan:', locations);
+        // const { locations } = data;
+        // console.log('Loc fond:', locations.length);
     }
 });
 
@@ -42,13 +48,12 @@ export default function VitesseDeGlisseScreen() {
     const [maxSpeed, setMaxSpeed] = useState(0);
     const [averageSpeed, setAverageSpeed] = useState(0);
     const [currentSpeed, setCurrentSpeed] = useState(0);
-    const [_prevLocation, setPrevLocation] = useState<Location.LocationObjectCoords | null>(null);
-    const [subscription, setSubscription] = useState<Location.LocationSubscription | null>(null);
     const [trackingTime, setTrackingTime] = useState(0);
     const [sessionId, setSessionId] = useState<string | null>(null);
-    const [_speedHistory, setSpeedHistory] = useState<number[]>([]);
 
-    const [sessionStats, setSessionStats] = useState({
+    const prevLocationRef = useRef<Location.LocationObjectCoords | null>(null);
+
+    const [sessionStats, setSessionStats] = useState<SessionStats>({
         startTime: 0,
         totalSpeed: 0,
         speedReadings: 0,
@@ -57,37 +62,34 @@ export default function VitesseDeGlisseScreen() {
 
     const { user, setUser } = useUser();
     const navigation = useNavigation<NavigationProp<VitesseDeGlisseStackParamList>>();
+
     const appState = useRef(AppState.currentState);
     const trackingInterval = useRef<NodeJS.Timeout | null>(null);
+    const locationSubscription = useRef<Location.LocationSubscription | null>(null);
 
     useEffect(() => {
         return () => {
-            if (subscription) subscription.remove();
+            if (locationSubscription.current) locationSubscription.current.remove();
             if (trackingInterval.current) clearInterval(trackingInterval.current);
         };
-    }, [subscription]);
+    }, []);
 
     useEffect(() => {
-        const subscription = AppState.addEventListener('change', (nextAppState) => {
-            if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-                console.log('App revenue au premier plan');
-            } else if (appState.current === 'active' && nextAppState.match(/inactive|background/)) {
-                console.log('App passée en arrière-plan');
+        const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+            if (appState.current === 'active' && nextAppState.match(/inactive|background/)) {
                 if (isTracking) {
-                    enableBackgroundLocation().catch((error) => {
-                        console.warn('Background location non disponible:', error.message);
-                    });
+                    enableBackgroundLocation().catch((err) => console.warn(err));
                 }
             }
             appState.current = nextAppState;
         });
 
-        return () => subscription?.remove();
+        return () => subscription.remove();
     }, [isTracking]);
 
     useEffect(() => {
         if (isTracking) {
-            setInterval(() => {
+            trackingInterval.current = setInterval(() => {
                 setTrackingTime(time => time + 1);
             }, 1000);
         } else {
@@ -95,7 +97,6 @@ export default function VitesseDeGlisseScreen() {
                 clearInterval(trackingInterval.current);
                 trackingInterval.current = null;
             }
-            setTrackingTime(0);
         }
         return () => {
             if (trackingInterval.current) clearInterval(trackingInterval.current);
@@ -104,94 +105,55 @@ export default function VitesseDeGlisseScreen() {
 
     const enableBackgroundLocation = async () => {
         try {
-            const isTaskRegistered = await TaskManager.isTaskRegisteredAsync(LOCATION_TASK_NAME);
-
-            if (isTaskRegistered) {
-                console.log('Tâche de localisation déjà enregistrée');
-                return;
-            }
+            const isRegistered = await TaskManager.isTaskRegisteredAsync(LOCATION_TASK_NAME);
+            if (isRegistered) return;
 
             if (Platform.OS === 'ios') {
-                const backgroundPermission = await Location.requestBackgroundPermissionsAsync();
-                console.log('iOS background permission status:', backgroundPermission.status);
-
-                if (backgroundPermission.status === 'granted') {
+                const { status } = await Location.requestBackgroundPermissionsAsync();
+                if (status === 'granted') {
                     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-                        accuracy: Location.Accuracy.High,
+                        accuracy: Location.Accuracy.BestForNavigation,
                         timeInterval: 5000,
                         distanceInterval: 10,
                         showsBackgroundLocationIndicator: true,
+                        pausesUpdatesAutomatically: false,
+                        activityType: Location.ActivityType.Fitness,
                     });
-                    console.log('Background location tracking started on iOS');
-                } else {
-                    console.warn('iOS background location permission denied');
-                    throw new Error('Permission en arrière-plan refusée sur iOS');
                 }
             } else if (Platform.OS === 'android') {
-                const foregroundPermission = await Location.getForegroundPermissionsAsync();
-                if (foregroundPermission.status === 'granted') {
+                const { status } = await Location.requestForegroundPermissionsAsync();
+                if (status === 'granted') {
                     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-                        accuracy: Location.Accuracy.High,
+                        accuracy: Location.Accuracy.BestForNavigation,
                         timeInterval: 5000,
                         distanceInterval: 10,
+                        foregroundService: {
+                            notificationTitle: "Suivi de glisse en cours",
+                            notificationBody: "Nous enregistrons votre vitesse et distance.",
+                        }
                     });
-                    console.log('Background location tracking started on Android');
-                } else {
-                    throw new Error('Permission en avant-plan non accordée');
                 }
             }
         } catch (error) {
-            console.warn('Background location setup failed:', error);
-            throw error;
+            console.warn('Background loc error:', error);
         }
     };
 
     const startTracking = async () => {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
-            Alert.alert(
-                "Permission refusée",
-                "L'application a besoin de l'accès à votre localisation pour suivre vos mouvements."
-            );
+            handleApiErrorToast('Permission refusée pour l\'accès à la localisation.', setUser);
             return;
-        }
-
-        try {
-            if (Platform.OS === 'ios') {
-                const backgroundStatus = await Location.requestBackgroundPermissionsAsync();
-                console.log('iOS background permission requested:', backgroundStatus.status);
-                if (backgroundStatus.status === 'granted') {
-                    console.log('iOS background location permission granted');
-                } else {
-                    console.warn('iOS background location permission not granted, tracking will stop in background');
-                    Alert.alert(
-                        "Permission arrière-plan",
-                        "Pour une mesure continue même avec le téléphone en veille, autorisez la localisation en arrière-plan dans les paramètres."
-                    );
-                }
-            } else if (Platform.OS === 'android') {
-                const foregroundStatus = await Location.getForegroundPermissionsAsync();
-                if (foregroundStatus.status !== 'granted') {
-                    Alert.alert(
-                        "Permission requise",
-                        "La localisation en avant-plan est requise pour le tracking."
-                    );
-                    return;
-                }
-            }
-        } catch (error) {
-            console.warn('Error checking background permissions:', error);
         }
 
         const newSessionId = Date.now().toString();
         setSessionId(newSessionId);
-        setIsTracking(true);
         setDistance(0);
         setMaxSpeed(0);
         setAverageSpeed(0);
         setCurrentSpeed(0);
-        setPrevLocation(null);
-        setSpeedHistory([]);
+        setTrackingTime(0);
+        prevLocationRef.current = null;
         setSessionStats({
             startTime: Date.now(),
             totalSpeed: 0,
@@ -199,23 +161,19 @@ export default function VitesseDeGlisseScreen() {
             validReadings: 0
         });
 
+        setIsTracking(true);
+
         try {
-            const locationSubscription = await Location.watchPositionAsync(
+            locationSubscription.current = await Location.watchPositionAsync(
                 {
                     accuracy: Location.Accuracy.BestForNavigation,
                     timeInterval: 1000,
                     distanceInterval: 1,
-                    mayShowUserSettingsDialog: true,
                 },
-                (location) => {
-                    processLocationUpdate(location);
-                }
+                (location) => processLocationUpdate(location)
             );
-
-            setSubscription(locationSubscription);
-        } catch (error) {
-            console.error('Erreur lors du démarrage du tracking:', error);
-            Alert.alert('Erreur', 'Impossible de démarrer le suivi de localisation.');
+        } catch {
+            handleApiErrorToast('Une erreur est survenue lors du démarrage du GPS.', setUser);
             setIsTracking(false);
         }
     };
@@ -223,45 +181,29 @@ export default function VitesseDeGlisseScreen() {
     const processLocationUpdate = (location: Location.LocationObject) => {
         const { coords } = location;
 
-        if (coords.accuracy && coords.accuracy > 20) {
-            console.log(`Précision GPS faible: ${coords.accuracy}m`);
-            return;
-        }
+        if (coords.accuracy && coords.accuracy > 30) return; // Avoid data with bad accuracy
 
-        const currentSpeedKmh = (coords.speed || 0) * 3.6;
+        const currentSpeedKmh = Math.max(0, (coords.speed || 0) * 3.6);
         setCurrentSpeed(currentSpeedKmh);
 
-        setPrevLocation(prevLoc => {
-            if (!prevLoc) {
-                return coords;
-            }
+        if (currentSpeedKmh > 150) return; // Avoid ridiculous speed
 
-            const deltaDistance = getDistanceFromLatLonInMeters(
-                prevLoc.latitude,
-                prevLoc.longitude,
-                coords.latitude,
-                coords.longitude
+        const prevLoc = prevLocationRef.current;
+
+        if (prevLoc) {
+            const deltaDist = getDistanceFromLatLonInMeters(
+                prevLoc.latitude, prevLoc.longitude,
+                coords.latitude, coords.longitude
             );
 
-            const isValidSpeed = currentSpeedKmh >= 0 && currentSpeedKmh <= 200;
-            const isValidDistance = deltaDistance > 0 && deltaDistance < 200;
+            if (deltaDist > 0 && deltaDist < 100) {
+                setDistance(prev => prev + deltaDist);
 
-            if (isValidSpeed && isValidDistance) {
-                setDistance(prev => prev + deltaDistance);
-
-                setMaxSpeed(prevMaxSpeed =>
-                    currentSpeedKmh > prevMaxSpeed ? currentSpeedKmh : prevMaxSpeed
-                );
-
-                setSpeedHistory(prev => {
-                    const newHistory = [...prev, currentSpeedKmh];
-                    return newHistory.slice(-60);
-                });
+                setMaxSpeed(prev => Math.max(prev, currentSpeedKmh));
 
                 setSessionStats(prev => {
                     const newTotalSpeed = prev.totalSpeed + currentSpeedKmh;
                     const newReadings = prev.speedReadings + 1;
-
                     setAverageSpeed(newTotalSpeed / newReadings);
 
                     return {
@@ -272,94 +214,82 @@ export default function VitesseDeGlisseScreen() {
                     };
                 });
             }
+        }
 
-            return coords;
-        });
+        prevLocationRef.current = coords;
     };
 
     const stopTracking = async () => {
         setIsTracking(false);
 
-        if (subscription) {
-            subscription.remove();
-            setSubscription(null);
+        if (locationSubscription.current) {
+            locationSubscription.current.remove();
+            locationSubscription.current = null;
         }
 
-        if (await TaskManager.isTaskRegisteredAsync(LOCATION_TASK_NAME)) {
-            await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+        try {
+            const isRegistered = await TaskManager.isTaskRegisteredAsync(LOCATION_TASK_NAME);
+            if (isRegistered) {
+                await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+            }
+        } catch {
+            handleApiErrorToast("Une erreur est survenue lors de l'arrêt du GPS.", setUser);
         }
 
-        const sessionDuration = trackingTime;
         const totalDistanceKm = distance / 1000;
-        const avgSpeedFinal = sessionStats.speedReadings > 0 ?
-            sessionStats.totalSpeed / sessionStats.speedReadings : 0;
+        const avgSpeedFinal = sessionStats.speedReadings > 0 ? sessionStats.totalSpeed / sessionStats.speedReadings : 0;
 
-        if (totalDistanceKm > 0.01 && sessionDuration > 5) {
+        if (totalDistanceKm > 0.1 && trackingTime > 10) {
             try {
                 const response = await apiPost("create-performance", {
                     user_id: user?.id,
                     speed: maxSpeed,
                     distance: totalDistanceKm,
-                    duration: sessionDuration,
+                    duration: trackingTime,
                     average_speed: avgSpeedFinal,
                     session_id: sessionId
                 });
 
-                if (response.success) {
+                if (isSuccessResponse(response)) {
                     Toast.show({
                         type: 'success',
                         text1: 'Performance enregistrée !',
-                        text2: `${maxSpeed.toFixed(1)} km/h max • ${totalDistanceKm.toFixed(2)} km`,
+                        text2: `${maxSpeed.toFixed(1)} km/h • ${totalDistanceKm.toFixed(2)} km`,
                     });
-                } else if (response.pending) {
+                } else if (isPendingResponse(response)) {
                     Toast.show({
                         type: 'info',
-                        text1: 'Requête sauvegardée',
-                        text2: response.message,
+                        text1: 'Session sauvegardée (Hors ligne)',
+                        text2: 'Elle sera synchronisée plus tard.',
                     });
                 } else {
                     Toast.show({
                         type: 'error',
-                        text1: 'Erreur d\'enregistrement',
-                        text2: response.message || 'Impossible de sauvegarder la performance',
+                        text1: 'Erreur',
+                        text2: response.message || 'Echec enregistrement'
                     });
                 }
-            } catch (error: any) {
-                if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                    setUser(null);
-                } else {
-                    Toast.show({
-                        type: 'error',
-                        text1: 'Erreur d\'enregistrement',
-                        text2: error.message || 'Impossible de sauvegarder la performance',
-                    });
-                }
+            } catch (err: unknown) {
+                handleApiErrorToast(err as AppError, setUser);
             }
         } else {
             Toast.show({
                 type: 'info',
-                text1: 'Session trop courte',
-                text2: 'Session non enregistrée (minimum 10m et 5s)',
+                text1: 'Session ignorée',
+                text2: 'Trop courte (< 100m ou < 10s)',
             });
         }
-
-        resetSession();
     };
 
-    const resetSession = () => {
-        setDistance(0);
-        setMaxSpeed(0);
-        setAverageSpeed(0);
-        setCurrentSpeed(0);
-        setPrevLocation(null);
-        setSpeedHistory([]);
-        setSessionStats({
-            startTime: 0,
-            totalSpeed: 0,
-            speedReadings: 0,
-            validReadings: 0
-        });
-        setSessionId(null);
+    const getDistanceFromLatLonInMeters = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+        const R = 6371e3;
+        const toRad = (val: number) => (val * Math.PI) / 180;
+        const dLat = toRad(lat2 - lat1);
+        const dLon = toRad(lon2 - lon1);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     };
 
     const formatTime = (seconds: number) => {
@@ -369,7 +299,7 @@ export default function VitesseDeGlisseScreen() {
     };
 
     const StatCard = ({ icon: IconComponent, title, value, unit, color = Colors.primary, isLive = false, compact = false }: {
-        icon: any;
+        icon: React.FC<LucideProps>;
         title: string;
         value: string;
         unit: string;
@@ -394,7 +324,7 @@ export default function VitesseDeGlisseScreen() {
     const ActionButton = ({ onPress, title, icon: IconComponent, variant = 'primary', disabled = false }: {
         onPress: () => void;
         title: string;
-        icon: any;
+        icon: React.FC<LucideProps>;
         variant?: 'primary' | 'secondary';
         disabled?: boolean;
     }) => (
@@ -416,21 +346,6 @@ export default function VitesseDeGlisseScreen() {
             </Text>
         </TouchableOpacity>
     );
-
-    const getDistanceFromLatLonInMeters = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-        const R = 6371e3; // Rayon de la Terre en mètres
-        const toRad = (value: number) => (value * Math.PI) / 180;
-        const dLat = toRad(lat2 - lat1);
-        const dLon = toRad(lon2 - lon1);
-        const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(toRad(lat1)) *
-            Math.cos(toRad(lat2)) *
-            Math.sin(dLon / 2) *
-            Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-    };
 
     return (
         <View style={styles.container}>

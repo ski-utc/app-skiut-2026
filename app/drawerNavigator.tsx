@@ -1,4 +1,5 @@
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator, StackNavigationProp } from '@react-navigation/stack';
+import { EventArg, NavigationAction } from '@react-navigation/native';
 
 import Contact from './profil/contactScreen';
 import PlanScreen from './profil/planScreen';
@@ -10,11 +11,29 @@ import TourneeChambreScreen from './profil/tourneeChambreScreen';
 import AdminNavigator from './admin/adminNavigator';
 import MonoprutNavigator from './monoprutNavigator';
 
-const Stack = createStackNavigator();
+type DrawerStackParamList = {
+    ContactScreen: undefined;
+    PlanScreen: undefined;
+    VitesseDeGlisseScreen: undefined;
+    SkinderNavigator: undefined;
+    NavettesScreen: undefined;
+    RGPDScreen: undefined;
+    MonoprutNavigator: undefined;
+    TourneeChambreScreen: undefined;
+    AdminNavigator: undefined;
+};
+
+type BeforeRemoveEvent = EventArg<'beforeRemove', true, { action: NavigationAction }>;
+
+type ListenerProps = {
+    navigation: StackNavigationProp<DrawerStackParamList>;
+};
+
+const Stack = createStackNavigator<DrawerStackParamList>();
 
 export default function DrawerNavigator() {
-    const getScreenListeners = ({ navigation }: any) => ({
-        beforeRemove: (e: any) => {
+    const getScreenListeners = ({ navigation }: ListenerProps) => ({
+        beforeRemove: (e: BeforeRemoveEvent) => {
             if (e.data.action.type === 'GO_BACK' || e.data.action.type === 'POP') {
                 e.preventDefault();
 

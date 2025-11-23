@@ -2,9 +2,10 @@ import { useEffect, useState, useCallback } from "react";
 import { View, Text, TouchableOpacity, ActivityIndicator, Modal, FlatList, StatusBar, StyleSheet } from "react-native";
 import { BlurView } from "expo-blur";
 import { X, Bell, Clock, AlertCircle, Globe, Users, Home, Check } from "lucide-react-native";
+import Toast from 'react-native-toast-message';
 
 import { Colors, TextStyles, FontSizes } from "@/constants/GraphSettings";
-import { apiGet, apiPost } from "@/constants/api/apiCalls";
+import { apiGet, apiPost, isSuccessResponse, isPendingResponse, handleApiErrorToast, AppError, } from "@/constants/api/apiCalls";
 import { useUser } from "@/contexts/UserContext";
 
 type NotificationItem = {
@@ -32,18 +33,17 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
+    setError('');
+
     try {
-      const response = await apiGet('notifications');
-      if (response.success) {
-        setNotifications(response.data);
-      } else {
-        setError('Une erreur est survenue lors de la récupération des notifications');
+      const response = await apiGet<NotificationItem[]>('notifications');
+
+      if (isSuccessResponse(response)) {
+        setNotifications(response.data || []);
       }
-    } catch (error: unknown) {
-      if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
-        setUser(null);
-      } else if (error instanceof Error) {
-        setError(error.message || 'Une erreur est survenue.');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        handleApiErrorToast(err as AppError, setUser);
       }
     } finally {
       setLoading(false);
@@ -53,7 +53,8 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
   const markAsRead = async (notificationId: number) => {
     try {
       const response = await apiPost(`notifications/${notificationId}/read`, { 'read': true });
-      if (response.success || response.pending) {
+
+      const updateLocalState = () => {
         setNotifications(prev =>
           prev.map(notif =>
             notif.id === notificationId
@@ -61,26 +62,29 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
               : notif
           )
         );
+      };
+
+      if (isSuccessResponse(response)) {
+        updateLocalState();
+      } else if (isPendingResponse(response)) {
+        updateLocalState();
+        Toast.show({
+          type: 'info',
+          text1: 'Marqué comme lu',
+          text2: 'Sera synchronisé au retour de la connexion'
+        });
       }
-    } catch (error: unknown) {
-      if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
-        setUser(null);
-      } else if (error instanceof Error) {
-        setError(error.message || 'Une erreur est survenue.');
-      }
+    } catch (err: unknown) {
+      handleApiErrorToast(err as AppError, setUser);
     }
   };
 
   const getNotificationIcon = (type?: string) => {
     switch (type) {
-      case 'global':
-        return Globe;
-      case 'targeted':
-        return Users;
-      case 'room_based':
-        return Home;
-      default:
-        return Clock;
+      case 'global': return Globe;
+      case 'targeted': return Users;
+      case 'room_based': return Home;
+      default: return Clock;
     }
   };
 
@@ -109,12 +113,7 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
         onRequestClose={onClose}
       >
         <StatusBar barStyle="light-content" translucent={true} backgroundColor="rgba(0,0,0,0.3)" />
-        <BlurView
-          intensity={30}
-          tint="dark"
-          style={styles.overlay}
-          experimentalBlurMethod={undefined}
-        >
+        <BlurView intensity={30} tint="dark" style={styles.overlay}>
           <View style={styles.modalContainer}>
             <View style={styles.header}>
               <View style={styles.headerIcon}>
@@ -151,12 +150,7 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
         onRequestClose={onClose}
       >
         <StatusBar barStyle="light-content" translucent={true} backgroundColor="rgba(0,0,0,0.3)" />
-        <BlurView
-          intensity={30}
-          tint="dark"
-          style={styles.overlay}
-          experimentalBlurMethod={undefined}
-        >
+        <BlurView intensity={30} tint="dark" style={styles.overlay}>
           <View style={styles.modalContainer}>
             <View style={styles.header}>
               <View style={styles.headerIcon}>
@@ -189,11 +183,7 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
       onRequestClose={onClose}
     >
       <StatusBar barStyle="light-content" translucent={true} backgroundColor="rgba(0,0,0,0.3)" />
-      <BlurView
-        intensity={30}
-        tint="dark"
-        style={styles.overlay}
-      >
+      <BlurView intensity={30} tint="dark" style={styles.overlay}>
         <View style={styles.modalContainer}>
           <View style={styles.header}>
             <View style={styles.headerIcon}>

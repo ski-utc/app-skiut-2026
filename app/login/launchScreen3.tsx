@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Calendar, Map, LogIn, PartyPopper, Cookie } from 'lucide-react-native';
-import { PanGestureHandler, State } from 'react-native-gesture-handler';
+import { HandlerStateChangeEvent, PanGestureHandler, PanGestureHandlerEventPayload, State } from 'react-native-gesture-handler';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
@@ -14,9 +14,9 @@ type Launch3StackParamList = {
 export default function LaunchScreen3() {
   const navigation = useNavigation<NavigationProp<Launch3StackParamList>>();
 
-  const handleGestureEvent = ({ nativeEvent }: any) => {
-    if (nativeEvent.state === State.END) {
-      if (nativeEvent.velocityX > 500) {
+  const handleGestureEvent = (event: HandlerStateChangeEvent<PanGestureHandlerEventPayload>) => {
+    if (event.nativeEvent.state === State.END) {
+      if (event.nativeEvent.velocityX > 500) {
         navigation.goBack();
       }
     }

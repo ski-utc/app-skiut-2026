@@ -8,7 +8,7 @@ import Toast from 'react-native-toast-message';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import BoutonActiverLarge from '@/components/divers/boutonActiverLarge';
-import { apiPost, apiGet } from '@/constants/api/apiCalls';
+import { apiPost, apiGet, AppError, handleApiErrorScreen, ApiError, handleApiErrorToast } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
@@ -31,6 +31,15 @@ type Room = {
     name: string;
 }
 
+type RecipientsResponse = {
+    users: User[];
+    rooms: Room[];
+}
+
+type NotificationResponse = {
+    recipients_count: number;
+}
+
 export default function CreateNotificationScreen() {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -40,12 +49,10 @@ export default function CreateNotificationScreen() {
     const [sendPush, setSendPush] = useState(true);
     const [display, setDisplay] = useState(true);
     const [isChecked, setChecked] = useState(false);
-
     const [users, setUsers] = useState<User[]>([]);
     const [rooms, setRooms] = useState<Room[]>([]);
     const [showUsersPicker, setShowUsersPicker] = useState(false);
     const [showRoomsPicker, setShowRoomsPicker] = useState(false);
-
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [dataLoading, setDataLoading] = useState(true);
@@ -56,19 +63,15 @@ export default function CreateNotificationScreen() {
     const fetchRecipientsData = useCallback(async () => {
         try {
             setDataLoading(true);
-            const response = await apiGet('admin/notifications/recipients');
+            const response = await apiGet<RecipientsResponse>('admin/notifications/recipients');
             if (response.success) {
                 setUsers(response.data.users);
                 setRooms(response.data.rooms);
             } else {
-                setError('Erreur lors du chargement des données');
+                handleApiErrorScreen(new ApiError(response.message), setUser, setError);
             }
         } catch (error: unknown) {
-            if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
-                setUser(null);
-            } else if (error instanceof Error) {
-                setError(error.message || 'Une erreur est survenue.');
-            }
+            handleApiErrorScreen(error as AppError, setUser, setError);
         } finally {
             setDataLoading(false);
         }
@@ -91,12 +94,12 @@ export default function CreateNotificationScreen() {
                 display
             };
 
-            const response = await apiPost('admin/notifications', payload);
+            const response = await apiPost<NotificationResponse>('admin/notifications', payload);
             if (response.success) {
                 Toast.show({
                     type: 'success',
                     text1: 'Notification créée !',
-                    text2: `Envoyée à ${response.recipients_count} personnes`,
+                    text2: `Envoyée à ${response.data.recipients_count} personnes`,
                 });
                 navigation.goBack();
             } else if (response.pending) {
@@ -107,18 +110,10 @@ export default function CreateNotificationScreen() {
                 });
                 navigation.goBack();
             } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Une erreur est survenue...',
-                    text2: response.message,
-                });
+                handleApiErrorToast(new ApiError(response.message), setUser);
             }
         } catch (error: unknown) {
-            if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
-                setUser(null);
-            } else if (error instanceof Error) {
-                setError(error.message || 'Une erreur est survenue.');
-            }
+            handleApiErrorToast(error as AppError, setUser);
         } finally {
             setLoading(false);
         }
@@ -155,10 +150,8 @@ export default function CreateNotificationScreen() {
 
     const isFormValid = () => {
         if (!title.trim() || !description.trim() || !isChecked) return false;
-
         if (type === 'targeted' && selectedUsers.length === 0) return false;
         if (type === 'room_based' && selectedRooms.length === 0) return false;
-
         return true;
     };
 

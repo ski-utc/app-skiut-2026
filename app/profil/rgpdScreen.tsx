@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, Alert, TouchableOpacity, Modal, StatusBar } from 'react-native';
-import { Shield, FileText, Trash2, UserX, Download, X } from 'lucide-react-native';
+import { Shield, FileText, Trash2, UserX, Download, X, LucideProps } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import { WebView } from 'react-native-webview';
 import { downloadAsync, documentDirectory } from 'expo-file-system/legacy';
@@ -10,7 +10,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiPost, apiDelete } from '@/constants/api/apiCalls';
+import { apiPost, apiDelete, isSuccessResponse, isPendingResponse, handleApiErrorToast, AppError } from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
 import * as config from '@/constants/api/apiConfig';
 
@@ -18,6 +18,7 @@ export default function RGPDScreen() {
     const { logout } = useUser();
     const [loading, setLoading] = useState(false);
     const [showWebView, setShowWebView] = useState(false);
+    const { setUser } = useUser();
 
     const handleAnonymizeData = () => {
         Alert.alert(
@@ -32,13 +33,20 @@ export default function RGPDScreen() {
                         setLoading(true);
                         try {
                             const response = await apiPost('rgpd/anonymize-my-data', null);
-                            if (response.success) {
+
+                            if (isSuccessResponse(response)) {
                                 Toast.show({
                                     type: 'success',
                                     text1: 'Données anonymisées',
-                                    text2: 'Vos données personnelles ont été anonymisées avec succès. Vous allez être déconnecté.',
+                                    text2: 'Vos données ont été anonymisées. Déconnexion...',
                                 });
                                 setTimeout(() => logout(), 2000);
+                            } else if (isPendingResponse(response)) {
+                                Toast.show({
+                                    type: 'info',
+                                    text1: 'Demande enregistrée',
+                                    text2: 'Sera traitée dès le retour de la connexion.',
+                                });
                             } else {
                                 Toast.show({
                                     type: 'error',
@@ -46,12 +54,8 @@ export default function RGPDScreen() {
                                     text2: response.message || 'Impossible d\'anonymiser vos données.',
                                 });
                             }
-                        } catch (error: any) {
-                            Toast.show({
-                                type: 'error',
-                                text1: 'Erreur',
-                                text2: error.message || 'Une erreur est survenue.',
-                            });
+                        } catch (err: unknown) {
+                            handleApiErrorToast(err as AppError, setUser);
                         } finally {
                             setLoading(false);
                         }
@@ -83,13 +87,20 @@ export default function RGPDScreen() {
                                         setLoading(true);
                                         try {
                                             const response = await apiDelete('rgpd/delete-my-data');
-                                            if (response.success) {
+
+                                            if (isSuccessResponse(response)) {
                                                 Toast.show({
                                                     type: 'success',
                                                     text1: 'Compte supprimé',
                                                     text2: 'Votre compte a été définitivement supprimé.',
                                                 });
                                                 setTimeout(() => logout(), 2000);
+                                            } else if (isPendingResponse(response)) {
+                                                Toast.show({
+                                                    type: 'info',
+                                                    text1: 'Demande de suppression enregistrée',
+                                                    text2: 'Sera effective dès le retour de la connexion.',
+                                                });
                                             } else {
                                                 Toast.show({
                                                     type: 'error',
@@ -97,12 +108,8 @@ export default function RGPDScreen() {
                                                     text2: response.message || 'Impossible de supprimer votre compte.',
                                                 });
                                             }
-                                        } catch (error: any) {
-                                            Toast.show({
-                                                type: 'error',
-                                                text1: 'Erreur',
-                                                text2: error.message || 'Une erreur est survenue.',
-                                            });
+                                        } catch (err: unknown) {
+                                            handleApiErrorToast(err as AppError, setUser);
                                         } finally {
                                             setLoading(false);
                                         }
@@ -156,7 +163,7 @@ export default function RGPDScreen() {
                     Toast.show({
                         type: 'success',
                         text1: 'Export réussi',
-                        text2: 'Fichier ZIP téléchargé avec succès.',
+                        text2: 'Fichier ZIP prêt.',
                     });
                 } else {
                     Toast.show({
@@ -172,13 +179,8 @@ export default function RGPDScreen() {
                     text2: `Erreur de téléchargement (${downloadResult.status})`,
                 });
             }
-        } catch (error: any) {
-            console.error('Erreur export:', error);
-            Toast.show({
-                type: 'error',
-                text1: 'Erreur',
-                text2: error.message || 'Impossible d\'exporter vos données.',
-            });
+        } catch (error: unknown) {
+            handleApiErrorToast(error as AppError, setUser);
         } finally {
             setLoading(false);
         }
@@ -198,7 +200,7 @@ export default function RGPDScreen() {
     }: {
         title: string;
         description: string;
-        icon: any;
+        icon: React.FC<LucideProps>;
         color: string;
         onPress: () => void;
         dangerous?: boolean;
@@ -452,4 +454,3 @@ const styles = StyleSheet.create({
         flex: 1,
     },
 });
-

@@ -1,13 +1,13 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { StyleSheet, View, Text, ActivityIndicator, Animated, TouchableOpacity, SafeAreaView } from 'react-native';
-import { PanGestureHandler } from 'react-native-gesture-handler';
+import { HandlerStateChangeEvent, PanGestureHandler, PanGestureHandlerEventPayload, State } from 'react-native-gesture-handler';
 import { Check, X, HelpCircle, MessageSquare, AlertTriangle } from 'lucide-react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiGet, apiPut } from '@/constants/api/apiCalls';
+import { apiGet, apiPut, isPendingResponse, isSuccessResponse, handleApiErrorToast, handleApiErrorScreen, AppError, ApiError } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
@@ -17,23 +17,28 @@ type ValideAnecdotesRapideStackParamList = {
     valideAnecdotesRapide: undefined;
 }
 
+type User = {
+    id: number;
+    firstName: string;
+    lastName: string;
+};
+
+type Room = {
+    id: number;
+    name: string;
+    roomNumber: string;
+};
+
 type Anecdote = {
     id: number;
     text: string;
     nbLikes: number;
     nbWarns: number;
-    user: {
-        id: number;
-        firstName: string;
-        lastName: string;
-    };
-    room: {
-        id: number;
-        name: string;
-        roomNumber: string;
-    };
+    user: User;
+    room: Room;
     valid: boolean;
-}
+    alert?: boolean;
+};
 
 export default function ValideAnecdotesRapide() {
     const [error, setError] = useState('');
@@ -59,254 +64,131 @@ export default function ValideAnecdotesRapide() {
         { useNativeDriver: false }
     );
 
-    const handleGestureEnd = ({ nativeEvent }: { nativeEvent: any }) => {
-        translateY.setValue(0);
+    const handleGestureStateChange = (event: HandlerStateChangeEvent<PanGestureHandlerEventPayload>) => {
+        if (event.nativeEvent.state === State.END) {
+            const threshold = 120;
+            const { translationX } = event.nativeEvent;
 
-        if (nativeEvent.translationX > 120) {
-            Animated.timing(validOpacity, {
-                toValue: 1,
-                duration: 300,
-                useNativeDriver: true,
-            }).start(() => {
-                setTimeout(() => {
-                    Animated.timing(validOpacity, {
-                        toValue: 0,
-                        duration: 300,
-                        useNativeDriver: true,
-                    }).start();
-                }, 500);
-            });
-
-            handleValidate();
-            animateCard(600);
-        } else if (nativeEvent.translationX < -120) {
-            Animated.timing(rejectOpacity, {
-                toValue: 1,
-                duration: 300,
-                useNativeDriver: true,
-            }).start(() => {
-                setTimeout(() => {
-                    Animated.timing(rejectOpacity, {
-                        toValue: 0,
-                        duration: 300,
-                        useNativeDriver: true,
-                    }).start();
-                }, 500);
-            });
-
-            handleReject();
-            animateCard(-600);
-        } else {
-            resetPosition();
+            if (translationX > threshold) {
+                triggerAnimation(validOpacity);
+                handleValidate();
+                animateCardOut(600);
+            } else if (translationX < -threshold) {
+                triggerAnimation(rejectOpacity);
+                handleReject();
+                animateCardOut(-600);
+            } else {
+                resetPosition();
+            }
         }
     };
 
-    const animateCard = (toValue: number) => {
+    const triggerAnimation = (opacityRef: Animated.Value) => {
+        Animated.sequence([
+            Animated.timing(opacityRef, { toValue: 1, duration: 300, useNativeDriver: true }),
+            Animated.delay(200),
+            Animated.timing(opacityRef, { toValue: 0, duration: 300, useNativeDriver: true }),
+        ]).start();
+    };
+
+    const animateCardOut = (toValue: number) => {
         Animated.parallel([
-            Animated.timing(translateX, {
-                toValue,
-                duration: 300,
-                useNativeDriver: false,
-            }),
-            Animated.timing(translateY, {
-                toValue: 20,
-                duration: 300,
-                useNativeDriver: false,
-            }),
-            Animated.timing(cardOpacity, {
-                toValue: 0,
-                duration: 300,
-                useNativeDriver: false,
-            }),
+            Animated.timing(translateX, { toValue, duration: 300, useNativeDriver: false }),
+            Animated.timing(translateY, { toValue: 20, duration: 300, useNativeDriver: false }),
+            Animated.timing(cardOpacity, { toValue: 0, duration: 300, useNativeDriver: false }),
         ]).start(() => {
             resetPosition();
         });
     };
 
     const resetPosition = useCallback(() => {
-        Animated.parallel([
-            Animated.timing(translateX, {
-                toValue: 0,
-                duration: 200,
-                useNativeDriver: false,
-            }),
-            Animated.timing(translateY, {
-                toValue: 0,
-                duration: 200,
-                useNativeDriver: false,
-            }),
-            Animated.timing(cardOpacity, {
-                toValue: 1,
-                duration: 200,
-                useNativeDriver: false,
-            }),
-        ]).start();
+        translateX.setValue(0);
+        translateY.setValue(0);
+        cardOpacity.setValue(1);
     }, [translateX, translateY, cardOpacity]);
 
     const fetchNextAnecdote = useCallback(async () => {
         setLoading(true);
-        setNoAnecdotes(false);
+        setError('');
 
         try {
-            const response = await apiGet('admin/anecdotes');
-            if (response.success) {
-                const pendingAnecdotes = response.data.filter((a: any) => !a.valid && !a.alert);
+            const response = await apiGet<Anecdote[]>('admin/anecdotes', true);
+
+            if (isSuccessResponse(response)) {
+                const list = response.data || [];
+                const pendingAnecdotes = list.filter((a) => !a.valid && !a.alert);
 
                 if (pendingAnecdotes.length > 0) {
                     setAnecdote(pendingAnecdotes[0]);
+                    setNoAnecdotes(false);
                 } else {
+                    setAnecdote(null);
                     setNoAnecdotes(true);
                 }
             } else {
-                setError('Erreur lors de la récupération des anecdotes');
+                handleApiErrorScreen(new ApiError(response.message), setUser, setError);
             }
-        } catch (error: any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
-            } else {
-                setError(error.message);
-            }
+        } catch (err: unknown) {
+            handleApiErrorScreen(err, setUser, setError);
         } finally {
             setLoading(false);
+        }
+    }, [setUser]);
+
+    const updateStatus = async (isValid: boolean) => {
+        if (!anecdote || processing) return;
+        setProcessing(true);
+
+        try {
+            const response = await apiPut(
+                `admin/anecdotes/${anecdote.id}/status`,
+                { is_valid: isValid, is_alert: !isValid },
+                { invalidateCache: 'admin/anecdotes' }
+            );
+
+            if (isSuccessResponse(response)) {
+                Toast.show({
+                    type: 'success',
+                    text1: isValid ? 'Anecdote validée !' : 'Anecdote signalée !',
+                    text2: `${anecdote.user.firstName} ${anecdote.user.lastName}`,
+                });
+            } else if (isPendingResponse(response)) {
+                Toast.show({
+                    type: 'info',
+                    text1: 'Mode Hors Ligne',
+                    text2: 'Action sauvegardée, elle sera envoyée dès que possible.',
+                });
+            } else {
+                handleApiErrorToast(new ApiError(response.message), setUser);
+            }
+
+            fetchNextAnecdote();
+        } catch (err: unknown) {
+            handleApiErrorToast(err as AppError, setUser);
             resetPosition();
-        }
-    }, [setUser, resetPosition]);
-
-    const handleValidate = async () => {
-        if (!anecdote || processing) return;
-        setProcessing(true);
-
-        try {
-            const response = await apiPut(`admin/anecdotes/${anecdote.id}/status`, {
-                is_valid: true,
-                is_alert: false
-            });
-
-            if (response.success) {
-                Toast.show({
-                    type: 'success',
-                    text1: 'Anecdote validée !',
-                    text2: `${anecdote.user.firstName} ${anecdote.user.lastName}`,
-                });
-                fetchNextAnecdote();
-            } else if (response.pending) {
-                Toast.show({
-                    type: 'info',
-                    text1: 'Requête sauvegardée',
-                    text2: response.message,
-                });
-                fetchNextAnecdote();
-            } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Erreur',
-                    text2: response.message,
-                });
-            }
-        } catch (error: any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
-            } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Erreur',
-                    text2: error.message,
-                });
-            }
         } finally {
             setProcessing(false);
         }
     };
 
-    const handleReject = async () => {
-        if (!anecdote || processing) return;
-        setProcessing(true);
-
-        try {
-            const response = await apiPut(`admin/anecdotes/${anecdote.id}/status`, {
-                is_valid: false,
-                is_alert: true
-            });
-
-            if (response.success) {
-                Toast.show({
-                    type: 'success',
-                    text1: 'Anecdote refusée',
-                    text2: `${anecdote.user.firstName} ${anecdote.user.lastName}`,
-                });
-                fetchNextAnecdote();
-            } else if (response.pending) {
-                Toast.show({
-                    type: 'info',
-                    text1: 'Requête sauvegardée',
-                    text2: response.message,
-                });
-                fetchNextAnecdote();
-            } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Erreur',
-                    text2: response.message,
-                });
-            }
-        } catch (error: any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
-            } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Erreur',
-                    text2: error.message,
-                });
-            }
-        } finally {
-            setProcessing(false);
-        }
-    };
+    const handleValidate = () => updateStatus(true);
+    const handleReject = () => updateStatus(false);
 
     const handleSkip = () => {
-        animateCard(600);
-        setTimeout(() => {
-            fetchNextAnecdote();
-        }, 300);
+        animateCardOut(600);
+        setTimeout(fetchNextAnecdote, 300);
     };
 
-    const handleValidateButton = async () => {
-        Animated.timing(validOpacity, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-        }).start(() => {
-            setTimeout(() => {
-                Animated.timing(validOpacity, {
-                    toValue: 0,
-                    duration: 300,
-                    useNativeDriver: true,
-                }).start();
-            }, 500);
-        });
-
-        await handleValidate();
-        animateCard(600);
+    const handleValidateButton = () => {
+        triggerAnimation(validOpacity);
+        handleValidate();
+        animateCardOut(600);
     };
 
-    const handleRejectButton = async () => {
-        Animated.timing(rejectOpacity, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-        }).start(() => {
-            setTimeout(() => {
-                Animated.timing(rejectOpacity, {
-                    toValue: 0,
-                    duration: 300,
-                    useNativeDriver: true,
-                }).start();
-            }, 500);
-        });
-
-        await handleReject();
-        animateCard(-600);
+    const handleRejectButton = () => {
+        triggerAnimation(rejectOpacity);
+        handleReject();
+        animateCardOut(-600);
     };
 
     useEffect(() => {
@@ -345,7 +227,7 @@ export default function ValideAnecdotesRapide() {
                         </View>
 
                         <View style={styles.cardContainer}>
-                            <PanGestureHandler onGestureEvent={handleGesture} onEnded={handleGestureEnd}>
+                            <PanGestureHandler onGestureEvent={handleGesture} onHandlerStateChange={handleGestureStateChange}>
                                 <Animated.View style={[styles.card, {
                                     transform: [
                                         { translateX },

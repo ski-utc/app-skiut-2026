@@ -1,24 +1,30 @@
 import React from 'react';
 import { Text, TouchableOpacity, View, StyleSheet, TextStyle } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { ChevronRight } from 'lucide-react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
+
+type AdminStackParamList = {
+    valideDefisScreen: { id: number };
+    valideAnecdotesScreen: { id: number };
+    valideNotificationsScreen: { id: number };
+};
 
 type BoutonGestionProps = {
     title: string;
     subtitle: string;
     subtitleStyle?: TextStyle;
-    nextRoute: string;
+    nextRoute: keyof AdminStackParamList;
     id: number;
     valide: boolean;
 }
 
 const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, subtitleStyle, nextRoute, id, valide }) => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
 
     const handleGestionClick = () => {
-        (navigation as any).navigate(nextRoute, { id });
+        navigation.navigate(nextRoute, { id });
     };
 
     return (

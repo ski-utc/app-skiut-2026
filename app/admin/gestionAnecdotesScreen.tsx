@@ -5,7 +5,7 @@ import { MessageSquare, AlertTriangle, Clock, CheckCircle, Zap, ChevronRight } f
 
 import BoutonRetour from '@/components/divers/boutonRetour';
 import BoutonGestion from '@/components/admins/boutonGestion';
-import { apiGet } from '@/constants/api/apiCalls';
+import { ApiError, apiGet, AppError, handleApiErrorScreen } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
@@ -28,6 +28,7 @@ type FilterButtonProps = {
 
 type AnecdoteItem = {
   id: number;
+  text: string;
   valid: boolean;
   alert: boolean;
   nbWarns: number;
@@ -36,6 +37,7 @@ type AnecdoteItem = {
     firstName: string;
     lastName: string;
   };
+  room_id: number;
 }
 
 const FilterButton: React.FC<FilterButtonProps> = ({ label, icon, isActive, onPress, count }) => {
@@ -76,19 +78,15 @@ const GestionAnecdotesScreen = () => {
     setDisableRefresh(true);
 
     try {
-      const response = await apiGet('admin/anecdotes');
+      const response = await apiGet<AnecdoteItem[]>('admin/anecdotes');
       if (response.success) {
         setAnecdotes(response.data);
         setFilteredAnecdotes(response.data);
       } else {
-        setError(response.message);
+        handleApiErrorScreen(new ApiError(response.message), setUser, setError);
       }
     } catch (error: unknown) {
-      if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
-        setUser(null);
-      } else if (error instanceof Error) {
-        setError(error.message || 'Une erreur est survenue.');
-      }
+      handleApiErrorScreen(error as AppError, setUser, setError);
     } finally {
       setLoading(false);
       setTimeout(() => {

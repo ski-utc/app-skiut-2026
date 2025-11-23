@@ -8,7 +8,7 @@ import { ImageViewer } from "react-native-image-zoom-viewer";
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
-import { apiGet, apiPut } from '@/constants/api/apiCalls';
+import { ApiError, apiGet, apiPut, handleApiErrorScreen } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
@@ -32,6 +32,11 @@ type ChallengeDetails = {
   };
 }
 
+type ChallengeDetailsResponse = {
+  challenge: ChallengeDetails;
+  imagePath: string;
+}
+
 type RouteParams = {
   id: number;
 }
@@ -52,19 +57,15 @@ export default function ValideDefis() {
   const fetchChallengeDetails = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiGet(`admin/challenges/${id}`);
+      const response = await apiGet<ChallengeDetailsResponse>(`admin/challenges/${id}`);
       if (response.success) {
-        setChallengeDetails(response.data);
-        setProofImage(response.imagePath);
+        setChallengeDetails(response.data.challenge);
+        setProofImage(response.data.imagePath);
       } else {
-        setError('Erreur lors de la récupération des détails du défi');
+        handleApiErrorScreen(new ApiError(response.message), setUser, setError);
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message);
-      }
+    } catch (err: unknown) {
+      handleApiErrorScreen(err, setUser, setError);
     } finally {
       setLoading(false);
     }
@@ -97,12 +98,8 @@ export default function ValideDefis() {
         });
         setError(response.message || 'Une erreur est survenue lors de la validation du défi.');
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message);
-      }
+    } catch (error: unknown) {
+      handleApiErrorScreen(error, setUser, setError);
     } finally {
       setLoading(false);
     }

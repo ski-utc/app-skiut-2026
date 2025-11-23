@@ -6,8 +6,16 @@ import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from "@/components/header";
 import ErrorScreen from "@/components/pages/errorPage";
 import BoutonRetour from "@/components/divers/boutonRetour";
-import { apiGet } from '@/constants/api/apiCalls';
+import { apiGet, isSuccessResponse, handleApiErrorScreen, handleApiErrorToast, AppError } from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
+
+type PermanencePreview = {
+  id: number;
+  name: string;
+  description?: string;
+  location?: string;
+  status: string;
+}
 
 type Activity = {
   activity: string;
@@ -18,14 +26,24 @@ type Activity = {
   payant: boolean;
   status: 'past' | 'current' | 'future';
   is_permanence: boolean;
-  permanence_data?: {
-    id: number;
-    name: string;
-    description?: string;
-    location?: string;
-    status: string;
-  };
+  permanence_data?: PermanencePreview;
 }
+
+type DaysItem = {
+  type: 'days';
+  dates: string[];
+};
+
+type ActivitiesItem = {
+  type: 'activities';
+  activities: Activity[];
+};
+
+type PlanningListItem = DaysItem | ActivitiesItem;
+
+type PlanningResponse = {
+  [date: string]: Activity[];
+};
 
 type PermanenceDetails = {
   id: number;
@@ -46,109 +64,86 @@ type PermanenceDetails = {
 
 export default function PlanningScreen() {
   const [selectedDate, setSelectedDate] = useState<string>("");
-  const [activitiesMap, setActivitiesMap] = useState<{ [key: string]: Activity[] }>({});
+  const [activitiesMap, setActivitiesMap] = useState<PlanningResponse>({});
   const [availableDates, setAvailableDates] = useState<string[]>([]);
+
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
-  const [disableRefresh, setDisableRefresh] = useState(false);
-  const { setUser } = useUser();
 
   const [showPermanenceModal, setShowPermanenceModal] = useState<boolean>(false);
   const [permanenceDetails, setPermanenceDetails] = useState<PermanenceDetails | null>(null);
   const [loadingPermanence, setLoadingPermanence] = useState<boolean>(false);
 
+  const { setUser } = useUser();
+
   const activeOpacity = 1;
   const inactiveOpacity = 0.4;
 
   const sortActivitiesByTime = (activities: Activity[]) => {
-    return activities.sort((a, b) => {
-      const timeA = a.time.start;
-      const timeB = b.time.start;
-      return timeA.localeCompare(timeB);
-    });
+    return activities.sort((a, b) => a.time.start.localeCompare(b.time.start));
   };
 
-  const getDefaultDate = (activitiesMap: { [key: string]: Activity[] }) => {
-    const dates = Object.keys(activitiesMap).sort();
+  const getDefaultDate = (map: PlanningResponse) => {
+    const dates = Object.keys(map).sort();
     if (dates.length === 0) return null;
 
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-
-    if (dates.includes(todayStr)) {
-      return todayStr;
-    }
-
-    return dates[0];
+    const today = new Date().toISOString().split('T')[0];
+    return dates.includes(today) ? today : dates[0];
   };
 
   const fetchPlanning = useCallback(async () => {
-    setLoading(true);
-    setDisableRefresh(true);
+    if (Object.keys(activitiesMap).length === 0) {
+      setLoading(true);
+    }
+    setError("");
+
     try {
-      const response = await apiGet("planning");
-      if (response.success) {
-        const sortedActivitiesMap: { [key: string]: Activity[] } = {};
+      const response = await apiGet<PlanningResponse>("planning");
+
+      if (isSuccessResponse(response) && response.data) {
+        const sortedMap: PlanningResponse = {};
+
         Object.keys(response.data).forEach(date => {
-          sortedActivitiesMap[date] = sortActivitiesByTime(response.data[date]);
+          sortedMap[date] = sortActivitiesByTime(response.data[date]);
         });
 
-        setActivitiesMap(sortedActivitiesMap);
-        const dates = Object.keys(sortedActivitiesMap).sort();
+        setActivitiesMap(sortedMap);
+        const dates = Object.keys(sortedMap).sort();
         setAvailableDates(dates);
 
-        if (dates.length > 0 && !selectedDate) {
-          const defaultDate = getDefaultDate(sortedActivitiesMap);
-          if (defaultDate) {
-            setSelectedDate(defaultDate);
-          }
+        if (dates.length > 0 && (!selectedDate || !dates.includes(selectedDate))) {
+          const defaultDate = getDefaultDate(sortedMap);
+          if (defaultDate) setSelectedDate(defaultDate);
         }
-      } else {
-        setError("Une erreur est survenue lors de la récupération du planning : " + response.message);
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message || "Une erreur inattendue est survenue");
-      }
+    } catch (err: unknown) {
+      handleApiErrorScreen(err, setUser, setError);
     } finally {
       setLoading(false);
-      setTimeout(() => {
-        setDisableRefresh(false);
-      }, 5000);
     }
-  }, [setUser, selectedDate]);
+  }, [setUser, selectedDate, activitiesMap]);
 
   useEffect(() => {
     fetchPlanning();
   }, [fetchPlanning]);
 
-  const handleDatePress = useCallback(
-    (date: string) => {
-      setSelectedDate(date);
-    },
-    []
-  );
+  const handleDatePress = useCallback((date: string) => {
+    setSelectedDate(date);
+  }, []);
 
   const handlePermanencePress = useCallback(async (permanenceId: number) => {
     setLoadingPermanence(true);
     setShowPermanenceModal(true);
+
     try {
-      const response = await apiGet(`permanences/${permanenceId}`);
-      if (response.success) {
+      const response = await apiGet<PermanenceDetails>(`permanences/${permanenceId}`);
+
+      if (isSuccessResponse(response) && response.data) {
         setPermanenceDetails(response.data);
-      } else {
-        setError("Erreur lors de la récupération des détails de la permanence");
-        setShowPermanenceModal(false);
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message || "Une erreur inattendue est survenue");
-      }
+    } catch (err: unknown) {
       setShowPermanenceModal(false);
+      handleApiErrorToast(err as AppError, setUser);
     } finally {
       setLoadingPermanence(false);
     }
@@ -159,30 +154,26 @@ export default function PlanningScreen() {
     setPermanenceDetails(null);
   }, []);
 
-  const selectedActivities = activitiesMap[selectedDate] || [];
-
   const formatDateForDisplay = (dateString: string) => {
     const date = new Date(dateString);
     const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-    const dayName = dayNames[date.getDay()];
-    const dayNumber = date.getDate().toString().padStart(2, '0');
-    return `${dayName} ${dayNumber}`;
+    return `${dayNames[date.getDay()]} ${date.getDate().toString().padStart(2, '0')}`;
   };
 
-  const data = [
+  const selectedActivities = activitiesMap[selectedDate] || [];
+
+  const listData: PlanningListItem[] = [
     { type: "days", dates: availableDates },
     { type: "activities", activities: selectedActivities },
   ];
 
-  const renderItem = ({ item }: { item: any }) => {
+  const renderItem = ({ item }: { item: PlanningListItem }) => {
     if (item.type === "days") {
       if (item.dates.length === 0) {
         return (
           <View style={styles.noDatesContainer}>
             <Calendar size={48} color={Colors.muted} />
-            <Text style={styles.noDatesText}>
-              Aucune activité planifiée pour le moment.
-            </Text>
+            <Text style={styles.noDatesText}>Aucune activité planifiée.</Text>
           </View>
         );
       }
@@ -191,8 +182,7 @@ export default function PlanningScreen() {
         <View style={styles.daysContainer}>
           {item.dates.map((date: string, index: number) => {
             const isSelected = selectedDate === date;
-            const displayText = formatDateForDisplay(date);
-            const [dayName, dayNumber] = displayText.split(" ");
+            const [dayName, dayNumber] = formatDateForDisplay(date).split(" ");
 
             return (
               <TouchableOpacity
@@ -203,16 +193,10 @@ export default function PlanningScreen() {
                 ]}
                 onPress={() => handleDatePress(date)}
               >
-                <Text style={[
-                  styles.dayLetter,
-                  { color: isSelected ? Colors.white : Colors.primaryBorder }
-                ]}>
+                <Text style={[styles.dayLetter, { color: isSelected ? Colors.white : Colors.primaryBorder }]}>
                   {dayName}
                 </Text>
-                <Text style={[
-                  styles.dayNumber,
-                  { color: isSelected ? Colors.white : Colors.primaryBorder }
-                ]}>
+                <Text style={[styles.dayNumber, { color: isSelected ? Colors.white : Colors.primaryBorder }]}>
                   {dayNumber}
                 </Text>
               </TouchableOpacity>
@@ -220,11 +204,12 @@ export default function PlanningScreen() {
           })}
         </View>
       );
-    } else if (item.type === "activities") {
+    }
+
+    if (item.type === "activities") {
       const formattedDate0 = selectedDate
         ? new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(selectedDate))
         : "Sélectionnez une date";
-
       const formattedDate = formattedDate0.charAt(0).toUpperCase() + formattedDate0.slice(1);
 
       return (
@@ -232,37 +217,33 @@ export default function PlanningScreen() {
           <View style={styles.infoCard}>
             <Calendar size={20} color={Colors.primary} />
             <Text style={styles.infoText}>
-              Les animations déjà réservées sont indiquées en{" "}
-              <Text style={styles.primaryText}>bleu</Text>.
-              Vas-y seulement si tu as pris ta place !
+              Les animations réservées sont en <Text style={styles.primaryText}>bleu</Text>.
             </Text>
           </View>
 
           <View style={styles.dateHeader}>
-            <Text style={styles.dateTitle}>
-              {formattedDate || "Sélectionnez une date"}
-            </Text>
+            <Text style={styles.dateTitle}>{formattedDate}</Text>
           </View>
 
           {item.activities.length > 0 ? (
             <View style={styles.activitiesList}>
               {item.activities.map((activity: Activity, index: number) => {
                 const titleColor = activity.payant ? Colors.primary : Colors.primaryBorder;
-                const isPermanence = activity.is_permanence === true;
                 return (
                   <View
                     key={index}
                     style={[
                       styles.activityCard,
-                      { opacity: (activity.status === "past") ? inactiveOpacity : activeOpacity }
+                      { opacity: activity.status === "past" ? inactiveOpacity : activeOpacity }
                     ]}
                   >
                     <View style={styles.activityIndicator}>
                       <View style={[
                         styles.statusDot,
-                        { backgroundColor: (activity.status === "current") ? Colors.success : Colors.lightMuted }
+                        { backgroundColor: activity.status === "current" ? Colors.success : Colors.lightMuted }
                       ]} />
                     </View>
+
                     <View style={styles.activityContent}>
                       <Text style={[styles.activityTitle, { color: titleColor }]}>
                         {activity.activity}
@@ -274,13 +255,14 @@ export default function PlanningScreen() {
                         </Text>
                       </View>
                     </View>
-                    {isPermanence && activity.permanence_data && (
+
+                    {activity.is_permanence && activity.permanence_data && (
                       <TouchableOpacity
                         style={styles.permanenceButton}
                         onPress={() => handlePermanencePress(activity.permanence_data!.id)}
                       >
                         <HousePlus size={18} color={Colors.primary} />
-                        <Text style={[styles.permanenceButtonText, { ...TextStyles.body }]}>Perm</Text>
+                        <Text style={styles.permanenceButtonText}>Perm</Text>
                         <Info size={16} color={Colors.primary} />
                       </TouchableOpacity>
                     )}
@@ -291,9 +273,7 @@ export default function PlanningScreen() {
           ) : (
             <View style={styles.noActivitiesContainer}>
               <MapPin size={48} color={Colors.muted} />
-              <Text style={styles.noActivitiesText}>
-                Aucune activité prévue pour cette date.
-              </Text>
+              <Text style={styles.noActivitiesText}>Rien de prévu ce jour-là.</Text>
             </View>
           )}
         </View>
@@ -310,9 +290,7 @@ export default function PlanningScreen() {
         <Header refreshFunction={undefined} disableRefresh={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
-          <Text style={styles.loadingText}>
-            Chargement...
-          </Text>
+          <Text style={styles.loadingText}>Chargement...</Text>
         </View>
       </View>
     );
@@ -320,15 +298,17 @@ export default function PlanningScreen() {
 
   return (
     <View style={styles.container}>
-      <Header refreshFunction={fetchPlanning} disableRefresh={disableRefresh} />
+      <Header refreshFunction={fetchPlanning} disableRefresh={loading} />
       <View style={styles.headerContainer}>
         <BoutonRetour title="Planning" />
       </View>
+
       <FlatList
-        data={data}
-        keyExtractor={(item, index) => index.toString()}
+        data={listData}
+        keyExtractor={(item) => item.type}
         renderItem={renderItem}
         contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
       />
 
       <Modal
@@ -350,7 +330,9 @@ export default function PlanningScreen() {
             <View style={styles.modalHeader}>
               <View style={styles.modalHeaderContent}>
                 <HousePlus size={28} color={Colors.primary} />
-                <Text style={styles.modalTitle}>{permanenceDetails?.name ? permanenceDetails.name : 'Permanence'}</Text>
+                <Text style={styles.modalTitle}>
+                  {permanenceDetails?.name || 'Permanence'}
+                </Text>
               </View>
               <TouchableOpacity onPress={closePermanenceModal} style={styles.closeButton}>
                 <X size={24} color={Colors.primaryBorder} />
@@ -360,30 +342,11 @@ export default function PlanningScreen() {
             {loadingPermanence ? (
               <View style={styles.modalLoading}>
                 <ActivityIndicator size="large" color={Colors.primary} />
-                <Text style={styles.loadingText}>
-                  Chargement...
-                </Text>
+                <Text style={styles.loadingText}>Chargement...</Text>
               </View>
             ) : permanenceDetails ? (
               <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
                 <View style={styles.detailSection}>
-                  {/* <View style={[
-                    styles.statusBadgeContainer,
-                    {
-                      backgroundColor: permanenceDetails.status === 'completed' ? Colors.success :
-                        permanenceDetails.status === 'in_progress' ? Colors.primary :
-                          permanenceDetails.status === 'cancelled' ? Colors.error :
-                            Colors.muted
-                    }
-                  ]}>
-                    <Text style={styles.statusBadgeText}>
-                      {permanenceDetails.status === 'completed' ? 'Terminée' :
-                        permanenceDetails.status === 'in_progress' ? 'En cours' :
-                          permanenceDetails.status === 'cancelled' ? 'Annulée' :
-                            'Planifiée'}
-                    </Text>
-                  </View> */}
-
                   <View style={styles.detailCard}>
                     <View style={styles.detailCardHeader}>
                       <Clock size={20} color={Colors.primary} strokeWidth={2.5} />
@@ -392,27 +355,19 @@ export default function PlanningScreen() {
                     <View style={styles.detailCardContent}>
                       <Text style={styles.detailValue}>
                         {new Date(permanenceDetails.start_datetime).toLocaleDateString('fr-FR', {
-                          weekday: 'long',
-                          day: 'numeric',
-                          month: 'long'
-                        }).charAt(0).toUpperCase() + new Date(permanenceDetails.start_datetime).toLocaleDateString('fr-FR', {
-                          weekday: 'long',
-                          day: 'numeric',
-                          month: 'long'
-                        }).slice(1)}
+                          weekday: 'long', day: 'numeric', month: 'long'
+                        })}
                       </Text>
                       <View style={styles.timeRow}>
                         <Text style={styles.timeValue}>
                           {new Date(permanenceDetails.start_datetime).toLocaleTimeString('fr-FR', {
-                            hour: '2-digit',
-                            minute: '2-digit'
+                            hour: '2-digit', minute: '2-digit'
                           })}
                         </Text>
                         <Text style={styles.detailSeparator}>→</Text>
                         <Text style={styles.timeValue}>
                           {new Date(permanenceDetails.end_datetime).toLocaleTimeString('fr-FR', {
-                            hour: '2-digit',
-                            minute: '2-digit'
+                            hour: '2-digit', minute: '2-digit'
                           })}
                         </Text>
                       </View>
@@ -592,6 +547,7 @@ const styles = StyleSheet.create({
     ...TextStyles.body,
     color: Colors.primaryBorder,
     lineHeight: 22,
+    textTransform: 'capitalize',
   },
   durationBadge: {
     alignItems: 'center',
@@ -741,6 +697,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   permanenceButtonText: {
+    ...TextStyles.body,
     color: Colors.primary,
     fontWeight: '600',
   },

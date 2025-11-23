@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { StyleSheet, View, Image, Text, ActivityIndicator, Animated, TouchableOpacity, SafeAreaView } from 'react-native';
-import { PanGestureHandler } from 'react-native-gesture-handler';
+import { HandlerStateChangeEvent, PanGestureHandler, PanGestureHandlerEventPayload, State } from 'react-native-gesture-handler';
 import { Check, X, HelpCircle, Trophy } from 'lucide-react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Video, ResizeMode } from 'expo-av';
@@ -8,7 +8,7 @@ import Toast from 'react-native-toast-message';
 
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiGet, apiPut } from '@/constants/api/apiCalls';
+import { apiGet, apiPut, isSuccessResponse, isPendingResponse, handleApiErrorToast, AppError, ApiError, handleApiErrorScreen } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
@@ -37,6 +37,7 @@ type Defi = {
     proof_media: string | null;
     proof_media_type: 'image' | 'video' | null;
     valid: boolean;
+    delete?: boolean;
 }
 
 export default function ValideDefisRapide() {
@@ -58,259 +59,141 @@ export default function ValideDefisRapide() {
     const activeOpacity = 1;
     const inactiveOpacity = 0.4;
 
-    const handleGesture = Animated.event(
-        [{ nativeEvent: { translationX: translateX } }],
-        { useNativeDriver: false }
-    );
-
-    const handleGestureEnd = ({ nativeEvent }: { nativeEvent: any }) => {
-        translateY.setValue(0);
-
-        if (nativeEvent.translationX > 120) {
-            Animated.timing(validOpacity, {
-                toValue: 1,
-                duration: 300,
-                useNativeDriver: true,
-            }).start(() => {
-                setTimeout(() => {
-                    Animated.timing(validOpacity, {
-                        toValue: 0,
-                        duration: 300,
-                        useNativeDriver: true,
-                    }).start();
-                }, 500);
-            });
-
-            handleValidate();
-            animateCard(600);
-        } else if (nativeEvent.translationX < -120) {
-            Animated.timing(rejectOpacity, {
-                toValue: 1,
-                duration: 300,
-                useNativeDriver: true,
-            }).start(() => {
-                setTimeout(() => {
-                    Animated.timing(rejectOpacity, {
-                        toValue: 0,
-                        duration: 300,
-                        useNativeDriver: true,
-                    }).start();
-                }, 500);
-            });
-
-            handleReject();
-            animateCard(-600);
-        } else {
-            resetPosition();
-        }
-    };
-
-    const animateCard = (toValue: number) => {
-        Animated.parallel([
-            Animated.timing(translateX, {
-                toValue,
-                duration: 300,
-                useNativeDriver: false,
-            }),
-            Animated.timing(translateY, {
-                toValue: 20,
-                duration: 300,
-                useNativeDriver: false,
-            }),
-            Animated.timing(cardOpacity, {
-                toValue: 0,
-                duration: 300,
-                useNativeDriver: false,
-            }),
-        ]).start(() => {
-            resetPosition();
-        });
-    };
-
     const resetPosition = useCallback(() => {
         Animated.parallel([
-            Animated.timing(translateX, {
-                toValue: 0,
-                duration: 200,
-                useNativeDriver: false,
-            }),
-            Animated.timing(translateY, {
-                toValue: 0,
-                duration: 200,
-                useNativeDriver: false,
-            }),
-            Animated.timing(cardOpacity, {
-                toValue: 1,
-                duration: 200,
-                useNativeDriver: false,
-            }),
+            Animated.timing(translateX, { toValue: 0, duration: 200, useNativeDriver: false }),
+            Animated.timing(translateY, { toValue: 0, duration: 200, useNativeDriver: false }),
+            Animated.timing(cardOpacity, { toValue: 1, duration: 200, useNativeDriver: false }),
         ]).start();
     }, [translateX, translateY, cardOpacity]);
 
     const fetchNextDefi = useCallback(async () => {
         setLoading(true);
         setNoDefis(false);
+        setError('');
 
         try {
-            const response = await apiGet('admin/challenges');
-            if (response.success) {
-                const pendingDefis = response.data.filter((d: any) => !d.valid && !d.delete);
+            const response = await apiGet<Defi[]>('admin/challenges', false);
+
+            if (isSuccessResponse(response)) {
+                const pendingDefis = (response.data || []).filter(d => !d.valid && !d.delete); // Might can delete this part
 
                 if (pendingDefis.length > 0) {
                     setDefi(pendingDefis[0]);
                 } else {
                     setNoDefis(true);
+                    setDefi(null);
                 }
             } else {
-                setError('Erreur lors de la récupération des défis');
+                handleApiErrorScreen(new ApiError(response.message), setUser, setError);
             }
-        } catch (error: any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
-            } else {
-                setError(error.message);
-            }
+        } catch (err: unknown) {
+            handleApiErrorToast(err as AppError, setUser);
         } finally {
             setLoading(false);
             resetPosition();
         }
     }, [setUser, resetPosition]);
 
-    const handleValidate = async () => {
+    const handleStatusUpdate = async (isValid: boolean) => {
         if (!defi || processing) return;
         setProcessing(true);
 
         try {
             const response = await apiPut(`admin/challenges/${defi.id}/status`, {
-                is_valid: true,
-                is_delete: false
+                is_valid: isValid,
+                is_delete: !isValid
             });
 
-            if (response.success) {
+            const handleSuccess = (isPending: boolean) => {
                 Toast.show({
-                    type: 'success',
-                    text1: 'Défi validé !',
-                    text2: `${defi.user.firstName} ${defi.user.lastName}`,
+                    type: isPending ? 'info' : 'success',
+                    text1: isPending ? 'Action sauvegardée' : (isValid ? 'Défi validé !' : 'Défi refusé'),
+                    text2: isPending
+                        ? 'Sera synchronisé plus tard'
+                        : `${defi.user.firstName} ${defi.user.lastName}`
                 });
                 fetchNextDefi();
-            } else if (response.pending) {
-                Toast.show({
-                    type: 'info',
-                    text1: 'Requête sauvegardée',
-                    text2: response.message,
-                });
-                fetchNextDefi();
+            };
+
+            if (isSuccessResponse(response)) {
+                handleSuccess(false);
+            } else if (isPendingResponse(response)) {
+                handleSuccess(true);
             } else {
                 Toast.show({
                     type: 'error',
                     text1: 'Erreur',
-                    text2: response.message,
+                    text2: response.message || 'Action impossible'
                 });
             }
-        } catch (error: any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
-            } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Erreur',
-                    text2: error.message,
-                });
-            }
+        } catch (err: unknown) {
+            handleApiErrorToast(err as AppError, setUser);
         } finally {
             setProcessing(false);
         }
     };
 
-    const handleReject = async () => {
-        if (!defi || processing) return;
-        setProcessing(true);
+    const handleValidate = () => handleStatusUpdate(true);
+    const handleReject = () => handleStatusUpdate(false);
 
-        try {
-            const response = await apiPut(`admin/challenges/${defi.id}/status`, {
-                is_valid: false,
-                is_delete: true
-            });
+    const handleGesture = Animated.event(
+        [{ nativeEvent: { translationX: translateX } }],
+        { useNativeDriver: false }
+    );
 
-            if (response.success) {
-                Toast.show({
-                    type: 'success',
-                    text1: 'Défi refusé',
-                    text2: `${defi.user.firstName} ${defi.user.lastName}`,
-                });
-                fetchNextDefi();
-            } else if (response.pending) {
-                Toast.show({
-                    type: 'info',
-                    text1: 'Requête sauvegardée',
-                    text2: response.message,
-                });
-                fetchNextDefi();
+    const handleGestureStateChange = (event: HandlerStateChangeEvent<PanGestureHandlerEventPayload>) => {
+        if (event.nativeEvent.state === State.END) {
+            const threshold = 120;
+            const { translationX } = event.nativeEvent;
+
+            if (translationX > threshold) {
+                triggerAnimation(validOpacity);
+                handleValidate();
+                animateCardOut(600);
+            } else if (translationX < -threshold) {
+                triggerAnimation(rejectOpacity);
+                handleReject();
+                animateCardOut(-600);
             } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Erreur',
-                    text2: response.message,
-                });
+                resetPosition();
             }
-        } catch (error: any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
-            } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Erreur',
-                    text2: error.message,
-                });
-            }
-        } finally {
-            setProcessing(false);
         }
+    };
+
+    const triggerAnimation = (opacityVal: Animated.Value) => {
+        Animated.sequence([
+            Animated.timing(opacityVal, { toValue: 1, duration: 300, useNativeDriver: true }),
+            Animated.delay(200),
+            Animated.timing(opacityVal, { toValue: 0, duration: 300, useNativeDriver: true })
+        ]).start();
+    };
+
+    const animateCardOut = (toValue: number) => {
+        Animated.parallel([
+            Animated.timing(translateX, { toValue, duration: 300, useNativeDriver: false }),
+            Animated.timing(translateY, { toValue: 20, duration: 300, useNativeDriver: false }),
+            Animated.timing(cardOpacity, { toValue: 0, duration: 300, useNativeDriver: false }),
+        ]).start(() => {
+            resetPosition();
+        });
     };
 
     const handleSkip = () => {
-        animateCard(600);
-        setTimeout(() => {
-            fetchNextDefi();
-        }, 300);
+        animateCardOut(600);
+        setTimeout(() => fetchNextDefi(), 300);
     };
 
     const handleValidateButton = async () => {
-        Animated.timing(validOpacity, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-        }).start(() => {
-            setTimeout(() => {
-                Animated.timing(validOpacity, {
-                    toValue: 0,
-                    duration: 300,
-                    useNativeDriver: true,
-                }).start();
-            }, 500);
-        });
-
+        triggerAnimation(validOpacity);
         await handleValidate();
-        animateCard(600);
+        animateCardOut(600);
     };
 
     const handleRejectButton = async () => {
-        Animated.timing(rejectOpacity, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-        }).start(() => {
-            setTimeout(() => {
-                Animated.timing(rejectOpacity, {
-                    toValue: 0,
-                    duration: 300,
-                    useNativeDriver: true,
-                }).start();
-            }, 500);
-        });
-
+        triggerAnimation(rejectOpacity);
         await handleReject();
-        animateCard(-600);
+        animateCardOut(-600);
     };
 
     useEffect(() => {
@@ -321,7 +204,7 @@ export default function ValideDefisRapide() {
         return <ErrorScreen error={error} />;
     }
 
-    if (loading) {
+    if (loading && !defi && !noDefis) {
         return (
             <SafeAreaView style={styles.container}>
                 <Header refreshFunction={null} disableRefresh={true} />
@@ -349,7 +232,7 @@ export default function ValideDefisRapide() {
                         </View>
 
                         <View style={styles.cardContainer}>
-                            <PanGestureHandler onGestureEvent={handleGesture} onEnded={handleGestureEnd}>
+                            <PanGestureHandler onGestureEvent={handleGesture} onHandlerStateChange={handleGestureStateChange}>
                                 <Animated.View style={[styles.card, {
                                     transform: [
                                         { translateX },
@@ -371,17 +254,17 @@ export default function ValideDefisRapide() {
                                     opacity: cardOpacity,
                                 }]}>
                                     <View style={styles.mediaContainer}>
-                                        {defi.proof_media_type === 'video' ? (
+                                        {defi.proof_media_type === 'video' && defi.proof_media ? (
                                             <Video
-                                                source={{ uri: defi.proof_media! }}
+                                                source={{ uri: defi.proof_media }}
                                                 style={styles.media}
                                                 useNativeControls
                                                 resizeMode={ResizeMode.CONTAIN}
                                                 isLooping
                                             />
-                                        ) : defi.proof_media_type === 'image' ? (
+                                        ) : defi.proof_media_type === 'image' && defi.proof_media ? (
                                             <Image
-                                                source={{ uri: defi.proof_media! }}
+                                                source={{ uri: defi.proof_media }}
                                                 style={styles.media}
                                                 resizeMode="contain"
                                             />
@@ -431,10 +314,16 @@ export default function ValideDefisRapide() {
                             </TouchableOpacity>
                         </View>
 
-                        <Animated.View style={[styles.validAnimation, { opacity: validOpacity, transform: [{ scale: validOpacity }] }]}>
+                        <Animated.View
+                            pointerEvents="none"
+                            style={[styles.validAnimation, { opacity: validOpacity, transform: [{ scale: validOpacity }] }]}
+                        >
                             <Check size={100} color="#22c55e" strokeWidth={3} />
                         </Animated.View>
-                        <Animated.View style={[styles.rejectAnimation, { opacity: rejectOpacity, transform: [{ scale: rejectOpacity }] }]}>
+                        <Animated.View
+                            pointerEvents="none"
+                            style={[styles.rejectAnimation, { opacity: rejectOpacity, transform: [{ scale: rejectOpacity }] }]}
+                        >
                             <X size={100} color={Colors.error} strokeWidth={3} />
                         </Animated.View>
                     </>
@@ -643,4 +532,3 @@ const styles = StyleSheet.create({
         backgroundColor: '#22c55e',
     },
 });
-

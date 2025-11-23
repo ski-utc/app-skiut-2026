@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
-import { WebView } from "react-native-webview";
+import { WebView, WebViewNavigation } from "react-native-webview";
 import * as Linking from "expo-linking";
 import * as SecureStore from "expo-secure-store";
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { X } from "lucide-react-native";
 
-import { useUser } from "@/contexts/UserContext";
-import { apiGet } from "@/constants/api/apiCalls";
+import { useUser, User } from "@/contexts/UserContext";
+import { apiGet, handleApiErrorScreen } from "@/constants/api/apiCalls";
 import { Colors } from "@/constants/GraphSettings";
 import ErrorScreen from "@/components/pages/errorPage";
 
@@ -24,8 +24,8 @@ export default function OAuthScreen() {
   const [canEnter, setCanEnter] = useState(true);
   const [isWebViewVisible, setWebViewVisible] = useState(true);
 
-  const handleNavigationStateChange = async (state: any) => {
-    const url = state.url;
+  const handleNavigationStateChange = async (state: WebViewNavigation) => {
+    const url = state.url || '';
     const { hostname, path, queryParams } = Linking.parse(url);
 
     if (canEnter && hostname === config.DOMAIN && path === "skiutc/api/connected") {
@@ -43,28 +43,24 @@ export default function OAuthScreen() {
           await SecureStore.setItemAsync("accessToken", accessToken);
           await SecureStore.setItemAsync("refreshToken", refreshToken);
 
-          const response = await apiGet("auth/me");
+          const response = await apiGet<User>("auth/me");
           if (response.success) {
             setUser({
-              id: response.id,
-              name: response.name,
-              lastName: response.lastName,
-              room: response.room,
-              roomName: response.roomName,
-              admin: response.admin,
-              member: response.member
+              id: response.data.id,
+              name: response.data.name,
+              lastName: response.data.lastName,
+              room: response.data.room,
+              roomName: response.data.roomName,
+              admin: response.data.admin,
+              member: response.data.member
             });
           } else {
             setWebViewVisible(false);
             setError(`Une erreur est survenue lors de la récupération du user : ${response.message}`);
           }
-        } catch (err: any) {
-          if (err?.JWT_ERROR) {
-            setUser(null);
-          } else {
-            setWebViewVisible(false);
-            setError(err?.message || 'Une erreur est survenue');
-          }
+        } catch (err: unknown) {
+          setWebViewVisible(false);
+          handleApiErrorScreen(err, setUser, setError);
         }
       } else {
         setWebViewVisible(false);

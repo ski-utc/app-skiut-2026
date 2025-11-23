@@ -1,9 +1,10 @@
 import { View, Text, Image, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Sparkles } from 'lucide-react-native';
-import { PanGestureHandler, State } from 'react-native-gesture-handler';
+import { HandlerStateChangeEvent, PanGestureHandler, PanGestureHandlerEventPayload, State } from 'react-native-gesture-handler';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
+import logoImage from '@/assets/images/logo.png';
 
 type Launch1StackParamList = {
   launchScreen1: undefined;
@@ -14,9 +15,9 @@ type Launch1StackParamList = {
 export default function LaunchScreen1() {
   const navigation = useNavigation<NavigationProp<Launch1StackParamList>>();
 
-  const handleGestureEvent = ({ nativeEvent }: any) => {
-    if (nativeEvent.state === State.END) {
-      if (nativeEvent.velocityX < -500) {
+  const handleGestureEvent = (event: HandlerStateChangeEvent<PanGestureHandlerEventPayload>) => {
+    if (event.nativeEvent.state === State.END) {
+      if (event.nativeEvent.velocityX < -500) {
         navigation.navigate("launchScreen2");
       }
     }
@@ -30,7 +31,7 @@ export default function LaunchScreen1() {
         <View style={styles.logoContainer}>
           <View style={styles.logoWrapper}>
             <Image
-              source={require('@/assets/images/logo.png')}
+              source={logoImage}
               style={styles.logo}
               resizeMode="contain"
             />

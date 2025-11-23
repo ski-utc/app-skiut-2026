@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, memo } from 'react';
+import { useState, useCallback, useEffect, memo } from 'react';
 import { Text, View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { GanttChart, Bell, RotateCcw } from 'lucide-react-native';
 import { NavigationProp, useNavigation, DrawerActions } from '@react-navigation/native';
@@ -6,7 +6,7 @@ import { NavigationProp, useNavigation, DrawerActions } from '@react-navigation/
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import NotificationPopup from '@/app/notificationPopUp';
 import { useUser } from '@/contexts/UserContext';
-import { apiGet } from '@/constants/api/apiCalls';
+import { apiGet, isSuccessResponse } from '@/constants/api/apiCalls';
 
 type HeaderStackParamList = {
   homeScreen: undefined;
@@ -21,7 +21,11 @@ type HeaderProps = {
   disableRefresh?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = memo(({ refreshFunction, disableRefresh = false }) => {
+type Notification = {
+  read: boolean;
+}
+
+const Header = memo(({ refreshFunction, disableRefresh = false }: HeaderProps) => {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const { user } = useUser();
@@ -40,24 +44,23 @@ const Header: React.FC<HeaderProps> = memo(({ refreshFunction, disableRefresh = 
 
   const handleClosePopup = useCallback(() => {
     setIsPopupVisible(false);
+    setHasUnreadNotifications(false);
   }, []);
 
   const updateUnreadNotifications = useCallback(async () => {
     try {
-      const response = await apiGet('notifications');
-      if (response.success && response.data) {
-        const hasUnread = response.data.some((notification: any) => notification.read === false);
+      const response = await apiGet<Notification[]>('notifications', true);
+      if (isSuccessResponse(response) && response.data) {
+        const hasUnread = response.data.some((notification) => !notification.read);
         setHasUnreadNotifications(hasUnread);
       }
-    } catch (error) {
-      console.error('Erreur lors de la récupération des notifications:', error);
+    } catch (err) {
+      console.error(err);
     }
   }, []);
 
   useEffect(() => {
     updateUnreadNotifications();
-    // const interval = setInterval(updateUnreadNotifications, 30000);
-    // return () => clearInterval(interval);
   }, [updateUnreadNotifications]);
 
   return (
@@ -75,7 +78,7 @@ const Header: React.FC<HeaderProps> = memo(({ refreshFunction, disableRefresh = 
           </Text>
         </View>
       </View>
-      {refreshFunction === null ? null :
+      {refreshFunction && (
         <TouchableOpacity
           style={[styles.refreshButton, { opacity: disableRefresh ? inactiveOpacity : activeOpacity }]}
           onPress={refreshFunction}
@@ -83,7 +86,7 @@ const Header: React.FC<HeaderProps> = memo(({ refreshFunction, disableRefresh = 
         >
           <RotateCcw size={20} color={Colors.primaryBorder} />
         </TouchableOpacity>
-      }
+      )}
       <TouchableOpacity style={styles.bellButton} onPress={handleBellPress}>
         <Bell size={20} color={Colors.primaryBorder} />
         {hasUnreadNotifications && (

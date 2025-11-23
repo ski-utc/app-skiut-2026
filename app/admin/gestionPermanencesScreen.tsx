@@ -1,37 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    SafeAreaView,
-    FlatList,
-    TouchableOpacity,
-    ActivityIndicator,
-    Alert,
-    RefreshControl,
-    Modal,
-    TextInput,
-    ScrollView,
-    Platform,
-} from 'react-native';
-import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import {
-    Clock,
-    Plus,
-    Calendar,
-    User,
-    MapPin,
-    Edit3,
-    Trash2,
-    Send,
-    ChevronDown,
-    ChevronRight,
-    X as CloseIcon,
-    FileText
-} from 'lucide-react-native';
+import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, ActivityIndicator, Alert, RefreshControl, Modal, TextInput, ScrollView, Platform, } from 'react-native';
+import DateTimePicker, { DateTimePickerAndroid, DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { Clock, Plus, Calendar, User, MapPin, Edit3, Trash2, Send, ChevronDown, ChevronRight, X as CloseIcon, FileText } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
-import { apiGet, apiPost, apiPut, apiDelete } from '@/constants/api/apiCalls';
+import { apiGet, apiPost, apiPut, apiDelete, isSuccessResponse, isPendingResponse, handleApiErrorToast, handleApiErrorScreen, AppError } from '@/constants/api/apiCalls';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
@@ -39,13 +12,15 @@ import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import Header from '../../components/header';
 
+type PermanenceStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+
 type Permanence = {
     id: number;
     name: string;
     start_datetime: string;
     end_datetime: string;
     location: string;
-    status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+    status: PermanenceStatus;
     responsible: {
         id: number;
         name: string;
@@ -65,10 +40,20 @@ type Member = {
     name: string;
 }
 
+type PermanencePayload = {
+    name: string;
+    location: string;
+    notes: string;
+    start_datetime: string;
+    end_datetime: string;
+    responsible_user_id: number;
+}
+
 export default function GestionPermanencesScreen() {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState('');
+
     const [permanences, setPermanences] = useState<Permanence[]>([]);
     const [members, setMembers] = useState<Member[]>([]);
 
@@ -88,35 +73,24 @@ export default function GestionPermanencesScreen() {
 
     const { setUser } = useUser();
 
-    const showToast = (type: 'success' | 'info' | 'error', text1: string, text2: string) => {
-        try {
-            if (Toast && Toast.show) {
-                Toast.show({ type, text1, text2 });
-            }
-        } catch (error) {
-            console.warn('Toast error:', error);
-        }
-    };
-
     const openStartDatePicker = () => {
         if (Platform.OS === 'android') {
             DateTimePickerAndroid.open({
                 value: formStartDate,
-                onChange: (event: any, date?: Date) => {
-                    if (date) {
+                onChange: (event: DateTimePickerEvent, date?: Date) => {
+                    if (event.type === 'set' && date) {
                         setFormStartDate(date);
-                        setTimeout(() => {
-                            DateTimePickerAndroid.open({
-                                value: date,
-                                onChange: (timeEvent: any, timeDate?: Date) => {
-                                    if (timeDate) {
-                                        setFormStartDate(timeDate);
-                                    }
-                                },
-                                mode: 'time',
-                                is24Hour: true,
-                            });
-                        }, 100);
+                        // Chain Time Picker
+                        DateTimePickerAndroid.open({
+                            value: date,
+                            onChange: (timeEvent: DateTimePickerEvent, timeDate?: Date) => {
+                                if (timeEvent.type === 'set' && timeDate) {
+                                    setFormStartDate(timeDate);
+                                }
+                            },
+                            mode: 'time',
+                            is24Hour: true,
+                        });
                     }
                 },
                 mode: 'date',
@@ -131,21 +105,19 @@ export default function GestionPermanencesScreen() {
         if (Platform.OS === 'android') {
             DateTimePickerAndroid.open({
                 value: formEndDate,
-                onChange: (event: any, date?: Date) => {
-                    if (date) {
+                onChange: (event: DateTimePickerEvent, date?: Date) => {
+                    if (event.type === 'set' && date) {
                         setFormEndDate(date);
-                        setTimeout(() => {
-                            DateTimePickerAndroid.open({
-                                value: date,
-                                onChange: (timeEvent: any, timeDate?: Date) => {
-                                    if (timeDate) {
-                                        setFormEndDate(timeDate);
-                                    }
-                                },
-                                mode: 'time',
-                                is24Hour: true,
-                            });
-                        }, 100);
+                        DateTimePickerAndroid.open({
+                            value: date,
+                            onChange: (timeEvent: DateTimePickerEvent, timeDate?: Date) => {
+                                if (timeEvent.type === 'set' && timeDate) {
+                                    setFormEndDate(timeDate);
+                                }
+                            },
+                            mode: 'time',
+                            is24Hour: true,
+                        });
                     }
                 },
                 mode: 'date',
@@ -157,34 +129,29 @@ export default function GestionPermanencesScreen() {
     };
 
     const fetchData = useCallback(async () => {
+        if (!refreshing) setLoading(true);
+        setError('');
+
         try {
-            const response = await apiGet("admin");
-            if (!response.success) {
-                setError("Accès non autorisé");
-                return;
-            }
+            const [permsRes, membersRes] = await Promise.all([
+                apiGet<Permanence[]>("admin/permanences"),
+                apiGet<Member[]>("admin/permanences/members")
+            ]);
 
-            const permanencesResponse = await apiGet("admin/permanences");
-            if (permanencesResponse.success) {
-                setPermanences(permanencesResponse.data);
-            }
+            if (isSuccessResponse(permsRes)) setPermanences(permsRes.data);
+            if (isSuccessResponse(membersRes)) setMembers(membersRes.data);
 
-            const membersResponse = await apiGet("admin/permanences/members");
-            if (membersResponse.success) {
-                setMembers(membersResponse.data);
-            }
-
-        } catch (error: unknown) {
-            if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
-                setUser(null);
-            } else if (error instanceof Error) {
-                setError(error.message);
+        } catch (err: unknown) {
+            if (refreshing) {
+                handleApiErrorToast(err as AppError, setUser);
+            } else {
+                handleApiErrorScreen(err, setUser, setError);
             }
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [setUser]);
+    }, [refreshing, setUser]);
 
     useEffect(() => {
         fetchData();
@@ -192,7 +159,6 @@ export default function GestionPermanencesScreen() {
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
-        setError('');
         fetchData();
     }, [fetchData]);
 
@@ -224,25 +190,22 @@ export default function GestionPermanencesScreen() {
 
     const submitPermanence = async () => {
         if (!formName.trim() || !formResponsibleId) {
-            showToast('error', 'Erreur', 'Veuillez remplir tous les champs obligatoires.');
+            Toast.show({ type: 'error', text1: 'Erreur', text2: 'Veuillez remplir tous les champs obligatoires.' });
             return;
         }
-
-        const now = new Date();
-        if (formStartDate <= now) {
-            showToast('error', 'Erreur', 'La date de début doit être dans le futur.');
+        if (formStartDate <= new Date()) {
+            Toast.show({ type: 'error', text1: 'Erreur', text2: 'La date de début doit être dans le futur.' });
             return;
         }
-
         if (formStartDate >= formEndDate) {
-            showToast('error', 'Erreur', 'L\'heure de fin doit être postérieure à l\'heure de début.');
+            Toast.show({ type: 'error', text1: 'Erreur', text2: 'L\'heure de fin doit être postérieure au début.' });
             return;
         }
 
         setFormSubmitting(true);
 
         try {
-            const data = {
+            const payload: PermanencePayload = {
                 name: formName.trim(),
                 location: formLocation.trim(),
                 notes: formNotes.trim(),
@@ -252,32 +215,33 @@ export default function GestionPermanencesScreen() {
             };
 
             const endpoint = editingPermanence ? `admin/permanences/${editingPermanence.id}` : 'admin/permanences';
-            const method = editingPermanence ? 'PUT' : 'POST';
+            const response = editingPermanence
+                ? await apiPut(endpoint, payload)
+                : await apiPost(endpoint, payload);
 
-            const response = await (method === 'PUT' ?
-                apiPut(endpoint, data) :
-                apiPost(endpoint, data)
-            );
-
-            if (response.success) {
-                showToast('success', 'Succès', `Permanence ${editingPermanence ? 'modifiée' : 'créée'} avec succès.`);
+            if (isSuccessResponse(response)) {
+                Toast.show({
+                    type: 'success',
+                    text1: 'Succès',
+                    text2: `Permanence ${editingPermanence ? 'modifiée' : 'créée'} avec succès.`
+                });
                 setShowCreateModal(false);
                 resetForm();
                 fetchData();
-            } else if (response.pending) {
-                showToast('info', 'Requête sauvegardée', response.message);
+            } else if (isPendingResponse(response)) {
+                Toast.show({
+                    type: 'info',
+                    text1: 'Requête sauvegardée',
+                    text2: response.message
+                });
                 setShowCreateModal(false);
                 resetForm();
                 fetchData();
             } else {
-                showToast('error', 'Erreur', response.message);
+                Toast.show({ type: 'error', text1: 'Erreur', text2: response.message });
             }
-        } catch (error: unknown) {
-            if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
-                setUser(null);
-            } else if (error instanceof Error) {
-                setError(error.message || 'Une erreur est survenue.');
-            }
+        } catch (err: unknown) {
+            handleApiErrorToast(err as AppError, setUser);
         } finally {
             setFormSubmitting(false);
         }
@@ -295,18 +259,18 @@ export default function GestionPermanencesScreen() {
                     onPress: async () => {
                         try {
                             const response = await apiDelete(`admin/permanences/${permanence.id}`);
-                            if (response.success) {
-                                showToast('success', 'Succès', 'Permanence supprimée avec succès.');
-                                fetchData();
-                            } else if (response.pending) {
-                                showToast('info', 'Requête sauvegardée', response.message);
-                                fetchData();
+
+                            if (isSuccessResponse(response)) {
+                                Toast.show({ type: 'success', text1: 'Succès', text2: 'Permanence supprimée.' });
+                                setPermanences(prev => prev.filter(p => p.id !== permanence.id));
+                            } else if (isPendingResponse(response)) {
+                                Toast.show({ type: 'info', text1: 'Sauvegardé', text2: 'Suppression en attente de connexion.' });
+                                setPermanences(prev => prev.filter(p => p.id !== permanence.id));
                             } else {
-                                showToast('error', 'Erreur', response.message);
+                                Toast.show({ type: 'error', text1: 'Erreur', text2: response.message });
                             }
-                        } catch (error: unknown) {
-                            setError(error.message || 'Une erreur est survenue.');
-                            showToast('error', 'Erreur', error.message || 'Une erreur est survenue.');
+                        } catch (err: unknown) {
+                            handleApiErrorToast(err as AppError, setUser);
                         }
                     }
                 }
@@ -317,7 +281,7 @@ export default function GestionPermanencesScreen() {
     const sendReminders = async () => {
         Alert.alert(
             'Envoyer des rappels',
-            'Voulez-vous envoyer des rappels de permanence dans l\'heure à venir à tous les membres concernés ?',
+            'Envoyer des rappels pour les permanences dans l\'heure à venir ?',
             [
                 { text: 'Annuler', style: 'cancel' },
                 {
@@ -325,16 +289,13 @@ export default function GestionPermanencesScreen() {
                     onPress: async () => {
                         try {
                             const response = await apiPost('admin/permanences/send-reminders', {});
-                            if (response.success) {
-                                showToast('success', 'Succès', 'Rappels envoyés avec succès.');
-                            } else if (response.pending) {
-                                showToast('info', 'Requête sauvegardée', response.message);
+                            if (isSuccessResponse(response)) {
+                                Toast.show({ type: 'success', text1: 'Succès', text2: 'Rappels envoyés.' });
                             } else {
-                                showToast('error', 'Erreur', response.message);
+                                Toast.show({ type: 'error', text1: 'Erreur', text2: response.message });
                             }
-                        } catch (error: any) {
-                            setError(error.message || 'Une erreur est survenue.');
-                            showToast('error', 'Erreur', error.message || 'Une erreur est survenue.');
+                        } catch (err: unknown) {
+                            handleApiErrorToast(err as AppError, setUser);
                         }
                     }
                 }
@@ -342,7 +303,7 @@ export default function GestionPermanencesScreen() {
         );
     };
 
-    const getStatusColor = (status: string) => {
+    const getStatusColor = (status: PermanenceStatus) => {
         switch (status) {
             case 'in_progress': return Colors.primary;
             case 'completed': return Colors.success;
@@ -351,7 +312,7 @@ export default function GestionPermanencesScreen() {
         }
     };
 
-    const getStatusText = (status: string) => {
+    const getStatusText = (status: PermanenceStatus) => {
         switch (status) {
             case 'in_progress': return 'En cours';
             case 'completed': return 'Terminée';
@@ -368,12 +329,14 @@ export default function GestionPermanencesScreen() {
             <View style={styles.permanenceCard}>
                 <View style={styles.cardHeader}>
                     <Text style={styles.cardTitle}>{item.name}</Text>
-                    <View style={[
-                        styles.statusBadge,
-                        { backgroundColor: getStatusColor(item.status) || Colors.white }
-                    ]}>
-                        <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
-                    </View>
+                    {item.status !== 'scheduled' && (
+                        <View style={[
+                            styles.statusBadge,
+                            { backgroundColor: getStatusColor(item.status) || Colors.white }
+                        ]}>
+                            <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
+                        </View>
+                    )}
                 </View>
 
                 <View style={styles.cardDetails}>
@@ -427,7 +390,7 @@ export default function GestionPermanencesScreen() {
         );
     };
 
-    if (error !== '') {
+    if (error) {
         return <ErrorScreen error={error} />;
     }
 
@@ -437,7 +400,7 @@ export default function GestionPermanencesScreen() {
                 <Header refreshFunction={null} disableRefresh={true} />
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={Colors.primary} />
-                    <Text style={styles.loadingText}>Chargement des permanences...</Text>
+                    <Text style={styles.loadingText}>Chargement...</Text>
                 </View>
             </SafeAreaView>
         );
@@ -450,7 +413,8 @@ export default function GestionPermanencesScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header refreshFunction={null} disableRefresh={true} />
+            <Header refreshFunction={onRefresh} disableRefresh={refreshing} />
+
             <View style={styles.headerContainer}>
                 <BoutonRetour title="Gestion des Permanences" />
             </View>
@@ -528,6 +492,7 @@ export default function GestionPermanencesScreen() {
                         </View>
 
                         <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+                            {/* Name */}
                             <View style={styles.inputSection}>
                                 <View style={styles.inputHeader}>
                                     <FileText size={16} color={Colors.primary} />
@@ -696,10 +661,8 @@ export default function GestionPermanencesScreen() {
                     value={formStartDate}
                     mode="datetime"
                     display="spinner"
-                    onChange={(event: any, selectedDate?: Date) => {
-                        if (selectedDate) {
-                            setFormStartDate(selectedDate);
-                        }
+                    onChange={(event: DateTimePickerEvent, selectedDate?: Date) => {
+                        if (event && selectedDate) setFormStartDate(selectedDate);
                         setShowStartDatePicker(false);
                     }}
                 />
@@ -710,10 +673,8 @@ export default function GestionPermanencesScreen() {
                     value={formEndDate}
                     mode="datetime"
                     display="spinner"
-                    onChange={(event: any, selectedDate?: Date) => {
-                        if (selectedDate) {
-                            setFormEndDate(selectedDate);
-                        }
+                    onChange={(event: DateTimePickerEvent, selectedDate?: Date) => {
+                        if (event && selectedDate) setFormEndDate(selectedDate);
                         setShowEndDatePicker(false);
                     }}
                 />

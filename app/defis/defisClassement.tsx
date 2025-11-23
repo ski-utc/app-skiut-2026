@@ -1,11 +1,12 @@
+import React, { useState, useEffect, useCallback } from "react";
 import { Text, View, ActivityIndicator, Dimensions, StyleSheet, FlatList } from "react-native";
-import React, { useState, useEffect } from "react";
 import { Crown, Trophy, Medal } from "lucide-react-native";
 
 import { Colors, TextStyles, Fonts } from '@/constants/GraphSettings';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiGet } from '@/constants/api/apiCalls';
+import { apiGet, isSuccessResponse, handleApiErrorScreen } from '@/constants/api/apiCalls';
 import ErrorScreen from "@/components/pages/errorPage";
+import { useUser } from "@/contexts/UserContext";
 
 import Header from "../../components/header";
 
@@ -15,6 +16,11 @@ const podiumWidth = (screenWidth - 80) / 3;
 type RoomData = {
     roomNumber: string;
     totalPoints: number;
+}
+
+type RankingResponse = {
+    podium: RoomData[];
+    rest: RoomData[];
 }
 
 type PodiumPlaceProps = {
@@ -107,10 +113,7 @@ const podiumStyles = StyleSheet.create({
         borderTopRightRadius: 12,
         elevation: 5,
         shadowColor: Colors.primaryBorder,
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 4,
         width: '100%',
@@ -181,57 +184,45 @@ const rankingStyles = StyleSheet.create({
 });
 
 export default function DefisClassement() {
-    const [loading, setLoading] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState('');
     const [podium, setPodium] = useState<RoomData[]>([]);
     const [rest, setRest] = useState<RoomData[]>([]);
-    const [disableRefresh, setDisableRefresh] = useState(false);
+
+    const { setUser } = useUser();
+
+    const fetchClassement = useCallback(async () => {
+        setError('');
+
+        try {
+            const response = await apiGet<RankingResponse>("classement-chambres");
+
+            if (isSuccessResponse(response) && response.data) {
+                setPodium(response.data.podium || []);
+                setRest(response.data.rest || []);
+            }
+        } catch (err: unknown) {
+            handleApiErrorScreen(err, setUser, setError);
+        } finally {
+            setLoading(false);
+        }
+    }, [setUser]);
 
     useEffect(() => {
         fetchClassement();
-    }, []);
-
-    const fetchClassement = async () => {
-        setLoading(true);
-        setDisableRefresh(true);
-        try {
-            const response = await apiGet("classement-chambres");
-            if (response.success) {
-                setPodium(response.podium);
-                setRest(response.rest);
-            } else {
-                setError(response.message);
-            }
-        } catch (error: any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setPodium([]);
-                setRest([]);
-            } else {
-                setError(error.message);
-            }
-        } finally {
-            setLoading(false);
-            setTimeout(() => {
-                setDisableRefresh(false);
-            }, 5000);
-        }
-    };
+    }, [fetchClassement]);
 
     if (error) {
-        return (
-            <ErrorScreen error={error} />
-        );
+        return <ErrorScreen error={error} />;
     }
 
-    if (loading) {
+    if (loading && podium.length === 0) {
         return (
             <View style={styles.container}>
                 <Header refreshFunction={undefined} disableRefresh={true} />
                 <View style={styles.loadingContent}>
                     <ActivityIndicator size="large" color={Colors.primaryBorder} />
-                    <Text style={styles.loadingText}>
-                        Chargement...
-                    </Text>
+                    <Text style={styles.loadingText}>Chargement...</Text>
                 </View>
             </View>
         );
@@ -239,7 +230,7 @@ export default function DefisClassement() {
 
     return (
         <View style={styles.container}>
-            <Header refreshFunction={fetchClassement} disableRefresh={disableRefresh} />
+            <Header refreshFunction={fetchClassement} disableRefresh={false} />
             <View style={styles.headerContainer}>
                 <BoutonRetour title={"Classement"} />
             </View>
@@ -275,15 +266,13 @@ export default function DefisClassement() {
             </View>
 
             <FlatList
-                data={Object.values(rest)}
-                keyExtractor={(item) => item.roomNumber}
+                data={rest}
+                keyExtractor={(item, index) => item.roomNumber + index}
                 showsVerticalScrollIndicator={false}
                 ListHeaderComponent={() => (
                     <View style={styles.rankingSection}>
-                        {Object.values(rest).length > 0 && (
-                            <Text style={styles.sectionTitle}>
-                                Classement
-                            </Text>
+                        {rest.length > 0 && (
+                            <Text style={styles.sectionTitle}>Classement</Text>
                         )}
                     </View>
                 )}
@@ -296,11 +285,11 @@ export default function DefisClassement() {
                 )}
                 contentContainerStyle={styles.flatListContainer}
                 ListEmptyComponent={() =>
-                    Object.values(rest).length === 0 ? null : (
+                    rest.length === 0 ? (
                         <View style={styles.emptyContainer}>
                             <Text style={styles.emptyText}>Aucune autre chambre dans le classement</Text>
                         </View>
-                    )
+                    ) : null
                 }
             />
         </View>

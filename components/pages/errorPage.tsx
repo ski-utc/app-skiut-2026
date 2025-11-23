@@ -1,24 +1,30 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { AlertTriangle, ArrowLeft } from "lucide-react-native";
+import { useNavigation, NavigationProp, ParamListBase } from '@react-navigation/native';
+import { AlertTriangle, ArrowLeft, RotateCcw } from "lucide-react-native";
 
 import { Colors, TextStyles } from "@/constants/GraphSettings";
 
 import Header from "../header";
 
-type ErrorStackParamList = {
-  errorScreen: undefined;
-}
-
 type ErrorScreenProps = {
   error: string;
+  retry?: () => void;
 }
 
-export default function ErrorScreen({ error }: ErrorScreenProps) {
-  const navigation = useNavigation<NavigationProp<ErrorStackParamList>>();
+export default function ErrorScreen({ error, retry }: ErrorScreenProps) {
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+
+  const handlePress = () => {
+    if (retry) {
+      retry();
+    } else if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Header refreshFunction={null} disableRefresh={true} />
+      <Header refreshFunction={retry || null} disableRefresh={false} />
       <View style={styles.content}>
         <View style={styles.iconContainer}>
           <AlertTriangle size={64} color={Colors.error} />
@@ -39,17 +45,17 @@ export default function ErrorScreen({ error }: ErrorScreenProps) {
         </Text>
 
         <TouchableOpacity
-          onPress={() => {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'homeScreen' as any }],
-            });
-          }}
-          style={styles.retourButton}
+          onPress={handlePress}
+          style={styles.actionButton}
+          activeOpacity={0.8}
         >
-          <ArrowLeft size={20} color={Colors.white} />
-          <Text style={styles.retourButtonText}>
-            Retour
+          {retry ? (
+            <RotateCcw size={20} color={Colors.white} />
+          ) : (
+            <ArrowLeft size={20} color={Colors.white} />
+          )}
+          <Text style={styles.actionButtonText}>
+            {retry ? "Réessayer" : "Retour"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -58,6 +64,26 @@ export default function ErrorScreen({ error }: ErrorScreenProps) {
 }
 
 const styles = StyleSheet.create({
+  actionButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: 14,
+    elevation: 3,
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    shadowColor: Colors.primaryBorder,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  actionButtonText: {
+    ...TextStyles.button,
+    color: Colors.white,
+    fontSize: 16,
+  },
   container: {
     backgroundColor: Colors.white,
     flex: 1,
@@ -96,26 +122,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 24,
     width: 120,
-  },
-  retourButton: {
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
-    borderRadius: 14,
-    elevation: 3,
-    flexDirection: 'row',
-    gap: 8,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    shadowColor: Colors.primaryBorder,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  retourButtonText: {
-    ...TextStyles.button,
-    color: Colors.white,
-    fontSize: 16,
   },
   title: {
     ...TextStyles.h2,

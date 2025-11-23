@@ -5,7 +5,7 @@ import { Trophy, Clock, CheckCircle, Zap, ChevronRight } from 'lucide-react-nati
 
 import BoutonRetour from '@/components/divers/boutonRetour';
 import BoutonGestion from '@/components/admins/boutonGestion';
-import { apiGet } from '@/constants/api/apiCalls';
+import { ApiError, apiGet, AppError, handleApiErrorScreen } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
@@ -77,19 +77,15 @@ const GestionDefisScreen = () => {
     setLoading(true);
     setDisableRefresh(true);
     try {
-      const response = await apiGet('admin/challenges');
+      const response = await apiGet<DefiItem[]>('admin/challenges');
       if (response.success) {
         setDefis(response.data);
         setFilteredDefis(response.data);
       } else {
-        setError('Erreur lors de la récupération des défis');
+        handleApiErrorScreen(new ApiError(response.message), setUser, setError);
       }
     } catch (error: unknown) {
-      if (error instanceof Error && (error.message === 'NoRefreshTokenError' || 'JWT_ERROR' in error)) {
-        setUser(null);
-      } else if (error instanceof Error) {
-        setError(error.message || 'Une erreur est survenue.');
-      }
+      handleApiErrorScreen(error as AppError, setUser, setError);
     } finally {
       setLoading(false);
       setTimeout(() => {

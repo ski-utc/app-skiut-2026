@@ -1,14 +1,27 @@
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator, StackNavigationProp } from '@react-navigation/stack';
+import { EventArg, NavigationAction } from '@react-navigation/native';
 
 import MonoprutScreen from './monoprut/monoprutScreen';
 import MyReservationsScreen from './monoprut/myReservationsScreen';
 import MyOffersScreen from './monoprut/myOffersScreen';
 
-const Stack = createStackNavigator();
+type MonoprutStackParamList = {
+    MonoprutScreen: undefined;
+    MyReservationsScreen: undefined;
+    MyOffersScreen: undefined;
+};
 
-export default function MonoprutNavigator() {
-    const getScreenListeners = ({ navigation }: any) => ({
-        beforeRemove: (e: any) => {
+type BeforeRemoveEvent = EventArg<'beforeRemove', true, { action: NavigationAction }>;
+
+type ListenerProps = {
+    navigation: StackNavigationProp<MonoprutStackParamList>;
+};
+
+const Stack = createStackNavigator<MonoprutStackParamList>();
+
+export default function DrawerNavigator() {
+    const getScreenListeners = ({ navigation }: ListenerProps) => ({
+        beforeRemove: (e: BeforeRemoveEvent) => {
             if (e.data.action.type === 'GO_BACK' || e.data.action.type === 'POP') {
                 e.preventDefault();
 

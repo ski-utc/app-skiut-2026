@@ -2,14 +2,31 @@ import { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { ShoppingBasket, ShoppingBag, Clock, Package } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, NavigationProp } from '@react-navigation/native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiGet, apiPost, apiPut } from '@/constants/api/apiCalls';
+import { apiGet, apiPost, apiPut, isSuccessResponse, isPendingResponse, handleApiErrorToast, handleApiErrorScreen, AppError } from '@/constants/api/apiCalls';
 import ArticleCard from '@/components/monoprut/articleCard';
 import ErrorScreen from '@/components/pages/errorPage';
+import { useUser } from '@/contexts/UserContext';
+
+type MonoprutStackParamList = {
+    MonoprutScreen: undefined;
+    MyReservationsScreen: undefined;
+    MyOffersScreen: undefined;
+};
+
+type RoomInfo = {
+    roomNumber: string;
+    name: string;
+};
+
+type PersonInfo = {
+    responsible_name: string;
+    room: string;
+};
 
 type Article = {
     id: number;
@@ -18,137 +35,118 @@ type Article = {
     type: 'fruit' | 'veggie' | 'drink' | 'sweet' | 'snack' | 'dairy' | 'bread' | 'meat' | 'fish' | 'grain' | 'other';
     giver_room_id: number;
     receiver_room_id: number | null;
-    giver_room?: {
-        roomNumber: string;
-        name: string;
-    };
-    giver_info?: {
-        responsible_name: string;
-        room: string;
-    };
+    giver_room?: RoomInfo;
+    giver_info?: PersonInfo;
 }
 
 export default function MyReservationsScreen() {
-    const navigation = useNavigation<any>();
+    const navigation = useNavigation<NavigationProp<MonoprutStackParamList>>();
+    const { setUser } = useUser();
+
     const [articles, setArticles] = useState<Article[]>([]);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    const fetchArticles = async () => {
+    const fetchArticles = useCallback(async (isRefresh = false) => {
+        if (isRefresh) setRefreshing(true);
+        else setError('');
+
         try {
-            const response = await apiGet('articles/received');
-            if (response.success) {
+            const response = await apiGet<Article[]>('articles/received');
+
+            if (isSuccessResponse(response)) {
                 setArticles(response.data || []);
-                console.log(response.data);
-            } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Erreur',
-                    text2: response.message || 'Impossible de récupérer vos réservations.',
-                });
             }
-        } catch (error: any) {
-            setError(error.message || 'Une erreur est survenue.');
-            Toast.show({
-                type: 'error',
-                text1: 'Erreur',
-                text2: error.message || 'Une erreur est survenue.',
-            });
+        } catch (err: unknown) {
+            if (isRefresh) {
+                handleApiErrorToast(err, setUser);
+            } else {
+                handleApiErrorScreen(err, setUser, setError);
+            }
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
-    };
+    }, [setUser]);
 
     useFocusEffect(
         useCallback(() => {
-            setLoading(true);
-            fetchArticles();
-        }, [])
+            if (articles.length === 0) setLoading(true);
+            fetchArticles(false);
+        }, [articles.length, fetchArticles])
     );
 
     const handleRefresh = () => {
-        setRefreshing(true);
-        fetchArticles();
+        fetchArticles(true);
     };
 
     const handleMarkAsRetrieved = async (articleId: number) => {
         try {
             const response = await apiPut(`articles/${articleId}/retrieve`, {});
-            if (response.success) {
+
+            const handleSuccess = (isPending: boolean) => {
                 Toast.show({
-                    type: 'success',
-                    text1: 'Succès',
-                    text2: 'Article marqué comme récupéré',
+                    type: isPending ? 'info' : 'success',
+                    text1: isPending ? 'Action sauvegardée' : 'Article récupéré !',
+                    text2: isPending ? 'Sera synchronisé plus tard' : 'Bon appétit !',
                 });
-                setArticles(articles.filter(a => a.id !== articleId));
-            } else if (response.pending) {
-                Toast.show({
-                    type: 'info',
-                    text1: 'Requête sauvegardée',
-                    text2: response.message,
-                });
-                setArticles(articles.filter(a => a.id !== articleId));
+                setArticles(prev => prev.filter(a => a.id !== articleId));
+            };
+
+            if (isSuccessResponse(response)) {
+                handleSuccess(false);
+            } else if (isPendingResponse(response)) {
+                handleSuccess(true);
             } else {
                 Toast.show({
                     type: 'error',
                     text1: 'Erreur',
-                    text2: response.message || 'Impossible de marquer l\'article comme récupéré',
+                    text2: response.message || 'Action impossible'
                 });
             }
-        } catch (error: any) {
-            Toast.show({
-                type: 'error',
-                text1: 'Erreur',
-                text2: error.message || 'Une erreur est survenue',
-            });
+        } catch (err: unknown) {
+            handleApiErrorToast(err as AppError, setUser);
         }
     };
 
     const handleCancelReservation = async (articleId: number) => {
         try {
             const response = await apiPost(`articles/${articleId}/cancel-reservation`, {});
-            if (response.success) {
+
+            const handleSuccess = (isPending: boolean) => {
                 Toast.show({
-                    type: 'success',
-                    text1: 'Succès',
-                    text2: 'Réservation annulée',
+                    type: isPending ? 'info' : 'success',
+                    text1: isPending ? 'Annulation sauvegardée' : 'Réservation annulée',
+                    text2: isPending ? 'Sera synchronisé plus tard' : 'L\'article est de nouveau disponible.',
                 });
-                setArticles(articles.filter(a => a.id !== articleId));
-            } else if (response.pending) {
-                Toast.show({
-                    type: 'info',
-                    text1: 'Requête sauvegardée',
-                    text2: response.message,
-                });
-                setArticles(articles.filter(a => a.id !== articleId));
+                setArticles(prev => prev.filter(a => a.id !== articleId));
+            };
+
+            if (isSuccessResponse(response)) {
+                handleSuccess(false);
+            } else if (isPendingResponse(response)) {
+                handleSuccess(true);
             } else {
                 Toast.show({
                     type: 'error',
                     text1: 'Erreur',
-                    text2: response.message || 'Impossible d\'annuler la réservation',
+                    text2: response.message || 'Annulation impossible'
                 });
             }
-        } catch (error: any) {
-            Toast.show({
-                type: 'error',
-                text1: 'Erreur',
-                text2: error.message || 'Une erreur est survenue',
-            });
+        } catch (err: unknown) {
+            handleApiErrorToast(err as AppError, setUser);
         }
     };
 
     if (error) {
-        return (
-            <ErrorScreen error={error} />
-        );
+        return <ErrorScreen error={error} />;
     }
 
-    if (loading) {
+    if (loading && articles.length === 0) {
         return (
             <SafeAreaView style={styles.container}>
-                <Header refreshFunction={handleRefresh} disableRefresh={false} />
+                <Header refreshFunction={undefined} disableRefresh={true} />
                 <View style={styles.headerContainer}>
                     <BoutonRetour title="Mes réservations" />
                 </View>
@@ -162,7 +160,7 @@ export default function MyReservationsScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header refreshFunction={handleRefresh} disableRefresh={false} />
+            <Header refreshFunction={handleRefresh} disableRefresh={refreshing} />
             <View style={styles.headerContainer}>
                 <BoutonRetour title="Mes réservations" />
             </View>
@@ -176,6 +174,7 @@ export default function MyReservationsScreen() {
                     <ShoppingBag size={18} color={Colors.primaryBorder} strokeWidth={2.5} />
                     <Text style={styles.navButtonText}>Disponibles</Text>
                 </TouchableOpacity>
+
                 <TouchableOpacity
                     style={[styles.navButton, styles.navButtonActive]}
                     activeOpacity={0.7}
@@ -185,6 +184,7 @@ export default function MyReservationsScreen() {
                         Réservations
                     </Text>
                 </TouchableOpacity>
+
                 <TouchableOpacity
                     style={styles.navButton}
                     onPress={() => navigation.navigate('MyOffersScreen')}
@@ -199,7 +199,12 @@ export default function MyReservationsScreen() {
                 style={styles.content}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={handleRefresh}
+                        colors={[Colors.success]}
+                        tintColor={Colors.success}
+                    />
                 }
             >
                 {articles.length === 0 ? (
@@ -216,7 +221,7 @@ export default function MyReservationsScreen() {
                             <ArticleCard
                                 key={article.id}
                                 article={article}
-                                onUpdate={fetchArticles}
+                                onUpdate={() => fetchArticles(true)}
                                 showReserveButton={false}
                                 isReservation={true}
                                 onMarkAsRetrieved={handleMarkAsRetrieved}
@@ -320,4 +325,3 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
     },
 });
-

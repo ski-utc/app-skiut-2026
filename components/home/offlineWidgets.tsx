@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { WifiOff, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react-native';
-import NetInfo from '@react-native-community/netinfo';
+import { addEventListener } from '@react-native-community/netinfo';
 
 import { Colors, FontSizes, TextStyles } from '@/constants/GraphSettings';
-import { getPendingRequests, syncPendingRequests } from '@/constants/api/apiCalls';
+import { getPendingRequests, syncPendingRequests, SyncPendingRequestsResult, handleApiErrorToast } from '@/constants/api/apiCalls';
+import { useUser } from '@/contexts/UserContext';
 
 type OfflineStatusProps = {
     onNetworkChange?: (isConnected: boolean) => void;
@@ -14,7 +15,7 @@ export const OfflineStatusBanner: React.FC<OfflineStatusProps> = ({ onNetworkCha
     const [isOnline, setIsOnline] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = NetInfo.addEventListener(state => {
+        const unsubscribe = addEventListener(state => {
             const online = state.isConnected && state.isInternetReachable !== false;
             setIsOnline(online ?? false);
             onNetworkChange?.(online ?? false);
@@ -40,20 +41,22 @@ export const OfflineStatusBanner: React.FC<OfflineStatusProps> = ({ onNetworkCha
 export const PendingRequestsWidget: React.FC = () => {
     const [pendingCount, setPendingCount] = useState(0);
     const [isSyncing, setIsSyncing] = useState(false);
-    const [syncResult, setSyncResult] = useState<any>(null);
+    const [syncPendingRequestsResult, setSyncPendingRequestsResult] = useState<SyncPendingRequestsResult | null>(null);
     const [isOnline, setIsOnline] = useState(true);
 
-    const loadPendingCount = async () => {
+    const { setUser } = useUser();
+
+    const loadPendingCount = useCallback(async () => {
         const pending = await getPendingRequests();
         setPendingCount(pending.length);
-    };
+    }, []);
 
     useEffect(() => {
         loadPendingCount();
 
         const interval = setInterval(loadPendingCount, 30000);
 
-        const unsubscribe = NetInfo.addEventListener(state => {
+        const unsubscribe = addEventListener(state => {
             const online = state.isConnected && state.isInternetReachable !== false;
             setIsOnline(online ?? false);
             if (online) {
@@ -65,56 +68,56 @@ export const PendingRequestsWidget: React.FC = () => {
             clearInterval(interval);
             unsubscribe();
         };
-    }, []);
+    }, [loadPendingCount]);
 
     const handleSync = async () => {
-        if (!isOnline) {
-            return;
-        }
+        if (!isOnline) return;
 
         setIsSyncing(true);
-        setSyncResult(null);
+        setSyncPendingRequestsResult(null);
 
         try {
             const result = await syncPendingRequests();
-            setSyncResult(result);
+            setSyncPendingRequestsResult(result);
+
             await loadPendingCount();
 
             setTimeout(() => {
-                setSyncResult(null);
+                setSyncPendingRequestsResult(null);
             }, 5000);
-        } catch {
-            setSyncResult({
+        } catch (error) {
+            handleApiErrorToast(error, setUser);
+            setSyncPendingRequestsResult({
                 success: 0,
                 failed: pendingCount,
-                errors: [{ error: 'Erreur de synchronisation' }]
+                errors: [{ error: 'Erreur technique lors de la synchronisation' }]
             });
         } finally {
             setIsSyncing(false);
         }
     };
 
-    if (pendingCount === 0 && !syncResult) {
+    if (pendingCount === 0 && !syncPendingRequestsResult) {
         return null;
     }
 
     return (
         <View style={styles.pendingWidget}>
-            {syncResult ? (
-                <View style={styles.syncResultContainer}>
-                    {syncResult.success > 0 && (
-                        <View style={styles.syncResultRow}>
+            {syncPendingRequestsResult ? (
+                <View style={styles.syncPendingRequestsResultContainer}>
+                    {syncPendingRequestsResult.success > 0 && (
+                        <View style={styles.syncPendingRequestsResultRow}>
                             <CheckCircle size={20} color={Colors.success} strokeWidth={2} />
-                            <Text style={styles.syncResultText}>
-                                {syncResult.success} transaction{syncResult.success > 1 ? 's' : ''} synchronisée{syncResult.success > 1 ? 's' : ''}
+                            <Text style={styles.syncPendingRequestsResultText}>
+                                {syncPendingRequestsResult.success} transaction{syncPendingRequestsResult.success > 1 ? 's' : ''} synchronisée{syncPendingRequestsResult.success > 1 ? 's' : ''}
                             </Text>
                         </View>
                     )}
-                    {syncResult.failed > 0 && (
-                        <View style={styles.syncResultRow}>
+                    {syncPendingRequestsResult.failed > 0 && (
+                        <View style={styles.syncPendingRequestsResultRow}>
                             <AlertCircle size={20} color={Colors.error} strokeWidth={2} />
-                            <Text style={[styles.syncResultText, { color: Colors.error }]}>
-                                {syncResult.failed} transaction{syncResult.failed > 1 ? 's' : ''} échouée{syncResult.failed > 1 ? 's' : ''}
+                            <Text style={[styles.syncPendingRequestsResultText, { color: Colors.error }]}>
+                                {syncPendingRequestsResult.failed} transaction{syncPendingRequestsResult.failed > 1 ? 's' : ''} échouée{syncPendingRequestsResult.failed > 1 ? 's' : ''}
                             </Text>
                         </View>
                     )}
@@ -147,7 +150,7 @@ export const PendingRequestsWidget: React.FC = () => {
                             <>
                                 <RefreshCw size={18} color={Colors.white} strokeWidth={2} />
                                 <Text style={styles.syncButtonText}>
-                                    {isOnline ? 'Synchroniser' : 'Hors ligne'}
+                                    {isOnline ? 'Synchroniser maintenant' : 'En attente de connexion'}
                                 </Text>
                             </>
                         )}
@@ -233,15 +236,15 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.medium,
     },
 
-    syncResultContainer: {
+    syncPendingRequestsResultContainer: {
         gap: 12,
     },
-    syncResultRow: {
+    syncPendingRequestsResultRow: {
         alignItems: 'center',
         flexDirection: 'row',
         gap: 8,
     },
-    syncResultText: {
+    syncPendingRequestsResultText: {
         ...TextStyles.body,
         color: Colors.primaryBorder,
         flex: 1,

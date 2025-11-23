@@ -3,7 +3,8 @@ import { Apple, CupSoda, Candy, Sandwich, Milk, Croissant, Drumstick, Carrot, Fi
 import Toast from 'react-native-toast-message';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { apiPost, apiDelete } from '@/constants/api/apiCalls';
+import { apiPost, apiDelete, handleApiErrorToast } from '@/constants/api/apiCalls';
+import { useUser } from '@/contexts/UserContext';
 
 type Article = {
     id: number;
@@ -70,6 +71,8 @@ const getIconForType = (type: string) => {
 };
 
 export default function ArticleCard({ article, onUpdate, showReserveButton = false, isReservation = false, isMyOffer = false, onMarkAsRetrieved, onCancelReservation }: ArticleCardProps) {
+    const { setUser } = useUser();
+
     const handleReserve = async () => {
         Alert.alert(
             'Réserver cet article',
@@ -102,12 +105,8 @@ export default function ArticleCard({ article, onUpdate, showReserveButton = fal
                                     text2: response.message || 'Impossible de réserver l\'article.',
                                 });
                             }
-                        } catch (error: any) {
-                            Toast.show({
-                                type: 'error',
-                                text1: 'Erreur',
-                                text2: error.message || 'Une erreur est survenue.',
-                            });
+                        } catch (error: unknown) {
+                            handleApiErrorToast(error, setUser);
                         }
                     },
                 },
@@ -147,12 +146,8 @@ export default function ArticleCard({ article, onUpdate, showReserveButton = fal
                                     text2: response.message || 'Impossible de supprimer l\'article.',
                                 });
                             }
-                        } catch (error: any) {
-                            Toast.show({
-                                type: 'error',
-                                text1: 'Erreur',
-                                text2: error.message || 'Une erreur est survenue.',
-                            });
+                        } catch (error: unknown) {
+                            handleApiErrorToast(error, setUser);
                         }
                     },
                 },

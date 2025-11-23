@@ -1,26 +1,43 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Image, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { NavigationProp, useNavigation, useRoute } from '@react-navigation/native';
+import { NavigationProp, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Heart, Sparkles, MapPin } from 'lucide-react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 
+type MatchParams = {
+    myImage: string;
+    roomImage: string;
+    roomNumber: string;
+    roomResp?: string;
+};
+
 type MatchStackParamList = {
-    matchScreen: undefined;
+    matchScreen: MatchParams;
 }
+
+type MatchScreenRouteProp = RouteProp<MatchStackParamList, 'matchScreen'>;
+
+const DEFAULT_USER_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png"; // TODO : replace with an icon
 
 export default function MatchScreen() {
     const navigation = useNavigation<NavigationProp<MatchStackParamList>>();
-    const route = useRoute();
+    const route = useRoute<MatchScreenRouteProp>();
 
-    const { myImage, roomImage, roomNumber, roomResp } = (route.params as any) || {};
+    const { myImage, roomImage, roomNumber, roomResp } = route.params || {};
 
-    const [myRoomImage, setMyRoomImage] = useState(myImage);
-    const [otherRoomImage, setOtherRoomImage] = useState(roomImage);
+    const [currentMyImage, setCurrentMyImage] = useState(myImage);
+    const [currentRoomImage, setCurrentRoomImage] = useState(roomImage);
+
+    useEffect(() => {
+        if (!myImage || !roomImage || !roomNumber) {
+            navigation.goBack();
+        }
+    }, [myImage, roomImage, roomNumber, navigation]);
+
     if (!myImage || !roomImage || !roomNumber) {
-        navigation.goBack();
         return null;
     }
 
@@ -41,10 +58,10 @@ export default function MatchScreen() {
                 <View style={styles.profilesContainer}>
                     <View style={styles.profileImageContainer}>
                         <Image
-                            source={{ uri: `${myRoomImage}?timestamp=${new Date().getTime()}` }}
+                            source={{ uri: currentMyImage }}
                             style={styles.profileImage}
                             resizeMode="cover"
-                            onError={() => setMyRoomImage("https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png")}
+                            onError={() => setCurrentMyImage(DEFAULT_USER_IMAGE)}
                         />
                         <View style={styles.profileLabel}>
                             <Text style={styles.profileLabelText}>Vous</Text>
@@ -57,10 +74,10 @@ export default function MatchScreen() {
 
                     <View style={styles.profileImageContainer}>
                         <Image
-                            source={{ uri: otherRoomImage }}
+                            source={{ uri: currentRoomImage }}
                             style={styles.profileImage}
                             resizeMode="cover"
-                            onError={() => setOtherRoomImage("https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png")}
+                            onError={() => setCurrentRoomImage(DEFAULT_USER_IMAGE)}
                         />
                         <View style={styles.profileLabel}>
                             <Text style={styles.profileLabelText}>Chambre {roomNumber}</Text>
@@ -82,6 +99,7 @@ export default function MatchScreen() {
                 <TouchableOpacity
                     onPress={() => navigation.goBack()}
                     style={styles.continueButton}
+                    activeOpacity={0.8}
                 >
                     <Text style={styles.continueButtonText}>Continuer à découvrir</Text>
                 </TouchableOpacity>

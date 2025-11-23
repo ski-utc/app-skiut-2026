@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert, TextInput, KeyboardAvoidingView, ScrollView, Platform, StyleSheet } from 'react-native';
+import { View, Image, Text, ActivityIndicator, TouchableOpacity, TextInput, KeyboardAvoidingView, ScrollView, Platform, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from "expo-image-manipulator";
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -8,7 +8,7 @@ import { Camera, Save, X } from 'lucide-react-native';
 
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiPost, apiGet, apiPut } from '@/constants/api/apiCalls';
+import { apiPost, apiGet, apiPut, ApiResponse, isSuccessResponse, isPendingResponse, handleApiErrorToast, handleApiErrorScreen, AppError } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
@@ -19,45 +19,73 @@ type SkinderProfilStackParamList = {
   skinderDiscover: undefined;
 }
 
+type Profile = {
+  id: number | null;
+  name: string;
+  description: string;
+  passions: string[];
+  image: string;
+}
+
+type MaxFileSizeResponse = {
+  maxImageSize: number;
+}
+
 export default function SkinderProfil() {
-  const [profile, setProfile] = useState({
+  const [profile, setProfile] = useState<Profile>({
     id: null,
-    nom: '',
+    name: '',
     description: '',
     passions: ['', '', '', '', '', ''],
+    image: ''
   });
-  const [profileImage, setProfileImage] = useState('https://i.fbcd.co/products/resized/resized-750-500/563d0201e4359c2e890569e254ea14790eb370b71d08b6de5052511cc0352313.jpg');
-  const [loading, setLoading] = useState(false);
+
+  const [profileImage, setProfileImage] = useState('https://i.fbcd.co/products/resized/resized-750-500/563d0201e4359c2e890569e254ea14790eb370b71d08b6de5052511cc0352313.jpg'); // TODO : replace with an icon
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [modifiedPicture, setModifiedPicture] = useState(false);
-  const [charLimits, setCharLimits] = useState(Array(6).fill(0));
+  const [charLimits, setCharLimits] = useState<number[]>(Array(6).fill(0));
 
   const { setUser } = useUser();
   const navigation = useNavigation<NavigationProp<SkinderProfilStackParamList>>();
+
   const fetchProfil = useCallback(async () => {
     setLoading(true);
+    setError('');
+
     try {
-      const response = await apiGet('skinder/my-profile');
-      if (response.success) {
-        const passions = Array.isArray(response.data.passions)
-          ? response.data.passions
-          : JSON.parse(response.data.passions || '[]');
+      const response = await apiGet<Profile>('skinder/my-profile');
+
+      if (isSuccessResponse(response)) {
+        const data = response.data;
+
+        let passionsList: string[] = [];
+        if (typeof data.passions === 'string') {
+          try {
+            passionsList = JSON.parse(data.passions);
+          } catch {
+            passionsList = [];
+          }
+        } else if (Array.isArray(data.passions)) {
+          passionsList = data.passions;
+        }
+
+        const paddedPassions = [...Array(6)].map((_, i) => passionsList[i] || '');
+
         setProfile({
-          id: response.data.id,
-          nom: response.data.name,
-          description: response.data.description || '',
-          passions: [...Array(6)].map((_, i) => passions[i] || ''),
+          id: data.id,
+          name: data.name,
+          description: data.description || '',
+          passions: paddedPassions,
+          image: data.image
         });
-        setProfileImage(`${response.data.image}?timestamp=${Date.now()}`);
-      } else {
-        setError(response.message || "Erreur lors de la récupération du profil.");
+
+        if (data.image) {
+          setProfileImage(`${data.image}?timestamp=${Date.now()}`);
+        }
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message || "Erreur réseau.");
-      }
+    } catch (err: unknown) {
+      handleApiErrorScreen(err, setUser, setError);
     } finally {
       setLoading(false);
     }
@@ -70,7 +98,7 @@ export default function SkinderProfil() {
   const handleImagePick = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.status !== 'granted') {
-      Alert.alert('Permission requise', 'Nous avons besoin de votre permission pour accéder à votre galerie.');
+      Toast.show({ type: 'error', text1: 'Permission requise', text2: 'Nous avons besoin de votre permission pour accéder à votre galerie.' });
       return;
     }
 
@@ -81,81 +109,56 @@ export default function SkinderProfil() {
       quality: 1,
     });
 
-    if (result.canceled) {
+    if (result.canceled) return;
+
+    const { uri, width } = result.assets[0];
+    let compressQuality = 1;
+    let currentUri = uri;
+    let fileInfo = await fetch(uri).then((res) => res.blob());
+
+    let maxFileSize = 5 * 1024 * 1024; // 5MB default
+    try {
+      const sizeRes = await apiGet<MaxFileSizeResponse>("challenges/max-file-size");
+      if (isSuccessResponse(sizeRes)) {
+        maxFileSize = sizeRes.data.maxImageSize || maxFileSize;
+      }
+    } catch {
+      maxFileSize = 5 * 1024 * 1024;
+    }
+
+    while (fileInfo.size > maxFileSize && compressQuality > 0.1) {
+      compressQuality -= 0.1;
+      const manipResult = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ resize: { width: width > 1080 ? 1080 : width } }],
+        { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      currentUri = manipResult.uri;
+      fileInfo = await fetch(manipResult.uri).then((res) => res.blob());
+    }
+
+    if (fileInfo.size > maxFileSize) {
+      Toast.show({ type: 'error', text1: 'Erreur', text2: 'Image trop lourde même après compression :(' });
       return;
     }
 
-    try {
-      const { uri, width } = result.assets[0];
-      let compressQuality = 1;
-
-      let compressedImage = await ImageManipulator.manipulateAsync(
-        uri,
-        [
-          { resize: { width: width > 1080 ? 1080 : width } },
-        ],
-        { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
-      );
-
-      let fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
-      let maxFileSize = 1024 * 1024;
-      try {
-        const getTailleMax = await apiGet("challenges/max-file-size");
-        if (getTailleMax.success && getTailleMax.data) {
-          maxFileSize = getTailleMax.data.maxImageSize || 5 * 1024 * 1024;
-        }
-      } catch (error: any) {
-        if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-          setUser(null);
-        } else {
-          setError(error.message);
-        }
-      }
-      while (fileInfo.size > maxFileSize && compressQuality > 0.1) {
-        compressQuality -= 0.1;
-        compressedImage = await ImageManipulator.manipulateAsync(
-          uri,
-          [
-            { resize: { width: width > 1080 ? 1080 : width } },
-          ],
-          { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
-        );
-
-        fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
-      }
-
-      if (fileInfo.size > 1 * 1024 * 1024) {
-        Alert.alert('Erreur', 'Image trop lourde même après compression :(');
-        return;
-      }
-
-      setModifiedPicture(true);
-      setProfileImage(compressedImage.uri);
-    } catch {
-      setError('Erreur lors de la compression de l\'image.');
-    }
+    setModifiedPicture(true);
+    setProfileImage(currentUri);
   };
 
   const uploadImage = async (uri: string) => {
     try {
       const fileInfo = await fetch(uri).then((res) => res.blob());
-
-      if (fileInfo.size > 1 * 1024 * 1024) {
-        Alert.alert('Erreur', 'L\'image dépasse la taille maximale de 1 Mo.');
-        return;
+      if (fileInfo.size > 5 * 1024 * 1024) {
+        return { success: false, message: 'Image trop lourde (>5Mo)', pending: false };
       }
 
       const formData = new FormData();
-      formData.append('image', {
-        uri,
-        name: `room_${profile.id}.jpg`,
-        type: 'image/jpeg',
-      } as any);
+      formData.append('media', new Blob([uri], { type: 'image/jpeg' }), `room_${profile.id || 'new'}.jpg`); // Todo : verify this semantics
 
-      const response = await apiPost('skinder/my-profile/image', formData, true);
-      return response;
-    } catch (error: any) {
-      setError(error.message || "Erreur lors du téléversement de l'image");
+      return await apiPost('skinder/my-profile/image', formData, true);
+    } catch {
+      handleApiErrorToast("Problème lors de l'upload de l'image.", setUser);
     }
   };
 
@@ -164,55 +167,53 @@ export default function SkinderProfil() {
 
     try {
       const filteredPassions = profile.passions.filter(p => p.trim() !== '');
-      const response = await apiPut('skinder/my-profile', { 'description': profile.description, 'passions': filteredPassions });
+
+      const textResponse = await apiPut('skinder/my-profile', {
+        description: profile.description,
+        passions: filteredPassions
+      });
+
+      let imageResponse: ApiResponse = { success: true, pending: false, message: '', data: [] };
+
       if (modifiedPicture) {
-        const response2 = await uploadImage(profileImage);
+        imageResponse = await uploadImage(profileImage) as ApiResponse;
+      }
+
+      const isSuccess = (isSuccessResponse(textResponse) || isPendingResponse(textResponse)) &&
+        (!modifiedPicture || (isSuccessResponse(imageResponse as ApiResponse<unknown>) || isPendingResponse(imageResponse as ApiResponse<unknown>)));
+
+      const isPending = isPendingResponse(textResponse) || (modifiedPicture && isPendingResponse(imageResponse as ApiResponse<unknown>));
+
+      if (isSuccess) {
         Toast.show({
-          type: (response.success && response2.success ? 'success' : (response.pending || response2.pending ? 'info' : 'error')),
-          text1: 'Profil modifié !',
-          text2: response.message + ' ' + response2.message,
+          type: isPending ? 'info' : 'success',
+          text1: isPending ? 'Modifications enregistrées (Hors ligne)' : 'Profil modifié !',
+          text2: isPending ? 'Synchronisation en attente.' : 'Vos changements sont en ligne.',
         });
-        if ((response.success && response2.success) || (response.pending && response2.pending)) {
-          navigation.navigate('skinderDiscover');
-        } else {
-          setError(response.message || 'Erreur lors de la sauvegarde des données.');
-        }
+        navigation.navigate('skinderDiscover');
       } else {
-        if (response.success) {
-          Toast.show({
-            type: (response.success ? 'success' : (response.pending ? 'info' : 'error')),
-            text1: 'Profil modifié !',
-            text2: response.message,
-          });
-          navigation.navigate('skinderDiscover');
-        }
+        const msg = textResponse.message || imageResponse.message || 'Erreur lors de la sauvegarde.';
+        Toast.show({ type: 'error', text1: 'Erreur', text2: msg });
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message || 'Erreur réseau ou serveur.');
-      }
+
+    } catch (err: unknown) {
+      handleApiErrorToast(err as AppError, setUser);
     } finally {
       setLoading(false);
     }
   };
 
   if (error) {
-    return (
-      <ErrorScreen error={error} />
-    );
+    return <ErrorScreen error={error} />;
   }
 
-  if (loading) {
+  if (loading && !profile.id) {
     return (
       <View style={styles.container}>
         <Header refreshFunction={undefined} disableRefresh={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
-          <Text style={styles.loadingText}>
-            Chargement...
-          </Text>
+          <Text style={styles.loadingText}>Chargement...</Text>
         </View>
       </View>
     );
@@ -224,25 +225,27 @@ export default function SkinderProfil() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <Header refreshFunction={null} disableRefresh={true} />
+
       <View style={styles.headerContainer}>
         <BoutonRetour title={'Informations de ma chambre'} />
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
+
         <View style={styles.photoSection}>
           <TouchableOpacity onPress={handleImagePick} style={styles.photoContainer}>
             <Image
               source={{ uri: profileImage }}
               style={styles.profileImage}
               resizeMode="cover"
-              onError={() => setProfileImage("https://i.fbcd.co/products/resized/resized-750-500/563d0201e4359c2e890569e254ea14790eb370b71d08b6de5052511cc0352313.jpg")}
+              onError={() => setProfileImage("https://i.fbcd.co/products/resized/resized-750-500/563d0201e4359c2e890569e254ea14790eb370b71d08b6de5052511cc0352313.jpg")} // TODO : replace with an icon
             />
             <View style={styles.photoOverlay}>
               <Camera size={24} color={Colors.white} />
               <Text style={styles.photoOverlayText}>Modifier</Text>
             </View>
           </TouchableOpacity>
-          <Text style={styles.profileName}>{profile.nom}</Text>
+          <Text style={styles.profileName}>{profile.name}</Text>
         </View>
 
         <View style={styles.section}>
@@ -254,7 +257,7 @@ export default function SkinderProfil() {
             multiline={true}
             numberOfLines={4}
             value={profile.description}
-            onChangeText={(text) => text.length <= 100 ? setProfile({ ...profile, description: text }) : null}
+            onChangeText={(text) => text.length <= 100 && setProfile({ ...profile, description: text })}
             textAlignVertical="top"
           />
           <Text style={styles.characterCount}>{(profile.description || '').length}/100</Text>
@@ -276,14 +279,15 @@ export default function SkinderProfil() {
                       const newPassions = [...profile.passions];
                       newPassions[index] = text;
                       setProfile({ ...profile, passions: newPassions });
+
                       const newCharLimits = [...charLimits];
                       newCharLimits[index] = text.length;
                       setCharLimits(newCharLimits);
                     }
                   }}
                 />
-                {16 - charLimits[index] === 0 && (
-                  <Text style={styles.passionError}>Trop long</Text>
+                {passion.length === 16 && (
+                  <Text style={styles.passionError}>Max atteint</Text>
                 )}
               </View>
             ))}
@@ -294,17 +298,25 @@ export default function SkinderProfil() {
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={styles.cancelButton}
+            disabled={loading}
           >
             <X size={20} color={Colors.muted} />
             <Text style={styles.cancelButtonText}>Annuler</Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             onPress={handleSendData}
             style={styles.saveButton}
             disabled={loading}
           >
-            <Save size={20} color={Colors.white} />
-            <Text style={styles.saveButtonText}>Sauvegarder</Text>
+            {loading ? (
+              <ActivityIndicator color={Colors.white} size="small" />
+            ) : (
+              <>
+                <Save size={20} color={Colors.white} />
+                <Text style={styles.saveButtonText}>Sauvegarder</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -384,6 +396,7 @@ const styles = StyleSheet.create({
   passionError: {
     ...TextStyles.small,
     color: Colors.accent,
+    fontSize: 10,
     marginTop: 4,
     textAlign: 'center',
   },
@@ -473,7 +486,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   section: {
-    marginBottom: 0,
+    marginBottom: 24,
   },
   sectionSubtitle: {
     ...TextStyles.small,

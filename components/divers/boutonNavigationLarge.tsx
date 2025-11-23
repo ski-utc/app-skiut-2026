@@ -1,37 +1,30 @@
 import { Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, NavigationProp, ParamListBase } from '@react-navigation/native';
+import { LucideProps } from 'lucide-react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 type BoutonNavigationLargeProps = {
     nextRoute?: string;
     title: string;
-    IconComponent?: any;
+    IconComponent?: React.FC<LucideProps>;
 }
 
 export default function BoutonNavigationLarge({ nextRoute, title, IconComponent }: BoutonNavigationLargeProps) {
-    const navigation = useNavigation<any>();
-    const route = useRoute();
+    const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
     const onPress = () => {
         if (nextRoute) {
             navigation.navigate(nextRoute);
-        } else {
+        } else if (navigation.canGoBack()) {
             navigation.goBack();
         }
-    };
-
-    const onLongPress = () => {
-        navigation.emit({
-            type: 'tabLongPress',
-            target: route.key,
-        });
     };
 
     return (
         <TouchableOpacity
             onPress={onPress}
-            onLongPress={onLongPress}
+            activeOpacity={0.8}
             style={styles.button}
         >
             {IconComponent && (

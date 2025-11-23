@@ -4,86 +4,81 @@ import { Heart, TriangleAlert } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { apiPost, apiDelete } from '@/constants/api/apiCalls';
+import { apiPost, apiDelete, isSuccessResponse, isPendingResponse, handleApiErrorToast, AppError } from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
 
-export default function Anecdote({
-  id,
-  text,
-  room,
-  nbLikes,
-  liked,
-  warned,
-  authorId,
-  refresh,
-  setError,
-}: {
-  id: string,
-  text: string,
-  room: string | { name?: string, roomNumber?: string },
-  nbLikes: number,
-  liked: boolean,
-  warned: boolean,
-  authorId: string,
-  refresh: () => void,
-  setError: (error: string) => void
-}) {
+type RoomInfo = {
+  name?: string;
+  roomNumber?: string;
+};
+
+type AnecdoteProps = {
+  id: string;
+  text: string;
+  room: string | RoomInfo;
+  nbLikes: number;
+  liked: boolean;
+  warned: boolean;
+  authorId: string;
+  refresh: () => void;
+};
+
+export default function Anecdote({ id, text, room, nbLikes, liked, warned, authorId, refresh }: AnecdoteProps) {
   const [isLiked, setIsLiked] = useState(liked);
   const [dynamicNbLikes, setDynamicNbLikes] = useState(nbLikes);
   const [isWarned, setIsWarned] = useState(warned);
+
   const { setUser, user } = useUser();
 
   const handleLike = async () => {
+    const previousLiked = isLiked;
+    const previousCount = dynamicNbLikes;
+
+    const willLike = !isLiked;
+    const newCount = willLike ? previousCount + 1 : Math.max(0, previousCount - 1);
+
     try {
-      const willLike = !isLiked;
-      setIsLiked(willLike);
-      setDynamicNbLikes((prev) => Math.max(0, prev + (willLike ? 1 : -1)));
-      const response = await apiPost(`anecdotes/${id}/like`, { like: willLike });
-      if (response.success || response.pending) {
-        setIsLiked(response.liked);
-        setDynamicNbLikes(response.nbLikes || (dynamicNbLikes + (response.liked ? 1 : -1)));
+      const response = await apiPost<{ liked?: boolean }>(`anecdotes/${id}/like`, { like: willLike });
+
+      if (isSuccessResponse(response)) {
+        setIsLiked(willLike);
+        setDynamicNbLikes(newCount);
+      } else if (isPendingResponse(response)) {
+        setIsLiked(willLike);
+        setDynamicNbLikes(newCount);
       } else {
-        setIsLiked(!willLike);
-        setDynamicNbLikes((prev) => prev + (willLike ? -1 : 1));
-        Toast.show({
-          type: 'error',
-          text1: 'Une erreur est survenue...',
-          text2: response.message,
-        });
+        Toast.show({ type: 'error', text1: 'Erreur', text2: response.message || "Erreur lors du like" });
       }
-    } catch (error: any) {
-      setIsLiked(!isLiked);
-      setDynamicNbLikes((prev) => prev + (isLiked ? 1 : -1));
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message);
-      }
+    } catch (error: unknown) {
+      setIsLiked(previousLiked);
+      setDynamicNbLikes(previousCount);
+      handleApiErrorToast(error as AppError, setUser);
     }
   };
 
   const handleWarning = async () => {
+    const previousWarned = isWarned;
+    const willWarn = !isWarned;
+
     try {
-      const willWarn = !isWarned;
-      setIsWarned(willWarn);
-      const response = await apiPost(`anecdotes/${id}/warn`, { warn: willWarn });
-      if (response.success || response.pending) {
-        setIsWarned(response.warn);
+      const response = await apiPost<{ warn?: boolean }>(`anecdotes/${id}/warn`, { warn: willWarn });
+
+      if (isSuccessResponse(response)) {
+        setIsWarned(willWarn);
+        if (willWarn) {
+          Toast.show({ type: 'success', text1: 'Signalement pris en compte', text2: "N'hésitez pas à nous contacter si vous pensez que cette anecdote doit disparaître immédiatement" });
+        }
+      } else if (isPendingResponse(response)) {
+        setIsWarned(willWarn);
+        if (willWarn) {
+          Toast.show({ type: 'info', text1: 'Signalement sauvegardé (Hors ligne)' });
+        }
       } else {
-        setIsWarned(!willWarn);
-        Toast.show({
-          type: 'error',
-          text1: 'Une erreur est survenue...',
-          text2: response.message,
-        });
+        Toast.show({ type: 'error', text1: 'Erreur', text2: response.message || "Erreur lors du signalement" });
       }
-    } catch (error: any) {
-      setIsWarned(!isWarned);
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message);
-      }
+    } catch (error: unknown) {
+      setIsWarned(previousWarned);
+      handleApiErrorToast(error as AppError, setUser);
     }
   };
 
@@ -99,32 +94,29 @@ export default function Anecdote({
           onPress: async () => {
             try {
               const response = await apiDelete(`anecdotes/${id}`);
-              if (response.success) {
+
+              if (isSuccessResponse(response)) {
                 Toast.show({
                   type: 'success',
-                  text1: 'Anecdote supprimée avec succès !',
+                  text1: 'Anecdote supprimée !',
                   text2: response.message,
                 });
                 refresh();
-              } else if (response.pending) {
+              } else if (isPendingResponse(response)) {
                 Toast.show({
                   type: 'info',
-                  text1: 'Requête sauvegardée',
-                  text2: response.message,
+                  text1: 'Suppression sauvegardée',
+                  text2: 'Elle sera effective au retour de la connexion.',
                 });
               } else {
                 Toast.show({
                   type: 'error',
-                  text1: 'Une erreur est survenue...',
-                  text2: response.message,
+                  text1: 'Erreur',
+                  text2: response.message
                 });
               }
-            } catch (error: any) {
-              if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
-              } else {
-                setError(error.message);
-              }
+            } catch (error: unknown) {
+              handleApiErrorToast(error as AppError, setUser);
             }
           },
         },
@@ -133,16 +125,26 @@ export default function Anecdote({
     );
   };
 
+  const getRoomName = () => {
+    if (typeof room === 'string') return room;
+    return room?.name || room?.roomNumber || 'Inconnue';
+  };
+
   return (
     <View style={styles.anecdoteContainer}>
       <View style={styles.contentContainer}>
         <Text style={styles.anecdoteText}>{text}</Text>
         <Text style={styles.roomText}>
-          Chambre : {typeof room === 'string' ? room : room?.name || room?.roomNumber || 'Inconnue'}
+          Chambre : {getRoomName()}
         </Text>
       </View>
+
       <View style={styles.actionsContainer}>
-        <TouchableOpacity onPress={handleLike} style={styles.actionButton}>
+        <TouchableOpacity
+          onPress={handleLike}
+          style={styles.actionButton}
+          activeOpacity={0.7}
+        >
           <Heart
             size={18}
             color={isLiked ? '#FF1D7C' : '#000000'}
@@ -150,16 +152,23 @@ export default function Anecdote({
           />
           <Text style={styles.likeButtonText}>{dynamicNbLikes}</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={handleWarning} style={[styles.actionButton, styles.warnButton]}>
+
+        <TouchableOpacity
+          onPress={handleWarning}
+          style={[styles.actionButton, styles.warnButton]}
+          activeOpacity={0.7}
+        >
           <TriangleAlert
             size={18}
             color={isWarned ? '#E3A300' : '#000000'}
           />
         </TouchableOpacity>
-        {user?.id === authorId && (
+
+        {user?.id && String(user.id) === String(authorId) && (
           <TouchableOpacity
             onPress={handleDelete}
             style={[styles.actionButton, styles.deleteButton]}
+            activeOpacity={0.7}
           >
             <Text style={styles.deleteButtonText}>Supprimer</Text>
           </TouchableOpacity>
@@ -211,7 +220,6 @@ const styles = StyleSheet.create({
     color: Colors.primaryBorder,
     ...TextStyles.body,
   },
-
   contentContainer: {
     alignItems: 'flex-start',
     alignSelf: 'stretch',

@@ -1,42 +1,59 @@
 import { useState } from 'react';
-import { View, Image, StyleSheet, TouchableOpacity, Text, ScrollView, Linking, Modal, StatusBar } from 'react-native';
+import { View, Image, StyleSheet, TouchableOpacity, Text, ScrollView, Linking, Modal, StatusBar, Platform } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { ImageViewer } from "react-native-image-zoom-viewer";
-import { Link, Download, Webcam, Map, Mountain, MapPin, Navigation, X, Maximize } from 'lucide-react-native';
+import { Link, Download, Webcam, Map, Mountain, MapPin, Navigation, X, Maximize, LucideIcon } from 'lucide-react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
+import stationPlan from '@/assets/images/plan-grandvalira.jpg';
+
+type ActionButtonProps = {
+  title: string;
+  onPress: () => void;
+  icon: LucideIcon;
+  variant?: 'primary' | 'secondary';
+};
 
 export default function PlanScreen() {
   const [isImageModalVisible, setIsImageModalVisible] = useState(false);
   const [isMapModalVisible, setIsMapModalVisible] = useState(false);
-  const pisteImage = require("@/assets/images/plan-grandvalira.jpg");
 
   const openStreetMapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=1.7233%2C42.5342%2C1.7433%2C42.5542&layer=mapnik&marker=42.5442%2C1.7333&zoom=17`;
-  const toggleImageModal = () => {
-    setIsImageModalVisible(!isImageModalVisible);
+
+  const toggleImageModal = () => setIsImageModalVisible(!isImageModalVisible);
+  const toggleMapModal = () => setIsMapModalVisible(!isMapModalVisible);
+
+  const openLink = async (url: string) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        console.warn(`Don't know how to open URL: ${url}`);
+      }
+    } catch (err) {
+      console.error("An error occurred", err);
+    }
   };
 
-  const toggleMapModal = () => {
-    setIsMapModalVisible(!isMapModalVisible);
+  const openMapsApp = async () => { // TODO : update with exact position of the station we have
+    const latitude = 42.5442;
+    const longitude = 1.7333;
+    const label = "Pas de la Case";
+
+    const url = Platform.select({
+      ios: `maps:0,0?q=${label}@${latitude},${longitude}`,
+      android: `geo:0,0?q=${latitude},${longitude}(${label})`
+    });
+
+    if (url) {
+      openLink(url);
+    }
   };
 
-  const openLink = (url: string) => {
-    Linking.openURL(url).catch(err => console.error("Couldn't load page", err));
-  };
-
-  const openMapsApp = () => {
-    const url = `https://www.google.com/maps/search/?api=1&query=42.5442,1.7333&query_place_id=ChIJX7_6_6W5pBIRYOz6tQ-8pQs`;
-    Linking.openURL(url).catch(err => console.error("Couldn't open maps", err));
-  };
-
-  const ActionButton = ({ title, onPress, icon: IconComponent, variant = 'primary' }: {
-    title: string;
-    onPress: () => void;
-    icon: any;
-    variant?: 'primary' | 'secondary';
-  }) => (
+  const ActionButton = ({ title, onPress, icon: IconComponent, variant = 'primary' }: ActionButtonProps) => (
     <TouchableOpacity
       style={[styles.actionButton, variant === 'secondary' && styles.actionButtonSecondary]}
       onPress={onPress}
@@ -54,11 +71,13 @@ export default function PlanScreen() {
   return (
     <View style={styles.container}>
       <Header refreshFunction={null} disableRefresh={true} />
+
       <View style={styles.headerContainer}>
         <BoutonRetour title={"Plans"} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
             <Mountain size={24} color={Colors.primary} />
@@ -71,7 +90,7 @@ export default function PlanScreen() {
             activeOpacity={0.8}
           >
             <Image
-              source={pisteImage}
+              source={stationPlan}
               style={styles.image}
               resizeMode="cover"
             />
@@ -105,6 +124,8 @@ export default function PlanScreen() {
               showsVerticalScrollIndicator={false}
               javaScriptEnabled={true}
               domStorageEnabled={true}
+              startInLoadingState={true}
+              renderLoading={() => <View style={styles.loadingMap}><Text>Chargement...</Text></View>}
             />
             <TouchableOpacity style={styles.mapOverlay} onPress={toggleMapModal} activeOpacity={0.8}>
               <View style={styles.mapOverlayContent}>
@@ -145,7 +166,7 @@ export default function PlanScreen() {
             <ActionButton
               title="Télécharger le plan"
               icon={Download}
-              onPress={() => openLink("https://drive.google.com/uc?export=download&id=1cI9Yvn6tFnepjUYfq9I3yH1uTCmUTGTr")}
+              onPress={() => openLink("https://drive.google.com/uc?export=download&id=1cI9Yvn6tFnepjUYfq9I3yH1uTCmUTGTr")} // TODO : find a better way to download the plan, put it in public storage of the server
             />
           </View>
         </View>
@@ -168,11 +189,12 @@ export default function PlanScreen() {
           </TouchableOpacity>
 
           <ImageViewer
-            imageUrls={[{ url: Image.resolveAssetSource(pisteImage).uri }]}
+            imageUrls={[{ url: Image.resolveAssetSource(stationPlan).uri }]}
             index={0}
             backgroundColor="transparent"
             enableSwipeDown={true}
             onSwipeDown={toggleImageModal}
+            renderIndicator={() => <View />}
           />
         </View>
       </Modal>
@@ -305,6 +327,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginLeft: 6,
     textAlign: 'center',
+  },
+  loadingMap: {
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    flex: 1,
+    justifyContent: 'center',
   },
   locationCoords: {
     ...TextStyles.small,

@@ -1,32 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    SafeAreaView,
-    TouchableOpacity,
-    ActivityIndicator,
-    Alert,
-    RefreshControl,
-    ScrollView,
-} from 'react-native';
-import DraggableFlatList, {
-    ScaleDecorator,
-    RenderItemParams,
-} from 'react-native-draggable-flatlist';
+import { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ActivityIndicator, Alert, RefreshControl, ScrollView, } from 'react-native';
+import DraggableFlatList, { ScaleDecorator, RenderItemParams, } from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Collapsible from 'react-native-collapsible';
-import {
-    Home,
-    Users,
-    CheckCircle,
-    ChevronDown,
-    ChevronUp,
-    GripVertical,
-} from 'lucide-react-native';
+import { Home, Users, CheckCircle, ChevronDown, ChevronUp, GripVertical, } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
-import { apiGet, apiPost } from '@/constants/api/apiCalls';
+import { apiGet, apiPost, isSuccessResponse, isPendingResponse, handleApiErrorToast, AppError, handleApiErrorScreen } from '@/constants/api/apiCalls';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
@@ -34,19 +14,21 @@ import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import Header from '../../components/header';
 
+type RoomInfo = {
+    room_id: string;
+    room_name?: string;
+    mood?: string;
+    occupants: {
+        id: number;
+        name: string;
+    }[];
+    occupants_count: number;
+}
+
 type Visit = {
     id: number;
     room_id: string;
-    room_info: {
-        room_id: string;
-        room_name?: string;
-        mood?: string;
-        occupants: {
-            id: number;
-            name: string;
-        }[];
-        occupants_count: number;
-    };
+    room_info: RoomInfo;
     visit_order: number;
     visited: boolean;
     visited_at: string | null;
@@ -74,16 +56,11 @@ type TourData = {
 
 const getMoodStyle = (mood?: string) => {
     switch (mood) {
-        case 'Chill':
-            return { color: '#22c55e', label: 'Calme' };
-        case 'Petite Night':
-            return { color: '#eab308', label: 'Petite night' };
-        case 'Grosse Night':
-            return { color: '#f97316', label: 'Grosse night' };
-        case 'Mega Grosse Night':
-            return { color: '#ef4444', label: 'Méga grosse night' };
-        default:
-            return null;
+        case 'Chill': return { color: '#22c55e', label: 'Calme' };
+        case 'Petite Night': return { color: '#eab308', label: 'Petite night' };
+        case 'Grosse Night': return { color: '#f97316', label: 'Grosse night' };
+        case 'Mega Grosse Night': return { color: '#ef4444', label: 'Méga grosse night' };
+        default: return null;
     }
 };
 
@@ -91,8 +68,10 @@ export default function TourneeChambreScreen() {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState('');
+
     const [tourData, setTourData] = useState<TourData | null>(null);
     const [visits, setVisits] = useState<Visit[]>([]);
+
     const [expandedRooms, setExpandedRooms] = useState<Set<number>>(new Set());
     const [hasChanges, setHasChanges] = useState(false);
     const [savingOrder, setSavingOrder] = useState(false);
@@ -100,13 +79,15 @@ export default function TourneeChambreScreen() {
     const { setUser } = useUser();
 
     const fetchTourData = useCallback(async () => {
-        try {
-            const response = await apiGet("room-tours/my-tour");
+        if (!refreshing) setLoading(true);
+        setError('');
 
-            if (response.success && response.data) {
+        try {
+            const response = await apiGet<TourData>("room-tours/my-tour");
+
+            if (isSuccessResponse(response)) {
                 setTourData(response.data);
                 setVisits(response.data.visits || []);
-                setError('');
             } else {
                 if (response.message && response.message.includes('membres de l\'association')) {
                     setError("Cette fonctionnalité est réservée aux membres de l'association.");
@@ -115,17 +96,13 @@ export default function TourneeChambreScreen() {
                     setVisits([]);
                 }
             }
-        } catch (error: any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
-            } else {
-                setError(error.message || 'Erreur lors du chargement');
-            }
+        } catch (err: unknown) {
+            handleApiErrorScreen(err as AppError, setUser, setError);
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [setUser]);
+    }, [refreshing, setUser]);
 
     useEffect(() => {
         fetchTourData();
@@ -139,11 +116,8 @@ export default function TourneeChambreScreen() {
     const toggleRoomExpanded = (visitId: number) => {
         setExpandedRooms(prev => {
             const newSet = new Set(prev);
-            if (newSet.has(visitId)) {
-                newSet.delete(visitId);
-            } else {
-                newSet.add(visitId);
-            }
+            if (newSet.has(visitId)) newSet.delete(visitId);
+            else newSet.add(visitId);
             return newSet;
         });
     };
@@ -152,7 +126,7 @@ export default function TourneeChambreScreen() {
         try {
             const response = await apiPost(`room-tours/visits/${visit.id}/mark-visited`, {});
 
-            if (response.success) {
+            const handleSuccess = (isPending: boolean) => {
                 setVisits(prevVisits =>
                     prevVisits.map(v =>
                         v.id === visit.id
@@ -160,27 +134,28 @@ export default function TourneeChambreScreen() {
                             : v
                     )
                 );
-                fetchTourData();
-            } else if (response.pending) {
+
                 Toast.show({
-                    type: 'info',
-                    text1: 'Requête sauvegardée',
-                    text2: response.message,
+                    type: isPending ? 'info' : 'success',
+                    text1: isPending ? 'Visite sauvegardée (Hors ligne)' : 'Chambre validée !',
+                    text2: isPending ? 'Sera synchronisé plus tard' : undefined
                 });
-                fetchTourData();
+            };
+
+            if (isSuccessResponse(response)) {
+                handleSuccess(false);
+                // fetchTourData();
+            } else if (isPendingResponse(response)) {
+                handleSuccess(true);
             } else {
                 Toast.show({
                     type: 'error',
                     text1: 'Erreur',
-                    text2: response.message || 'Impossible de marquer la chambre comme visitée',
+                    text2: response.message || 'Action impossible',
                 });
             }
-        } catch (error: any) {
-            Toast.show({
-                type: 'error',
-                text1: 'Erreur',
-                text2: error.message || 'Une erreur est survenue',
-            });
+        } catch (err: unknown) {
+            handleApiErrorToast(err as AppError, setUser);
         }
     };
 
@@ -197,7 +172,7 @@ export default function TourneeChambreScreen() {
                         try {
                             const response = await apiPost(`room-tours/visits/${visit.id}/unmark-visited`, {});
 
-                            if (response.success) {
+                            const handleSuccess = (isPending: boolean) => {
                                 setVisits(prevVisits =>
                                     prevVisits.map(v =>
                                         v.id === visit.id
@@ -205,20 +180,25 @@ export default function TourneeChambreScreen() {
                                             : v
                                     )
                                 );
-                                fetchTourData();
+                                Toast.show({
+                                    type: isPending ? 'info' : 'success',
+                                    text1: isPending ? 'Annulation sauvegardée' : 'Visite annulée',
+                                });
+                            };
+
+                            if (isSuccessResponse(response)) {
+                                handleSuccess(false);
+                            } else if (isPendingResponse(response)) {
+                                handleSuccess(true);
                             } else {
                                 Toast.show({
                                     type: 'error',
                                     text1: 'Erreur',
-                                    text2: response.message || 'Impossible d\'annuler la visite',
+                                    text2: response.message
                                 });
                             }
-                        } catch (error: any) {
-                            Toast.show({
-                                type: 'error',
-                                text1: 'Erreur',
-                                text2: error.message || 'Une erreur est survenue',
-                            });
+                        } catch (err: unknown) {
+                            handleApiErrorToast(err as AppError, setUser);
                         }
                     }
                 }
@@ -243,30 +223,17 @@ export default function TourneeChambreScreen() {
 
             const response = await apiPost('room-tours/my-tour/reorder', { room_order: roomOrder });
 
-            if (response.success) {
+            if (isSuccessResponse(response)) {
                 setHasChanges(false);
-                Toast.show({
-                    type: 'success',
-                    text1: 'Succès',
-                    text2: 'L\'ordre des chambres a été enregistré',
-                });
-                fetchTourData();
-            } else if (response.pending) {
-                Toast.show({
-                    type: 'info',
-                    text1: 'Requête sauvegardée',
-                    text2: response.message,
-                });
-                fetchTourData();
+                Toast.show({ type: 'success', text1: 'Ordre enregistré' });
+            } else if (isPendingResponse(response)) {
+                setHasChanges(false);
+                Toast.show({ type: 'info', text1: 'Ordre sauvegardé (Hors ligne)' });
             } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Erreur',
-                    text2: response.message,
-                });
+                Toast.show({ type: 'error', text1: 'Erreur', text2: response.message });
             }
-        } catch (error: any) {
-            Alert.alert('Erreur', error.message || 'Une erreur est survenue');
+        } catch (err: unknown) {
+            handleApiErrorToast(err as AppError, setUser);
         } finally {
             setSavingOrder(false);
         }
@@ -366,9 +333,7 @@ export default function TourneeChambreScreen() {
     };
 
     if (error) {
-        return (
-            <ErrorScreen error={error} />
-        );
+        return <ErrorScreen error={error} />;
     }
 
     if (loading) {
@@ -411,7 +376,7 @@ export default function TourneeChambreScreen() {
     return (
         <GestureHandlerRootView style={styles.container}>
             <SafeAreaView style={styles.container}>
-                <Header refreshFunction={null} disableRefresh={true} />
+                <Header refreshFunction={onRefresh} disableRefresh={refreshing} />
                 <View style={styles.headerContainer}>
                     <BoutonRetour title="Tournée des chambres" />
                 </View>

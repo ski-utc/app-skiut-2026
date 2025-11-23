@@ -1,20 +1,37 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, ActivityIndicator, StyleSheet, Text, FlatList } from "react-native";
+import { View, ActivityIndicator, StyleSheet, Text, FlatList, ScrollView } from "react-native";
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { apiGet } from '@/constants/api/apiCalls';
+import { apiGet, isSuccessResponse, handleApiErrorScreen } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
 import BoutonRetour from "../../components/divers/boutonRetour";
 import Header from "../../components/header";
 
+type Navette = {
+  id: number;
+  departure: string;
+  arrival: string;
+  horaire_depart: string;
+  horaire_arrivee: string;
+  colour?: string;
+  colourName?: string;
+};
+
+type NavettesMap = {
+  Aller: Navette[];
+  Retour: Navette[];
+};
+
+type NavettesResponse = Record<string, Navette[]>;
+
 type NavettesTabProps = {
-  navettesMap: { [key: string]: any[] };
+  navettesMap: NavettesMap;
 }
 
 const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap }) => {
-  const renderNavetteCard = (type: "Aller" | "Retour", navettes: any[]) => (
+  const renderNavetteCard = (type: "Aller" | "Retour", navettes: Navette[]) => (
     <View style={navettesStyles.cardContainer}>
       <Text style={navettesStyles.cardTitle}>{type}</Text>
       {navettes.length > 0 ? (
@@ -31,9 +48,11 @@ const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap }) => {
                 <Text style={navettesStyles.navetteTimeText}>
                   {item.horaire_depart} - {item.horaire_arrivee}
                 </Text>
-                <Text style={navettesStyles.navetteCouleurText}>
-                  Navette {item.colourName}
-                </Text>
+                {item.colourName && (
+                  <Text style={navettesStyles.navetteCouleurText}>
+                    Navette {item.colourName}
+                  </Text>
+                )}
               </View>
             </View>
           )}
@@ -50,12 +69,15 @@ const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap }) => {
   );
 
   return (
-    <View style={navettesStyles.container}>
+    <ScrollView
+      contentContainerStyle={navettesStyles.scrollContent}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={navettesStyles.innerContainer}>
-        {renderNavetteCard("Aller", navettesMap['Aller'] || [])}
-        {renderNavetteCard("Retour", navettesMap['Retour'] || [])}
+        {renderNavetteCard("Aller", navettesMap.Aller)}
+        {renderNavetteCard("Retour", navettesMap.Retour)}
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -78,11 +100,6 @@ const navettesStyles = StyleSheet.create({
     color: Colors.primaryBorder,
     marginBottom: 12,
     textAlign: 'center',
-  },
-  container: {
-    flex: 1,
-    paddingBottom: 16,
-    paddingHorizontal: 20,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -129,50 +146,46 @@ const navettesStyles = StyleSheet.create({
     color: Colors.muted,
     marginBottom: 2,
   },
+  scrollContent: {
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+  },
 });
 
 export default function NavettesScreen() {
-  const [navettesMap, setNavettesMap] = useState<{ [key: string]: any[] }>({});
+  const [navettesMap, setNavettesMap] = useState<NavettesMap>({ Aller: [], Retour: [] });
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [refreshing, setRefreshing] = useState(false);
 
   const { setUser } = useUser();
 
-  const fetchNavettes = useCallback(async () => {
-    setLoading(true);
+  const fetchNavettes = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
+    setError('');
+
     try {
-      const response = await apiGet('navettes');
-      if (response.success) {
-        const map: { [key: string]: any[] } = {
+      const response = await apiGet<NavettesResponse>('navettes');
+
+      if (isSuccessResponse(response)) {
+        const map: NavettesMap = {
           Aller: [],
           Retour: [],
         };
 
-        Object.keys(response.data).forEach((type: string) => {
-          response.data[type].forEach((navette: any) => {
-            const formattedNavette = {
-              ...navette,
-              horaire_depart: navette.horaire_depart,
-              horaire_arrivee: navette.horaire_arrivee,
-            };
-            if (map[type]) {
-              map[type].push(formattedNavette);
-            }
-          });
-        });
+        if (response.data) {
+          if (Array.isArray(response.data['Aller'])) map.Aller = response.data['Aller'];
+          if (Array.isArray(response.data['Retour'])) map.Retour = response.data['Retour'];
+        }
 
         setNavettesMap(map);
-      } else {
-        setError(response.message);
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message);
-      }
+    } catch (err: unknown) {
+      handleApiErrorScreen(err, setUser, setError);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [setUser]);
 
@@ -181,9 +194,7 @@ export default function NavettesScreen() {
   }, [fetchNavettes]);
 
   if (error) {
-    return (
-      <ErrorScreen error={error} />
-    );
+    return <ErrorScreen error={error} />;
   }
 
   if (loading) {
@@ -192,9 +203,7 @@ export default function NavettesScreen() {
         <Header refreshFunction={undefined} disableRefresh={true} />
         <View style={styles.loadingContent}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
-          <Text style={styles.loadingText}>
-            Chargement...
-          </Text>
+          <Text style={styles.loadingText}>Chargement...</Text>
         </View>
       </View>
     );
@@ -202,13 +211,13 @@ export default function NavettesScreen() {
 
   return (
     <View style={styles.container}>
-      <Header refreshFunction={null} disableRefresh={true} />
+      <Header refreshFunction={() => fetchNavettes(true)} disableRefresh={refreshing} />
+
       <View style={styles.headerContainer}>
         <BoutonRetour title="Vos Navettes" />
       </View>
-      <NavettesTab
-        navettesMap={navettesMap}
-      />
+
+      <NavettesTab navettesMap={navettesMap} />
     </View>
   );
 }

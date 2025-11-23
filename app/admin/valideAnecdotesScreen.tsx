@@ -1,20 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Text, View, StyleSheet, ActivityIndicator, ScrollView, SafeAreaView } from 'react-native';
-import { useRoute, NavigationProp, useNavigation } from '@react-navigation/native';
+import { useRoute, NavigationProp, useNavigation, RouteProp } from '@react-navigation/native';
 import { X, Check, MessageSquare, Calendar, User, Heart, AlertTriangle } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
-import { apiGet, apiPut } from '@/constants/api/apiCalls';
+import { apiGet, apiPut, isSuccessResponse, isPendingResponse, handleApiErrorToast, handleApiErrorScreen, AppError, ApiError } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
 import Header from '../../components/header';
 
 type ValideAnecdotesStackParamList = {
-  valideAnecdotesScreen: undefined;
+  valideAnecdotesScreen: { id: number };
 }
 
 type AnecdoteDetails = {
@@ -29,39 +29,46 @@ type AnecdoteDetails = {
   };
 }
 
-type RouteParams = {
-  id: number;
+type AnecdoteResponse = {
+  data: AnecdoteDetails;
+  nbLikes: number;
+  nbWarns: number;
 }
 
+type RouteParams = RouteProp<ValideAnecdotesStackParamList, 'valideAnecdotesScreen'>;
+
 export default function ValideAnecdotes() {
-  const route = useRoute();
-  const { id } = (route.params as RouteParams) || { id: 0 };
+  const route = useRoute<RouteParams>();
+  const { id } = route.params || { id: 0 };
+
   const { setUser } = useUser();
   const navigation = useNavigation<NavigationProp<ValideAnecdotesStackParamList>>();
 
   const [anecdoteDetails, setAnecdoteDetails] = useState<AnecdoteDetails | null>(null);
-  const [nbLikes, setNbLikes] = useState<number | null>(null);
-  const [nbWarns, setNbWarns] = useState<number | null>(null);
+  const [nbLikes, setNbLikes] = useState<number>(0);
+  const [nbWarns, setNbWarns] = useState<number>(0);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const fetchAnecdoteDetails = useCallback(async () => {
+    if (!id) return;
+
     setLoading(true);
+    setError('');
+
     try {
-      const response = await apiGet(`admin/anecdotes/${id}`);
-      if (response.success) {
-        setAnecdoteDetails(response.data);
-        setNbLikes(response.nbLikes);
-        setNbWarns(response.nbWarns);
+      const response = await apiGet<AnecdoteResponse>(`admin/anecdotes/${id}`, false);
+
+      if (isSuccessResponse(response)) {
+        setAnecdoteDetails(response.data.data);
+        setNbLikes(response.data.nbLikes);
+        setNbWarns(response.data.nbWarns);
       } else {
-        setError('Erreur lors de la récupération des détails de l\'anecdote');
+        handleApiErrorScreen(new ApiError(response.message), setUser, setError);
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message);
-      }
+    } catch (err: unknown) {
+      handleApiErrorScreen(err, setUser, setError);
     } finally {
       setLoading(false);
     }
@@ -71,44 +78,32 @@ export default function ValideAnecdotes() {
     setLoading(true);
     try {
       const response = await apiPut(`admin/anecdotes/${id}/status`, { is_valid: isValid });
-      if (response.success) {
-        setAnecdoteDetails(prevDetails => prevDetails ? ({
-          ...prevDetails,
-          valid: isValid,
-        }) : null);
+
+      const handleSuccess = (isPending: boolean) => {
+        setAnecdoteDetails(prev => prev ? ({ ...prev, valid: isValid }) : null);
 
         Toast.show({
-          type: 'success',
-          text1: isValid === 0 ? 'Anecdote désactivée !' : 'Anecdote validée !',
-          text2: response.message,
+          type: isPending ? 'info' : 'success',
+          text1: isPending ? 'Action sauvegardée' : (isValid === 0 ? 'Désactivée' : 'Validée'),
+          text2: isPending ? 'Sera synchronisé plus tard' : response.message,
         });
-        navigation.goBack();
-      } else if (response.pending) {
-        setAnecdoteDetails(prevDetails => prevDetails ? ({
-          ...prevDetails,
-          valid: isValid,
-        }) : null);
 
-        Toast.show({
-          type: 'info',
-          text1: 'Requête sauvegardée',
-          text2: response.message,
-        });
         navigation.goBack();
+      };
+
+      if (isSuccessResponse(response)) {
+        handleSuccess(false);
+      } else if (isPendingResponse(response)) {
+        handleSuccess(true);
       } else {
         Toast.show({
           type: 'error',
-          text1: 'Une erreur est survenue...',
-          text2: response.message,
+          text1: 'Erreur',
+          text2: response.message
         });
-        setError(response.message || 'Une erreur est survenue lors de la validation de l\'anecdote.');
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message);
-      }
+    } catch (err: unknown) {
+      handleApiErrorToast(err as AppError, setUser);
     } finally {
       setLoading(false);
     }
@@ -117,6 +112,10 @@ export default function ValideAnecdotes() {
   useEffect(() => {
     fetchAnecdoteDetails();
   }, [fetchAnecdoteDetails]);
+
+  if (!id) {
+    return <ErrorScreen error="ID de l'anecdote manquant" />;
+  }
 
   if (error !== '') {
     return <ErrorScreen error={error} />;
@@ -137,6 +136,7 @@ export default function ValideAnecdotes() {
   return (
     <SafeAreaView style={styles.container}>
       <Header refreshFunction={null} disableRefresh={true} />
+
       <View style={styles.headerContainer}>
         <BoutonRetour title={`Gérer l'anecdote ${id}`} />
       </View>
@@ -160,6 +160,7 @@ export default function ValideAnecdotes() {
               {anecdoteDetails?.valid ? 'Validée' : 'En attente de validation'}
             </Text>
           </View>
+
           <View style={styles.infoRow}>
             <Calendar size={16} color={Colors.primary} />
             <Text style={styles.infoLabel}>Date :</Text>
@@ -171,23 +172,28 @@ export default function ValideAnecdotes() {
                 hour: '2-digit',
                 minute: '2-digit',
                 hour12: false,
-              }) : 'Date non disponible'}
+              }) : 'N/A'}
             </Text>
           </View>
+
           <View style={styles.infoRow}>
             <User size={16} color={Colors.primary} />
             <Text style={styles.infoLabel}>Auteur :</Text>
-            <Text style={styles.infoValue}>{anecdoteDetails?.user?.firstName} {anecdoteDetails?.user?.lastName || 'Auteur inconnu'}</Text>
+            <Text style={styles.infoValue}>
+              {anecdoteDetails?.user?.firstName} {anecdoteDetails?.user?.lastName || 'Anonyme'}
+            </Text>
           </View>
+
           <View style={styles.infoRow}>
             <Heart size={16} color={Colors.primary} />
             <Text style={styles.infoLabel}>Likes :</Text>
             <Text style={styles.infoValue}>{nbLikes}</Text>
           </View>
+
           <View style={styles.infoRow}>
             <AlertTriangle size={16} color={Colors.error} />
             <Text style={styles.infoLabel}>Signalements :</Text>
-            <Text style={[styles.infoValue, (nbWarns ?? 0) > 0 && styles.warningText]}>{nbWarns}</Text>
+            <Text style={[styles.infoValue, nbWarns > 0 && styles.warningText]}>{nbWarns}</Text>
           </View>
         </View>
 

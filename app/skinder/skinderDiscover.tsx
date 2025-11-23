@@ -1,13 +1,13 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { StyleSheet, View, Image, Text, ActivityIndicator, Animated, TouchableOpacity, ScrollView } from 'react-native';
-import { PanGestureHandler } from 'react-native-gesture-handler';
+import { HandlerStateChangeEvent, PanGestureHandler, PanGestureHandlerEventPayload, State } from 'react-native-gesture-handler';
 import { Heart, X, User, MessageCircle, Settings } from 'lucide-react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiGet, apiPost } from '@/constants/api/apiCalls';
+import { apiGet, apiPost, isSuccessResponse, handleApiErrorToast, handleApiErrorScreen, AppError } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 
 import Header from '../../components/header';
@@ -15,19 +15,42 @@ import Header from '../../components/header';
 type SkinderDiscoverStackParamList = {
     skinderDiscover: undefined;
     skinderProfil: undefined;
-    matchScreen: { myImage: string, roomImage: string, roomNumber: number, roomResp: string };
+    matchScreen: {
+        myImage: string;
+        roomImage: string;
+        roomNumber: string;
+        roomResp?: string;
+    };
     skinderMyMatches: undefined;
+}
+
+type Profile = {
+    id: number;
+    name: string;
+    description: string;
+    passions: string[];
+    image: string;
+}
+
+type LikeResponse = {
+    match: boolean;
+    myRoomImage: string;
+    otherRoomImage: string;
+    otherRoomNumber: string;
+    otherRoomResp: string;
 }
 
 export default function SkinderDiscover() {
     const [error, setError] = useState('');
     const [noPhoto, setNoPhoto] = useState(false);
     const [tooMuch, setTooMuch] = useState(false);
-    const [profile, setProfile] = useState({ id: null, nom: '', description: '', passions: [] });
+
+    const [profile, setProfile] = useState<Profile | null>(null);
     const [imageProfil, setImageProfil] = useState("https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png");
+
     const [disableButton, setDisableButton] = useState(false);
-    const [disableRefresh, setDisableRefresh] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
 
     const { setUser } = useUser();
     const navigation = useNavigation<NavigationProp<SkinderDiscoverStackParamList>>();
@@ -41,215 +64,153 @@ export default function SkinderDiscover() {
     const activeOpacity = 1;
     const inactiveOpacity = 0.4;
 
-    const handleGesture = Animated.event(
-        [{ nativeEvent: { translationX: translateX } }],
-        { useNativeDriver: false }
-    );
-
-    const handleGestureEnd = ({ nativeEvent }: { nativeEvent: any }) => {
-        translateY.setValue(0);
-
-        if (nativeEvent.translationX > 120) {
-            Animated.timing(likeOpacity, {
-                toValue: 1,
-                duration: 300,
-                useNativeDriver: true,
-            }).start(() => {
-                setTimeout(() => {
-                    Animated.timing(likeOpacity, {
-                        toValue: 0,
-                        duration: 300,
-                        useNativeDriver: true,
-                    }).start();
-                }, 500);
-            });
-
-            handleLike();
-            animateCard(600);
-        } else if (nativeEvent.translationX < -120) {
-            Animated.timing(dislikeOpacity, {
-                toValue: 1,
-                duration: 300,
-                useNativeDriver: true,
-            }).start(() => {
-                setTimeout(() => {
-                    Animated.timing(dislikeOpacity, {
-                        toValue: 0,
-                        duration: 300,
-                        useNativeDriver: true,
-                    }).start();
-                }, 500);
-            });
-
-            animateCard(-600);
-        } else {
-            resetPosition();
-        }
-    };
-
-    const animateCard = (toValue: number) => {
-        Animated.parallel([
-            Animated.timing(translateX, {
-                toValue,
-                duration: 300,
-                useNativeDriver: false,
-            }),
-            Animated.timing(translateY, {
-                toValue: 20,
-                duration: 300,
-                useNativeDriver: false,
-            }),
-            Animated.timing(cardOpacity, {
-                toValue: 0,
-                duration: 300,
-                useNativeDriver: false,
-            }),
-        ]).start(() => {
-            resetPosition();
-            fetchProfil();
-        });
-    };
-
-    const handleDislikeButton = async () => {
-        Animated.timing(dislikeOpacity, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-        }).start(() => {
-            setTimeout(() => {
-                Animated.timing(dislikeOpacity, {
-                    toValue: 0,
-                    duration: 300,
-                    useNativeDriver: true,
-                }).start();
-            }, 500);
-        });
-
-        animateCard(-600);
-    };
-
-    const handleLikeButton = async () => {
-        Animated.timing(likeOpacity, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-        }).start(() => {
-            setTimeout(() => {
-                Animated.timing(likeOpacity, {
-                    toValue: 0,
-                    duration: 300,
-                    useNativeDriver: true,
-                }).start();
-            }, 500);
-        });
-
-        handleLike();
-    };
-
     const resetPosition = useCallback(() => {
         Animated.parallel([
-            Animated.timing(translateX, {
-                toValue: 0,
-                duration: 200,
-                useNativeDriver: false,
-            }),
-            Animated.timing(translateY, {
-                toValue: 0,
-                duration: 200,
-                useNativeDriver: false,
-            }),
-            Animated.timing(cardOpacity, {
-                toValue: 1,
-                duration: 200,
-                useNativeDriver: false,
-            }),
+            Animated.timing(translateX, { toValue: 0, duration: 200, useNativeDriver: false }),
+            Animated.timing(translateY, { toValue: 0, duration: 200, useNativeDriver: false }),
+            Animated.timing(cardOpacity, { toValue: 1, duration: 200, useNativeDriver: false }),
         ]).start();
     }, [translateX, translateY, cardOpacity]);
 
-    const fetchProfil = useCallback(async () => {
-        setDisableRefresh(true);
-        setLoading(true);
+    const fetchProfil = useCallback(async (isRefresh = false) => {
+        if (isRefresh) setRefreshing(true);
+        else setLoading(true);
+
         setNoPhoto(false);
         setTooMuch(false);
         setDisableButton(false);
+        setError('');
 
         try {
-            const response = await apiGet('skinder/profiles');
-            if (response.success) {
+            const response = await apiGet<Profile>('skinder/profiles');
+
+            if (isSuccessResponse(response)) {
+                let parsedPassions: string[] = [];
+                if (typeof response.data.passions === 'string') {
+                    try {
+                        parsedPassions = JSON.parse(response.data.passions);
+                    } catch {
+                        parsedPassions = [];
+                    }
+                } else if (Array.isArray(response.data.passions)) {
+                    parsedPassions = response.data.passions;
+                }
+
                 setProfile({
                     id: response.data.id,
-                    nom: response.data.name,
+                    name: response.data.name,
                     description: response.data.description,
-                    passions: Array.isArray(response.data.passions) ? response.data.passions : JSON.parse(response.data.passions || "[]")
+                    passions: parsedPassions,
+                    image: response.data.image,
                 });
                 setImageProfil(response.data.image);
             } else {
-                //setDisableButton(true);
-                if (response.message === "NoPhoto") {
-                    setNoPhoto(true);
-                } else if (response.message === "TooMuch") {
-                    setTooMuch(true);
-                } else {
-                    setError(response.message || "Une erreur est survenue lors de la récupération du profil");
-                }
+                if (response.message === "NoPhoto") setNoPhoto(true);
+                else if (response.message === "TooMuch") setTooMuch(true);
+                else setError(response.message || "Erreur inconnue");
             }
-        } catch (error: any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
+        } catch (err: unknown) {
+            if (isRefresh) {
+                handleApiErrorToast(err as AppError, setUser);
             } else {
-                setDisableButton(true);
-                setError(error.message);
+                handleApiErrorScreen(err, setUser, setError);
             }
+            setDisableButton(true);
         } finally {
             setLoading(false);
+            setRefreshing(false);
             resetPosition();
-            setTimeout(() => {
-                setDisableRefresh(false);
-            }, 5000);
         }
     }, [setUser, resetPosition]);
 
-    const handleLike = async () => {
-        try {
-            const response = await apiPost(`skinder/profiles/${profile.id}/like`, { 'roomLiked': profile.id });
-            if (response.success) {
-                if (response.match) {
-                    navigation.navigate('matchScreen', {
-                        myImage: response.myRoomImage,
-                        roomImage: response.otherRoomImage,
-                        roomNumber: response.otherRoomNumber,
-                        roomResp: response.otherRoomResp
-                    });
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('focus', () => {
+            fetchProfil(false);
+        });
+        return unsubscribe;
+    }, [navigation, fetchProfil]);
 
+    const handleLike = async () => {
+        if (!profile) return;
+
+        try {
+            const response = await apiPost<LikeResponse>(`skinder/profiles/${profile.id}/like`, { 'roomLiked': profile.id });
+
+            if (isSuccessResponse(response)) {
+                if (response.data.match) {
+                    navigation.navigate('matchScreen', {
+                        myImage: response.data.myRoomImage,
+                        roomImage: response.data.otherRoomImage,
+                        roomNumber: response.data.otherRoomNumber,
+                        roomResp: response.data.otherRoomResp
+                    });
                 } else {
                     fetchProfil();
                 }
             } else {
                 setDisableButton(true);
-                setError(response.message || 'Une erreur est survenue lors de la récupération du like');
+                setError(response.message || 'Erreur lors du like');
             }
-        } catch (error: any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
+        } catch (err: unknown) {
+            setDisableButton(true);
+            handleApiErrorToast(err as AppError, setUser);
+        }
+    };
+
+    const handleGesture = Animated.event(
+        [{ nativeEvent: { translationX: translateX } }],
+        { useNativeDriver: false }
+    );
+
+    const handleGestureStateChange = (event: HandlerStateChangeEvent<PanGestureHandlerEventPayload>) => {
+        if (event.nativeEvent.state === State.END) {
+            const threshold = 120;
+            const { translationX } = event.nativeEvent;
+
+            if (translationX > threshold) {
+                triggerAnimation(likeOpacity);
+                handleLike();
+                animateCardOut(600);
+            } else if (translationX < -threshold) {
+                triggerAnimation(dislikeOpacity);
+                animateCardOut(-600);
             } else {
-                setDisableButton(true);
-                setError(error.message);
+                resetPosition();
             }
         }
     };
 
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('focus', () => {
-            fetchProfil();
-        });
+    const triggerAnimation = (opacityRef: Animated.Value) => {
+        Animated.sequence([
+            Animated.timing(opacityRef, { toValue: 1, duration: 300, useNativeDriver: true }),
+            Animated.delay(200),
+            Animated.timing(opacityRef, { toValue: 0, duration: 300, useNativeDriver: true }),
+        ]).start();
+    };
 
-        return unsubscribe;
-    }, [navigation, fetchProfil]);
+    const animateCardOut = (toValue: number) => {
+        Animated.parallel([
+            Animated.timing(translateX, { toValue, duration: 300, useNativeDriver: false }),
+            Animated.timing(translateY, { toValue: 20, duration: 300, useNativeDriver: false }),
+            Animated.timing(cardOpacity, { toValue: 0, duration: 300, useNativeDriver: false }),
+        ]).start(() => {
+            if (toValue < 0) fetchProfil();
+        });
+    };
+
+    const handleLikeButton = () => {
+        triggerAnimation(likeOpacity);
+        handleLike();
+        animateCardOut(600);
+    };
+
+    const handleDislikeButton = () => {
+        triggerAnimation(dislikeOpacity);
+        animateCardOut(-600);
+    };
 
     if (error) {
-        return (
-            <ErrorScreen error={error} />
-        );
+        return <ErrorScreen error={error} />;
     }
 
     if (loading) {
@@ -258,9 +219,7 @@ export default function SkinderDiscover() {
                 <Header refreshFunction={undefined} disableRefresh={true} />
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={Colors.primaryBorder} />
-                    <Text style={styles.loadingText}>
-                        Chargement...
-                    </Text>
+                    <Text style={styles.loadingText}>Chargement...</Text>
                 </View>
             </View>
         );
@@ -268,7 +227,8 @@ export default function SkinderDiscover() {
 
     return (
         <View style={styles.container}>
-            <Header refreshFunction={fetchProfil} disableRefresh={disableRefresh} />
+            <Header refreshFunction={() => fetchProfil(true)} disableRefresh={refreshing} />
+
             <View style={styles.headerContainer}>
                 <BoutonRetour title={'Skinder'} />
             </View>
@@ -293,9 +253,9 @@ export default function SkinderDiscover() {
                 </View>
 
                 {!noPhoto ? (
-                    !tooMuch ? (
+                    !tooMuch && profile ? (
                         <View style={styles.cardContainer}>
-                            <PanGestureHandler onGestureEvent={handleGesture} onEnded={handleGestureEnd}>
+                            <PanGestureHandler onGestureEvent={handleGesture} onHandlerStateChange={handleGestureStateChange}>
                                 <Animated.View style={[styles.card, {
                                     transform: [
                                         { translateX },
@@ -324,7 +284,7 @@ export default function SkinderDiscover() {
                                             onError={() => setImageProfil("https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png")}
                                         />
                                         <View style={styles.imageOverlay}>
-                                            <Text style={styles.profileName}>{profile.nom}</Text>
+                                            <Text style={styles.profileName}>{profile.name}</Text>
                                         </View>
                                     </View>
 
@@ -336,7 +296,7 @@ export default function SkinderDiscover() {
                                             </View>
                                         )}
 
-                                        {profile.passions.length > 0 && (
+                                        {profile.passions && profile.passions.length > 0 && (
                                             <View style={styles.passionsSection}>
                                                 <Text style={styles.sectionTitle}>Passions</Text>
                                                 <View style={styles.passionContainer}>
@@ -378,7 +338,7 @@ export default function SkinderDiscover() {
                 )}
             </View>
 
-            {!noPhoto && !tooMuch && (
+            {!noPhoto && !tooMuch && profile && (
                 <View style={styles.actionButtonsContainer}>
                     <TouchableOpacity
                         onPress={handleDislikeButton}

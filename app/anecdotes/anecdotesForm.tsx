@@ -12,17 +12,14 @@ import { apiPost, isSuccessResponse, isPendingResponse, handleApiErrorToast, App
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import Header from "../../components/header";
-
-type AnecdotesFormParamList = {
-  anecdotesForm: undefined;
-}
+import { AnecdotesStackParamList } from '../anecdotesNavigator';
 
 export default function AnecdotesForm() {
   const [text, setText] = useState('');
   const [isChecked, setChecked] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const navigation = useNavigation<NavigationProp<AnecdotesFormParamList>>();
+  const navigation = useNavigation<NavigationProp<AnecdotesStackParamList>>();
   const { setUser } = useUser();
 
   const handleSendAnecdote = async () => {

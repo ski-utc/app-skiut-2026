@@ -13,11 +13,7 @@ import CreateArticleModal from '@/components/monoprut/createArticleModal';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
-type MonoprutStackParamList = {
-    MonoprutScreen: undefined;
-    MyReservationsScreen: undefined;
-    MyOffersScreen: undefined;
-};
+import { MonoprutStackParamList } from '../monoprutNavigator';
 
 type RoomInfo = {
     roomNumber: string;

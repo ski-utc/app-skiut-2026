@@ -12,10 +12,7 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import Header from '../../components/header';
-
-type ValideAnecdotesRapideStackParamList = {
-    valideAnecdotesRapide: undefined;
-}
+import { AdminStackParamList } from './adminNavigator';
 
 type User = {
     id: number;
@@ -48,7 +45,7 @@ export default function ValideAnecdotesRapide() {
     const [processing, setProcessing] = useState(false);
 
     const { setUser } = useUser();
-    const navigation = useNavigation<NavigationProp<ValideAnecdotesRapideStackParamList>>();
+    const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
 
     const translateX = useRef(new Animated.Value(0)).current;
     const translateY = useRef(new Animated.Value(0)).current;

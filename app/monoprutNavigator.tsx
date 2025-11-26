@@ -5,7 +5,7 @@ import MonoprutScreen from './monoprut/monoprutScreen';
 import MyReservationsScreen from './monoprut/myReservationsScreen';
 import MyOffersScreen from './monoprut/myOffersScreen';
 
-type MonoprutStackParamList = {
+export type MonoprutStackParamList = {
     MonoprutScreen: undefined;
     MyReservationsScreen: undefined;
     MyOffersScreen: undefined;

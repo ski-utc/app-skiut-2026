@@ -20,7 +20,7 @@ import DefisNavigator from './defisNavigator';
 import DrawerNavigator from './drawerNavigator';
 import LoginNavigator from './loginNavigator';
 
-type RootTabParamList = {
+export type RootTabParamList = {
   homeNavigator: undefined;
   planningNavigator: undefined;
   defisNavigator: undefined;

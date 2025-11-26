@@ -11,13 +11,7 @@ import { Colors, TextStyles, FontSizes } from '@/constants/GraphSettings';
 import { OfflineStatusBanner, PendingRequestsWidget } from '@/components/home/offlineWidgets';
 
 import Header from "../../components/header";
-
-type HomeStackParamList = {
-  homeScreen: undefined;
-  planningNavigator: undefined;
-  defisNavigator: undefined;
-  anecdotesNavigator: undefined;
-}
+import { RootTabParamList } from '../_layout';
 
 type WeatherCondition = {
   text: string;
@@ -424,7 +418,7 @@ export default function HomeScreen() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [tourStatus, setTourStatus] = useState<TourStatus | null>(null);
 
-  const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
+  const navigation = useNavigation<NavigationProp<RootTabParamList>>();
   const { setUser } = useUser();
 
   const fetchData = useCallback(async () => {

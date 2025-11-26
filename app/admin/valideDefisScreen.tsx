@@ -13,10 +13,7 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
 import Header from '../../components/header';
-
-type ValideDefisStackParamList = {
-  valideDefisScreen: undefined;
-}
+import { AdminStackParamList } from './adminNavigator';
 
 type ChallengeDetails = {
   id: number;
@@ -45,7 +42,7 @@ export default function ValideDefis() {
   const route = useRoute();
   const { id } = (route.params as RouteParams) || { id: 0 };
   const { setUser } = useUser();
-  const navigation = useNavigation<NavigationProp<ValideDefisStackParamList>>();
+  const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
 
   const [challengeDetails, setChallengeDetails] = useState<ChallengeDetails | null>(null);
   const [proofImage, setProofImage] = useState("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg");

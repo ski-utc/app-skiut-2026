@@ -12,10 +12,7 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
 import Header from '../../components/header';
-
-type ValideNotificationsStackParamList = {
-  valideNotificationsScreen: undefined;
-};
+import { AdminStackParamList } from './adminNavigator';
 
 type NotificationDetails = {
   id: number;
@@ -32,7 +29,7 @@ type RouteParams = {
 
 export default function ValideNotifications() {
   const route = useRoute();
-  const navigation = useNavigation<NavigationProp<ValideNotificationsStackParamList>>();
+  const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
 
   const { id } = (route.params as RouteParams) || { id: 0 };
   const { setUser } = useUser();

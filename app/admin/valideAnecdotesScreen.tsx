@@ -12,10 +12,7 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
 import Header from '../../components/header';
-
-type ValideAnecdotesStackParamList = {
-  valideAnecdotesScreen: { id: number };
-}
+import { AdminStackParamList } from './adminNavigator';
 
 type AnecdoteDetails = {
   id: number;
@@ -35,14 +32,14 @@ type AnecdoteResponse = {
   nbWarns: number;
 }
 
-type RouteParams = RouteProp<ValideAnecdotesStackParamList, 'valideAnecdotesScreen'>;
+type RouteParams = RouteProp<AdminStackParamList, 'valideAnecdotesScreen'>;
 
 export default function ValideAnecdotes() {
   const route = useRoute<RouteParams>();
   const { id } = route.params || { id: 0 };
 
   const { setUser } = useUser();
-  const navigation = useNavigation<NavigationProp<ValideAnecdotesStackParamList>>();
+  const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
 
   const [anecdoteDetails, setAnecdoteDetails] = useState<AnecdoteDetails | null>(null);
   const [nbLikes, setNbLikes] = useState<number>(0);

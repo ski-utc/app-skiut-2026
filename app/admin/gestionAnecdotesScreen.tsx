@@ -11,12 +11,7 @@ import { useUser } from '@/contexts/UserContext';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import Header from '../../components/header';
-
-type GestionAnecdotesStackParamList = {
-  gestionAnecdotesScreen: undefined;
-  valideAnecdotesScreen: undefined;
-  valideAnecdotesRapide: undefined;
-}
+import { AdminStackParamList } from './adminNavigator';
 
 type FilterButtonProps = {
   label: string;
@@ -71,7 +66,7 @@ const GestionAnecdotesScreen = () => {
   const [activeFilter, setActiveFilter] = useState('all');
 
   const { setUser } = useUser();
-  const navigation = useNavigation<NavigationProp<GestionAnecdotesStackParamList>>();
+  const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
 
   const fetchAdminAnecdotes = useCallback(async () => {
     setLoading(true);

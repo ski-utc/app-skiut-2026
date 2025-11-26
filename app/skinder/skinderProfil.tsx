@@ -13,11 +13,7 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import Header from '../../components/header';
-
-type SkinderProfilStackParamList = {
-  skinderProfil: undefined;
-  skinderDiscover: undefined;
-}
+import { SkinderStackParamList } from './skinderNavigator';
 
 type Profile = {
   id: number | null;
@@ -47,7 +43,7 @@ export default function SkinderProfil() {
   const [charLimits, setCharLimits] = useState<number[]>(Array(6).fill(0));
 
   const { setUser } = useUser();
-  const navigation = useNavigation<NavigationProp<SkinderProfilStackParamList>>();
+  const navigation = useNavigation<NavigationProp<SkinderStackParamList>>();
 
   const fetchProfil = useCallback(async () => {
     setLoading(true);

@@ -11,18 +11,7 @@ import { apiGet, apiPost, isSuccessResponse, handleApiErrorToast, handleApiError
 import ErrorScreen from '@/components/pages/errorPage';
 
 import Header from '../../components/header';
-
-type SkinderDiscoverStackParamList = {
-    skinderDiscover: undefined;
-    skinderProfil: undefined;
-    matchScreen: {
-        myImage: string;
-        roomImage: string;
-        roomNumber: string;
-        roomResp?: string;
-    };
-    skinderMyMatches: undefined;
-}
+import { SkinderStackParamList } from './skinderNavigator';
 
 type Profile = {
     id: number;
@@ -53,7 +42,7 @@ export default function SkinderDiscover() {
     const [refreshing, setRefreshing] = useState(false);
 
     const { setUser } = useUser();
-    const navigation = useNavigation<NavigationProp<SkinderDiscoverStackParamList>>();
+    const navigation = useNavigation<NavigationProp<SkinderStackParamList>>();
 
     const translateX = useRef(new Animated.Value(0)).current;
     const translateY = useRef(new Animated.Value(0)).current;

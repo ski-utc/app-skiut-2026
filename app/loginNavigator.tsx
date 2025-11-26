@@ -7,6 +7,13 @@ import LoginScreen from './login/loginScreen';
 
 const Stack = createStackNavigator();
 
+export type LoginStackParamList = {
+  launchScreen1: undefined;
+  launchScreen2: undefined;
+  launchScreen3: undefined;
+  loginScreen: undefined;
+}
+
 export default function LoginNavigator() {
   return (
     <Stack.Navigator>

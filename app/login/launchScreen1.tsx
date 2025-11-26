@@ -5,15 +5,10 @@ import { HandlerStateChangeEvent, PanGestureHandler, PanGestureHandlerEventPaylo
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import logoImage from '@/assets/images/logo.png';
-
-type Launch1StackParamList = {
-  launchScreen1: undefined;
-  launchScreen2: undefined;
-  loginScreen: undefined;
-}
+import { LoginStackParamList } from '../loginNavigator';
 
 export default function LaunchScreen1() {
-  const navigation = useNavigation<NavigationProp<Launch1StackParamList>>();
+  const navigation = useNavigation<NavigationProp<LoginStackParamList>>();
 
   const handleGestureEvent = (event: HandlerStateChangeEvent<PanGestureHandlerEventPayload>) => {
     if (event.nativeEvent.state === State.END) {

@@ -6,24 +6,14 @@ import { Heart, Sparkles, MapPin } from 'lucide-react-native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
+import { SkinderStackParamList } from './skinderNavigator';
 
-type MatchParams = {
-    myImage: string;
-    roomImage: string;
-    roomNumber: string;
-    roomResp?: string;
-};
-
-type MatchStackParamList = {
-    matchScreen: MatchParams;
-}
-
-type MatchScreenRouteProp = RouteProp<MatchStackParamList, 'matchScreen'>;
+type MatchScreenRouteProp = RouteProp<SkinderStackParamList, 'matchScreen'>;
 
 const DEFAULT_USER_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png"; // TODO : replace with an icon
 
 export default function MatchScreen() {
-    const navigation = useNavigation<NavigationProp<MatchStackParamList>>();
+    const navigation = useNavigation<NavigationProp<SkinderStackParamList>>();
     const route = useRoute<MatchScreenRouteProp>();
 
     const { myImage, roomImage, roomNumber, roomResp } = route.params || {};

@@ -12,14 +12,11 @@ import { Colors } from "@/constants/GraphSettings";
 import ErrorScreen from "@/components/pages/errorPage";
 
 import * as config from "../../constants/api/apiConfig";
-
-type OauthStackParamList = {
-  loginScreen: undefined;
-}
+import { LoginStackParamList } from '../loginNavigator';
 
 export default function OAuthScreen() {
   const { setUser } = useUser();
-  const navigation = useNavigation<NavigationProp<OauthStackParamList>>();
+  const navigation = useNavigation<NavigationProp<LoginStackParamList>>();
   const [error, setError] = useState('');
   const [canEnter, setCanEnter] = useState(true);
   const [isWebViewVisible, setWebViewVisible] = useState(true);

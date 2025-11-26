@@ -10,18 +10,10 @@ import { useUser } from '@/contexts/UserContext';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import Header from '../../components/header';
-
-type AdminStackParamList = {
-  adminScreen: undefined;
-  gestionDefisScreen: undefined;
-  gestionAnecdotesScreen: undefined;
-  gestionNotificationsScreen: undefined;
-  gestionPermanencesScreen: undefined;
-  gestionTourneeChambreScreen: undefined;
-};
+import { AdminGestionParamList } from './adminNavigator';
 
 type BoutonAdminProps = {
-  nextRoute: keyof AdminStackParamList;
+  nextRoute: keyof AdminGestionParamList;
   title: string;
   icon: React.ReactNode;
   description: string;
@@ -29,13 +21,13 @@ type BoutonAdminProps = {
 
 type AdminControl = {
   title: string;
-  nextRoute: keyof AdminStackParamList;
+  nextRoute: keyof AdminGestionParamList;
   icon: React.ReactNode;
   description: string;
 };
 
 const BoutonAdmin: React.FC<BoutonAdminProps> = ({ nextRoute, title, icon, description }) => {
-  const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
+  const navigation = useNavigation<NavigationProp<AdminGestionParamList>>();
 
   return (
     <TouchableOpacity
@@ -94,7 +86,7 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
+  const navigation = useNavigation<NavigationProp<AdminGestionParamList>>();
   const { setUser } = useUser();
 
   const fetchAdmin = useCallback(async () => {

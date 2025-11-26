@@ -5,6 +5,11 @@ import AnecdotesForm from './anecdotes/anecdotesForm';
 
 const Stack = createStackNavigator();
 
+export type AnecdotesStackParamList = {
+  anecdotesScreen: undefined;
+  anecdotesForm: undefined;
+};
+
 export default function AnecdotesNavigator() {
   return (
     <Stack.Navigator>

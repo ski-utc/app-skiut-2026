@@ -4,15 +4,10 @@ import { Trophy, MessageCircle, Calendar } from 'lucide-react-native';
 import { HandlerStateChangeEvent, PanGestureHandler, PanGestureHandlerEventPayload, State } from 'react-native-gesture-handler';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-
-type Launch2StackParamList = {
-  launchScreen2: undefined;
-  launchScreen3: undefined;
-  loginScreen: undefined;
-}
+import { LoginStackParamList } from '../loginNavigator';
 
 export default function LaunchScreen2() {
-  const navigation = useNavigation<NavigationProp<Launch2StackParamList>>();
+  const navigation = useNavigation<NavigationProp<LoginStackParamList>>();
 
   const handleGestureEvent = (event: HandlerStateChangeEvent<PanGestureHandlerEventPayload>) => {
     if (event.nativeEvent.state === State.END) {

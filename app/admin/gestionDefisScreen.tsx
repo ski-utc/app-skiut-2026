@@ -11,12 +11,7 @@ import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
 
 import Header from '../../components/header';
-
-type GestionDefisStackParamList = {
-  gestionDefisScreen: undefined;
-  valideDefisScreen: undefined;
-  valideDefisRapide: undefined;
-}
+import { AdminStackParamList } from './adminNavigator';
 
 type FilterButtonProps = {
   label: string;
@@ -71,7 +66,7 @@ const GestionDefisScreen = () => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'valid'>('all');
 
   const { setUser } = useUser();
-  const navigation = useNavigation<NavigationProp<GestionDefisStackParamList>>();
+  const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
 
   const fetchAdminDefis = useCallback(async () => {
     setLoading(true);

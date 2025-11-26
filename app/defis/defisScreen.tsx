@@ -11,24 +11,13 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
 import Header from "../../components/header";
+import { DefisStackParamList } from '../defisNavigator';
 
 type Challenge = {
   id: number;
   title: string;
   nbPoints: number;
   status: 'todo' | 'pending' | 'done' | 'refused';
-}
-
-type DefisStackParamList = {
-  defisScreen: undefined;
-  defisClassement: undefined;
-  defisInfos: {
-    id: number;
-    title: string;
-    points: number;
-    status: string;
-    onUpdate: (id: number, status: string) => void
-  };
 }
 
 type BoutonDefiProps = {

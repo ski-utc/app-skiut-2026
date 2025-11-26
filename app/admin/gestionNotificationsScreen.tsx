@@ -11,11 +11,7 @@ import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
 
 import Header from '../../components/header';
-
-type GestionNotificationsStackParamList = {
-  gestionNotificationsScreen: undefined;
-  createNotificationScreen: undefined;
-}
+import { AdminStackParamList } from './adminNavigator';
 
 type FilterButtonProps = {
   label: string;
@@ -54,7 +50,7 @@ const FilterButton: React.FC<FilterButtonProps> = ({ label, icon, isActive, onPr
 );
 
 const GestionNotificationsScreen = () => {
-  const navigation = useNavigation<NavigationProp<GestionNotificationsStackParamList>>();
+  const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
   const { setUser } = useUser();
 
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);

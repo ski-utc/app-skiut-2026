@@ -13,10 +13,7 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import Header from "../../components/header";
-
-type CreateNotificationStackParamList = {
-    createNotificationScreen: undefined;
-}
+import { AdminStackParamList } from './adminNavigator';
 
 type User = {
     id: number;
@@ -57,7 +54,7 @@ export default function CreateNotificationScreen() {
     const [loading, setLoading] = useState(false);
     const [dataLoading, setDataLoading] = useState(true);
 
-    const navigation = useNavigation<NavigationProp<CreateNotificationStackParamList>>();
+    const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
     const { setUser } = useUser();
 
     const fetchRecipientsData = useCallback(async () => {

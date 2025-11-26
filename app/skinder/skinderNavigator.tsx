@@ -7,6 +7,18 @@ import SkinderMyMatches from './skinderMyMatches';
 
 const Stack = createStackNavigator();
 
+export type SkinderStackParamList = {
+  skinderDiscover: undefined;
+  skinderProfil: undefined;
+  matchScreen: {
+    myImage: string;
+    roomImage: string;
+    roomNumber: string;
+    roomResp?: string;
+  };
+  skinderMyMatches: undefined;
+};
+
 export default function SkinderNavigator() {
   return (
     <Stack.Navigator>

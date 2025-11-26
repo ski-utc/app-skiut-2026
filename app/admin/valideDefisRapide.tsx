@@ -13,10 +13,7 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import Header from '../../components/header';
-
-type ValideDefisRapideStackParamList = {
-    valideDefisRapide: undefined;
-}
+import { AdminStackParamList } from './adminNavigator';
 
 type Defi = {
     id: number;
@@ -48,7 +45,7 @@ export default function ValideDefisRapide() {
     const [processing, setProcessing] = useState(false);
 
     const { setUser } = useUser();
-    const navigation = useNavigation<NavigationProp<ValideDefisRapideStackParamList>>();
+    const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
 
     const translateX = useRef(new Animated.Value(0)).current;
     const translateY = useRef(new Animated.Value(0)).current;

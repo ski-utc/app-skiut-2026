@@ -7,12 +7,36 @@ import Admin from './adminScreen';
 import ValideDefis from './valideDefisScreen';
 import ValideDefisRapide from './valideDefisRapide';
 import ValideAnecdotes from './valideAnecdotesScreen';
+import ValideAnecdotesRapide from './valideAnecdotesRapide';
 import ValideNotifications from './valideNotificationsScreen';
 import CreateNotificationScreen from './createNotificationScreen';
 import GestionPermanencesScreen from './gestionPermanencesScreen';
 import GestionTourneeChambreScreen from './gestionTourneeChambreScreen';
 
 const Stack = createStackNavigator();
+
+export type AdminStackParamList = {
+  adminScreen: undefined;
+  gestionDefisScreen: undefined;
+  gestionAnecdotesScreen: undefined;
+  gestionNotificationsScreen: undefined;
+  valideDefisScreen: undefined;
+  valideDefisRapide: undefined;
+  valideAnecdotesScreen: { id: number };
+  valideAnecdotesRapide: undefined;
+  valideNotificationsScreen: undefined;
+  createNotificationScreen: undefined;
+  gestionPermanencesScreen: undefined;
+  gestionTourneeChambreScreen: undefined;
+};
+
+export type AdminGestionParamList = {
+  gestionDefisScreen: undefined;
+  gestionAnecdotesScreen: undefined;
+  gestionNotificationsScreen: undefined;
+  gestionPermanencesScreen: undefined;
+  gestionTourneeChambreScreen: undefined;
+};
 
 export default function AdminNavigator() {
   return (
@@ -50,6 +74,11 @@ export default function AdminNavigator() {
       <Stack.Screen
         name="valideAnecdotesScreen"
         component={ValideAnecdotes}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="valideAnecdotesRapide"
+        component={ValideAnecdotesRapide}
         options={{ headerShown: false }}
       />
       <Stack.Screen

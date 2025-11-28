@@ -158,7 +158,7 @@ const apiCall = async <T = unknown>(
     let response: AxiosResponse;
 
     switch (method) {
-      case 'GET': response = await axios.get(fullUrl, configAxios); console.log('response', response.data); break;
+      case 'GET': response = await axios.get(fullUrl, configAxios); break;
       case 'POST': response = await axios.post(fullUrl, data, configAxios); break;
       case 'PUT': response = await axios.put(fullUrl, data, configAxios); break;
       case 'DELETE': response = await axios.delete(fullUrl, configAxios); break;

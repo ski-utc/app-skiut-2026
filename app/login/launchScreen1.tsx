@@ -5,6 +5,7 @@ import { HandlerStateChangeEvent, PanGestureHandler, PanGestureHandlerEventPaylo
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import logoImage from '@/assets/images/logo.png';
+
 import { LoginStackParamList } from '../loginNavigator';
 
 export default function LaunchScreen1() {

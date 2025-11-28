@@ -21,7 +21,6 @@ type DefisInfosParams = {
   title: string;
   points: number;
   status: string;
-  onUpdate?: (id: number, status: string) => void;
 };
 
 type DefisInfosRouteProp = RouteProp<{ params: DefisInfosParams }, 'params'>;
@@ -200,10 +199,6 @@ export default function DefisInfos() {
         const newStatus = 'pending';
         setDynamicStatus(newStatus);
 
-        if (route.params?.onUpdate) {
-          route.params.onUpdate(id, newStatus);
-        }
-
         Toast.show({
           type: isPending ? 'info' : 'success',
           text1: isPending ? 'Sauvegardé (Hors ligne)' : 'Défi envoyé !',
@@ -249,10 +244,6 @@ export default function DefisInfos() {
                 setProofMedia(null);
                 setMediaType('image');
                 setDynamicStatus('todo');
-
-                if (route.params?.onUpdate) {
-                  route.params.onUpdate(id, 'todo');
-                }
 
                 Toast.show({
                   type: 'success',

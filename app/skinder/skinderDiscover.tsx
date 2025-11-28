@@ -11,6 +11,7 @@ import { apiGet, apiPost, isSuccessResponse, handleApiErrorToast, handleApiError
 import ErrorScreen from '@/components/pages/errorPage';
 
 import Header from '../../components/header';
+
 import { SkinderStackParamList } from './skinderNavigator';
 
 type Profile = {

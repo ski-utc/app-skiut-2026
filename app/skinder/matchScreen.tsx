@@ -6,6 +6,7 @@ import { Heart, Sparkles, MapPin } from 'lucide-react-native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
+
 import { SkinderStackParamList } from './skinderNavigator';
 
 type MatchScreenRouteProp = RouteProp<SkinderStackParamList, 'matchScreen'>;

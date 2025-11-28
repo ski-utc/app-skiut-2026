@@ -12,6 +12,7 @@ import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
 import Header from '../../components/header';
+
 import { AdminStackParamList } from './adminNavigator';
 
 type AnecdoteDetails = {

@@ -4,6 +4,7 @@ import { Calendar, Map, LogIn, PartyPopper, Cookie } from 'lucide-react-native';
 import { HandlerStateChangeEvent, PanGestureHandler, PanGestureHandlerEventPayload, State } from 'react-native-gesture-handler';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
+
 import { LoginStackParamList } from '../loginNavigator';
 
 export default function LaunchScreen3() {

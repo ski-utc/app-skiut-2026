@@ -14,7 +14,6 @@ export type DefisStackParamList = {
     title: string;
     points: number;
     status: string;
-    onUpdate: (id: number, status: string) => void
   };
 }
 

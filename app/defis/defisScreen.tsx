@@ -22,10 +22,9 @@ type Challenge = {
 
 type BoutonDefiProps = {
   defi: Challenge;
-  onUpdate: (id: number, status: string) => void;
 }
 
-const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
+const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi }) => {
   const navigation = useNavigation<NavigationProp<DefisStackParamList>>();
 
   const onPress = () => {
@@ -34,9 +33,9 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi, onUpdate }) => {
       title: defi.title,
       points: defi.nbPoints,
       status: defi.status,
-      onUpdate
     });
   };
+
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -107,18 +106,6 @@ export default function Defis() {
     }, [fetchChallenges])
   );
 
-  const onUpdateDefiStatus = (updatedDefiId: number, newStatus: string) => {
-    const validStatus = newStatus as Challenge['status'];
-
-    setChallenges((prevChallenges) =>
-      prevChallenges.map((challenge) =>
-        challenge.id === updatedDefiId
-          ? { ...challenge, status: validStatus }
-          : challenge
-      )
-    );
-  };
-
   if (error) {
     return <ErrorScreen error={error} />;
   }
@@ -152,7 +139,6 @@ export default function Defis() {
         renderItem={({ item }) => (
           <BoutonDefi
             defi={item}
-            onUpdate={onUpdateDefiStatus}
           />
         )}
         style={styles.list}

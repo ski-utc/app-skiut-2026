@@ -192,6 +192,7 @@ export default function DefisClassement() {
     const { setUser } = useUser();
 
     const fetchClassement = useCallback(async () => {
+        setLoading(true);
         setError('');
 
         try {

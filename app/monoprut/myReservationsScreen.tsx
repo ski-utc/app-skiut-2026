@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ShoppingBasket, ShoppingBag, Clock, Package } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import { useNavigation, useFocusEffect, NavigationProp } from '@react-navigation/native';

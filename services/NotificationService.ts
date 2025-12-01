@@ -39,14 +39,12 @@ export class NotificationService {
 
         try {
             if (!Device.isDevice) {
-                console.warn('Notifications push disponibles uniquement sur appareil physique');
                 this.isInitialized = true;
                 return true;
             }
 
             const hasPermission = await this.requestPermissions();
             if (!hasPermission) {
-                console.warn('Permissions de notifications refusées - l\'app continue');
                 this.isInitialized = true;
                 return true;
             }
@@ -56,7 +54,6 @@ export class NotificationService {
             const token = await Promise.race([tokenPromise, timeoutPromise]);
 
             if (!token) {
-                console.warn('Impossible d\'obtenir le token push ou timeout - l\'app continue');
                 this.isInitialized = true;
                 return true;
             }
@@ -71,11 +68,9 @@ export class NotificationService {
 
             this.isInitialized = true;
             await AsyncStorage.setItem('notificationsRegistered', 'true');
-            console.log('Service de notifications initialisé avec succès');
             return true;
 
         } catch (error) {
-            console.error('Erreur lors de l\'initialisation des notifications:', error);
             this.isInitialized = true;
             return true;
         }
@@ -96,7 +91,6 @@ export class NotificationService {
 
             return finalStatus === 'granted';
         } catch (error) {
-            console.error('Erreur lors de la demande de permissions:', error);
             return false;
         }
     }
@@ -112,7 +106,6 @@ export class NotificationService {
             this.pushToken = token.data;
             return token.data;
         } catch (error) {
-            console.error('Erreur lors de l\'obtention du token push:', error);
             return null;
         }
     }
@@ -188,12 +181,10 @@ export class NotificationService {
         this.cleanupNotificationListeners();
 
         const notificationReceivedSubscription = Notifications.addNotificationReceivedListener((notification) => {
-            console.log('Notification reçue:', notification);
             this.handleNotificationReceived(notification);
         });
 
         const notificationResponseSubscription = Notifications.addNotificationResponseReceivedListener((response) => {
-            console.log('Interaction avec notification:', response);
             this.handleNotificationResponse(response);
         });
 

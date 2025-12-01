@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Text, View, ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, Linking, Dimensions, Animated } from "react-native";
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Calendar, Trophy, MessageCircle, ChevronRight, MapPin, Thermometer, Wind, Droplets, Sun, Cloud, CloudRain, CloudSnow, Moon, CloudMoon, CloudLightning, CloudDrizzle, CloudFog, CloudMoonRain, Home, LucideProps } from 'lucide-react-native';
-import { PanGestureHandler, PanGestureHandlerEventPayload, PanGestureHandlerGestureEvent, HandlerStateChangeEvent, State } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import { apiGet, isSuccessResponse, handleApiErrorToast, AppError } from '@/constants/api/apiCalls';
 import { useUser } from "@/contexts/UserContext";
@@ -172,15 +172,14 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
     setActiveView(viewIndex);
   };
 
-  const handleGesture = Animated.event<PanGestureHandlerGestureEvent>(
-    [{ nativeEvent: { translationX: gestureX } }],
-    { useNativeDriver: false }
-  );
-
-  const handleGestureStateChange = (event: HandlerStateChangeEvent<PanGestureHandlerEventPayload>) => {
-    if (event.nativeEvent.state === State.END) {
+  const panGesture = Gesture.Pan()
+    .runOnJS(true)
+    .onUpdate((e) => {
+      gestureX.setValue(e.translationX);
+    })
+    .onEnd((e) => {
       const threshold = screenWidth * 0.3;
-      const { translationX } = event.nativeEvent;
+      const { translationX } = e;
 
       if (translationX > threshold && activeView === 1) {
         animateToView(0);
@@ -189,8 +188,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
       } else {
         animateToView(activeView);
       }
-    }
-  };
+    });
 
   const renderCurrentView = () => (
     <View style={styles.weatherCurrentView}>
@@ -264,7 +262,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
   };
 
   return (
-    <PanGestureHandler onGestureEvent={handleGesture} onHandlerStateChange={handleGestureStateChange}>
+    <GestureDetector gesture={panGesture}>
       <View style={styles.weatherWidget}>
         <View style={styles.weatherContainer}>
           <Animated.View
@@ -308,7 +306,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
           </TouchableOpacity>
         </View>
       </View>
-    </PanGestureHandler>
+    </GestureDetector>
   );
 };
 

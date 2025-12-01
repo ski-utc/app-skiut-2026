@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, ActivityIndicator, Alert, RefreshControl, Modal, TextInput, ScrollView, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert, RefreshControl, Modal, TextInput, ScrollView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Home, Plus, Calendar, Users, Trash2, Play, Square, CheckCircle } from 'lucide-react-native';
 import { Checkbox } from 'expo-checkbox';
@@ -118,7 +119,7 @@ export default function GestionTourneeChambreScreen() {
 
     const addBinome = () => {
         setBinomes([...binomes, {
-            name: `Binôme ${String.fromCharCode(65 + binomes.length)}`,
+            name: `Binôme ${String.fromCharCode(65 + binomes.length)} `,
             member_ids: [],
             assigned_rooms: []
         }]);
@@ -182,7 +183,7 @@ export default function GestionTourneeChambreScreen() {
             const action = tour.is_active ? 'désactiver' : 'activer';
             Alert.alert(
                 `${action.charAt(0).toUpperCase() + action.slice(1)} la tournée`,
-                `Confirmer l'action sur la tournée du ${new Date(tour.tour_date).toLocaleDateString('fr-FR')} ?`,
+                `Confirmer l'action sur la tournée du ${new Date(tour.tour_date).toLocaleDateString('fr - FR')} ?`,
                 [
                     { text: 'Annuler', style: 'cancel' },
                     {

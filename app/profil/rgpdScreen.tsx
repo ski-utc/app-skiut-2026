@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, Alert, TouchableOpacity, Modal, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, Modal, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Shield, FileText, Trash2, UserX, Download, X, LucideProps } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import { WebView } from 'react-native-webview';

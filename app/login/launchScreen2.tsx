@@ -1,7 +1,8 @@
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Trophy, MessageCircle, Calendar } from 'lucide-react-native';
-import { HandlerStateChangeEvent, PanGestureHandler, PanGestureHandlerEventPayload, State } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
@@ -10,19 +11,18 @@ import { LoginStackParamList } from '../loginNavigator';
 export default function LaunchScreen2() {
   const navigation = useNavigation<NavigationProp<LoginStackParamList>>();
 
-  const handleGestureEvent = (event: HandlerStateChangeEvent<PanGestureHandlerEventPayload>) => {
-    if (event.nativeEvent.state === State.END) {
-      if (event.nativeEvent.velocityX < -500) {
+  const panGesture = Gesture.Pan()
+    .runOnJS(true)
+    .onEnd((e) => {
+      if (e.velocityX < -500) {
         navigation.navigate("launchScreen3");
-      }
-      else if (event.nativeEvent.velocityX > 500) {
+      } else if (e.velocityX > 500) {
         navigation.goBack();
       }
-    }
-  };
+    });
 
   return (
-    <PanGestureHandler onHandlerStateChange={handleGestureEvent}>
+    <GestureDetector gesture={panGesture}>
       <SafeAreaView style={styles.container}>
         <View style={styles.backgroundDecoration} />
 
@@ -80,7 +80,7 @@ export default function LaunchScreen2() {
           </TouchableOpacity>
         </View>
       </SafeAreaView>
-    </PanGestureHandler>
+    </GestureDetector>
   );
 }
 

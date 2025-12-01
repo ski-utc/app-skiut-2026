@@ -121,7 +121,7 @@ export default function PlanningScreen() {
     } finally {
       setLoading(false);
     }
-  }, [setUser, selectedDate, activitiesMap]);
+  }, [setUser]);
 
   useEffect(() => {
     fetchPlanning();
@@ -333,10 +333,10 @@ export default function PlanningScreen() {
                 <Text style={styles.modalTitle}>
                   {permanenceDetails?.name || 'Permanence'}
                 </Text>
+                <TouchableOpacity onPress={closePermanenceModal} style={styles.closeButton}>
+                  <X size={24} color={Colors.primaryBorder} />
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity onPress={closePermanenceModal} style={styles.closeButton}>
-                <X size={24} color={Colors.primaryBorder} />
-              </TouchableOpacity>
             </View>
 
             {loadingPermanence ? (

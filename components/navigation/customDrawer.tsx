@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Bus, Map, Phone, LogOut, ChevronRight, Gauge, Heart, UserRoundCheck, Shield, Cookie, Home, LucideProps } from 'lucide-react-native';
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
 

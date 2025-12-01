@@ -101,6 +101,6 @@ const styles = StyleSheet.create({
     gap: 24,
     justifyContent: 'flex-start',
     marginHorizontal: 15,
-    paddingVertical: 18,
+    paddingVertical: 12,
   },
 });

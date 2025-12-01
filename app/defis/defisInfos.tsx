@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert, Modal, StatusBar, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import * as ImageManipulator from "expo-image-manipulator";
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { LandPlot, Trash, Check, Hourglass, X, Upload, CloudOff, Maximize, Play, Pause, Image as ImageIcon, Video as VideoIcon } from 'lucide-react-native';
@@ -100,9 +100,9 @@ export default function DefisInfos() {
       return;
     }
 
-    let mediaTypes = ImagePicker.MediaTypeOptions.All;
-    if (type === 'image') mediaTypes = ImagePicker.MediaTypeOptions.Images;
-    else if (type === 'video') mediaTypes = ImagePicker.MediaTypeOptions.Videos;
+    let mediaTypes: ('images' | 'videos')[] = ['images', 'videos'];
+    if (type === 'image') mediaTypes = ['images'];
+    else if (type === 'video') mediaTypes = ['videos'];
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes,
@@ -306,12 +306,9 @@ export default function DefisInfos() {
           ) : proofMedia ? (
             <View style={styles.mediaPreviewContainer}>
               {mediaType === 'video' ? (
-                <Video
-                  source={{ uri: proofMedia }}
-                  style={styles.mediaPreview}
-                  resizeMode={ResizeMode.COVER}
-                  shouldPlay={isPlaying}
-                  isLooping={false}
+                <PreviewVideoPlayer
+                  uri={proofMedia}
+                  isPlaying={isPlaying}
                   onError={() => setNetworkError(true)}
                 />
               ) : (
@@ -423,15 +420,11 @@ export default function DefisInfos() {
 
             {mediaType === 'video' ? (
               <View style={styles.modalVideoContainer}>
-                <Video
-                  source={{ uri: proofMedia }}
-                  style={styles.modalVideo}
-                  resizeMode={ResizeMode.CONTAIN}
+                <ModalVideoPlayer
+                  uri={proofMedia}
                   shouldPlay={isFullscreenVideoPlaying}
-                  isLooping={false}
-                  useNativeControls={true}
-                  onPlaybackStatusUpdate={(status: AVPlaybackStatus) => {
-                    if (status.isLoaded && status.isPlaying) {
+                  onPlaybackStatusUpdate={(isPlaying) => {
+                    if (isPlaying) {
                       setIsFullscreenVideoPlaying(true);
                     }
                   }}
@@ -783,3 +776,59 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
 });
+
+function PreviewVideoPlayer({ uri, isPlaying, onError: _onError }: { uri: string, isPlaying: boolean, onError: () => void }) {
+  const player = useVideoPlayer(uri, player => {
+    player.loop = false;
+  });
+
+  useEffect(() => {
+    if (isPlaying) {
+      player.play();
+    } else {
+      player.pause();
+    }
+  }, [isPlaying, player]);
+
+  return (
+    <VideoView
+      player={player}
+      style={styles.mediaPreview}
+      contentFit="cover"
+      allowsFullscreen={false}
+      allowsPictureInPicture={false}
+      nativeControls={false}
+    />
+  );
+}
+
+function ModalVideoPlayer({ uri, shouldPlay, onPlaybackStatusUpdate }: { uri: string, shouldPlay: boolean, onPlaybackStatusUpdate: (isPlaying: boolean) => void }) {
+  const player = useVideoPlayer(uri, player => {
+    player.loop = false;
+  });
+
+  useEffect(() => {
+    if (shouldPlay) {
+      player.play();
+    } else {
+      player.pause();
+    }
+  }, [shouldPlay, player]);
+
+  useEffect(() => {
+    const subscription = player.addListener('playingChange', (isPlaying) => {
+      onPlaybackStatusUpdate(isPlaying.isPlaying);
+    });
+    return () => subscription.remove();
+  }, [player, onPlaybackStatusUpdate]);
+
+  return (
+    <VideoView
+      player={player}
+      style={styles.modalVideo}
+      contentFit="contain"
+      allowsFullscreen
+      allowsPictureInPicture
+    />
+  );
+}

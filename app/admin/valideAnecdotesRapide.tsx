@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { StyleSheet, View, Text, ActivityIndicator, Animated, TouchableOpacity, SafeAreaView } from 'react-native';
-import { HandlerStateChangeEvent, PanGestureHandler, PanGestureHandlerEventPayload, State } from 'react-native-gesture-handler';
+import { StyleSheet, View, Text, ActivityIndicator, Animated, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Check, X, HelpCircle, MessageSquare, AlertTriangle } from 'lucide-react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -57,15 +58,14 @@ export default function ValideAnecdotesRapide() {
     const activeOpacity = 1;
     const inactiveOpacity = 0.4;
 
-    const handleGesture = Animated.event(
-        [{ nativeEvent: { translationX: translateX } }],
-        { useNativeDriver: false }
-    );
-
-    const handleGestureStateChange = (event: HandlerStateChangeEvent<PanGestureHandlerEventPayload>) => {
-        if (event.nativeEvent.state === State.END) {
+    const panGesture = Gesture.Pan()
+        .runOnJS(true)
+        .onUpdate((e) => {
+            translateX.setValue(e.translationX);
+        })
+        .onEnd((e) => {
             const threshold = 120;
-            const { translationX } = event.nativeEvent;
+            const { translationX } = e;
 
             if (translationX > threshold) {
                 triggerAnimation(validOpacity);
@@ -78,8 +78,7 @@ export default function ValideAnecdotesRapide() {
             } else {
                 resetPosition();
             }
-        }
-    };
+        });
 
     const triggerAnimation = (opacityRef: Animated.Value) => {
         Animated.sequence([
@@ -225,7 +224,7 @@ export default function ValideAnecdotesRapide() {
                         </View>
 
                         <View style={styles.cardContainer}>
-                            <PanGestureHandler onGestureEvent={handleGesture} onHandlerStateChange={handleGestureStateChange}>
+                            <GestureDetector gesture={panGesture}>
                                 <Animated.View style={[styles.card, {
                                     transform: [
                                         { translateX },
@@ -276,7 +275,7 @@ export default function ValideAnecdotesRapide() {
                                         </View>
                                     </View>
                                 </Animated.View>
-                            </PanGestureHandler>
+                            </GestureDetector>
                         </View>
 
                         <View style={styles.actionButtonsContainer}>

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { StyleSheet, View, Image, Text, ActivityIndicator, Animated, TouchableOpacity, ScrollView } from 'react-native';
-import { HandlerStateChangeEvent, PanGestureHandler, PanGestureHandlerEventPayload, State } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Heart, X, User, MessageCircle, Settings } from 'lucide-react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 
@@ -147,15 +147,14 @@ export default function SkinderDiscover() {
         }
     };
 
-    const handleGesture = Animated.event(
-        [{ nativeEvent: { translationX: translateX } }],
-        { useNativeDriver: false }
-    );
-
-    const handleGestureStateChange = (event: HandlerStateChangeEvent<PanGestureHandlerEventPayload>) => {
-        if (event.nativeEvent.state === State.END) {
+    const panGesture = Gesture.Pan()
+        .runOnJS(true)
+        .onUpdate((e) => {
+            translateX.setValue(e.translationX);
+        })
+        .onEnd((e) => {
             const threshold = 120;
-            const { translationX } = event.nativeEvent;
+            const { translationX } = e;
 
             if (translationX > threshold) {
                 triggerAnimation(likeOpacity);
@@ -167,8 +166,7 @@ export default function SkinderDiscover() {
             } else {
                 resetPosition();
             }
-        }
-    };
+        });
 
     const triggerAnimation = (opacityRef: Animated.Value) => {
         Animated.sequence([
@@ -245,7 +243,7 @@ export default function SkinderDiscover() {
                 {!noPhoto ? (
                     !tooMuch && profile ? (
                         <View style={styles.cardContainer}>
-                            <PanGestureHandler onGestureEvent={handleGesture} onHandlerStateChange={handleGestureStateChange}>
+                            <GestureDetector gesture={panGesture}>
                                 <Animated.View style={[styles.card, {
                                     transform: [
                                         { translateX },
@@ -300,7 +298,7 @@ export default function SkinderDiscover() {
                                         )}
                                     </ScrollView>
                                 </Animated.View>
-                            </PanGestureHandler>
+                            </GestureDetector>
                         </View>
                     ) : (
                         <View style={styles.emptyStateContainer}>

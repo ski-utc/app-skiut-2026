@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator, ScrollView, SafeAreaView } from 'react-native';
+import { Text, View, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, NavigationProp, useNavigation } from '@react-navigation/native';
 import { Check, Bell, Calendar, Users, X } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';

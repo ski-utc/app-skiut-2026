@@ -795,7 +795,7 @@ function PreviewVideoPlayer({ uri, isPlaying, onError: _onError }: { uri: string
       player={player}
       style={styles.mediaPreview}
       contentFit="cover"
-      allowsFullscreen={false}
+      fullscreenOptions={{ enable: false }}
       allowsPictureInPicture={false}
       nativeControls={false}
     />
@@ -827,7 +827,7 @@ function ModalVideoPlayer({ uri, shouldPlay, onPlaybackStatusUpdate }: { uri: st
       player={player}
       style={styles.modalVideo}
       contentFit="contain"
-      allowsFullscreen
+      fullscreenOptions={{ enable: false }}
       allowsPictureInPicture
     />
   );

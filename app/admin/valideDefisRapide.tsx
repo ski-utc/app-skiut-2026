@@ -535,7 +535,7 @@ function VideoPlayerComponent({ uri }: { uri: string }) {
             player={player}
             style={styles.media}
             contentFit="contain"
-            allowsFullscreen
+            fullscreenOptions={{ enable: false }}
             allowsPictureInPicture
         />
     );

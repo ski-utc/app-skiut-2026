@@ -39,11 +39,13 @@ type PendingRequest = {
   data: unknown;
   options: ApiCallOptions;
   timestamp: number;
+  retries?: number;
 };
 
 export type SyncPendingRequestsResult = {
   success: number;
   failed: number;
+  retrying: number;
   errors: { request?: unknown; error: string }[];
 };
 
@@ -52,6 +54,7 @@ type ApiCallOptions = {
   cacheTTL?: number;
   multimedia?: boolean;
   invalidateCache?: string | string[];
+  skipPendingSave?: boolean;
 };
 
 export class AuthError extends Error {
@@ -114,6 +117,17 @@ const removePendingRequest = async (id: string) => {
   } catch (e) { console.error("Remove pending error", e); }
 };
 
+const updatePendingRequest = async (req: PendingRequest) => {
+  try {
+    const current = await getPendingRequests();
+    const index = current.findIndex(r => r.id === req.id);
+    if (index !== -1) {
+      current[index] = req;
+      await AsyncStorage.setItem(STORAGE_KEYS.PENDING, JSON.stringify(current));
+    }
+  } catch (e) { console.error("Update pending error", e); }
+};
+
 const saveOfflineCache = async <T>(url: string, data: T) => {
   try {
     await AsyncStorage.setItem(`${STORAGE_KEYS.OFFLINE_PREFIX}${url}`, JSON.stringify(data));
@@ -136,7 +150,7 @@ const apiCall = async <T = unknown>(
   data: unknown = null,
   options: ApiCallOptions = {}
 ): Promise<ApiResponse<T>> => {
-  const { useCache = false, cacheTTL, multimedia = false, invalidateCache } = options;
+  const { useCache = false, cacheTTL, multimedia = false, invalidateCache, skipPendingSave = false } = options;
 
   if (method === 'GET' && useCache) {
     const cached = apiCache.get<T>(url);
@@ -206,17 +220,20 @@ const apiCall = async <T = unknown>(
           Toast.show({ type: 'info', text1: 'Mode hors ligne', text2: 'Données récupérées du cache.' });
           return { success: true, data: offlineData };
         }
-      }
-      else {
-        await savePendingRequest({
-          id: Date.now().toString(),
-          method, url, data, options, timestamp: Date.now()
-        });
-        return {
-          success: false,
-          pending: true,
-          message: 'Pas de connexion. Action sauvegardée pour plus tard.'
-        };
+      } else {
+        if (!skipPendingSave) {
+          await savePendingRequest({
+            id: Date.now().toString(),
+            method, url, data, options, timestamp: Date.now(), retries: 0
+          });
+          return {
+            success: false,
+            pending: true,
+            message: 'Pas de connexion. Action sauvegardée pour plus tard.'
+          };
+        } else {
+          throw error;
+        }
       }
     }
 
@@ -255,29 +272,41 @@ const refreshTokens = async (): Promise<boolean> => {
 
 export const syncPendingRequests = async (): Promise<SyncPendingRequestsResult> => {
   const pending = await getPendingRequests();
-  if (pending.length === 0) return { success: 0, failed: 0, errors: [] };
+  if (pending.length === 0) return { success: 0, failed: 0, retrying: 0, errors: [] };
 
   Toast.show({ type: 'info', text1: 'Synchronisation...', text2: `${pending.length} actions en attente.` });
 
   let success = 0;
   let failed = 0;
+  let retrying = 0;
   const errors: { request?: unknown; error: string }[] = [];
 
   for (const req of pending) {
     try {
-      await apiCall(req.method, req.url, req.data, { ...req.options, useCache: false });
+      await apiCall(req.method, req.url, req.data, { ...req.options, useCache: false, skipPendingSave: true });
+
       await removePendingRequest(req.id);
       success++;
     } catch (e) {
-      if (!isNetworkError(e)) {
+      const currentRetries = req.retries || 0;
+
+      if (currentRetries >= 2) {
         await removePendingRequest(req.id);
         failed++;
-        errors.push({ request: req.data, error: e instanceof Error ? e.message : 'Erreur inconnue' });
+        errors.push({ request: req.data, error: `Max retries reached. Last error: ${e instanceof Error ? e.message : 'Unknown'}` });
+      } else {
+        req.retries = currentRetries + 1;
+        await updatePendingRequest(req);
+        retrying++;
       }
     }
   }
-  Toast.show({ type: 'success', text1: 'Synchronisation terminée' });
-  return { success, failed, errors };
+
+  if (success > 0 || failed > 0 || retrying > 0) {
+    Toast.show({ type: 'success', text1: 'Synchronisation terminée', text2: `${success} succès, ${failed} abandonnées, ${retrying} re-planifiées` });
+  }
+
+  return { success, failed, retrying, errors };
 };
 
 export const handleApiErrorToast = (error: unknown, setUser: (u: User | null) => void) => {

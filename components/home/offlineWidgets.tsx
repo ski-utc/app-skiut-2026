@@ -90,6 +90,7 @@ export const PendingRequestsWidget: React.FC = () => {
             setSyncPendingRequestsResult({
                 success: 0,
                 failed: pendingCount,
+                retrying: 0,
                 errors: [{ error: 'Erreur technique lors de la synchronisation' }]
             });
         } finally {
@@ -117,7 +118,15 @@ export const PendingRequestsWidget: React.FC = () => {
                         <View style={styles.syncPendingRequestsResultRow}>
                             <AlertCircle size={20} color={Colors.error} strokeWidth={2} />
                             <Text style={[styles.syncPendingRequestsResultText, { color: Colors.error }]}>
-                                {syncPendingRequestsResult.failed} transaction{syncPendingRequestsResult.failed > 1 ? 's' : ''} échouée{syncPendingRequestsResult.failed > 1 ? 's' : ''}
+                                {syncPendingRequestsResult.failed} transaction{syncPendingRequestsResult.failed > 1 ? 's' : ''} abandonnée{syncPendingRequestsResult.failed > 1 ? 's' : ''}
+                            </Text>
+                        </View>
+                    )}
+                    {syncPendingRequestsResult.retrying > 0 && (
+                        <View style={styles.syncPendingRequestsResultRow}>
+                            <RefreshCw size={20} color={Colors.accent} strokeWidth={2} />
+                            <Text style={[styles.syncPendingRequestsResultText, { color: Colors.accent }]}>
+                                {syncPendingRequestsResult.retrying} transaction{syncPendingRequestsResult.retrying > 1 ? 's' : ''} re-planifiée{syncPendingRequestsResult.retrying > 1 ? 's' : ''}
                             </Text>
                         </View>
                     )}

@@ -498,17 +498,16 @@ export default function HomeScreen() {
         {tourStatus && tourStatus.tour_active && (
           <WidgetCard
             title={`Tournée des chambres en cours`}
-            subtitles={[
-              {
-                text: tourStatus.rooms_before === 0
-                  ? '• Votre chambre est la prochaine sur la liste !'
-                  : `• ${tourStatus.rooms_before} chambre${tourStatus.rooms_before !== 1 ? 's' : ''} à visiter avant la vôtre`
-              },
-              { text: `• Binôme qui viendra vous voir :` },
-              ...tourStatus.binome.members.map((member) => ({
-                text: `  • ${member.firstName} ${member.lastName}`
-              }))
-            ]}
+            subtitles={
+              [
+                { text: `${tourStatus.binome.members[0].firstName} ${tourStatus.binome.members[0].lastName} et ${tourStatus.binome.members[1].firstName} ${tourStatus.binome.members[1].lastName} vont bientôt passer vous voir` },
+                {
+                  text: tourStatus.rooms_before === 1
+                    ? 'Votre chambre est la prochaine sur la liste !'
+                    : `${tourStatus.rooms_before} chambre${tourStatus.rooms_before !== 1 ? 's' : ''} à visiter avant la vôtre`
+                },
+              ]
+            }
             icon={Home}
             variant="secondary"
           />

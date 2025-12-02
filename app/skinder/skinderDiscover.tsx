@@ -36,6 +36,7 @@ export default function SkinderDiscover() {
     const [tooMuch, setTooMuch] = useState(false);
 
     const [profile, setProfile] = useState<Profile | null>(null);
+    const [nextProfile, setNextProfile] = useState<Profile | null>(null);
     const [imageProfil, setImageProfil] = useState("https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png");
 
     const [disableButton, setDisableButton] = useState(false);
@@ -62,7 +63,53 @@ export default function SkinderDiscover() {
         ]).start();
     }, [translateX, translateY, cardOpacity]);
 
+    const prefetchNextProfile = useCallback(async () => {
+        try {
+            const response = await apiGet<Profile>('skinder/profiles');
+
+            if (response.message === "NoPhoto" || response.message === "TooMuch") {
+                setNextProfile(null);
+                return;
+            }
+
+            if (isSuccessResponse(response)) {
+                let parsedPassions: string[] = [];
+                if (typeof response.data.passions === 'string') {
+                    try {
+                        parsedPassions = JSON.parse(response.data.passions);
+                    } catch {
+                        parsedPassions = [];
+                    }
+                } else if (Array.isArray(response.data.passions)) {
+                    parsedPassions = response.data.passions;
+                }
+
+                setNextProfile({
+                    id: response.data.id,
+                    name: response.data.name,
+                    description: response.data.description,
+                    passions: parsedPassions,
+                    image: response.data.image,
+                });
+            }
+        } catch (err: unknown) {
+            // Silently fail prefetch, will fetch normally on next swipe
+            setNextProfile(null);
+        }
+    }, []);
+
     const fetchProfil = useCallback(async (isRefresh = false) => {
+        // If we have a prefetched profile and it's not a refresh, use it immediately
+        if (!isRefresh && nextProfile) {
+            setProfile(nextProfile);
+            setImageProfil(nextProfile.image);
+            setNextProfile(null);
+            resetPosition();
+            // Start prefetching the next one
+            prefetchNextProfile();
+            return;
+        }
+
         if (isRefresh) setRefreshing(true);
         else setLoading(true);
 
@@ -74,7 +121,13 @@ export default function SkinderDiscover() {
         try {
             const response = await apiGet<Profile>('skinder/profiles');
 
-            if (isSuccessResponse(response)) {
+            if (response.message === "NoPhoto") {
+                setNoPhoto(true);
+                return;
+            } else if (response.message === "TooMuch") {
+                setTooMuch(true);
+                return;
+            } else if (isSuccessResponse(response)) {
                 let parsedPassions: string[] = [];
                 if (typeof response.data.passions === 'string') {
                     try {
@@ -94,10 +147,8 @@ export default function SkinderDiscover() {
                     image: response.data.image,
                 });
                 setImageProfil(response.data.image);
-            } else {
-                if (response.message === "NoPhoto") setNoPhoto(true);
-                else if (response.message === "TooMuch") setTooMuch(true);
-                else setError(response.message || "Erreur inconnue");
+                // Start prefetching the next profile
+                prefetchNextProfile();
             }
         } catch (err: unknown) {
             if (isRefresh) {
@@ -111,7 +162,7 @@ export default function SkinderDiscover() {
             setRefreshing(false);
             resetPosition();
         }
-    }, [setUser, resetPosition]);
+    }, [setUser, resetPosition, nextProfile, prefetchNextProfile]);
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('focus', () => {
@@ -147,6 +198,24 @@ export default function SkinderDiscover() {
         }
     };
 
+    const triggerAnimation = (opacityRef: Animated.Value) => {
+        Animated.sequence([
+            Animated.timing(opacityRef, { toValue: 1, duration: 300, useNativeDriver: true }),
+            Animated.delay(200),
+            Animated.timing(opacityRef, { toValue: 0, duration: 300, useNativeDriver: true }),
+        ]).start();
+    };
+
+    const animateCardOut = (toValue: number) => {
+        Animated.parallel([
+            Animated.timing(translateX, { toValue, duration: 300, useNativeDriver: false }),
+            Animated.timing(translateY, { toValue: 20, duration: 300, useNativeDriver: false }),
+            Animated.timing(cardOpacity, { toValue: 0, duration: 300, useNativeDriver: false }),
+        ]).start(() => {
+            if (toValue < 0) fetchProfil();
+        });
+    };
+
     const panGesture = Gesture.Pan()
         .runOnJS(true)
         .onUpdate((e) => {
@@ -167,24 +236,6 @@ export default function SkinderDiscover() {
                 resetPosition();
             }
         });
-
-    const triggerAnimation = (opacityRef: Animated.Value) => {
-        Animated.sequence([
-            Animated.timing(opacityRef, { toValue: 1, duration: 300, useNativeDriver: true }),
-            Animated.delay(200),
-            Animated.timing(opacityRef, { toValue: 0, duration: 300, useNativeDriver: true }),
-        ]).start();
-    };
-
-    const animateCardOut = (toValue: number) => {
-        Animated.parallel([
-            Animated.timing(translateX, { toValue, duration: 300, useNativeDriver: false }),
-            Animated.timing(translateY, { toValue: 20, duration: 300, useNativeDriver: false }),
-            Animated.timing(cardOpacity, { toValue: 0, duration: 300, useNativeDriver: false }),
-        ]).start(() => {
-            if (toValue < 0) fetchProfil();
-        });
-    };
 
     const handleLikeButton = () => {
         triggerAnimation(likeOpacity);

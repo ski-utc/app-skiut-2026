@@ -4,7 +4,6 @@ import { EventArg, NavigationAction } from '@react-navigation/native';
 import Contact from './profil/contactScreen';
 import PlanScreen from './profil/planScreen';
 import VitesseDeGlisseNavigator from './profil/vitesseDeGlisse/vitesseDeGlisseNavigator';
-import SkinderNavigator from './skinder/skinderNavigator';
 import NavettesScreen from './profil/navettesScreen';
 import RGPDScreen from './profil/rgpdScreen';
 import TourneeChambreScreen from './profil/tourneeChambreScreen';
@@ -15,7 +14,6 @@ type DrawerStackParamList = {
     ContactScreen: undefined;
     PlanScreen: undefined;
     VitesseDeGlisseScreen: undefined;
-    SkinderNavigator: undefined;
     NavettesScreen: undefined;
     RGPDScreen: undefined;
     MonoprutNavigator: undefined;
@@ -62,11 +60,6 @@ export default function DrawerNavigator() {
             <Stack.Screen
                 name="VitesseDeGlisseScreen"
                 component={VitesseDeGlisseNavigator}
-                listeners={getScreenListeners}
-            />
-            <Stack.Screen
-                name="SkinderNavigator"
-                component={SkinderNavigator}
                 listeners={getScreenListeners}
             />
             <Stack.Screen

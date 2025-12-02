@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Bus, Map, Phone, LogOut, ChevronRight, Gauge, Heart, UserRoundCheck, Shield, Cookie, Home, LucideProps } from 'lucide-react-native';
+import { Bus, Map, Phone, LogOut, ChevronRight, Gauge, UserRoundCheck, Shield, Cookie, Home, LucideProps } from 'lucide-react-native';
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
 
 import { Colors, TextStyles, FontSizes } from '@/constants/GraphSettings';
@@ -63,11 +63,6 @@ export default function CustomDrawer({ navigation }: CustomDrawerProps) {
             label: 'Vitesse de glisse',
             icon: Gauge,
             onPress: () => navigateToScreen('VitesseDeGlisseScreen')
-        },
-        {
-            label: 'Skinder',
-            icon: Heart,
-            onPress: () => navigateToScreen('SkinderNavigator')
         },
         {
             label: "Monopr'UT",
@@ -185,7 +180,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.primary,
         paddingBottom: 40,
         paddingHorizontal: 20,
-        paddingTop: 40,
+        paddingTop: 20,
         position: 'relative',
     },
     itemIconContainer: {

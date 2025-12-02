@@ -183,7 +183,7 @@ export default function GestionTourneeChambreScreen() {
             const action = tour.is_active ? 'désactiver' : 'activer';
             Alert.alert(
                 `${action.charAt(0).toUpperCase() + action.slice(1)} la tournée`,
-                `Confirmer l'action sur la tournée du ${new Date(tour.tour_date).toLocaleDateString('fr - FR')} ?`,
+                `Confirmer l'action sur la tournée du ${new Date(tour.tour_date).toLocaleDateString('fr-FR')} ?`,
                 [
                     { text: 'Annuler', style: 'cancel' },
                     {
@@ -399,7 +399,7 @@ export default function GestionTourneeChambreScreen() {
 
             <Modal
                 visible={showCreateModal}
-                animationType="slide"
+                animationType="fade"
                 presentationStyle="pageSheet"
                 onRequestClose={() => setShowCreateModal(false)}
             >
@@ -553,7 +553,7 @@ export default function GestionTourneeChambreScreen() {
                     <Modal
                         visible={showMemberPicker !== null}
                         transparent={true}
-                        animationType="slide"
+                        animationType="fade"
                     >
                         <View style={styles.pickerModalOverlay}>
                             <View style={styles.pickerModalContent}>
@@ -606,7 +606,7 @@ export default function GestionTourneeChambreScreen() {
                     <Modal
                         visible={showRoomPicker !== null}
                         transparent={true}
-                        animationType="slide"
+                        animationType="fade"
                     >
                         <View style={styles.pickerModalOverlay}>
                             <View style={styles.pickerModalContent}>

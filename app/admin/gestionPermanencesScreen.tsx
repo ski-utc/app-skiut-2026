@@ -471,7 +471,7 @@ export default function GestionPermanencesScreen() {
 
             <Modal
                 visible={showCreateModal}
-                animationType="slide"
+                animationType="fade"
                 transparent={true}
                 onRequestClose={() => setShowCreateModal(false)}
             >
@@ -847,7 +847,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     inputSection: {
-        marginBottom: 20,
+        marginBottom: 30,
     },
     listContainer: {
         paddingBottom: 20,
@@ -883,7 +883,7 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         elevation: 10,
-        maxHeight: '90%',
+        maxHeight: '80%',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: -4 },
         shadowOpacity: 0.25,
@@ -893,7 +893,7 @@ const styles = StyleSheet.create({
         padding: 4,
     },
     modalContent: {
-        maxHeight: '70%',
+        maxHeight: '75%',
         paddingHorizontal: 20,
         paddingTop: 20,
     },
@@ -904,7 +904,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 12,
         paddingHorizontal: 20,
-        paddingVertical: 16,
+        paddingVertical: 12,
     },
     modalHeader: {
         alignItems: 'center',

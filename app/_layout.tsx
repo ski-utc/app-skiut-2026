@@ -3,7 +3,7 @@ import { ActivityIndicator, View, Text, StyleSheet, Platform, Keyboard } from 'r
 import { NavigationContainer, NavigationProp } from '@react-navigation/native';
 import { createBottomTabNavigator, BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react-native';
+import { Home, CalendarFold, LandPlot, MessageSquareText, Heart } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
 import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
@@ -19,12 +19,14 @@ import AnecdotesNavigator from './anecdotesNavigator';
 import DefisNavigator from './defisNavigator';
 import DrawerNavigator from './drawerNavigator';
 import LoginNavigator from './loginNavigator';
+import SkinderNavigator from './skinder/skinderNavigator';
 
 export type RootTabParamList = {
   homeNavigator: undefined;
   planningNavigator: undefined;
   defisNavigator: undefined;
   anecdotesNavigator: undefined;
+  skinderNavigator: undefined;
   drawerNavigator: undefined;
 };
 
@@ -139,6 +141,17 @@ function MainTabs() {
         }}
         listeners={({ navigation }) => ({
           tabPress: (e) => anecdotesListeners.tabPress(e, navigation),
+        })}
+      />
+      <Tab.Screen
+        name="skinderNavigator"
+        component={SkinderNavigator}
+        options={{
+          tabBarLabel: 'Skinder',
+          tabBarIcon: ({ color, size }) => <Heart color={color} size={size} />,
+        }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => skinderListeners.tabPress(e, navigation),
         })}
       />
       <Tab.Screen

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Image, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { NavigationProp, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { Heart, Sparkles, MapPin } from 'lucide-react-native';
+import { PartyPopper, Sparkles, MapPin } from 'lucide-react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
@@ -11,7 +11,7 @@ import { SkinderStackParamList } from './skinderNavigator';
 
 type MatchScreenRouteProp = RouteProp<SkinderStackParamList, 'matchScreen'>;
 
-const DEFAULT_USER_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png"; // TODO : replace with an icon
+const DEFAULT_USER_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png"; // TODO : replace with an icon (cf. DefisInfos.tsx)
 
 export default function MatchScreen() {
     const navigation = useNavigation<NavigationProp<SkinderStackParamList>>();
@@ -60,7 +60,7 @@ export default function MatchScreen() {
                     </View>
 
                     <View style={styles.heartContainer}>
-                        <Heart size={40} color={Colors.primary} fill={Colors.primary} />
+                        <PartyPopper size={40} stroke={Colors.primary} />
                     </View>
 
                     <View style={styles.profileImageContainer}>

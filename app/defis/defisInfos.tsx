@@ -57,6 +57,22 @@ export default function DefisInfos() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFullscreenVideoPlaying, setIsFullscreenVideoPlaying] = useState(false);
 
+  // Shared video player instance to prevent refetch
+  const videoPlayer = useVideoPlayer(proofMedia && mediaType === 'video' ? proofMedia : '', player => {
+    player.loop = false;
+  });
+
+  // Control video player playback
+  useEffect(() => {
+    if (mediaType === 'video' && videoPlayer) {
+      if (isPlaying || isFullscreenVideoPlaying) {
+        videoPlayer.play();
+      } else {
+        videoPlayer.pause();
+      }
+    }
+  }, [isPlaying, isFullscreenVideoPlaying, mediaType, videoPlayer]);
+
   const toggleModal = () => {
     if (!isModalVisible) {
       setIsPlaying(false);
@@ -190,7 +206,12 @@ export default function DefisInfos() {
       const extension = mediaType === 'video' ? '.mp4' : '.jpg';
       const fileName = `challenge_${id}_user_${user?.id}_${Date.now()}${extension}`;
 
-      formData.append('media', new Blob([uri], { type: mimeType }), fileName); // Todo : verify this semantics
+      // @ts-expect-error ts(2769)
+      formData.append('media', {
+        uri: uri,
+        name: fileName,
+        type: mimeType
+      });
       formData.append('defiId', id.toString());
       formData.append('mediaType', mediaType);
 
@@ -202,7 +223,7 @@ export default function DefisInfos() {
         Toast.show({
           type: isPending ? 'info' : 'success',
           text1: isPending ? 'Sauvegardé (Hors ligne)' : 'Défi envoyé !',
-          text2: response.message,
+          text2: isPending ? 'Veuillez patienter, votre défi sera envoyé une fois que vous serez en ligne.' : 'Votre défi a bien été envoyé !'
         });
 
         setModifiedMedia(false);
@@ -240,7 +261,7 @@ export default function DefisInfos() {
             try {
               const response = await apiDelete(`challenges/proof-media/${id}`);
 
-              if (isSuccessResponse(response) || isPendingResponse(response)) {
+              if (isSuccessResponse(response)) {
                 setProofMedia(null);
                 setMediaType('image');
                 setDynamicStatus('todo');
@@ -248,7 +269,13 @@ export default function DefisInfos() {
                 Toast.show({
                   type: 'success',
                   text1: 'Défi supprimé',
-                  text2: response.message
+                  text2: 'Votre défi a bien été supprimé !'
+                });
+              } else if (isPendingResponse(response)) {
+                Toast.show({
+                  type: 'info',
+                  text1: 'Demande supprimée (Hors ligne)',
+                  text2: 'Votre défi sera supprimé une fois que vous serez en ligne.'
                 });
               }
             } catch (err: unknown) {
@@ -306,10 +333,12 @@ export default function DefisInfos() {
           ) : proofMedia ? (
             <View style={styles.mediaPreviewContainer}>
               {mediaType === 'video' ? (
-                <PreviewVideoPlayer
-                  uri={proofMedia}
-                  isPlaying={isPlaying}
-                  onError={() => setNetworkError(true)}
+                <VideoView
+                  player={videoPlayer}
+                  style={styles.mediaPreview}
+                  contentFit="cover"
+                  allowsPictureInPicture={false}
+                  nativeControls={false}
                 />
               ) : (
                 <Image
@@ -420,14 +449,11 @@ export default function DefisInfos() {
 
             {mediaType === 'video' ? (
               <View style={styles.modalVideoContainer}>
-                <ModalVideoPlayer
-                  uri={proofMedia}
-                  shouldPlay={isFullscreenVideoPlaying}
-                  onPlaybackStatusUpdate={(isPlaying) => {
-                    if (isPlaying) {
-                      setIsFullscreenVideoPlaying(true);
-                    }
-                  }}
+                <VideoView
+                  player={videoPlayer}
+                  style={styles.modalVideo}
+                  contentFit="contain"
+                  allowsPictureInPicture
                 />
                 {!isFullscreenVideoPlaying && (
                   <TouchableOpacity
@@ -777,58 +803,4 @@ const styles = StyleSheet.create({
   },
 });
 
-function PreviewVideoPlayer({ uri, isPlaying, onError: _onError }: { uri: string, isPlaying: boolean, onError: () => void }) {
-  const player = useVideoPlayer(uri, player => {
-    player.loop = false;
-  });
 
-  useEffect(() => {
-    if (isPlaying) {
-      player.play();
-    } else {
-      player.pause();
-    }
-  }, [isPlaying, player]);
-
-  return (
-    <VideoView
-      player={player}
-      style={styles.mediaPreview}
-      contentFit="cover"
-      fullscreenOptions={{ enable: false }}
-      allowsPictureInPicture={false}
-      nativeControls={false}
-    />
-  );
-}
-
-function ModalVideoPlayer({ uri, shouldPlay, onPlaybackStatusUpdate }: { uri: string, shouldPlay: boolean, onPlaybackStatusUpdate: (isPlaying: boolean) => void }) {
-  const player = useVideoPlayer(uri, player => {
-    player.loop = false;
-  });
-
-  useEffect(() => {
-    if (shouldPlay) {
-      player.play();
-    } else {
-      player.pause();
-    }
-  }, [shouldPlay, player]);
-
-  useEffect(() => {
-    const subscription = player.addListener('playingChange', (isPlaying) => {
-      onPlaybackStatusUpdate(isPlaying.isPlaying);
-    });
-    return () => subscription.remove();
-  }, [player, onPlaybackStatusUpdate]);
-
-  return (
-    <VideoView
-      player={player}
-      style={styles.modalVideo}
-      contentFit="contain"
-      fullscreenOptions={{ enable: false }}
-      allowsPictureInPicture
-    />
-  );
-}

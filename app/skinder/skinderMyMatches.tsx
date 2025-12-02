@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { View, Text, ActivityIndicator, FlatList, TouchableOpacity, StyleSheet, Modal, ScrollView, Image, StatusBar } from 'react-native';
-import { Heart, User, Sparkles, Eye, X, Trophy } from 'lucide-react-native';
+import { PartyPopper, User, Sparkles, Eye, X, Trophy } from 'lucide-react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
@@ -35,7 +35,7 @@ type MatchedRoom = {
   respRoom?: string;
 }
 
-const DEFAULT_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png"; // TODO : replace with an icon
+const DEFAULT_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png"; // TODO : replace with an icon (cf. DefisInfos.tsx)
 
 const INITIAL_ROOM_DETAILS: RoomDetails = {
   id: null,
@@ -70,7 +70,7 @@ export default function SkinderMyMatches() {
     setError('');
 
     try {
-      const response = await apiGet<MatchedRoom[]>('skinder/matches', true);
+      const response = await apiGet<MatchedRoom[]>('skinder/matches');
 
       if (isSuccessResponse(response)) {
         setMatchedRooms(response.data || []);
@@ -149,7 +149,7 @@ export default function SkinderMyMatches() {
       activeOpacity={0.7}
     >
       <View style={styles.matchIconContainer}>
-        <Heart size={24} color={Colors.primary} fill={Colors.primary} />
+        <PartyPopper size={24} color={Colors.primary} />
       </View>
       <View style={styles.matchContent}>
         <Text style={styles.matchRoomNumber}>Chambre {item.roomNumber}</Text>
@@ -278,7 +278,7 @@ export default function SkinderMyMatches() {
                     <Text style={styles.modalSectionTitle}>Statistiques</Text>
                     <View style={styles.modalStatsContainer}>
                       <View style={styles.modalStatItem}>
-                        <Heart size={20} color={Colors.primary} fill={Colors.primary} />
+                        <PartyPopper size={20} color={Colors.primary} />
                         <Text style={styles.modalStatValue}>{roomDetails.statistics.likesReceived}</Text>
                         <Text style={styles.modalStatLabel}>Likes reçus</Text>
                       </View>

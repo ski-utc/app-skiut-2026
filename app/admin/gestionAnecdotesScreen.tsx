@@ -78,7 +78,7 @@ const GestionAnecdotesScreen = () => {
       const response = await apiGet<AnecdoteItem[]>('admin/anecdotes');
       if (response.success) {
         setAnecdotes(response.data);
-        setFilteredAnecdotes(response.data);
+        // setFilteredAnecdotes(response.data); // This line is removed as filter is re-applied in useEffect
       } else {
         handleApiErrorScreen(new ApiError(response.message), setUser, setError);
       }
@@ -117,11 +117,14 @@ const GestionAnecdotesScreen = () => {
     fetchAdminAnecdotes();
     const unsubscribe = navigation.addListener('focus', () => {
       fetchAdminAnecdotes();
-      handleFilter(activeFilter);
     });
 
     return unsubscribe;
-  }, [navigation, fetchAdminAnecdotes, activeFilter, handleFilter]);
+  }, [navigation, fetchAdminAnecdotes]);
+
+  useEffect(() => {
+    handleFilter(activeFilter);
+  }, [anecdotes, activeFilter, handleFilter]);
 
   if (error !== '') {
     return <ErrorScreen error={error} />;

@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { StyleSheet, View, Image, Text, ActivityIndicator, Animated, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { Check, X, HelpCircle, Trophy } from 'lucide-react-native';
+import { Check, X, HelpCircle, Trophy, Play, Pause, Video as VideoIcon, Image as ImageIcon } from 'lucide-react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import Toast from 'react-native-toast-message';
@@ -45,6 +45,10 @@ export default function ValideDefisRapide() {
     const [defi, setDefi] = useState<Defi | null>(null);
     const [loading, setLoading] = useState(false);
     const [processing, setProcessing] = useState(false);
+    const [viewedDefiIds, setViewedDefiIds] = useState<number[]>([]);
+    const [isPlaying, setIsPlaying] = useState(false);
+
+    const nextDefiRef = useRef<Defi | null>(null);
 
     const { setUser } = useUser();
     const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
@@ -58,6 +62,22 @@ export default function ValideDefisRapide() {
     const activeOpacity = 1;
     const inactiveOpacity = 0.4;
 
+    // Shared video player to prevent refetch
+    const videoPlayer = useVideoPlayer(defi?.proof_media && defi?.proof_media_type === 'video' ? defi.proof_media : '', player => {
+        player.loop = false;
+    });
+
+    // Control video playback
+    useEffect(() => {
+        if (defi?.proof_media_type === 'video' && videoPlayer) {
+            if (isPlaying) {
+                videoPlayer.play();
+            } else {
+                videoPlayer.pause();
+            }
+        }
+    }, [isPlaying, defi, videoPlayer]);
+
     const resetPosition = useCallback(() => {
         Animated.parallel([
             Animated.timing(translateX, { toValue: 0, duration: 200, useNativeDriver: false }),
@@ -66,23 +86,70 @@ export default function ValideDefisRapide() {
         ]).start();
     }, [translateX, translateY, cardOpacity]);
 
-    const fetchNextDefi = useCallback(async () => {
-        setLoading(true);
-        setNoDefis(false);
-        setError('');
-
+    const prefetchNextDefi = useCallback(async () => {
         try {
             const response = await apiGet<Defi[]>('admin/challenges', false);
 
             if (isSuccessResponse(response)) {
-                const pendingDefis = (response.data || []).filter(d => !d.valid && !d.delete); // Might can delete this part
+                setViewedDefiIds(currentViewedIds => {
+                    const pendingDefis = (response.data || [])
+                        .filter(d => !d.valid && !d.delete && !currentViewedIds.includes(d.id));
 
-                if (pendingDefis.length > 0) {
-                    setDefi(pendingDefis[0]);
-                } else {
-                    setNoDefis(true);
-                    setDefi(null);
-                }
+                    if (pendingDefis.length > 0) {
+                        nextDefiRef.current = pendingDefis[0];
+                    } else {
+                        nextDefiRef.current = null;
+                    }
+                    return currentViewedIds;
+                });
+            }
+        } catch (err: unknown) {
+            // Silent fail for prefetch
+        }
+    }, []);
+
+    const fetchNextDefi = useCallback(async () => {
+        // If we have a prefetched defi, use it immediately
+        if (nextDefiRef.current) {
+            const prefetchedDefi = nextDefiRef.current;
+            setDefi(prefetchedDefi);
+            setViewedDefiIds(prev => [...prev, prefetchedDefi.id]);
+            nextDefiRef.current = null;
+            setNoDefis(false);
+            setIsPlaying(false);
+            resetPosition();
+            // Start prefetching the next one
+            prefetchNextDefi();
+            return;
+        }
+
+        setLoading(true);
+        setNoDefis(false);
+        setError('');
+        setIsPlaying(false);
+
+        try {
+            const response = await apiGet<Defi[]>('admin/challenges', false);
+            setLoading(true);
+
+            if (isSuccessResponse(response)) {
+                setViewedDefiIds(currentViewedIds => {
+                    const pendingDefis = (response.data || [])
+                        .filter(d => !d.valid && !d.delete && !currentViewedIds.includes(d.id));
+
+                    if (pendingDefis.length > 0) {
+                        const nextDefi = pendingDefis[0];
+                        setDefi(nextDefi);
+                        setNoDefis(false);
+                        // Start prefetching
+                        prefetchNextDefi();
+                        return [...currentViewedIds, nextDefi.id];
+                    } else {
+                        setNoDefis(true);
+                        setDefi(null);
+                        return currentViewedIds;
+                    }
+                });
             } else {
                 handleApiErrorScreen(new ApiError(response.message), setUser, setError);
             }
@@ -92,7 +159,7 @@ export default function ValideDefisRapide() {
             setLoading(false);
             resetPosition();
         }
-    }, [setUser, resetPosition]);
+    }, [setUser, resetPosition, prefetchNextDefi]);
 
     const handleStatusUpdate = async (isValid: boolean) => {
         if (!defi || processing) return;
@@ -252,13 +319,41 @@ export default function ValideDefisRapide() {
                                 }]}>
                                     <View style={styles.mediaContainer}>
                                         {defi.proof_media_type === 'video' && defi.proof_media ? (
-                                            <VideoPlayerComponent uri={defi.proof_media} />
+                                            <>
+                                                <VideoView
+                                                    player={videoPlayer}
+                                                    style={styles.media}
+                                                    contentFit="cover"
+                                                    allowsPictureInPicture={false}
+                                                    nativeControls={false}
+                                                />
+                                                <View style={styles.mediaTypeBadge}>
+                                                    <VideoIcon size={14} color={Colors.white} />
+                                                    <Text style={styles.mediaTypeText}>Vidéo</Text>
+                                                </View>
+                                                {!isPlaying && (
+                                                    <TouchableOpacity style={styles.playButton} onPress={() => setIsPlaying(true)}>
+                                                        <Play size={28} color={Colors.white} />
+                                                    </TouchableOpacity>
+                                                )}
+                                                {isPlaying && (
+                                                    <TouchableOpacity style={styles.pauseButton} onPress={() => setIsPlaying(false)}>
+                                                        <Pause size={20} color={Colors.white} />
+                                                    </TouchableOpacity>
+                                                )}
+                                            </>
                                         ) : defi.proof_media_type === 'image' && defi.proof_media ? (
-                                            <Image
-                                                source={{ uri: defi.proof_media }}
-                                                style={styles.media}
-                                                resizeMode="contain"
-                                            />
+                                            <>
+                                                <Image
+                                                    source={{ uri: defi.proof_media }}
+                                                    style={styles.media}
+                                                    resizeMode="cover"
+                                                />
+                                                <View style={styles.mediaTypeBadge}>
+                                                    <ImageIcon size={14} color={Colors.white} />
+                                                    <Text style={styles.mediaTypeText}>Image</Text>
+                                                </View>
+                                            </>
                                         ) : (
                                             <View style={styles.noMediaContainer}>
                                                 <Trophy size={64} color={Colors.lightMuted} />
@@ -522,21 +617,45 @@ const styles = StyleSheet.create({
     validateButton: {
         backgroundColor: '#22c55e',
     },
+    mediaTypeBadge: {
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        borderRadius: 8,
+        flexDirection: 'row',
+        gap: 4,
+        left: 12,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        position: 'absolute',
+        top: 12,
+    },
+    mediaTypeText: {
+        color: Colors.white,
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    playButton: {
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        borderRadius: 40,
+        height: 80,
+        justifyContent: 'center',
+        left: '50%',
+        marginLeft: -40,
+        marginTop: -40,
+        position: 'absolute',
+        top: '50%',
+        width: 80,
+    },
+    pauseButton: {
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        borderRadius: 20,
+        height: 40,
+        justifyContent: 'center',
+        position: 'absolute',
+        right: 12,
+        top: 12,
+        width: 40,
+    },
 });
-
-function VideoPlayerComponent({ uri }: { uri: string }) {
-    const player = useVideoPlayer(uri, player => {
-        player.loop = true;
-        player.play();
-    });
-
-    return (
-        <VideoView
-            player={player}
-            style={styles.media}
-            contentFit="contain"
-            fullscreenOptions={{ enable: false }}
-            allowsPictureInPicture
-        />
-    );
-}

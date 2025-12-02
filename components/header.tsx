@@ -49,7 +49,7 @@ const Header = memo(({ refreshFunction, disableRefresh = false }: HeaderProps) =
 
   const updateUnreadNotifications = useCallback(async () => {
     try {
-      const response = await apiGet<Notification[]>('notifications', true);
+      const response = await apiGet<Notification[]>('notifications');
       if (isSuccessResponse(response) && response.data) {
         const hasUnread = response.data.some((notification) => !notification.read);
         setHasUnreadNotifications(hasUnread);

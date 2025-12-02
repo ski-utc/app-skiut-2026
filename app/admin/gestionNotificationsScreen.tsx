@@ -114,7 +114,7 @@ const GestionNotificationsScreen = () => {
     });
 
     return unsubscribe;
-  }, [navigation, fetchAdminNotifications, activeFilter, handleFilter]);
+  }, [navigation]);
 
   if (error !== '') {
     return <ErrorScreen error={error} />;

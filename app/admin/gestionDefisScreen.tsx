@@ -118,11 +118,14 @@ const GestionDefisScreen = () => {
     fetchAdminDefis();
     const unsubscribe = navigation.addListener('focus', () => {
       fetchAdminDefis();
-      handleFilter(activeFilter);
     });
 
     return unsubscribe;
-  }, [navigation, fetchAdminDefis, activeFilter, handleFilter]);
+  }, [navigation, fetchAdminDefis]);
+
+  useEffect(() => {
+    handleFilter(activeFilter);
+  }, [defis, activeFilter, handleFilter]);
 
   if (error !== '') {
     return <ErrorScreen error={error} />;

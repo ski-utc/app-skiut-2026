@@ -2,13 +2,13 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { StyleSheet, View, Text, ActivityIndicator, Animated, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { Check, X, HelpCircle, MessageSquare, AlertTriangle } from 'lucide-react-native';
+import { Check, Trash2, HelpCircle, MessageSquare, Heart, AlertTriangle } from 'lucide-react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiGet, apiPut, isPendingResponse, isSuccessResponse, handleApiErrorToast, handleApiErrorScreen, AppError, ApiError } from '@/constants/api/apiCalls';
+import { apiGet, apiPut, apiDelete, isPendingResponse, isSuccessResponse, handleApiErrorToast, handleApiErrorScreen, AppError, ApiError } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
@@ -16,33 +16,31 @@ import Header from '../../components/header';
 
 import { AdminStackParamList } from './adminNavigator';
 
-type User = {
-    id: number;
-    firstName: string;
-    lastName: string;
-};
-
-type Room = {
-    id: number;
-    name: string;
-    roomNumber: string;
-};
-
 type Anecdote = {
     id: number;
     text: string;
+    user: {
+        id: number;
+        firstName: string;
+        lastName: string;
+    };
+    room: {
+        id: number;
+        name: string;
+        roomNumber: number;
+    };
     nbLikes: number;
     nbWarns: number;
-    user: User;
-    room: Room;
     valid: boolean;
-    alert?: boolean;
+    alert: boolean;
 };
 
 export default function ValideAnecdotesRapide() {
     const [error, setError] = useState('');
     const [noAnecdotes, setNoAnecdotes] = useState(false);
     const [anecdote, setAnecdote] = useState<Anecdote | null>(null);
+    const [allAnecdotes, setAllAnecdotes] = useState<Anecdote[]>([]);
+    const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(false);
     const [processing, setProcessing] = useState(false);
 
@@ -104,19 +102,20 @@ export default function ValideAnecdotesRapide() {
         cardOpacity.setValue(1);
     }, [translateX, translateY, cardOpacity]);
 
-    const fetchNextAnecdote = useCallback(async () => {
+    const fetchAllAnecdotes = useCallback(async () => {
         setLoading(true);
         setError('');
 
         try {
-            const response = await apiGet<Anecdote[]>('admin/anecdotes', true);
+            const response = await apiGet<Anecdote[]>('admin/anecdotes');
 
             if (isSuccessResponse(response)) {
-                const list = response.data || [];
-                const pendingAnecdotes = list.filter((a) => !a.valid && !a.alert);
+                const pendingAnecdotes = (response.data || []).filter((a) => !a.valid && !a.alert);
+                setAllAnecdotes(pendingAnecdotes);
 
                 if (pendingAnecdotes.length > 0) {
                     setAnecdote(pendingAnecdotes[0]);
+                    setCurrentIndex(0);
                     setNoAnecdotes(false);
                 } else {
                     setAnecdote(null);
@@ -131,6 +130,20 @@ export default function ValideAnecdotesRapide() {
             setLoading(false);
         }
     }, [setUser]);
+
+    const fetchNextAnecdote = useCallback(() => {
+        const nextIndex = currentIndex + 1;
+
+        if (nextIndex < allAnecdotes.length) {
+            setAnecdote(allAnecdotes[nextIndex]);
+            setCurrentIndex(nextIndex);
+            setNoAnecdotes(false);
+            resetPosition();
+        } else {
+            setAnecdote(null);
+            setNoAnecdotes(true);
+        }
+    }, [currentIndex, allAnecdotes, resetPosition]);
 
     const updateStatus = async (isValid: boolean) => {
         if (!anecdote || processing) return;
@@ -169,8 +182,40 @@ export default function ValideAnecdotesRapide() {
     };
 
     const handleValidate = () => updateStatus(true);
-    const handleReject = () => updateStatus(false);
+    const handleReject = () => {
+        if (!anecdote || processing) return;
+        setProcessing(true);
 
+        apiDelete(`admin/anecdotes/${anecdote.id}`)
+            .then((response) => {
+                if (isSuccessResponse(response)) {
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Anecdote supprimée !',
+                        text2: response.message,
+                    });
+                } else if (isPendingResponse(response)) {
+                    Toast.show({
+                        type: 'info',
+                        text1: 'Mode Hors Ligne',
+                        text2: 'La suppression sera effectuée plus tard',
+                    });
+                } else {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Erreur',
+                        text2: response.message,
+                    });
+                }
+                fetchNextAnecdote();
+            })
+            .catch((error) => {
+                handleApiErrorToast(error as AppError, setUser);
+            })
+            .finally(() => {
+                setProcessing(false);
+            });
+    };
     const handleSkip = () => {
         animateCardOut(600);
         setTimeout(fetchNextAnecdote, 300);
@@ -189,8 +234,8 @@ export default function ValideAnecdotesRapide() {
     };
 
     useEffect(() => {
-        fetchNextAnecdote();
-    }, [fetchNextAnecdote]);
+        fetchAllAnecdotes();
+    }, [fetchAllAnecdotes]);
 
     if (error) {
         return <ErrorScreen error={error} />;
@@ -265,13 +310,15 @@ export default function ValideAnecdotesRapide() {
                                     </View>
 
                                     <View style={styles.statsSection}>
-                                        <View style={styles.statItem}>
-                                            <Text style={styles.statLabel}>❤️ J'aimes</Text>
-                                            <Text style={styles.statValue}>{anecdote.nbLikes}</Text>
-                                        </View>
-                                        <View style={styles.statItem}>
-                                            <Text style={styles.statLabel}><AlertTriangle size={16} /> Signalements</Text>
-                                            <Text style={styles.statValue}>{anecdote.nbWarns}</Text>
+                                        <View style={styles.statsRow}>
+                                            <View style={styles.statItem}>
+                                                <Heart size={16} color={Colors.primary} />
+                                                <Text style={styles.statText}>{anecdote.nbLikes}</Text>
+                                            </View>
+                                            <View style={styles.statItem}>
+                                                <AlertTriangle size={16} color={Colors.error} />
+                                                <Text style={styles.statText}>{anecdote.nbWarns}</Text>
+                                            </View>
                                         </View>
                                     </View>
                                 </Animated.View>
@@ -284,7 +331,7 @@ export default function ValideAnecdotesRapide() {
                                 disabled={processing}
                                 style={[styles.actionButton, styles.rejectButton, { opacity: processing ? inactiveOpacity : activeOpacity }]}
                             >
-                                <X size={32} color={Colors.white} />
+                                <Trash2 size={32} color={Colors.white} />
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -308,7 +355,7 @@ export default function ValideAnecdotesRapide() {
                             <Check size={100} color="#22c55e" strokeWidth={3} />
                         </Animated.View>
                         <Animated.View style={[styles.rejectAnimation, { opacity: rejectOpacity, transform: [{ scale: rejectOpacity }] }]}>
-                            <X size={100} color={Colors.error} strokeWidth={3} />
+                            <Trash2 size={100} color={Colors.error} strokeWidth={2} />
                         </Animated.View>
                     </>
                 ) : (
@@ -479,22 +526,31 @@ const styles = StyleSheet.create({
     },
     statItem: {
         alignItems: 'center',
-        backgroundColor: Colors.lightMuted,
-        borderRadius: 12,
         flex: 1,
-        padding: 12,
+        flexDirection: 'row',
+        gap: 6,
     },
     statLabel: {
         ...TextStyles.small,
         color: Colors.muted,
+        fontWeight: '600',
         marginBottom: 4,
     },
-    statValue: {
+    statsRow: {
+        flexDirection: 'row',
+        gap: 16,
+        marginBottom: 12,
+    },
+    statText: {
+        color: Colors.primaryBorder,
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    statsSectionValue: {
         ...TextStyles.h3Bold,
         color: Colors.primaryBorder,
     },
     statsSection: {
-        flexDirection: 'row',
         gap: 16,
     },
     textContainer: {

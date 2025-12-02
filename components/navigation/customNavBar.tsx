@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react-native';
+import { Home, CalendarFold, LandPlot, MessageSquareText, Heart } from 'lucide-react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
@@ -19,6 +19,7 @@ export default function CustomNavBar({ state, navigation }: BottomTabBarProps) {
     { name: 'planningNavigator', label: 'Planning', Icon: CalendarFold },
     { name: 'defisNavigator', label: 'Défi', Icon: LandPlot },
     { name: 'anecdotesNavigator', label: 'Anecdotes', Icon: MessageSquareText },
+    { name: 'skinderNavigator', label: 'Skinder', Icon: Heart },
   ];
 
   return (
@@ -98,7 +99,7 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.lightMuted,
     borderTopWidth: 1,
     flexDirection: 'row',
-    gap: 24,
+    gap: 0,
     justifyContent: 'flex-start',
     marginHorizontal: 15,
     paddingVertical: 12,

@@ -37,7 +37,7 @@ export default function SkinderProfil() {
     image: ''
   });
 
-  const [profileImage, setProfileImage] = useState('https://i.fbcd.co/products/resized/resized-750-500/563d0201e4359c2e890569e254ea14790eb370b71d08b6de5052511cc0352313.jpg'); // TODO : replace with an icon
+  const [profileImage, setProfileImage] = useState('https://i.fbcd.co/products/resized/resized-750-500/563d0201e4359c2e890569e254ea14790eb370b71d08b6de5052511cc0352313.jpg'); // TODO : replace with an icon (cf. DefisInfos.tsx)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [modifiedPicture, setModifiedPicture] = useState(false);
@@ -145,17 +145,35 @@ export default function SkinderProfil() {
 
   const uploadImage = async (uri: string) => {
     try {
-      const fileInfo = await fetch(uri).then((res) => res.blob());
-      if (fileInfo.size > 5 * 1024 * 1024) {
-        return { success: false, message: 'Image trop lourde (>5Mo)', pending: false };
+      let fileInfo = await fetch(uri).then((res) => res.blob());
+
+      let maxFileSize = 5 * 1024 * 1024; // 5MB default
+      try {
+        const sizeRes = await apiGet<MaxFileSizeResponse>("challenges/max-file-size");
+        if (isSuccessResponse(sizeRes)) {
+          maxFileSize = sizeRes.data.maxImageSize || maxFileSize;
+        }
+      } catch {
+        maxFileSize = 5 * 1024 * 1024;
+      }
+
+      if (fileInfo.size > maxFileSize) {
+        return { success: false, message: `Image trop lourde (>${Math.round(maxFileSize / 1024 / 1024)}Mo)`, pending: false };
       }
 
       const formData = new FormData();
-      formData.append('media', new Blob([uri], { type: 'image/jpeg' }), `room_${profile.id || 'new'}.jpg`); // Todo : verify this semantics
+
+      // @ts-expect-error ts(2769)
+      formData.append('media', {
+        uri: uri,
+        name: `room_${profile.id || 'new'}.jpg`,
+        type: 'image/jpeg'
+      });
 
       return await apiPost('skinder/my-profile/image', formData, true);
-    } catch {
-      handleApiErrorToast("Problème lors de l'upload de l'image.", setUser);
+    } catch (err: unknown) {
+      handleApiErrorToast(err as AppError, setUser);
+      return { success: false, message: "Problème lors de l'upload de l'image.", pending: false };
     }
   };
 
@@ -235,7 +253,7 @@ export default function SkinderProfil() {
               source={{ uri: profileImage }}
               style={styles.profileImage}
               resizeMode="cover"
-              onError={() => setProfileImage("https://i.fbcd.co/products/resized/resized-750-500/563d0201e4359c2e890569e254ea14790eb370b71d08b6de5052511cc0352313.jpg")} // TODO : replace with an icon
+              onError={() => setProfileImage("https://i.fbcd.co/products/resized/resized-750-500/563d0201e4359c2e890569e254ea14790eb370b71d08b6de5052511cc0352313.jpg")} // TODO : replace with an icon (cf. DefisInfos.tsx)
             />
             <View style={styles.photoOverlay}>
               <Camera size={24} color={Colors.white} />

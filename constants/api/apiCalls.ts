@@ -55,6 +55,7 @@ type ApiCallOptions = {
   multimedia?: boolean;
   invalidateCache?: string | string[];
   skipPendingSave?: boolean;
+  timeout?: number;
 };
 
 export class AuthError extends Error {
@@ -130,7 +131,9 @@ const updatePendingRequest = async (req: PendingRequest) => {
 
 const saveOfflineCache = async <T>(url: string, data: T) => {
   try {
-    await AsyncStorage.setItem(`${STORAGE_KEYS.OFFLINE_PREFIX}${url}`, JSON.stringify(data));
+    if (data !== null && data !== undefined) {
+      await AsyncStorage.setItem(`${STORAGE_KEYS.OFFLINE_PREFIX}${url}`, JSON.stringify(data));
+    }
   } catch (e) { console.error("Save offline error", e); }
 };
 
@@ -150,7 +153,7 @@ const apiCall = async <T = unknown>(
   data: unknown = null,
   options: ApiCallOptions = {}
 ): Promise<ApiResponse<T>> => {
-  const { useCache = false, cacheTTL, multimedia = false, invalidateCache, skipPendingSave = false } = options;
+  const { useCache = false, cacheTTL, multimedia = false, invalidateCache, skipPendingSave = false, timeout } = options;
 
   if (method === 'GET' && useCache) {
     const cached = apiCache.get<T>(url);
@@ -166,7 +169,7 @@ const apiCall = async <T = unknown>(
         Authorization: `Bearer ${accessToken}`,
         ...(multimedia ? { "Content-Type": "multipart/form-data" } : {})
       },
-      timeout: 10000,
+      timeout: timeout || (multimedia ? 180000 : 10000),
     };
 
     let response: AxiosResponse;
@@ -199,7 +202,7 @@ const apiCall = async <T = unknown>(
       keys.forEach(k => apiCache.deleteByPrefix(k));
     }
 
-    return { success: true, data: finalData };
+    return { success: true, data: finalData, message: responseData.message };
 
   } catch (error: unknown) {
     if (isAxiosError(error) && error.response?.status === 401) {
@@ -218,7 +221,7 @@ const apiCall = async <T = unknown>(
         const offlineData = await getOfflineCache<T>(url);
         if (offlineData) {
           Toast.show({ type: 'info', text1: 'Mode hors ligne', text2: 'Données récupérées du cache.' });
-          return { success: true, data: offlineData };
+          return { success: true, data: offlineData, message: 'Mode hors ligne' };
         }
       } else {
         if (!skipPendingSave) {

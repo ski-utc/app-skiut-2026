@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { Text, View, StyleSheet, ActivityIndicator, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, NavigationProp, useNavigation, RouteProp } from '@react-navigation/native';
-import { X, Check, MessageSquare, Calendar, User, Heart, AlertTriangle } from 'lucide-react-native';
+import { X, Check, FileQuestion, User, Heart, AlertTriangle, Trash2 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
-import { apiGet, apiPut, isSuccessResponse, isPendingResponse, handleApiErrorToast, handleApiErrorScreen, AppError, ApiError } from '@/constants/api/apiCalls';
+import { apiGet, apiPut, apiDelete, isSuccessResponse, isPendingResponse, handleApiErrorToast, handleApiErrorScreen, AppError, ApiError } from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
@@ -26,10 +26,6 @@ type AnecdoteDetails = {
     lastName: string;
     room: string;
   };
-}
-
-type AnecdoteResponse = {
-  data: AnecdoteDetails;
   nbLikes: number;
   nbWarns: number;
 }
@@ -44,8 +40,6 @@ export default function ValideAnecdotes() {
   const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
 
   const [anecdoteDetails, setAnecdoteDetails] = useState<AnecdoteDetails | null>(null);
-  const [nbLikes, setNbLikes] = useState<number>(0);
-  const [nbWarns, setNbWarns] = useState<number>(0);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -57,12 +51,10 @@ export default function ValideAnecdotes() {
     setError('');
 
     try {
-      const response = await apiGet<AnecdoteResponse>(`admin/anecdotes/${id}`, false);
+      const response = await apiGet<AnecdoteDetails>(`admin/anecdotes/${id}`, false);
 
       if (isSuccessResponse(response)) {
-        setAnecdoteDetails(response.data.data);
-        setNbLikes(response.data.nbLikes);
-        setNbWarns(response.data.nbWarns);
+        setAnecdoteDetails(response.data);
       } else {
         handleApiErrorScreen(new ApiError(response.message), setUser, setError);
       }
@@ -108,6 +100,56 @@ export default function ValideAnecdotes() {
     }
   };
 
+  const handleDelete = async () => {
+    Alert.alert(
+      'Confirmation',
+      'Êtes-vous sûr de vouloir supprimer cette anecdote ?',
+      [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+        },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              const response = await apiDelete(`admin/anecdotes/${id}`);
+
+              if (isSuccessResponse(response)) {
+                Toast.show({
+                  type: 'success',
+                  text1: 'Anecdote supprimée !',
+                  text2: response.message,
+                });
+                navigation.goBack();
+              } else if (isPendingResponse(response)) {
+                Toast.show({
+                  type: 'info',
+                  text1: 'Action sauvegardée',
+                  text2: 'Sera synchronisé plus tard',
+                });
+                navigation.goBack();
+              } else {
+                Toast.show({
+                  type: 'error',
+                  text1: 'Erreur',
+                  text2: response.message
+                });
+              }
+            } catch (err: unknown) {
+              handleApiErrorToast(err as AppError, setUser);
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   useEffect(() => {
     fetchAnecdoteDetails();
   }, [fetchAnecdoteDetails]);
@@ -140,7 +182,7 @@ export default function ValideAnecdotes() {
         <BoutonRetour title={`Gérer l'anecdote ${id}`} />
       </View>
 
-      <View style={styles.heroSection}>
+      {/* <View style={styles.heroSection}>
         <View style={styles.heroIcon}>
           <MessageSquare size={24} color={Colors.primary} />
         </View>
@@ -148,19 +190,19 @@ export default function ValideAnecdotes() {
         <Text style={styles.heroSubtitle}>
           Validez ou modérez cette anecdote
         </Text>
-      </View>
+      </View> */}
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
-            <MessageSquare size={16} color={Colors.primary} />
+            <FileQuestion size={16} color={Colors.primary} />
             <Text style={styles.infoLabel}>Status :</Text>
             <Text style={[styles.infoValue, anecdoteDetails?.valid ? styles.validStatus : styles.pendingStatus]}>
               {anecdoteDetails?.valid ? 'Validée' : 'En attente de validation'}
             </Text>
           </View>
 
-          <View style={styles.infoRow}>
+          {/* <View style={styles.infoRow}>
             <Calendar size={16} color={Colors.primary} />
             <Text style={styles.infoLabel}>Date :</Text>
             <Text style={styles.infoValue}>
@@ -173,11 +215,11 @@ export default function ValideAnecdotes() {
                 hour12: false,
               }) : 'N/A'}
             </Text>
-          </View>
+          </View> */}
 
           <View style={styles.infoRow}>
             <User size={16} color={Colors.primary} />
-            <Text style={styles.infoLabel}>Auteur :</Text>
+            <Text style={styles.infoLabel}>Auteur.ice :</Text>
             <Text style={styles.infoValue}>
               {anecdoteDetails?.user?.firstName} {anecdoteDetails?.user?.lastName || 'Anonyme'}
             </Text>
@@ -186,13 +228,13 @@ export default function ValideAnecdotes() {
           <View style={styles.infoRow}>
             <Heart size={16} color={Colors.primary} />
             <Text style={styles.infoLabel}>Likes :</Text>
-            <Text style={styles.infoValue}>{nbLikes}</Text>
+            <Text style={styles.infoValue}>{anecdoteDetails?.nbLikes}</Text>
           </View>
 
           <View style={styles.infoRow}>
             <AlertTriangle size={16} color={Colors.error} />
             <Text style={styles.infoLabel}>Signalements :</Text>
-            <Text style={[styles.infoValue, nbWarns > 0 && styles.warningText]}>{nbWarns}</Text>
+            <Text style={[styles.infoValue, anecdoteDetails?.nbWarns ? styles.warningText : null]}>{anecdoteDetails?.nbWarns}</Text>
           </View>
         </View>
 
@@ -204,20 +246,43 @@ export default function ValideAnecdotes() {
 
       <View style={styles.buttonContainer}>
         {anecdoteDetails?.valid === 1 ? (
-          <BoutonActiver
-            title="Désactiver l'anecdote"
-            IconComponent={X}
-            color={Colors.error}
-            onPress={() => handleValidation(0)}
-          />
+          <View style={styles.buttonRow}>
+            <View style={styles.buttonHalf}>
+              <BoutonActiver
+                title="Désactiver"
+                IconComponent={X}
+                color={Colors.primary}
+                onPress={() => handleValidation(0)}
+              />
+            </View>
+            <View style={styles.buttonHalf}>
+              <BoutonActiver
+                title="Supprimer"
+                IconComponent={Trash2}
+                color={Colors.error}
+                onPress={handleDelete}
+              />
+            </View>
+          </View>
         ) : (
-          <BoutonActiver
-            title="Valider l'anecdote"
-            IconComponent={Check}
-            disabled={anecdoteDetails?.valid === 1}
-            color={Colors.success}
-            onPress={() => handleValidation(1)}
-          />
+          <View style={styles.buttonRow}>
+            <View style={styles.buttonHalf}>
+              <BoutonActiver
+                title="Supprimer"
+                IconComponent={Trash2}
+                color={Colors.error}
+                onPress={handleDelete}
+              />
+            </View>
+            <View style={styles.buttonHalf}>
+              <BoutonActiver
+                title="Valider"
+                IconComponent={Check}
+                color={Colors.success}
+                onPress={() => handleValidation(1)}
+              />
+            </View>
+          </View>
         )}
       </View>
     </SafeAreaView>
@@ -230,6 +295,13 @@ const styles = StyleSheet.create({
     left: 20,
     position: 'absolute',
     right: 20,
+  },
+  buttonHalf: {
+    flex: 1,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
   },
   container: {
     backgroundColor: Colors.white,

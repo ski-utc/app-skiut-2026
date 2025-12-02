@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { Text, View, StyleSheet, ActivityIndicator, Image, TouchableOpacity, ScrollView, Modal, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, NavigationProp, useNavigation } from '@react-navigation/native';
-import { X, Check, Trophy, Calendar, User, Image as ImageIcon, Maximize } from 'lucide-react-native';
+import { X, Check, Trophy, User, Image as ImageIcon, Maximize, Play, Pause, Video as VideoIcon, FileQuestion } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import { ImageViewer } from "react-native-image-zoom-viewer";
+import { useVideoPlayer, VideoView } from 'expo-video';
 
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
@@ -19,7 +20,7 @@ import { AdminStackParamList } from './adminNavigator';
 
 type ChallengeDetails = {
   id: number;
-  valid: 0 | 1;
+  valid: boolean;
   created_at: string;
   user: {
     firstName: string;
@@ -34,6 +35,7 @@ type ChallengeDetails = {
 type ChallengeDetailsResponse = {
   challenge: ChallengeDetails;
   imagePath: string;
+  mediaType: 'image' | 'video' | null;
 }
 
 type RouteParams = {
@@ -47,11 +49,40 @@ export default function ValideDefis() {
   const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
 
   const [challengeDetails, setChallengeDetails] = useState<ChallengeDetails | null>(null);
-  const [proofImage, setProofImage] = useState("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg");
+  const [proofMedia, setProofMedia] = useState("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg");
+  const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isFullscreenVideoPlaying, setIsFullscreenVideoPlaying] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Shared video player to prevent refetch
+  const videoPlayer = useVideoPlayer(proofMedia && mediaType === 'video' ? proofMedia : '', player => {
+    player.loop = false;
+  });
+
+  // Control video playback
+  useEffect(() => {
+    if (mediaType === 'video' && videoPlayer) {
+      if (isPlaying || isFullscreenVideoPlaying) {
+        videoPlayer.play();
+      } else {
+        videoPlayer.pause();
+      }
+    }
+  }, [isPlaying, isFullscreenVideoPlaying, mediaType, videoPlayer]);
+
+  const toggleModal = () => {
+    if (!isModalVisible) {
+      setIsPlaying(false);
+      setIsFullscreenVideoPlaying(false);
+    } else {
+      setIsFullscreenVideoPlaying(false);
+    }
+    setIsModalVisible(!isModalVisible);
+  };
 
   const fetchChallengeDetails = useCallback(async () => {
     setLoading(true);
@@ -59,7 +90,8 @@ export default function ValideDefis() {
       const response = await apiGet<ChallengeDetailsResponse>(`admin/challenges/${id}`);
       if (response.success) {
         setChallengeDetails(response.data.challenge);
-        setProofImage(response.data.imagePath);
+        setProofMedia(response.data.imagePath);
+        setMediaType(response.data.mediaType || 'image');
       } else {
         handleApiErrorScreen(new ApiError(response.message), setUser, setError);
       }
@@ -150,9 +182,7 @@ export default function ValideDefis() {
     );
   };*/
 
-  const toggleModal = () => {
-    setIsModalVisible(!isModalVisible);
-  };
+
 
   useEffect(() => {
     fetchChallengeDetails();
@@ -182,7 +212,7 @@ export default function ValideDefis() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.heroSection}>
+        {/* <View style={styles.heroSection}>
           <View style={styles.heroIcon}>
             <Trophy size={24} color={Colors.primary} />
           </View>
@@ -190,17 +220,22 @@ export default function ValideDefis() {
           <Text style={styles.heroSubtitle}>
             Validez ou refusez ce défi soumis
           </Text>
-        </View>
+        </View> */}
 
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <Trophy size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Défi :</Text>
+            <Text style={styles.infoValue}>{challengeDetails?.challenge?.title || 'Pas de description'}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <FileQuestion size={16} color={Colors.primary} />
             <Text style={styles.infoLabel}>Status :</Text>
             <Text style={[styles.infoValue, challengeDetails?.valid ? styles.validStatus : styles.pendingStatus]}>
               {challengeDetails?.valid ? 'Validé' : 'En attente de validation'}
             </Text>
           </View>
-          <View style={styles.infoRow}>
+          {/* <View style={styles.infoRow}>
             <Calendar size={16} color={Colors.primary} />
             <Text style={styles.infoLabel}>Date :</Text>
             <Text style={styles.infoValue}>
@@ -213,31 +248,58 @@ export default function ValideDefis() {
                 hour12: false,
               }) : 'Date non disponible'}
             </Text>
-          </View>
+          </View> */}
           <View style={styles.infoRow}>
             <User size={16} color={Colors.primary} />
-            <Text style={styles.infoLabel}>Auteur :</Text>
+            <Text style={styles.infoLabel}>Auteur.ice :</Text>
             <Text style={styles.infoValue}>{challengeDetails?.user?.firstName} {challengeDetails?.user?.lastName || 'Auteur inconnu'}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Trophy size={16} color={Colors.primary} />
-            <Text style={styles.infoLabel}>Défi :</Text>
-            <Text style={styles.infoValue}>{challengeDetails?.challenge?.title || 'Pas de description'}</Text>
           </View>
         </View>
 
-        <View style={styles.imageCard}>
+        <View style={[styles.imageCard, challengeDetails?.valid === false ? { marginBottom: 96 } : { marginBottom: 16 }]}>
           <View style={styles.imageHeader}>
-            <ImageIcon size={20} color={Colors.primary} />
+            {mediaType === 'video' ? <VideoIcon size={20} color={Colors.primary} /> : <ImageIcon size={20} color={Colors.primary} />}
             <Text style={styles.imageTitle}>Preuve soumise</Text>
           </View>
           <TouchableOpacity onPress={toggleModal} style={styles.imageContainer} activeOpacity={0.8}>
-            <Image
-              source={{ uri: `${proofImage}?timestamp=${new Date().getTime()}` }}
-              style={styles.proofImage}
-              resizeMode="cover"
-              onError={() => setProofImage("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
-            />
+            {mediaType === 'video' ? (
+              <>
+                <VideoView
+                  player={videoPlayer}
+                  style={styles.proofImage}
+                  contentFit="cover"
+                  allowsPictureInPicture={false}
+                  nativeControls={false}
+                />
+                <View style={styles.mediaTypeBadge}>
+                  <VideoIcon size={14} color={Colors.white} />
+                  <Text style={styles.mediaTypeText}>Vidéo</Text>
+                </View>
+                {!isPlaying && (
+                  <TouchableOpacity style={styles.playButton} onPress={() => setIsPlaying(true)}>
+                    <Play size={28} color={Colors.white} />
+                  </TouchableOpacity>
+                )}
+                {isPlaying && (
+                  <TouchableOpacity style={styles.pauseButton} onPress={() => setIsPlaying(false)}>
+                    <Pause size={20} color={Colors.white} />
+                  </TouchableOpacity>
+                )}
+              </>
+            ) : (
+              <>
+                <Image
+                  source={{ uri: `${proofMedia}?timestamp=${new Date().getTime()}` }}
+                  style={styles.proofImage}
+                  resizeMode="cover"
+                  onError={() => setProofMedia("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
+                />
+                <View style={styles.mediaTypeBadge}>
+                  <ImageIcon size={14} color={Colors.white} />
+                  <Text style={styles.mediaTypeText}>Image</Text>
+                </View>
+              </>
+            )}
             <View style={styles.imageOverlay}>
               <Maximize size={16} color={Colors.white} />
               <Text style={styles.imageOverlayText}>Appuyez pour agrandir</Text>
@@ -246,7 +308,7 @@ export default function ValideDefis() {
         </View>
       </ScrollView>
       <View style={styles.buttonContainer}>
-        <View style={styles.buttonSpacing}>
+        {/* <View style={styles.buttonSpacing}>
           <BoutonActiver
             title="Désactiver le défi"
             IconComponent={X}
@@ -254,27 +316,27 @@ export default function ValideDefis() {
             color={Colors.accent}
             onPress={() => handleValidation(0, 0)}
           />
-        </View>
-        <View style={styles.buttonRow}>
-          <View style={styles.buttonHalf}>
-            <BoutonActiver
-              title="Refuser"
-              IconComponent={X}
-              disabled={challengeDetails?.valid === 1}
-              color={Colors.error}
-              onPress={() => handleValidation(1, 1)}
-            />
+        </View> */}
+        {challengeDetails?.valid === false && (
+          <View style={styles.buttonRow}>
+            <View style={styles.buttonHalf}>
+              <BoutonActiver
+                title="Refuser"
+                IconComponent={X}
+                color={Colors.error}
+                onPress={() => handleValidation(1, 1)}
+              />
+            </View>
+            <View style={styles.buttonHalf}>
+              <BoutonActiver
+                title="Valider"
+                IconComponent={Check}
+                color={Colors.success}
+                onPress={() => handleValidation(1, 0)}
+              />
+            </View>
           </View>
-          <View style={styles.buttonHalf}>
-            <BoutonActiver
-              title="Valider"
-              IconComponent={Check}
-              disabled={challengeDetails?.valid === 1}
-              color={Colors.success}
-              onPress={() => handleValidation(1, 0)}
-            />
-          </View>
-        </View>
+        )}
       </View>
 
       <Modal
@@ -293,16 +355,36 @@ export default function ValideDefis() {
             <X size={24} color={Colors.white} />
           </TouchableOpacity>
 
-          <ImageViewer
-            imageUrls={[{ url: proofImage }]}
-            index={0}
-            backgroundColor="transparent"
-            enableSwipeDown={true}
-            onSwipeDown={toggleModal}
-          />
+          {mediaType === 'video' ? (
+            <View style={styles.modalVideoContainer}>
+              <VideoView
+                player={videoPlayer}
+                style={styles.modalVideo}
+                contentFit="contain"
+                allowsPictureInPicture
+              />
+              {!isFullscreenVideoPlaying && (
+                <TouchableOpacity
+                  style={styles.modalPlayButton}
+                  onPress={() => setIsFullscreenVideoPlaying(true)}
+                >
+                  <Play size={28} color={Colors.white} />
+                </TouchableOpacity>
+              )}
+            </View>
+          ) : (
+            <ImageViewer
+              imageUrls={[{ url: proofMedia }]}
+              index={0}
+              backgroundColor="transparent"
+              enableSwipeDown={true}
+              onSwipeDown={toggleModal}
+              renderIndicator={() => <View />}
+            />
+          )}
         </View>
       </Modal>
-    </SafeAreaView>
+    </SafeAreaView >
   );
 }
 
@@ -321,7 +403,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   buttonSpacing: {
-    marginBottom: 16,
+    marginBottom: 8,
   },
   closeButton: {
     alignItems: 'center',
@@ -384,7 +466,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 2,
     elevation: 3,
-    marginBottom: 128,
     marginHorizontal: 20,
     padding: 16,
     shadowColor: '#000',
@@ -425,6 +506,71 @@ const styles = StyleSheet.create({
     ...TextStyles.h3Bold,
     color: Colors.primaryBorder,
     marginLeft: 8,
+  },
+  mediaTypeBadge: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 4,
+    left: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    position: 'absolute',
+    top: 12,
+  },
+  mediaTypeText: {
+    color: Colors.white,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  modalPlayButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 30,
+    height: 60,
+    justifyContent: 'center',
+    left: '50%',
+    position: 'absolute',
+    top: '50%',
+    transform: [{ translateX: -30 }, { translateY: -10 }],
+    width: 60,
+    zIndex: 20,
+  },
+  modalVideo: {
+    flex: 1,
+    height: '100%',
+    width: '100%',
+  },
+  modalVideoContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  pauseButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 20,
+    height: 40,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 12,
+    top: 12,
+    width: 40,
+  },
+  playButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 40,
+    height: 80,
+    justifyContent: 'center',
+    left: '50%',
+    marginLeft: -40,
+    marginTop: -40,
+    position: 'absolute',
+    top: '50%',
+    width: 80,
   },
   infoCard: {
     backgroundColor: Colors.white,

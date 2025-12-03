@@ -122,7 +122,7 @@ export class NotificationService {
                 token,
                 device_type: deviceType,
                 device_name: deviceName,
-            });
+            }, false, undefined, true);
 
             if (!response.success) {
                 console.error('Erreur lors de la sauvegarde du token:', response.message);
@@ -346,7 +346,7 @@ export class NotificationService {
         try {
             const response = await apiPost('push-tokens/deactivate', {
                 token: this.pushToken
-            });
+            }, false, undefined, true);
 
             if (response.success) {
                 console.log('Token désactivé avec succès');

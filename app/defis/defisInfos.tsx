@@ -57,12 +57,10 @@ export default function DefisInfos() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isFullscreenVideoPlaying, setIsFullscreenVideoPlaying] = useState(false);
 
-  // Shared video player instance to prevent refetch
   const videoPlayer = useVideoPlayer(proofMedia && mediaType === 'video' ? proofMedia : '', player => {
     player.loop = false;
   });
 
-  // Control video player playback
   useEffect(() => {
     if (mediaType === 'video' && videoPlayer) {
       if (isPlaying || isFullscreenVideoPlaying) {

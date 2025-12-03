@@ -92,7 +92,7 @@ export default function OAuthScreen() {
             </TouchableOpacity>
           </View>
           <WebView
-            source={{ uri: `${config.BASE_URL}/auth/login` }}
+            source={{ uri: `${config.APP_URL}/auth/login` }}
             originWhitelist={["*"]}
             style={styles.webView}
             onNavigationStateChange={handleNavigationStateChange}

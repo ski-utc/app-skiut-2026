@@ -81,7 +81,6 @@ export default function GestionPermanencesScreen() {
                 onChange: (event: DateTimePickerEvent, date?: Date) => {
                     if (event.type === 'set' && date) {
                         setFormStartDate(date);
-                        // Chain Time Picker
                         DateTimePickerAndroid.open({
                             value: date,
                             onChange: (timeEvent: DateTimePickerEvent, timeDate?: Date) => {

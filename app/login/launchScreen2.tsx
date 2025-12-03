@@ -12,11 +12,11 @@ export default function LaunchScreen2() {
   const navigation = useNavigation<NavigationProp<LoginStackParamList>>();
 
   const panGesture = Gesture.Pan()
-    .runOnJS(true)
+    .activeOffsetX([-10, 10])
     .onEnd((e) => {
-      if (e.velocityX < -500) {
+      if (e.velocityX < -350) {
         navigation.navigate("launchScreen3");
-      } else if (e.velocityX > 500) {
+      } else if (e.velocityX > 350) {
         navigation.goBack();
       }
     });

@@ -6,8 +6,8 @@ const domains = {
 }
 const DOMAIN = domains.dev;      // Changer ici si prod, dev ou local pour le login
 
-const BASE_URL = DOMAIN.includes(".fr") ? `https://${DOMAIN}/skiutc` : `http://${DOMAIN}:8000/skiutc`
+const BASE_URL = DOMAIN.includes(".fr") ? `https://${DOMAIN}` : `http://${DOMAIN}:8000`
+const APP_URL = `${BASE_URL}/skiutc`
+const API_BASE_URL = `${APP_URL}/api`;
 
-const API_BASE_URL = `${BASE_URL}/api`;
-
-export { DOMAIN, BASE_URL, API_BASE_URL };
+export { DOMAIN, BASE_URL, APP_URL, API_BASE_URL };

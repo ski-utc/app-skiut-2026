@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     flexDirection: 'column',
-    gap: 12,
+    gap: 10,
     justifyContent: 'flex-start',
   },
   tabText: {
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 0,
     justifyContent: 'flex-start',
-    marginHorizontal: 15,
+    marginHorizontal: 4,
     paddingVertical: 12,
   },
 });

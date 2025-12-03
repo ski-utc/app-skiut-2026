@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Image, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { NavigationProp, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { PartyPopper, Sparkles, MapPin } from 'lucide-react-native';
+import { PartyPopper, Sparkles, MapPin, User } from 'lucide-react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
@@ -11,16 +11,14 @@ import { SkinderStackParamList } from './skinderNavigator';
 
 type MatchScreenRouteProp = RouteProp<SkinderStackParamList, 'matchScreen'>;
 
-const DEFAULT_USER_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png"; // TODO : replace with an icon (cf. DefisInfos.tsx)
-
 export default function MatchScreen() {
     const navigation = useNavigation<NavigationProp<SkinderStackParamList>>();
     const route = useRoute<MatchScreenRouteProp>();
 
     const { myImage, roomImage, roomNumber, roomResp } = route.params || {};
 
-    const [currentMyImage, setCurrentMyImage] = useState(myImage);
-    const [currentRoomImage, setCurrentRoomImage] = useState(roomImage);
+    const [myImageError, setMyImageError] = useState(false);
+    const [roomImageError, setRoomImageError] = useState(false);
 
     useEffect(() => {
         if (!myImage || !roomImage || !roomNumber) {
@@ -48,12 +46,18 @@ export default function MatchScreen() {
 
                 <View style={styles.profilesContainer}>
                     <View style={styles.profileImageContainer}>
-                        <Image
-                            source={{ uri: currentMyImage }}
-                            style={styles.profileImage}
-                            resizeMode="cover"
-                            onError={() => setCurrentMyImage(DEFAULT_USER_IMAGE)}
-                        />
+                        {!myImageError && myImage ? (
+                            <Image
+                                source={{ uri: myImage }}
+                                style={styles.profileImage}
+                                resizeMode="cover"
+                                onError={() => setMyImageError(true)}
+                            />
+                        ) : (
+                            <View style={[styles.profileImage, styles.profileImagePlaceholder]}>
+                                <User size={60} color={Colors.muted} />
+                            </View>
+                        )}
                         <View style={styles.profileLabel}>
                             <Text style={styles.profileLabelText}>Vous</Text>
                         </View>
@@ -64,12 +68,18 @@ export default function MatchScreen() {
                     </View>
 
                     <View style={styles.profileImageContainer}>
-                        <Image
-                            source={{ uri: currentRoomImage }}
-                            style={styles.profileImage}
-                            resizeMode="cover"
-                            onError={() => setCurrentRoomImage(DEFAULT_USER_IMAGE)}
-                        />
+                        {!roomImageError && roomImage ? (
+                            <Image
+                                source={{ uri: roomImage }}
+                                style={styles.profileImage}
+                                resizeMode="cover"
+                                onError={() => setRoomImageError(true)}
+                            />
+                        ) : (
+                            <View style={[styles.profileImage, styles.profileImagePlaceholder]}>
+                                <User size={60} color={Colors.muted} />
+                            </View>
+                        )}
                         <View style={styles.profileLabel}>
                             <Text style={styles.profileLabelText}>Chambre {roomNumber}</Text>
                         </View>
@@ -188,6 +198,11 @@ const styles = StyleSheet.create({
     },
     profileImageContainer: {
         alignItems: 'center',
+    },
+    profileImagePlaceholder: {
+        alignItems: 'center',
+        backgroundColor: Colors.lightMuted,
+        justifyContent: 'center',
     },
     profileLabel: {
         backgroundColor: Colors.primary,

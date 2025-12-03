@@ -6,6 +6,7 @@ import { Toast } from "react-native-toast-message/lib/src/Toast";
 import * as config from "./apiConfig";
 import { apiCache } from "./apiCache";
 import { User } from "@/contexts/UserContext";
+import { Alert } from "react-native";
 
 /**
  * --- TYPES ---
@@ -151,7 +152,8 @@ const apiCall = async <T = unknown>(
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
   url: string,
   data: unknown = null,
-  options: ApiCallOptions = {}
+  options: ApiCallOptions = {},
+  bypassLogoutAlert = false
 ): Promise<ApiResponse<T>> => {
   const { useCache = false, cacheTTL, multimedia = false, invalidateCache, skipPendingSave = false, timeout } = options;
 
@@ -207,9 +209,9 @@ const apiCall = async <T = unknown>(
   } catch (error: unknown) {
     if (isAxiosError(error) && error.response?.status === 401) {
       try {
-        const refreshed = await refreshTokens();
+        const refreshed = await refreshTokens(bypassLogoutAlert);
         if (refreshed) {
-          return apiCall<T>(method, url, data, options);
+          return apiCall<T>(method, url, data, options, bypassLogoutAlert);
         }
       } catch (authErr) {
         throw authErr;
@@ -256,7 +258,7 @@ const apiCall = async <T = unknown>(
  * --- HELPERS ---
  */
 
-const refreshTokens = async (): Promise<boolean> => {
+const refreshTokens = async (bypassLogoutAlert = false): Promise<boolean> => {
   const refreshToken = await SecureStore.getItemAsync("refreshToken");
   if (!refreshToken) throw new AuthError('NO_REFRESH_TOKEN');
 
@@ -269,6 +271,7 @@ const refreshTokens = async (): Promise<boolean> => {
   } catch (error) {
     await SecureStore.deleteItemAsync("accessToken");
     await SecureStore.deleteItemAsync("refreshToken");
+    if (!bypassLogoutAlert) Alert.alert("Déconnexion", "Vous avez été déconnecté.", [{ text: "Ok" }]);
     throw new AuthError('JWT_EXPIRED');
   }
 };
@@ -337,8 +340,8 @@ export const handleApiErrorScreen = (error: unknown, setUser: (user: User | null
   setError(message);
 };
 
-export const apiGet = <T>(url: string, useCache = false, cacheTTL?: number) => apiCall<T>('GET', url, null, { useCache, cacheTTL });
-export const apiPost = <T>(url: string, data: any, multimedia = false, invalidateCache?: string | string[]) => apiCall<T>('POST', url, data, { multimedia, invalidateCache });
-export const apiPut = <T>(url: string, data: any, options?: ApiCallOptions) => apiCall<T>('PUT', url, data, options);
-export const apiDelete = <T>(url: string) => apiCall<T>('DELETE', url);
-export const apiPatch = <T>(url: string, data: any) => apiCall<T>('PATCH', url, data);
+export const apiGet = <T>(url: string, useCache = false, cacheTTL?: number, bypassLogoutAlert = false) => apiCall<T>('GET', url, null, { useCache, cacheTTL }, bypassLogoutAlert);
+export const apiPost = <T>(url: string, data: any, multimedia = false, invalidateCache?: string | string[], bypassLogoutAlert = false) => apiCall<T>('POST', url, data, { multimedia, invalidateCache }, bypassLogoutAlert);
+export const apiPut = <T>(url: string, data: any, options?: ApiCallOptions, bypassLogoutAlert = false) => apiCall<T>('PUT', url, data, options, bypassLogoutAlert);
+export const apiDelete = <T>(url: string, bypassLogoutAlert = false) => apiCall<T>('DELETE', url, null, {}, bypassLogoutAlert);
+export const apiPatch = <T>(url: string, data: any, bypassLogoutAlert = false) => apiCall<T>('PATCH', url, data, {}, bypassLogoutAlert);

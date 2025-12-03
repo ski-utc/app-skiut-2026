@@ -8,6 +8,7 @@ import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import stationPlan from '@/assets/images/plan-grandvalira.jpg';
+import * as config from '@/constants/api/apiConfig';
 
 type ActionButtonProps = {
   title: string;
@@ -166,7 +167,7 @@ export default function PlanScreen() {
             <ActionButton
               title="Télécharger le plan"
               icon={Download}
-              onPress={() => openLink("https://drive.google.com/uc?export=download&id=1cI9Yvn6tFnepjUYfq9I3yH1uTCmUTGTr")} // TODO : find a better way to download the plan, put it in public storage of the server
+              onPress={() => openLink(`${config.BASE_URL}/storage/plan-grandvalira.jpg`)}
             />
           </View>
         </View>

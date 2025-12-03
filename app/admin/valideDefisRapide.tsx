@@ -62,12 +62,10 @@ export default function ValideDefisRapide() {
     const activeOpacity = 1;
     const inactiveOpacity = 0.4;
 
-    // Shared video player to prevent refetch
     const videoPlayer = useVideoPlayer(defi?.proof_media && defi?.proof_media_type === 'video' ? defi.proof_media : '', player => {
         player.loop = false;
     });
 
-    // Control video playback
     useEffect(() => {
         if (defi?.proof_media_type === 'video' && videoPlayer) {
             if (isPlaying) {
@@ -109,7 +107,6 @@ export default function ValideDefisRapide() {
     }, []);
 
     const fetchNextDefi = useCallback(async () => {
-        // If we have a prefetched defi, use it immediately
         if (nextDefiRef.current) {
             const prefetchedDefi = nextDefiRef.current;
             setDefi(prefetchedDefi);
@@ -118,7 +115,6 @@ export default function ValideDefisRapide() {
             setNoDefis(false);
             setIsPlaying(false);
             resetPosition();
-            // Start prefetching the next one
             prefetchNextDefi();
             return;
         }
@@ -141,7 +137,6 @@ export default function ValideDefisRapide() {
                         const nextDefi = pendingDefis[0];
                         setDefi(nextDefi);
                         setNoDefis(false);
-                        // Start prefetching
                         prefetchNextDefi();
                         return [...currentViewedIds, nextDefi.id];
                     } else {

@@ -163,7 +163,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
 
     Animated.spring(translateX, {
       toValue,
-      useNativeDriver: false,
+      useNativeDriver: true,
       tension: 100,
       friction: 16,
     }).start();
@@ -173,17 +173,17 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
   };
 
   const panGesture = Gesture.Pan()
-    .runOnJS(true)
+    .activeOffsetX([-10, 10])
     .onUpdate((e) => {
       gestureX.setValue(e.translationX);
     })
     .onEnd((e) => {
-      const threshold = screenWidth * 0.3;
-      const { translationX } = e;
+      const threshold = screenWidth * 0.25;
+      const { translationX, velocityX } = e;
 
-      if (translationX > threshold && activeView === 1) {
+      if ((translationX > threshold || velocityX > 300) && activeView === 1) {
         animateToView(0);
-      } else if (translationX < -threshold && activeView === 0) {
+      } else if ((translationX < -threshold || velocityX < -300) && activeView === 0) {
         animateToView(1);
       } else {
         animateToView(activeView);

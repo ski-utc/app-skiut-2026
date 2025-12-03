@@ -319,7 +319,7 @@ export default function CreateNotificationScreen() {
                                                     onValueChange={() => handleRoomSelection(room.id)}
                                                     color={Colors.primary}
                                                 />
-                                                <Text style={styles.selectionItemText}>{room.roomNumber} - {room.name}</Text>
+                                                <Text style={styles.selectionItemText}>{`${room.roomNumber} - ${room.name}`}</Text>
                                             </TouchableOpacity>
                                         ))}
                                     </ScrollView>

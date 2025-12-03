@@ -4,7 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from "expo-image-manipulator";
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
-import { Camera, Save, X } from 'lucide-react-native';
+import { Camera, Save, X, UserCircle } from 'lucide-react-native';
 
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
@@ -37,11 +37,12 @@ export default function SkinderProfil() {
     image: ''
   });
 
-  const [profileImage, setProfileImage] = useState('https://i.fbcd.co/products/resized/resized-750-500/563d0201e4359c2e890569e254ea14790eb370b71d08b6de5052511cc0352313.jpg'); // TODO : replace with an icon (cf. DefisInfos.tsx)
+  const [profileImage, setProfileImage] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [modifiedPicture, setModifiedPicture] = useState(false);
   const [charLimits, setCharLimits] = useState<number[]>(Array(6).fill(0));
+  const [imageError, setImageError] = useState(false);
 
   const { setUser } = useUser();
   const navigation = useNavigation<NavigationProp<SkinderStackParamList>>();
@@ -79,6 +80,10 @@ export default function SkinderProfil() {
 
         if (data.image) {
           setProfileImage(`${data.image}?timestamp=${Date.now()}`);
+          setImageError(false);
+        } else {
+          setProfileImage('');
+          setImageError(true);
         }
       }
     } catch (err: unknown) {
@@ -141,6 +146,7 @@ export default function SkinderProfil() {
 
     setModifiedPicture(true);
     setProfileImage(currentUri);
+    setImageError(false);
   };
 
   const uploadImage = async (uri: string) => {
@@ -249,12 +255,18 @@ export default function SkinderProfil() {
 
         <View style={styles.photoSection}>
           <TouchableOpacity onPress={handleImagePick} style={styles.photoContainer}>
-            <Image
-              source={{ uri: profileImage }}
-              style={styles.profileImage}
-              resizeMode="cover"
-              onError={() => setProfileImage("https://i.fbcd.co/products/resized/resized-750-500/563d0201e4359c2e890569e254ea14790eb370b71d08b6de5052511cc0352313.jpg")} // TODO : replace with an icon (cf. DefisInfos.tsx)
-            />
+            {!imageError && profileImage ? (
+              <Image
+                source={{ uri: profileImage }}
+                style={styles.profileImage}
+                resizeMode="cover"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <View style={[styles.profileImage, styles.profileImagePlaceholder]}>
+                <UserCircle size={100} color={Colors.muted} />
+              </View>
+            )}
             <View style={styles.photoOverlay}>
               <Camera size={24} color={Colors.white} />
               <Text style={styles.photoOverlayText}>Modifier</Text>
@@ -469,6 +481,11 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     height: 150,
     width: 150,
+  },
+  profileImagePlaceholder: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    justifyContent: 'center',
   },
   profileName: {
     ...TextStyles.h2Bold,

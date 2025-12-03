@@ -60,28 +60,32 @@ const GestionNotificationsScreen = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'displayed'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'displayed' | 'non_displayed'>('all');
 
-  const handleFilter = useCallback((filter: 'all' | 'active' | 'displayed') => {
-    setActiveFilter(filter);
+  const applyFilter = useCallback((filter: 'all' | 'displayed' | 'non_displayed', data: NotificationItem[]) => {
     switch (filter) {
-      case 'active':
-        setFilteredNotifications(notifications.filter((item) => !item.display));
-        break;
       case 'displayed':
-        setFilteredNotifications(notifications.filter((item) => item.display));
+        setFilteredNotifications(data.filter((item) => item.display));
+        break;
+      case 'non_displayed':
+        setFilteredNotifications(data.filter((item) => !item.display));
         break;
       default:
-        setFilteredNotifications(notifications);
+        setFilteredNotifications(data);
         break;
     }
-  }, [notifications]);
+  }, []);
+
+  const handleFilter = useCallback((filter: 'all' | 'displayed' | 'non_displayed') => {
+    setActiveFilter(filter);
+    applyFilter(filter, notifications);
+  }, [notifications, applyFilter]);
 
   const getFilterCounts = () => {
     return {
       all: notifications.length,
-      active: notifications.filter((item) => !item.display).length,
       displayed: notifications.filter((item) => item.display).length,
+      non_displayed: notifications.filter((item) => !item.display).length,
     };
   };
 
@@ -92,7 +96,7 @@ const GestionNotificationsScreen = () => {
       const response = await apiGet<NotificationItem[]>('admin/notifications');
       if (response.success) {
         setNotifications(response.data);
-        setFilteredNotifications(response.data);
+        applyFilter(activeFilter, response.data);
       } else {
         handleApiErrorScreen(new ApiError(response.message), setUser, setError);
       }
@@ -104,17 +108,16 @@ const GestionNotificationsScreen = () => {
         setDisableRefresh(false);
       }, 5000);
     }
-  }, [setUser]);
+  }, [setUser, activeFilter]);
 
   useEffect(() => {
     fetchAdminNotifications();
     const unsubscribe = navigation.addListener('focus', () => {
       fetchAdminNotifications();
-      handleFilter(activeFilter);
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, fetchAdminNotifications]);
 
   if (error !== '') {
     return <ErrorScreen error={error} />;
@@ -171,18 +174,18 @@ const GestionNotificationsScreen = () => {
         // count={getFilterCounts().all}
         />
         <FilterButton
-          label="Actives"
-          icon={<Clock size={16} color={activeFilter === 'active' ? Colors.white : Colors.primary} />}
-          isActive={activeFilter === 'active'}
-          onPress={() => handleFilter('active')}
-          count={getFilterCounts().active}
-        />
-        <FilterButton
-          label="Désactivées"
+          label="Affichées"
           icon={<AlertTriangle size={16} color={activeFilter === 'displayed' ? Colors.white : Colors.error} />}
           isActive={activeFilter === 'displayed'}
           onPress={() => handleFilter('displayed')}
           count={getFilterCounts().displayed}
+        />
+        <FilterButton
+          label="Masquées"
+          icon={<AlertTriangle size={16} color={activeFilter === 'non_displayed' ? Colors.white : Colors.muted} />}
+          isActive={activeFilter === 'non_displayed'}
+          onPress={() => handleFilter('non_displayed')}
+          count={getFilterCounts().non_displayed}
         />
       </View>
 
@@ -215,10 +218,10 @@ const GestionNotificationsScreen = () => {
               </View>
               <Text style={styles.emptyTitle}>Aucune notification trouvée</Text>
               <Text style={styles.emptyText}>
-                {activeFilter === 'active'
-                  ? 'Aucune notification active pour le moment'
-                  : activeFilter === 'displayed'
-                    ? 'Aucune notification désactivée'
+                {activeFilter === 'displayed'
+                  ? 'Aucune notification affichée pour le moment'
+                  : activeFilter === 'non_displayed'
+                    ? 'Aucune notification non affichée'
                     : 'Aucune notification disponible'}
               </Text>
             </View>

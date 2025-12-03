@@ -93,19 +93,16 @@ export default function SkinderDiscover() {
                 });
             }
         } catch (err: unknown) {
-            // Silently fail prefetch, will fetch normally on next swipe
             setNextProfile(null);
         }
     }, []);
 
     const fetchProfil = useCallback(async (isRefresh = false) => {
-        // If we have a prefetched profile and it's not a refresh, use it immediately
         if (!isRefresh && nextProfile) {
             setProfile(nextProfile);
             setImageProfil(nextProfile.image);
             setNextProfile(null);
             resetPosition();
-            // Start prefetching the next one
             prefetchNextProfile();
             return;
         }
@@ -147,7 +144,6 @@ export default function SkinderDiscover() {
                     image: response.data.image,
                 });
                 setImageProfil(response.data.image);
-                // Start prefetching the next profile
                 prefetchNextProfile();
             }
         } catch (err: unknown) {

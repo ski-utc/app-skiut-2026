@@ -58,12 +58,10 @@ export default function ValideDefis() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Shared video player to prevent refetch
   const videoPlayer = useVideoPlayer(proofMedia && mediaType === 'video' ? proofMedia : '', player => {
     player.loop = false;
   });
 
-  // Control video playback
   useEffect(() => {
     if (mediaType === 'video' && videoPlayer) {
       if (isPlaying || isFullscreenVideoPlaying) {

@@ -194,7 +194,6 @@ export default function PerformancesScreen() {
                     allPerformances = Object.values(response.data);
                 }
 
-                // Découpage Podium / Reste
                 setPodium(allPerformances.slice(0, 3));
                 setRest(allPerformances.slice(3));
             }

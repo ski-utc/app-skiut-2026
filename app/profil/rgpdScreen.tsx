@@ -312,7 +312,7 @@ export default function RGPDScreen() {
                         </TouchableOpacity>
                     </View>
                     <WebView
-                        source={{ uri: `${config.BASE_URL}/rgpd` }}
+                        source={{ uri: `${config.APP_URL}/rgpd` }}
                         style={styles.webview}
                         startInLoadingState={true}
                     />

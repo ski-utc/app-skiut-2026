@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Text, View, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, NavigationProp, useNavigation } from '@react-navigation/native';
-import { Check, Bell, Calendar, Users, X } from 'lucide-react-native';
+import { Eye, Bell, Calendar, Users, EyeOff } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
 import BoutonRetour from '@/components/divers/boutonRetour';
@@ -125,7 +125,7 @@ export default function ValideNotifications() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.heroSection}>
+        {/* <View style={styles.heroSection}>
           <View style={styles.heroIcon}>
             <Bell size={24} color={Colors.primary} />
           </View>
@@ -133,7 +133,7 @@ export default function ValideNotifications() {
           <Text style={styles.heroSubtitle}>
             Gérez l'état de cette notification
           </Text>
-        </View>
+        </View> */}
 
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
@@ -171,15 +171,15 @@ export default function ValideNotifications() {
       <View style={styles.buttonContainer}>
         {notificationDetails?.display === true ? (
           <BoutonActiver
-            title="Désactiver la notification"
-            IconComponent={X}
+            title="Masque la notification"
+            IconComponent={EyeOff}
             color={Colors.error}
             onPress={() => handleDelete(true)}
           />
         ) : (
           <BoutonActiver
-            title="Activer la notification"
-            IconComponent={Check}
+            title="Afficher la notification"
+            IconComponent={Eye}
             color={Colors.success}
             onPress={() => handleDelete(false)}
           />

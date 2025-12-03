@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { View, Text, ActivityIndicator, FlatList, TouchableOpacity, StyleSheet, Modal, ScrollView, Image, StatusBar } from 'react-native';
-import { PartyPopper, User, Sparkles, Eye, X, Trophy } from 'lucide-react-native';
+import { PartyPopper, User, Sparkles, Eye, X, Trophy, UserCircle } from 'lucide-react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
@@ -35,8 +35,6 @@ type MatchedRoom = {
   respRoom?: string;
 }
 
-const DEFAULT_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png"; // TODO : replace with an icon (cf. DefisInfos.tsx)
-
 const INITIAL_ROOM_DETAILS: RoomDetails = {
   id: null,
   roomNumber: '',
@@ -44,7 +42,7 @@ const INITIAL_ROOM_DETAILS: RoomDetails = {
   description: '',
   mood: '',
   passions: [],
-  image: DEFAULT_IMAGE,
+  image: '',
   totalPoints: 0,
   respUser: null,
   statistics: {
@@ -62,6 +60,7 @@ export default function SkinderMyMatches() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
   const [roomDetails, setRoomDetails] = useState<RoomDetails>(INITIAL_ROOM_DETAILS);
+  const [imageError, setImageError] = useState(false);
 
   const { setUser } = useUser();
 
@@ -96,7 +95,7 @@ export default function SkinderMyMatches() {
           description: data.description,
           mood: data.mood,
           passions: Array.isArray(data.passions) ? data.passions : [],
-          image: data.image || DEFAULT_IMAGE,
+          image: data.image || '',
           totalPoints: data.totalPoints,
           respUser: data.respUser,
           statistics: data.statistics || INITIAL_ROOM_DETAILS.statistics
@@ -113,6 +112,7 @@ export default function SkinderMyMatches() {
 
   const handleOpenModal = (room: MatchedRoom) => {
     setRoomDetails(INITIAL_ROOM_DETAILS);
+    setImageError(false);
     setIsModalVisible(true);
     fetchRoomDetails(room.roomId);
   };
@@ -217,11 +217,18 @@ export default function SkinderMyMatches() {
           ) : (
             <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
               <View style={styles.modalImageContainer}>
-                <Image
-                  source={{ uri: roomDetails.image }}
-                  style={styles.modalImage}
-                  resizeMode="cover"
-                />
+                {!imageError && roomDetails.image ? (
+                  <Image
+                    source={{ uri: roomDetails.image }}
+                    style={styles.modalImage}
+                    resizeMode="cover"
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  <View style={[styles.modalImage, styles.modalImagePlaceholder]}>
+                    <UserCircle size={120} color={Colors.muted} />
+                  </View>
+                )}
                 <View style={styles.modalImageOverlay}>
                   <Text style={styles.modalRoomName}>{roomDetails.name}</Text>
                   {roomDetails.roomNumber && (
@@ -428,6 +435,11 @@ const styles = StyleSheet.create({
   modalImageContainer: {
     height: 400,
     position: 'relative',
+  },
+  modalImagePlaceholder: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    justifyContent: 'center',
   },
   modalImageOverlay: {
     backgroundColor: 'rgba(0,0,0,0.6)',

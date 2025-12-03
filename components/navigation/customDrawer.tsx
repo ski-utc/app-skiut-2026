@@ -93,7 +93,7 @@ export default function CustomDrawer({ navigation }: CustomDrawerProps) {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['bottom']}>
             <View style={styles.header}>
                 <View style={styles.userInfo}>
                     <Image
@@ -178,9 +178,10 @@ const styles = StyleSheet.create({
     },
     header: {
         backgroundColor: Colors.primary,
+        marginTop: -40,
         paddingBottom: 40,
         paddingHorizontal: 20,
-        paddingTop: 20,
+        paddingTop: 80,
         position: 'relative',
     },
     itemIconContainer: {

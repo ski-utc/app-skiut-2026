@@ -254,7 +254,7 @@ export default function ValideDefis() {
           </View>
         </View>
 
-        <View style={[styles.imageCard, challengeDetails?.valid === false ? { marginBottom: 96 } : { marginBottom: 16 }]}>
+        <View style={[styles.imageCard, challengeDetails?.valid === false ? styles.marginBottomLarge : styles.marginBottomSmall]}>
           <View style={styles.imageHeader}>
             {mediaType === 'video' ? <VideoIcon size={20} color={Colors.primary} /> : <ImageIcon size={20} color={Colors.primary} />}
             <Text style={styles.imageTitle}>Preuve soumise</Text>
@@ -400,9 +400,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
   },
-  buttonSpacing: {
-    marginBottom: 8,
-  },
+
   closeButton: {
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.6)',
@@ -431,33 +429,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     paddingHorizontal: 20,
   },
-  heroIcon: {
-    alignItems: 'center',
-    backgroundColor: Colors.lightMuted,
-    borderRadius: 32,
-    height: 64,
-    justifyContent: 'center',
-    marginBottom: 16,
-    width: 64,
-  },
-  heroSection: {
-    alignItems: 'center',
-    paddingBottom: 24,
-    paddingHorizontal: 20,
-  },
-  heroSubtitle: {
-    ...TextStyles.body,
-    color: Colors.muted,
-    lineHeight: 20,
-    textAlign: 'center',
-  },
-  heroTitle: {
-    ...TextStyles.h2,
-    color: Colors.primaryBorder,
-    fontWeight: '700',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
+
   imageCard: {
     backgroundColor: Colors.white,
     borderColor: Colors.primary,
@@ -505,71 +477,6 @@ const styles = StyleSheet.create({
     color: Colors.primaryBorder,
     marginLeft: 8,
   },
-  mediaTypeBadge: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    borderRadius: 8,
-    flexDirection: 'row',
-    gap: 4,
-    left: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    position: 'absolute',
-    top: 12,
-  },
-  mediaTypeText: {
-    color: Colors.white,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  modalPlayButton: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    borderRadius: 30,
-    height: 60,
-    justifyContent: 'center',
-    left: '50%',
-    position: 'absolute',
-    top: '50%',
-    transform: [{ translateX: -30 }, { translateY: -10 }],
-    width: 60,
-    zIndex: 20,
-  },
-  modalVideo: {
-    flex: 1,
-    height: '100%',
-    width: '100%',
-  },
-  modalVideoContainer: {
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-    width: '100%',
-  },
-  pauseButton: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    borderRadius: 20,
-    height: 40,
-    justifyContent: 'center',
-    position: 'absolute',
-    right: 12,
-    top: 12,
-    width: 40,
-  },
-  playButton: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    borderRadius: 40,
-    height: 80,
-    justifyContent: 'center',
-    left: '50%',
-    marginLeft: -40,
-    marginTop: -40,
-    position: 'absolute',
-    top: '50%',
-    width: 80,
-  },
   infoCard: {
     backgroundColor: Colors.white,
     borderColor: 'rgba(0,0,0,0.06)',
@@ -616,9 +523,82 @@ const styles = StyleSheet.create({
     marginTop: 16,
     textAlign: 'center',
   },
+  marginBottomLarge: {
+    marginBottom: 96,
+  },
+  marginBottomSmall: {
+    marginBottom: 16,
+  },
+
+  mediaTypeBadge: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 4,
+    left: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    position: 'absolute',
+    top: 12,
+  },
+
+  mediaTypeText: {
+    color: Colors.white,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  modalPlayButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 30,
+    height: 60,
+    justifyContent: 'center',
+    left: '50%',
+    position: 'absolute',
+    top: '50%',
+    transform: [{ translateX: -30 }, { translateY: -10 }],
+    width: 60,
+    zIndex: 20,
+  },
+  modalVideo: {
+    flex: 1,
+    height: '100%',
+    width: '100%',
+  },
+  modalVideoContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  pauseButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 20,
+    height: 40,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 12,
+    top: 12,
+    width: 40,
+  },
   pendingStatus: {
     color: Colors.primary,
     fontWeight: '600',
+  },
+  playButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 40,
+    height: 80,
+    justifyContent: 'center',
+    left: '50%',
+    marginLeft: -40,
+    marginTop: -40,
+    position: 'absolute',
+    top: '50%',
+    width: 80,
   },
   proofImage: {
     aspectRatio: 1,

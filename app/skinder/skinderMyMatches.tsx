@@ -436,11 +436,6 @@ const styles = StyleSheet.create({
     height: 400,
     position: 'relative',
   },
-  modalImagePlaceholder: {
-    alignItems: 'center',
-    backgroundColor: Colors.lightMuted,
-    justifyContent: 'center',
-  },
   modalImageOverlay: {
     backgroundColor: 'rgba(0,0,0,0.6)',
     bottom: 0,
@@ -449,6 +444,11 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     position: 'absolute',
     right: 0,
+  },
+  modalImagePlaceholder: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    justifyContent: 'center',
   },
   modalInfo: {
     padding: 20,

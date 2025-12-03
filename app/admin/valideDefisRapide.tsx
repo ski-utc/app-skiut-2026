@@ -45,7 +45,7 @@ export default function ValideDefisRapide() {
     const [defi, setDefi] = useState<Defi | null>(null);
     const [loading, setLoading] = useState(false);
     const [processing, setProcessing] = useState(false);
-    const [viewedDefiIds, setViewedDefiIds] = useState<number[]>([]);
+    const [_, setViewedDefiIds] = useState<number[]>([]);
     const [isPlaying, setIsPlaying] = useState(false);
 
     const nextDefiRef = useRef<Defi | null>(null);
@@ -101,7 +101,7 @@ export default function ValideDefisRapide() {
                     return currentViewedIds;
                 });
             }
-        } catch (err: unknown) {
+        } catch {
             // Silent fail for prefetch
         }
     }, []);
@@ -555,6 +555,23 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
     },
+    mediaTypeBadge: {
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        borderRadius: 8,
+        flexDirection: 'row',
+        gap: 4,
+        left: 12,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        position: 'absolute',
+        top: 12,
+    },
+    mediaTypeText: {
+        color: Colors.white,
+        fontSize: 12,
+        fontWeight: '600',
+    },
     noMediaContainer: {
         alignItems: 'center',
         flex: 1,
@@ -564,6 +581,30 @@ const styles = StyleSheet.create({
     noMediaText: {
         ...TextStyles.body,
         color: Colors.muted,
+    },
+    pauseButton: {
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        borderRadius: 20,
+        height: 40,
+        justifyContent: 'center',
+        position: 'absolute',
+        right: 12,
+        top: 12,
+        width: 40,
+    },
+    playButton: {
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        borderRadius: 40,
+        height: 80,
+        justifyContent: 'center',
+        left: '50%',
+        marginLeft: -40,
+        marginTop: -40,
+        position: 'absolute',
+        top: '50%',
+        width: 80,
     },
     rejectAnimation: {
         left: '38%',
@@ -611,46 +652,5 @@ const styles = StyleSheet.create({
     },
     validateButton: {
         backgroundColor: '#22c55e',
-    },
-    mediaTypeBadge: {
-        alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.7)',
-        borderRadius: 8,
-        flexDirection: 'row',
-        gap: 4,
-        left: 12,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        position: 'absolute',
-        top: 12,
-    },
-    mediaTypeText: {
-        color: Colors.white,
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    playButton: {
-        alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.7)',
-        borderRadius: 40,
-        height: 80,
-        justifyContent: 'center',
-        left: '50%',
-        marginLeft: -40,
-        marginTop: -40,
-        position: 'absolute',
-        top: '50%',
-        width: 80,
-    },
-    pauseButton: {
-        alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.6)',
-        borderRadius: 20,
-        height: 40,
-        justifyContent: 'center',
-        position: 'absolute',
-        right: 12,
-        top: 12,
-        width: 40,
     },
 });

@@ -151,7 +151,7 @@ export default function SkinderProfil() {
 
   const uploadImage = async (uri: string) => {
     try {
-      let fileInfo = await fetch(uri).then((res) => res.blob());
+      const fileInfo = await fetch(uri).then((res) => res.blob());
 
       let maxFileSize = 5 * 1024 * 1024; // 5MB default
       try {

@@ -340,32 +340,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     paddingHorizontal: 20,
   },
-  heroIcon: {
-    alignItems: 'center',
-    backgroundColor: Colors.lightMuted,
-    borderRadius: 32,
-    height: 64,
-    justifyContent: 'center',
-    marginBottom: 16,
-    width: 64,
-  },
-  heroSection: {
-    alignItems: 'center',
-    paddingBottom: 24,
-    paddingHorizontal: 20,
-  },
-  heroSubtitle: {
-    ...TextStyles.body,
-    color: Colors.muted,
-    lineHeight: 20,
-    textAlign: 'center',
-  },
-  heroTitle: {
-    ...TextStyles.h2Bold,
-    color: Colors.primaryBorder,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
+
   infoCard: {
     backgroundColor: Colors.white,
     borderColor: 'rgba(0,0,0,0.06)',

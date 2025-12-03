@@ -530,26 +530,18 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 6,
     },
-    statLabel: {
-        ...TextStyles.small,
-        color: Colors.muted,
+
+    statText: {
+        color: Colors.primaryBorder,
+        fontSize: 14,
         fontWeight: '600',
-        marginBottom: 4,
     },
     statsRow: {
         flexDirection: 'row',
         gap: 16,
         marginBottom: 12,
     },
-    statText: {
-        color: Colors.primaryBorder,
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    statsSectionValue: {
-        ...TextStyles.h3Bold,
-        color: Colors.primaryBorder,
-    },
+
     statsSection: {
         gap: 16,
     },

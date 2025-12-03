@@ -92,7 +92,7 @@ export default function SkinderDiscover() {
                     image: response.data.image,
                 });
             }
-        } catch (err: unknown) {
+        } catch {
             setNextProfile(null);
         }
     }, []);

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, FlatList, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { Bell, PenLine, Send, CheckCircle, Clock, AlertTriangle } from 'lucide-react-native';
+import { Bell, PenLine, Send, CheckCircle, AlertTriangle } from 'lucide-react-native';
 
 import BoutonGestion from '@/components/admins/boutonGestion';
 import { ApiError, apiGet, AppError, handleApiErrorScreen } from '@/constants/api/apiCalls';

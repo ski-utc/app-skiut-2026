@@ -1,5 +1,5 @@
-import { View, StyleSheet, Text, FlatList, ActivityIndicator, TouchableOpacity, Modal, ScrollView } from "react-native";
-import { useState, useCallback, useEffect } from 'react';
+import { View, StyleSheet, Text, FlatList, ActivityIndicator, TouchableOpacity, Modal, ScrollView, Animated } from "react-native";
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Calendar, Clock, MapPin, HousePlus, Info, X, Timer } from 'lucide-react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
@@ -76,6 +76,10 @@ export default function PlanningScreen() {
 
   const { setUser } = useUser();
 
+  // Animations for modal
+  const slideAnim = useRef(new Animated.Value(1000)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
   const activeOpacity = 1;
   const inactiveOpacity = 0.4;
 
@@ -135,6 +139,23 @@ export default function PlanningScreen() {
     setLoadingPermanence(true);
     setShowPermanenceModal(true);
 
+    // Animate modal opening
+    slideAnim.setValue(1000);
+    fadeAnim.setValue(0);
+    Animated.parallel([
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 11,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     try {
       const response = await apiGet<PermanenceDetails>(`permanences/${permanenceId}`);
 
@@ -150,9 +171,22 @@ export default function PlanningScreen() {
   }, [setUser]);
 
   const closePermanenceModal = useCallback(() => {
-    setShowPermanenceModal(false);
-    setPermanenceDetails(null);
-  }, []);
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: 1000,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setShowPermanenceModal(false);
+      setPermanenceDetails(null);
+    });
+  }, [slideAnim, fadeAnim]);
 
   const formatDateForDisplay = (dateString: string) => {
     const date = new Date(dateString);
@@ -313,14 +347,28 @@ export default function PlanningScreen() {
 
       <Modal
         visible={showPermanenceModal}
-        animationType="fade"
+        animationType="none"
         transparent={true}
         onRequestClose={closePermanenceModal}
       >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={closePermanenceModal}
+        <Animated.View
+          style={[
+            styles.modalOverlay,
+            { opacity: fadeAnim }
+          ]}
+        >
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={1}
+            onPress={closePermanenceModal}
+          />
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.modalAnimatedContainer,
+            { transform: [{ translateY: slideAnim }] }
+          ]}
         >
           <TouchableOpacity
             activeOpacity={1}
@@ -333,10 +381,10 @@ export default function PlanningScreen() {
                 <Text style={styles.modalTitle}>
                   {permanenceDetails?.name || 'Permanence'}
                 </Text>
-                <TouchableOpacity onPress={closePermanenceModal} style={styles.closeButton}>
-                  <X size={24} color={Colors.primaryBorder} />
-                </TouchableOpacity>
               </View>
+              <TouchableOpacity onPress={closePermanenceModal} style={styles.closeButton}>
+                <X size={24} color={Colors.primaryBorder} />
+              </TouchableOpacity>
             </View>
 
             {loadingPermanence ? (
@@ -406,7 +454,7 @@ export default function PlanningScreen() {
               </ScrollView>
             ) : null}
           </TouchableOpacity>
-        </TouchableOpacity>
+        </Animated.View>
       </Modal>
     </View>
   );
@@ -635,8 +683,17 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    flex: 1,
-    justifyContent: 'flex-end',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  modalAnimatedContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
   modalTitle: {
     ...TextStyles.h2Bold,

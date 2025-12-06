@@ -518,7 +518,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   sectionSubtitle: {
     ...TextStyles.small,

@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Image, StyleSheet, TouchableOpacity, Text, ScrollView, Linking, Modal, StatusBar, Platform } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { ImageViewer } from "react-native-image-zoom-viewer";
-import { Link, Download, Webcam, Map, Mountain, MapPin, Navigation, X, Maximize, LucideIcon } from 'lucide-react-native';
+import * as ScreenOrientation from 'expo-screen-orientation';
+import { Link, Download, Webcam, Map, Mountain, MapPin, Navigation, X, Maximize, RotateCw, LucideIcon } from 'lucide-react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
@@ -20,11 +21,40 @@ type ActionButtonProps = {
 export default function PlanScreen() {
   const [isImageModalVisible, setIsImageModalVisible] = useState(false);
   const [isMapModalVisible, setIsMapModalVisible] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
 
   const openStreetMapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=1.7233%2C42.5342%2C1.7433%2C42.5542&layer=mapnik&marker=42.5442%2C1.7333&zoom=17`;
 
-  const toggleImageModal = () => setIsImageModalVisible(!isImageModalVisible);
+  const toggleImageModal = async () => {
+    if (!isImageModalVisible) {
+      setIsImageModalVisible(true);
+    } else {
+      if (isLandscape) {
+        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+        setIsLandscape(false);
+      }
+      setIsImageModalVisible(false);
+    }
+  };
+
+  const toggleRotation = async () => {
+    if (!isLandscape) {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+      setIsLandscape(true);
+    } else {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+      setIsLandscape(false);
+    }
+  };
+
   const toggleMapModal = () => setIsMapModalVisible(!isMapModalVisible);
+
+  // Reset orientation when component unmounts
+  useEffect(() => {
+    return () => {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+    };
+  }, []);
 
   const openLink = async (url: string) => {
     try {
@@ -181,19 +211,28 @@ export default function PlanScreen() {
       >
         <StatusBar hidden />
         <View style={styles.fullScreenContainer}>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={toggleImageModal}
-            activeOpacity={0.7}
-          >
-            <X size={24} color={Colors.white} />
-          </TouchableOpacity>
+          <View style={styles.fullScreenControls}>
+            <TouchableOpacity
+              style={styles.rotateButton}
+              onPress={toggleRotation}
+              activeOpacity={0.7}
+            >
+              <RotateCw size={24} color={Colors.white} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={toggleImageModal}
+              activeOpacity={0.7}
+            >
+              <X size={24} color={Colors.white} />
+            </TouchableOpacity>
+          </View>
 
           <ImageViewer
             imageUrls={[{ url: Image.resolveAssetSource(stationPlan).uri }]}
             index={0}
             backgroundColor="transparent"
-            enableSwipeDown={true}
+            enableSwipeDown={!isLandscape}
             onSwipeDown={toggleImageModal}
             renderIndicator={() => <View />}
           />
@@ -273,11 +312,24 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     height: 44,
     justifyContent: 'center',
+    width: 44,
+    zIndex: 1000,
+  },
+  fullScreenControls: {
+    flexDirection: 'row',
+    gap: 12,
     position: 'absolute',
     right: 20,
     top: 50,
-    width: 44,
     zIndex: 1000,
+  },
+  rotateButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 22,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
   },
   container: {
     backgroundColor: Colors.white,

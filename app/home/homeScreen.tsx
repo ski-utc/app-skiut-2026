@@ -163,7 +163,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
 
     Animated.spring(translateX, {
       toValue,
-      useNativeDriver: true,
+      useNativeDriver: false,
       tension: 100,
       friction: 16,
     }).start();
@@ -174,6 +174,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
 
   const panGesture = Gesture.Pan()
     .activeOffsetX([-10, 10])
+    .runOnJS(true)
     .onUpdate((e) => {
       gestureX.setValue(e.translationX);
     })

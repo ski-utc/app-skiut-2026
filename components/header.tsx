@@ -78,21 +78,23 @@ const Header = memo(({ refreshFunction, disableRefresh = false }: HeaderProps) =
           </Text>
         </View>
       </View>
-      {refreshFunction && (
-        <TouchableOpacity
-          style={[styles.refreshButton, { opacity: disableRefresh ? inactiveOpacity : activeOpacity }]}
-          onPress={refreshFunction}
-          disabled={disableRefresh}
-        >
-          <RotateCcw size={20} color={Colors.primaryBorder} />
-        </TouchableOpacity>
-      )}
-      <TouchableOpacity style={styles.bellButton} onPress={handleBellPress}>
-        <Bell size={20} color={Colors.primaryBorder} />
-        {hasUnreadNotifications && (
-          <View style={styles.notificationDot} />
+      <View style={styles.rightContainer}>
+        {refreshFunction && (
+          <TouchableOpacity
+            style={[styles.refreshButton, { opacity: disableRefresh ? inactiveOpacity : activeOpacity }]}
+            onPress={refreshFunction}
+            disabled={disableRefresh}
+          >
+            <RotateCcw size={20} color={Colors.primaryBorder} />
+          </TouchableOpacity>
         )}
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.bellButton} onPress={handleBellPress}>
+          <Bell size={20} color={Colors.primaryBorder} />
+          {hasUnreadNotifications && (
+            <View style={styles.notificationDot} />
+          )}
+        </TouchableOpacity>
+      </View>
       <NotificationPopup visible={isPopupVisible} onClose={handleClosePopup} />
     </View>
   );
@@ -110,9 +112,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     height: 40,
     justifyContent: 'center',
-    position: 'absolute',
-    right: 20,
-    top: Platform.OS === 'ios' ? 60 : 40,
     width: 40,
   },
   container: {
@@ -133,6 +132,11 @@ const styles = StyleSheet.create({
     gap: 13,
     justifyContent: 'flex-start',
     marginTop: 2,
+  },
+  rightContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
   },
   menuButton: {
     alignItems: 'center',
@@ -163,9 +167,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     height: 40,
     justifyContent: 'center',
-    position: 'absolute',
-    right: 70,
-    top: Platform.OS === 'ios' ? 60 : 40,
     width: 40,
   },
   roomText: {

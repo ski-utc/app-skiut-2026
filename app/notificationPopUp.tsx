@@ -290,7 +290,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingVertical: 16,
   },
 
   emptyDescription: {
@@ -346,7 +345,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderTopColor: Colors.lightMuted,
     borderTopWidth: 1,
-    paddingVertical: 20,
+    paddingVertical: 12,
   },
 
   header: {
@@ -373,6 +372,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingBottom: 16,
+    paddingTop: 16,
   },
   loadingText: {
     ...TextStyles.body,
@@ -437,7 +437,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     elevation: 2,
     flexDirection: "row",
-    marginBottom: 12,
+    marginBottom: 8,
     padding: 16,
     shadowColor: Colors.primaryBorder,
     shadowOffset: { width: 0, height: 2 },

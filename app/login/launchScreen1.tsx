@@ -14,6 +14,7 @@ export default function LaunchScreen1() {
 
   const panGesture = Gesture.Pan()
     .activeOffsetX([-10, 10])
+    .runOnJS(true)
     .onEnd((e) => {
       if (e.velocityX < -350) {
         navigation.navigate("launchScreen2");

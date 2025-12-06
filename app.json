@@ -23,7 +23,10 @@
         "NSPhotoLibraryUsageDescription": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Autoriser Ski'Ut à accéder à la localisation pour calculer votre vitesse de glisse.",
         "NSLocationWhenInUseUsageDescription": "Autoriser Ski'Ut à accéder à la localisation lorsque l'application est en cours d'utilisation pour calculer votre vitesse de glisse.",
-        "NSLocationAlwaysUsageDescription": "Autoriser Ski'Ut à accéder à votre localisation en arrière-plan pour continuer le suivi de votre vitesse de glisse."
+        "NSLocationAlwaysUsageDescription": "Autoriser Ski'Ut à accéder à votre localisation en arrière-plan pour continuer le suivi de votre vitesse de glisse.",
+        "UIBackgroundModes": [
+          "location"
+        ]
       }
     },
     "android": {

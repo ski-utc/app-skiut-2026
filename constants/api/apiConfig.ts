@@ -4,7 +4,7 @@ const domains = {
   dev: "192.168.1.33",  // IP du serveur de développement à changer pour chaque machine
   local: "127.0.0.1"
 }
-const DOMAIN = domains.staging;      // Changer ici si prod, dev ou local pour le login
+const DOMAIN = domains.dev;      // Changer ici si prod, dev ou local pour le login
 
 const BASE_URL = DOMAIN.includes(".fr") ? `https://${DOMAIN}` : `http://${DOMAIN}:8000`
 const APP_URL = `${BASE_URL}/skiutc`

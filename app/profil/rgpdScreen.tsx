@@ -1,7 +1,24 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, Modal, StatusBar } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  TouchableOpacity,
+  Modal,
+  StatusBar,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Shield, FileText, Trash2, UserX, Download, X, LucideProps } from 'lucide-react-native';
+import {
+  Shield,
+  FileText,
+  Trash2,
+  UserX,
+  Download,
+  X,
+  LucideProps,
+} from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 import { WebView } from 'react-native-webview';
 import { downloadAsync, documentDirectory } from 'expo-file-system/legacy';
@@ -11,447 +28,467 @@ import * as SecureStore from 'expo-secure-store';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiPost, apiDelete, isSuccessResponse, isPendingResponse, handleApiErrorToast, AppError } from '@/constants/api/apiCalls';
+import {
+  apiPost,
+  apiDelete,
+  isSuccessResponse,
+  isPendingResponse,
+  handleApiErrorToast,
+  AppError,
+} from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
 import * as config from '@/constants/api/apiConfig';
 
 export default function RGPDScreen() {
-    const { logout } = useUser();
-    const [loading, setLoading] = useState(false);
-    const [showWebView, setShowWebView] = useState(false);
-    const { setUser } = useUser();
+  const { logout } = useUser();
+  const [loading, setLoading] = useState(false);
+  const [showWebView, setShowWebView] = useState(false);
+  const { setUser } = useUser();
 
-    const handleAnonymizeData = () => {
-        Alert.alert(
-            'Anonymiser mes données',
-            'Cette action est irréversible. Vos données personnelles seront anonymisées mais votre compte restera actif avec des données génériques.\n\nVoulez-vous continuer ?',
-            [
-                { text: 'Annuler', style: 'cancel' },
-                {
-                    text: 'Anonymiser',
-                    style: 'destructive',
-                    onPress: async () => {
-                        setLoading(true);
-                        try {
-                            const response = await apiPost('rgpd/anonymize-my-data', null);
+  const handleAnonymizeData = () => {
+    Alert.alert(
+      'Anonymiser mes données',
+      'Cette action est irréversible. Vos données personnelles seront anonymisées mais votre compte restera actif avec des données génériques.\n\nVoulez-vous continuer ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Anonymiser',
+          style: 'destructive',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              const response = await apiPost('rgpd/anonymize-my-data', null);
 
-                            if (isSuccessResponse(response)) {
-                                Toast.show({
-                                    type: 'success',
-                                    text1: 'Données anonymisées',
-                                    text2: 'Vos données ont été anonymisées. Déconnexion...',
-                                });
-                                setTimeout(() => logout(), 2000);
-                            } else if (isPendingResponse(response)) {
-                                Toast.show({
-                                    type: 'info',
-                                    text1: 'Demande enregistrée',
-                                    text2: 'Sera traitée dès le retour de la connexion.',
-                                });
-                            } else {
-                                Toast.show({
-                                    type: 'error',
-                                    text1: 'Erreur',
-                                    text2: response.message || 'Impossible d\'anonymiser vos données.',
-                                });
-                            }
-                        } catch (err: unknown) {
-                            handleApiErrorToast(err as AppError, setUser);
-                        } finally {
-                            setLoading(false);
-                        }
-                    },
-                },
-            ]
-        );
-    };
-
-    const handleDeleteData = () => {
-        Alert.alert(
-            'Supprimer mon compte',
-            'ATTENTION : Cette action est définitive et irréversible.\n\nToutes vos données seront définitivement supprimées de nos serveurs :\n• Votre profil\n• Vos anecdotes\n• Vos défis\n• Vos likes et interactions\n\nVoulez-vous vraiment supprimer votre compte ?',
-            [
-                { text: 'Annuler', style: 'cancel' },
-                {
-                    text: 'Supprimer définitivement',
-                    style: 'destructive',
-                    onPress: () => {
-                        Alert.alert(
-                            'Confirmation finale',
-                            'Êtes-vous absolument certain ? Cette action ne peut pas être annulée.',
-                            [
-                                { text: 'Non, annuler', style: 'cancel' },
-                                {
-                                    text: 'Oui, supprimer',
-                                    style: 'destructive',
-                                    onPress: async () => {
-                                        setLoading(true);
-                                        try {
-                                            const response = await apiDelete('rgpd/delete-my-data');
-
-                                            if (isSuccessResponse(response)) {
-                                                Toast.show({
-                                                    type: 'success',
-                                                    text1: 'Compte supprimé',
-                                                    text2: 'Votre compte a été définitivement supprimé.',
-                                                });
-                                                setTimeout(() => logout(), 2000);
-                                            } else if (isPendingResponse(response)) {
-                                                Toast.show({
-                                                    type: 'info',
-                                                    text1: 'Demande de suppression enregistrée',
-                                                    text2: 'Sera effective dès le retour de la connexion.',
-                                                });
-                                            } else {
-                                                Toast.show({
-                                                    type: 'error',
-                                                    text1: 'Erreur',
-                                                    text2: response.message || 'Impossible de supprimer votre compte.',
-                                                });
-                                            }
-                                        } catch (err: unknown) {
-                                            handleApiErrorToast(err as AppError, setUser);
-                                        } finally {
-                                            setLoading(false);
-                                        }
-                                    },
-                                },
-                            ]
-                        );
-                    },
-                },
-            ]
-        );
-    };
-
-    const handleExportData = async () => {
-        setLoading(true);
-        try {
-            const accessToken = await SecureStore.getItemAsync('accessToken');
-            if (!accessToken) {
+              if (isSuccessResponse(response)) {
                 Toast.show({
-                    type: 'error',
-                    text1: 'Erreur',
-                    text2: 'Vous devez être connecté.',
+                  type: 'success',
+                  text1: 'Données anonymisées',
+                  text2: 'Vos données ont été anonymisées. Déconnexion...',
                 });
-                return;
+                setTimeout(() => logout(), 2000);
+              } else if (isPendingResponse(response)) {
+                Toast.show({
+                  type: 'info',
+                  text1: 'Demande enregistrée',
+                  text2: 'Sera traitée dès le retour de la connexion.',
+                });
+              } else {
+                Toast.show({
+                  type: 'error',
+                  text1: 'Erreur',
+                  text2:
+                    response.message || "Impossible d'anonymiser vos données.",
+                });
+              }
+            } catch (err: unknown) {
+              handleApiErrorToast(err as AppError, setUser);
+            } finally {
+              setLoading(false);
             }
+          },
+        },
+      ],
+    );
+  };
 
-            const timestamp = new Date().toISOString().split('T')[0];
-            const fileName = `mes-donnees-skiut-${timestamp}.zip`;
-            const fileUri = `${documentDirectory}${fileName}`;
-
-            const downloadResult = await downloadAsync(
-                `${config.API_BASE_URL}/rgpd/export-my-data`,
-                fileUri,
+  const handleDeleteData = () => {
+    Alert.alert(
+      'Supprimer mon compte',
+      'ATTENTION : Cette action est définitive et irréversible.\n\nToutes vos données seront définitivement supprimées de nos serveurs :\n• Votre profil\n• Vos anecdotes\n• Vos défis\n• Vos likes et interactions\n\nVoulez-vous vraiment supprimer votre compte ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer définitivement',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Confirmation finale',
+              'Êtes-vous absolument certain ? Cette action ne peut pas être annulée.',
+              [
+                { text: 'Non, annuler', style: 'cancel' },
                 {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                }
+                  text: 'Oui, supprimer',
+                  style: 'destructive',
+                  onPress: async () => {
+                    setLoading(true);
+                    try {
+                      const response = await apiDelete('rgpd/delete-my-data');
+
+                      if (isSuccessResponse(response)) {
+                        Toast.show({
+                          type: 'success',
+                          text1: 'Compte supprimé',
+                          text2: 'Votre compte a été définitivement supprimé.',
+                        });
+                        setTimeout(() => logout(), 2000);
+                      } else if (isPendingResponse(response)) {
+                        Toast.show({
+                          type: 'info',
+                          text1: 'Demande de suppression enregistrée',
+                          text2:
+                            'Sera effective dès le retour de la connexion.',
+                        });
+                      } else {
+                        Toast.show({
+                          type: 'error',
+                          text1: 'Erreur',
+                          text2:
+                            response.message ||
+                            'Impossible de supprimer votre compte.',
+                        });
+                      }
+                    } catch (err: unknown) {
+                      handleApiErrorToast(err as AppError, setUser);
+                    } finally {
+                      setLoading(false);
+                    }
+                  },
+                },
+              ],
             );
+          },
+        },
+      ],
+    );
+  };
 
-            if (downloadResult.status === 200) {
-                const isAvailable = await Sharing.isAvailableAsync();
+  const handleExportData = async () => {
+    setLoading(true);
+    try {
+      const accessToken = await SecureStore.getItemAsync('accessToken');
+      if (!accessToken) {
+        Toast.show({
+          type: 'error',
+          text1: 'Erreur',
+          text2: 'Vous devez être connecté.',
+        });
+        return;
+      }
 
-                if (isAvailable) {
-                    await Sharing.shareAsync(downloadResult.uri, {
-                        mimeType: 'application/zip',
-                        dialogTitle: 'Sauvegarder mes données',
-                        UTI: 'public.zip-archive',
-                    });
+      const timestamp = new Date().toISOString().split('T')[0];
+      const fileName = `mes-donnees-skiut-${timestamp}.zip`;
+      const fileUri = `${documentDirectory}${fileName}`;
 
-                    Toast.show({
-                        type: 'success',
-                        text1: 'Export réussi',
-                        text2: 'Fichier ZIP prêt.',
-                    });
-                } else {
-                    Toast.show({
-                        type: 'success',
-                        text1: 'Export réussi',
-                        text2: `Fichier sauvegardé : ${fileName}`,
-                    });
-                }
-            } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Erreur',
-                    text2: `Erreur de téléchargement (${downloadResult.status})`,
-                });
-            }
-        } catch (error: unknown) {
-            handleApiErrorToast(error as AppError, setUser);
-        } finally {
-            setLoading(false);
+      const downloadResult = await downloadAsync(
+        `${config.API_BASE_URL}/rgpd/export-my-data`,
+        fileUri,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      if (downloadResult.status === 200) {
+        const isAvailable = await Sharing.isAvailableAsync();
+
+        if (isAvailable) {
+          await Sharing.shareAsync(downloadResult.uri, {
+            mimeType: 'application/zip',
+            dialogTitle: 'Sauvegarder mes données',
+            UTI: 'public.zip-archive',
+          });
+
+          Toast.show({
+            type: 'success',
+            text1: 'Export réussi',
+            text2: 'Fichier ZIP prêt.',
+          });
+        } else {
+          Toast.show({
+            type: 'success',
+            text1: 'Export réussi',
+            text2: `Fichier sauvegardé : ${fileName}`,
+          });
         }
-    };
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Erreur',
+          text2: `Erreur de téléchargement (${downloadResult.status})`,
+        });
+      }
+    } catch (error: unknown) {
+      handleApiErrorToast(error as AppError, setUser);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handleOpenCGU = () => {
-        setShowWebView(true);
-    };
+  const handleOpenCGU = () => {
+    setShowWebView(true);
+  };
 
-    const ActionCard = ({
-        title,
-        description,
-        icon: IconComponent,
-        color,
-        onPress,
-        dangerous = false
-    }: {
-        title: string;
-        description: string;
-        icon: React.FC<LucideProps>;
-        color: string;
-        onPress: () => void;
-        dangerous?: boolean;
-    }) => (
-        <TouchableOpacity
-            style={[
-                styles.actionCard,
-                dangerous && styles.dangerCard,
-            ]}
-            onPress={onPress}
-            disabled={loading}
-            activeOpacity={0.7}
+  const ActionCard = ({
+    title,
+    description,
+    icon: IconComponent,
+    color,
+    onPress,
+    dangerous = false,
+  }: {
+    title: string;
+    description: string;
+    icon: React.FC<LucideProps>;
+    color: string;
+    onPress: () => void;
+    dangerous?: boolean;
+  }) => (
+    <TouchableOpacity
+      style={[styles.actionCard, dangerous && styles.dangerCard]}
+      onPress={onPress}
+      disabled={loading}
+      activeOpacity={0.7}
+    >
+      <View
+        style={[
+          styles.iconContainer,
+          { backgroundColor: `${color}20` },
+          dangerous && { backgroundColor: Colors.white },
+        ]}
+      >
+        <IconComponent size={24} color={color} />
+      </View>
+      <View style={[styles.cardContent, dangerous && styles.dangerCard]}>
+        <Text style={[styles.cardTitle, dangerous && { color: Colors.white }]}>
+          {title}
+        </Text>
+        <Text
+          style={[styles.cardDescription, dangerous && { color: Colors.white }]}
         >
-            <View style={[styles.iconContainer, { backgroundColor: `${color}20` }, dangerous && { backgroundColor: Colors.white }]}>
-                <IconComponent size={24} color={color} />
-            </View>
-            <View style={[styles.cardContent, dangerous && styles.dangerCard]}>
-                <Text style={[styles.cardTitle, dangerous && { color: Colors.white }]}>
-                    {title}
-                </Text>
-                <Text style={[styles.cardDescription, dangerous && { color: Colors.white }]}>{description}</Text>
-            </View>
-        </TouchableOpacity>
-    );
+          {description}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
 
-    return (
-        <SafeAreaView style={styles.container}>
-            <Header refreshFunction={null} disableRefresh={true} />
-            <View style={styles.headerContainer}>
-                <BoutonRetour title="RGPD & Données" />
-            </View>
+  return (
+    <SafeAreaView style={styles.container}>
+      <Header refreshFunction={null} disableRefresh={true} />
+      <View style={styles.headerContainer}>
+        <BoutonRetour title="RGPD & Données" />
+      </View>
 
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-                <View style={styles.heroSection}>
-                    <View style={styles.heroIcon}>
-                        <Shield size={32} color={Colors.primary} />
-                    </View>
-                    <Text style={styles.heroTitle}>Vos données, vos droits</Text>
-                    <Text style={styles.heroSubtitle}>
-                        Conformément au RGPD, vous disposez d'un contrôle total sur vos données personnelles.
-                    </Text>
-                </View>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.heroSection}>
+          <View style={styles.heroIcon}>
+            <Shield size={32} color={Colors.primary} />
+          </View>
+          <Text style={styles.heroTitle}>Vos données, vos droits</Text>
+          <Text style={styles.heroSubtitle}>
+            Conformément au RGPD, vous disposez d'un contrôle total sur vos
+            données personnelles.
+          </Text>
+        </View>
 
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Consulter nos documents</Text>
-                    <ActionCard
-                        title="Charte RGPD & CGU"
-                        description="Consultez notre politique de confidentialité et nos conditions générales d'utilisation"
-                        icon={FileText}
-                        color={Colors.primary}
-                        onPress={handleOpenCGU}
-                    />
-                </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Consulter nos documents</Text>
+          <ActionCard
+            title="Charte RGPD & CGU"
+            description="Consultez notre politique de confidentialité et nos conditions générales d'utilisation"
+            icon={FileText}
+            color={Colors.primary}
+            onPress={handleOpenCGU}
+          />
+        </View>
 
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Gérer mes données</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Gérer mes données</Text>
 
-                    <ActionCard
-                        title="Exporter mes données"
-                        description="Téléchargez une copie de toutes vos données personnelles au format JSON"
-                        icon={Download}
-                        color={Colors.success}
-                        onPress={handleExportData}
-                    />
+          <ActionCard
+            title="Exporter mes données"
+            description="Téléchargez une copie de toutes vos données personnelles au format JSON"
+            icon={Download}
+            color={Colors.success}
+            onPress={handleExportData}
+          />
 
-                    <ActionCard
-                        title="Anonymiser mes données"
-                        description="Remplacez vos données personnelles par des informations anonymes"
-                        icon={UserX}
-                        color={Colors.accent}
-                        onPress={handleAnonymizeData}
-                    />
+          <ActionCard
+            title="Anonymiser mes données"
+            description="Remplacez vos données personnelles par des informations anonymes"
+            icon={UserX}
+            color={Colors.accent}
+            onPress={handleAnonymizeData}
+          />
 
-                    <ActionCard
-                        title="Supprimer mon compte"
-                        description="Supprimez définitivement votre compte et toutes vos données"
-                        icon={Trash2}
-                        color={Colors.error}
-                        onPress={handleDeleteData}
-                        dangerous={true}
-                    />
-                </View>
+          <ActionCard
+            title="Supprimer mon compte"
+            description="Supprimez définitivement votre compte et toutes vos données"
+            icon={Trash2}
+            color={Colors.error}
+            onPress={handleDeleteData}
+            dangerous={true}
+          />
+        </View>
 
-                <View style={styles.infoBox}>
-                    <Shield size={16} color={Colors.primary} />
-                    <Text style={styles.infoText}>
-                        Toutes les actions de suppression ou d'anonymisation sont irréversibles.
-                        Nous vous recommandons d'exporter vos données avant toute action définitive.
-                    </Text>
-                </View>
-            </ScrollView>
+        <View style={styles.infoBox}>
+          <Shield size={16} color={Colors.primary} />
+          <Text style={styles.infoText}>
+            Toutes les actions de suppression ou d'anonymisation sont
+            irréversibles. Nous vous recommandons d'exporter vos données avant
+            toute action définitive.
+          </Text>
+        </View>
+      </ScrollView>
 
-            <Modal
-                visible={showWebView}
-                transparent={false}
-                animationType="slide"
-                onRequestClose={() => setShowWebView(false)}
+      <Modal
+        visible={showWebView}
+        transparent={false}
+        animationType="slide"
+        onRequestClose={() => setShowWebView(false)}
+      >
+        <StatusBar hidden />
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Charte RGPD & CGU</Text>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setShowWebView(false)}
             >
-                <StatusBar hidden />
-                <SafeAreaView style={styles.modalContainer}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Charte RGPD & CGU</Text>
-                        <TouchableOpacity
-                            style={styles.closeButton}
-                            onPress={() => setShowWebView(false)}
-                        >
-                            <X size={24} color={Colors.primaryBorder} />
-                        </TouchableOpacity>
-                    </View>
-                    <WebView
-                        source={{ uri: `${config.APP_URL}/rgpd` }}
-                        style={styles.webview}
-                        startInLoadingState={true}
-                    />
-                </SafeAreaView>
-            </Modal>
+              <X size={24} color={Colors.primaryBorder} />
+            </TouchableOpacity>
+          </View>
+          <WebView
+            source={{ uri: `${config.APP_URL}/rgpd` }}
+            style={styles.webview}
+            startInLoadingState={true}
+          />
         </SafeAreaView>
-    );
+      </Modal>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
-    actionCard: {
-        alignItems: 'center',
-        backgroundColor: Colors.white,
-        borderColor: Colors.lightMuted,
-        borderRadius: 12,
-        borderWidth: 1,
-        elevation: 2,
-        flexDirection: 'row',
-        marginBottom: 12,
-        padding: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-    },
-    cardContent: {
-        flex: 1,
-    },
-    cardDescription: {
-        ...TextStyles.small,
-        color: Colors.muted,
-        lineHeight: 18,
-    },
-    cardTitle: {
-        ...TextStyles.bodyBold,
-        color: Colors.primaryBorder,
-        marginBottom: 4,
-    },
-    closeButton: {
-        alignItems: 'center',
-        backgroundColor: Colors.lightMuted,
-        borderRadius: 20,
-        height: 40,
-        justifyContent: 'center',
-        width: 40,
-    },
-    container: {
-        backgroundColor: Colors.white,
-        flex: 1,
-    },
-    content: {
-        flex: 1,
-    },
-    dangerCard: {
-        backgroundColor: Colors.error,
-        borderColor: Colors.error,
-    },
-    headerContainer: {
-        paddingBottom: 8,
-        paddingHorizontal: 20,
-    },
-    heroIcon: {
-        alignItems: 'center',
-        backgroundColor: `${Colors.primary}15`,
-        borderRadius: 40,
-        height: 80,
-        justifyContent: 'center',
-        marginBottom: 16,
-        width: 80,
-    },
-    heroSection: {
-        alignItems: 'center',
-        paddingBottom: 32,
-        paddingHorizontal: 20,
-    },
-    heroSubtitle: {
-        ...TextStyles.body,
-        color: Colors.muted,
-        lineHeight: 22,
-        maxWidth: '90%',
-        textAlign: 'center',
-    },
-    heroTitle: {
-        ...TextStyles.h1Bold,
-        color: Colors.primaryBorder,
-        marginBottom: 8,
-        textAlign: 'center',
-    },
-    iconContainer: {
-        alignItems: 'center',
-        borderRadius: 24,
-        height: 48,
-        justifyContent: 'center',
-        marginRight: 12,
-        width: 48,
-    },
-    infoBox: {
-        alignItems: 'flex-start',
-        backgroundColor: `${Colors.primary}10`,
-        borderRadius: 12,
-        flexDirection: 'row',
-        gap: 12,
-        marginBottom: 32,
-        marginHorizontal: 20,
-        padding: 16,
-    },
-    infoText: {
-        ...TextStyles.small,
-        color: Colors.primaryBorder,
-        flex: 1,
-        lineHeight: 20,
-    },
-    modalContainer: {
-        backgroundColor: Colors.white,
-        flex: 1,
-    },
-    modalHeader: {
-        alignItems: 'center',
-        borderBottomColor: Colors.lightMuted,
-        borderBottomWidth: 1,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-    },
-    modalTitle: {
-        ...TextStyles.h3Bold,
-        color: Colors.primaryBorder,
-    },
-    section: {
-        marginBottom: 24,
-        paddingHorizontal: 20,
-    },
-    sectionTitle: {
-        ...TextStyles.h3Bold,
-        color: Colors.primaryBorder,
-        marginBottom: 16,
-    },
-    webview: {
-        flex: 1,
-    },
+  actionCard: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderColor: Colors.lightMuted,
+    borderRadius: 12,
+    borderWidth: 1,
+    elevation: 2,
+    flexDirection: 'row',
+    marginBottom: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  cardContent: {
+    flex: 1,
+  },
+  cardDescription: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    lineHeight: 18,
+  },
+  cardTitle: {
+    ...TextStyles.bodyBold,
+    color: Colors.primaryBorder,
+    marginBottom: 4,
+  },
+  closeButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 20,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
+  },
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+  },
+  dangerCard: {
+    backgroundColor: Colors.error,
+    borderColor: Colors.error,
+  },
+  headerContainer: {
+    paddingBottom: 8,
+    paddingHorizontal: 20,
+  },
+  heroIcon: {
+    alignItems: 'center',
+    backgroundColor: `${Colors.primary}15`,
+    borderRadius: 40,
+    height: 80,
+    justifyContent: 'center',
+    marginBottom: 16,
+    width: 80,
+  },
+  heroSection: {
+    alignItems: 'center',
+    paddingBottom: 32,
+    paddingHorizontal: 20,
+  },
+  heroSubtitle: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    lineHeight: 22,
+    maxWidth: '90%',
+    textAlign: 'center',
+  },
+  heroTitle: {
+    ...TextStyles.h1Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  iconContainer: {
+    alignItems: 'center',
+    borderRadius: 24,
+    height: 48,
+    justifyContent: 'center',
+    marginRight: 12,
+    width: 48,
+  },
+  infoBox: {
+    alignItems: 'flex-start',
+    backgroundColor: `${Colors.primary}10`,
+    borderRadius: 12,
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 32,
+    marginHorizontal: 20,
+    padding: 16,
+  },
+  infoText: {
+    ...TextStyles.small,
+    color: Colors.primaryBorder,
+    flex: 1,
+    lineHeight: 20,
+  },
+  modalContainer: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  modalHeader: {
+    alignItems: 'center',
+    borderBottomColor: Colors.lightMuted,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  modalTitle: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
+  },
+  section: {
+    marginBottom: 24,
+    paddingHorizontal: 20,
+  },
+  sectionTitle: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 16,
+  },
+  webview: {
+    flex: 1,
+  },
 });

@@ -15,7 +15,7 @@ export type DefisStackParamList = {
     points: number;
     status: string;
   };
-}
+};
 
 export default function DefisNavigator() {
   return (

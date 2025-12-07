@@ -1,6 +1,12 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Home, CalendarFold, LandPlot, MessageSquareText, Heart } from 'lucide-react-native';
+import {
+  Home,
+  CalendarFold,
+  LandPlot,
+  MessageSquareText,
+  Heart,
+} from 'lucide-react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
@@ -60,7 +66,7 @@ export default function CustomNavBar({ state, navigation }: BottomTabBarProps) {
               <Text
                 style={[
                   styles.tabText,
-                  { color: isFocused ? activeColor : unactiveColor }
+                  { color: isFocused ? activeColor : unactiveColor },
                 ]}
                 numberOfLines={1}
                 adjustsFontSizeToFit

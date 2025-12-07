@@ -1,13 +1,24 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, ActivityIndicator, StyleSheet, Text, FlatList, ScrollView } from "react-native";
+import {
+  View,
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  FlatList,
+  ScrollView,
+} from 'react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { apiGet, isSuccessResponse, handleApiErrorScreen } from '@/constants/api/apiCalls';
+import {
+  apiGet,
+  isSuccessResponse,
+  handleApiErrorScreen,
+} from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
-import BoutonRetour from "../../components/divers/boutonRetour";
-import Header from "../../components/header";
+import BoutonRetour from '../../components/divers/boutonRetour';
+import Header from '../../components/header';
 
 type Navette = {
   id: number;
@@ -28,10 +39,10 @@ type NavettesResponse = Record<string, Navette[]>;
 
 type NavettesTabProps = {
   navettesMap: NavettesMap;
-}
+};
 
 const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap }) => {
-  const renderNavetteCard = (type: "Aller" | "Retour", navettes: Navette[]) => (
+  const renderNavetteCard = (type: 'Aller' | 'Retour', navettes: Navette[]) => (
     <View style={navettesStyles.cardContainer}>
       <Text style={navettesStyles.cardTitle}>{type}</Text>
       {navettes.length > 0 ? (
@@ -40,7 +51,12 @@ const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap }) => {
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <View style={navettesStyles.navetteContainer}>
-              <View style={[navettesStyles.navetteIndicator, { backgroundColor: item.colour || Colors.primaryBorder }]} />
+              <View
+                style={[
+                  navettesStyles.navetteIndicator,
+                  { backgroundColor: item.colour || Colors.primaryBorder },
+                ]}
+              />
               <View style={navettesStyles.navetteDetails}>
                 <Text style={navettesStyles.navetteText}>
                   {item.departure} → {item.arrival}
@@ -74,8 +90,8 @@ const NavettesTab: React.FC<NavettesTabProps> = ({ navettesMap }) => {
       showsVerticalScrollIndicator={false}
     >
       <View style={navettesStyles.innerContainer}>
-        {renderNavetteCard("Aller", navettesMap.Aller)}
-        {renderNavetteCard("Retour", navettesMap.Retour)}
+        {renderNavetteCard('Aller', navettesMap.Aller)}
+        {renderNavetteCard('Retour', navettesMap.Retour)}
       </View>
     </ScrollView>
   );
@@ -153,41 +169,49 @@ const navettesStyles = StyleSheet.create({
 });
 
 export default function NavettesScreen() {
-  const [navettesMap, setNavettesMap] = useState<NavettesMap>({ Aller: [], Retour: [] });
+  const [navettesMap, setNavettesMap] = useState<NavettesMap>({
+    Aller: [],
+    Retour: [],
+  });
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [refreshing, setRefreshing] = useState(false);
 
   const { setUser } = useUser();
 
-  const fetchNavettes = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-    setError('');
+  const fetchNavettes = useCallback(
+    async (isRefresh = false) => {
+      if (isRefresh) setRefreshing(true);
+      else setLoading(true);
+      setError('');
 
-    try {
-      const response = await apiGet<NavettesResponse>('navettes');
+      try {
+        const response = await apiGet<NavettesResponse>('navettes');
 
-      if (isSuccessResponse(response)) {
-        const map: NavettesMap = {
-          Aller: [],
-          Retour: [],
-        };
+        if (isSuccessResponse(response)) {
+          const map: NavettesMap = {
+            Aller: [],
+            Retour: [],
+          };
 
-        if (response.data) {
-          if (Array.isArray(response.data['Aller'])) map.Aller = response.data['Aller'];
-          if (Array.isArray(response.data['Retour'])) map.Retour = response.data['Retour'];
+          if (response.data) {
+            if (Array.isArray(response.data['Aller']))
+              map.Aller = response.data['Aller'];
+            if (Array.isArray(response.data['Retour']))
+              map.Retour = response.data['Retour'];
+          }
+
+          setNavettesMap(map);
         }
-
-        setNavettesMap(map);
+      } catch (err: unknown) {
+        handleApiErrorScreen(err, setUser, setError);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
-    } catch (err: unknown) {
-      handleApiErrorScreen(err, setUser, setError);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [setUser]);
+    },
+    [setUser],
+  );
 
   useEffect(() => {
     fetchNavettes();
@@ -211,7 +235,10 @@ export default function NavettesScreen() {
 
   return (
     <View style={styles.container}>
-      <Header refreshFunction={() => fetchNavettes(true)} disableRefresh={refreshing} />
+      <Header
+        refreshFunction={() => fetchNavettes(true)}
+        disableRefresh={refreshing}
+      />
 
       <View style={styles.headerContainer}>
         <BoutonRetour title="Vos Navettes" />

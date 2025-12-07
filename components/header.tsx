@@ -1,7 +1,17 @@
 import { useState, useCallback, useEffect, memo } from 'react';
-import { Text, View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import {
+  Text,
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+} from 'react-native';
 import { GanttChart, Bell, RotateCcw } from 'lucide-react-native';
-import { NavigationProp, useNavigation, DrawerActions } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useNavigation,
+  DrawerActions,
+} from '@react-navigation/native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import NotificationPopup from '@/app/notificationPopUp';
@@ -14,91 +24,99 @@ type HeaderStackParamList = {
   defisScreen: undefined;
   anecdotesScreen: undefined;
   profilScreen: undefined;
-}
+};
 
 type HeaderProps = {
   refreshFunction?: (() => void) | null;
   disableRefresh?: boolean;
-}
+};
 
 type Notification = {
   read: boolean;
-}
+};
 
-const Header = memo(({ refreshFunction, disableRefresh = false }: HeaderProps) => {
-  const [isPopupVisible, setIsPopupVisible] = useState(false);
-  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
-  const { user } = useUser();
-  const navigation = useNavigation<NavigationProp<HeaderStackParamList>>();
+const Header = memo(
+  ({ refreshFunction, disableRefresh = false }: HeaderProps) => {
+    const [isPopupVisible, setIsPopupVisible] = useState(false);
+    const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
+    const { user } = useUser();
+    const navigation = useNavigation<NavigationProp<HeaderStackParamList>>();
 
-  const activeOpacity = 1;
-  const inactiveOpacity = 0.4;
+    const activeOpacity = 1;
+    const inactiveOpacity = 0.4;
 
-  const handleMenuPress = useCallback(() => {
-    navigation.dispatch(DrawerActions.openDrawer());
-  }, [navigation]);
+    const handleMenuPress = useCallback(() => {
+      navigation.dispatch(DrawerActions.openDrawer());
+    }, [navigation]);
 
-  const handleBellPress = useCallback(() => {
-    setIsPopupVisible(true);
-  }, []);
+    const handleBellPress = useCallback(() => {
+      setIsPopupVisible(true);
+    }, []);
 
-  const handleClosePopup = useCallback(() => {
-    setIsPopupVisible(false);
-    setHasUnreadNotifications(false);
-  }, []);
+    const handleClosePopup = useCallback(() => {
+      setIsPopupVisible(false);
+      setHasUnreadNotifications(false);
+    }, []);
 
-  const updateUnreadNotifications = useCallback(async () => {
-    try {
-      const response = await apiGet<Notification[]>('notifications');
-      if (isSuccessResponse(response) && response.data) {
-        const hasUnread = response.data.some((notification) => !notification.read);
-        setHasUnreadNotifications(hasUnread);
+    const updateUnreadNotifications = useCallback(async () => {
+      try {
+        const response = await apiGet<Notification[]>('notifications');
+        if (isSuccessResponse(response) && response.data) {
+          const hasUnread = response.data.some(
+            (notification) => !notification.read,
+          );
+          setHasUnreadNotifications(hasUnread);
+        }
+      } catch (err) {
+        console.error(err);
       }
-    } catch (err) {
-      console.error(err);
-    }
-  }, []);
+    }, []);
 
-  useEffect(() => {
-    updateUnreadNotifications();
-  }, [updateUnreadNotifications]);
+    useEffect(() => {
+      updateUnreadNotifications();
+    }, [updateUnreadNotifications]);
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.leftContainer}>
-        <TouchableOpacity onPress={handleMenuPress} style={styles.menuButton}>
-          <GanttChart size={24} color={Colors.primaryBorder} />
-        </TouchableOpacity>
-        <View style={styles.textContainer}>
-          <Text style={styles.nameText} numberOfLines={1}>
-            {user?.name} {user?.lastName}
-          </Text>
-          <Text style={styles.roomText}>
-            {`Chambre ${user?.roomName || 'Non attribuée'}`}
-          </Text>
-        </View>
-      </View>
-      <View style={styles.rightContainer}>
-        {refreshFunction && (
-          <TouchableOpacity
-            style={[styles.refreshButton, { opacity: disableRefresh ? inactiveOpacity : activeOpacity }]}
-            onPress={refreshFunction}
-            disabled={disableRefresh}
-          >
-            <RotateCcw size={20} color={Colors.primaryBorder} />
+    return (
+      <View style={styles.container}>
+        <View style={styles.leftContainer}>
+          <TouchableOpacity onPress={handleMenuPress} style={styles.menuButton}>
+            <GanttChart size={24} color={Colors.primaryBorder} />
           </TouchableOpacity>
-        )}
-        <TouchableOpacity style={styles.bellButton} onPress={handleBellPress}>
-          <Bell size={20} color={Colors.primaryBorder} />
-          {hasUnreadNotifications && (
-            <View style={styles.notificationDot} />
+          <View style={styles.textContainer}>
+            <Text style={styles.nameText} numberOfLines={1}>
+              {user?.name} {user?.lastName}
+            </Text>
+            <Text style={styles.roomText}>
+              {`Chambre ${user?.roomName || 'Non attribuée'}`}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.rightContainer}>
+          {refreshFunction && (
+            <TouchableOpacity
+              style={[
+                styles.refreshButton,
+                { opacity: disableRefresh ? inactiveOpacity : activeOpacity },
+              ]}
+              onPress={refreshFunction}
+              disabled={disableRefresh}
+            >
+              <RotateCcw size={20} color={Colors.primaryBorder} />
+            </TouchableOpacity>
           )}
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.bellButton} onPress={handleBellPress}>
+            <Bell size={20} color={Colors.primaryBorder} />
+            {hasUnreadNotifications && <View style={styles.notificationDot} />}
+          </TouchableOpacity>
+        </View>
+        <NotificationPopup
+          visible={isPopupVisible}
+          onClose={handleClosePopup}
+        />
       </View>
-      <NotificationPopup visible={isPopupVisible} onClose={handleClosePopup} />
-    </View>
-  );
-});
+    );
+  },
+);
 
 Header.displayName = 'Header';
 
@@ -133,11 +151,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     marginTop: 2,
   },
-  rightContainer: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-  },
   menuButton: {
     alignItems: 'center',
     borderRadius: 8,
@@ -168,6 +181,11 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     width: 40,
+  },
+  rightContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
   },
   roomText: {
     ...TextStyles.small,

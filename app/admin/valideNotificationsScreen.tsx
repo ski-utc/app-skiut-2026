@@ -1,14 +1,30 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import {
+  Text,
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  ScrollView,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute, NavigationProp, useNavigation } from '@react-navigation/native';
+import {
+  useRoute,
+  NavigationProp,
+  useNavigation,
+} from '@react-navigation/native';
 import { Eye, Bell, Calendar, Users, EyeOff } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
-import { ApiError, apiGet, apiPut, handleApiErrorScreen, handleApiErrorToast } from '@/constants/api/apiCalls';
+import {
+  ApiError,
+  apiGet,
+  apiPut,
+  handleApiErrorScreen,
+  handleApiErrorToast,
+} from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
@@ -23,11 +39,11 @@ type NotificationDetails = {
   created_at: string;
   general: number;
   display: boolean;
-}
+};
 
 type RouteParams = {
   id: number;
-}
+};
 
 export default function ValideNotifications() {
   const route = useRoute();
@@ -36,14 +52,17 @@ export default function ValideNotifications() {
   const { id } = (route.params as RouteParams) || { id: 0 };
   const { setUser } = useUser();
 
-  const [notificationDetails, setNotificationDetails] = useState<NotificationDetails | null>(null);
+  const [notificationDetails, setNotificationDetails] =
+    useState<NotificationDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const fetchNotificationDetails = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiGet<NotificationDetails>(`admin/notifications/${id}`);
+      const response = await apiGet<NotificationDetails>(
+        `admin/notifications/${id}`,
+      );
       if (response.success) {
         setNotificationDetails(response.data);
       } else {
@@ -59,7 +78,9 @@ export default function ValideNotifications() {
   const handleDelete = async (displayFlag: boolean) => {
     setLoading(true);
     try {
-      const response = await apiPut(`admin/notifications/${id}/display`, { display_flag: displayFlag });
+      const response = await apiPut(`admin/notifications/${id}/display`, {
+        display_flag: displayFlag,
+      });
       if (response.success) {
         if (displayFlag === true) {
           Toast.show({
@@ -139,32 +160,43 @@ export default function ValideNotifications() {
           <View style={styles.infoRow}>
             <Bell size={16} color={Colors.primary} />
             <Text style={styles.infoLabel}>Notification :</Text>
-            <Text style={styles.infoValue}>{notificationDetails?.title || 'Pas de titre'}</Text>
+            <Text style={styles.infoValue}>
+              {notificationDetails?.title || 'Pas de titre'}
+            </Text>
           </View>
           <View style={styles.infoRow}>
             <Calendar size={16} color={Colors.primary} />
             <Text style={styles.infoLabel}>Date :</Text>
             <Text style={styles.infoValue}>
-              {notificationDetails?.created_at ? new Date(notificationDetails.created_at).toLocaleString('fr-FR', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-              }) : 'Date non disponible'}
+              {notificationDetails?.created_at
+                ? new Date(notificationDetails.created_at).toLocaleString(
+                    'fr-FR',
+                    {
+                      weekday: 'long',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: false,
+                    },
+                  )
+                : 'Date non disponible'}
             </Text>
           </View>
           <View style={styles.infoRow}>
             <Users size={16} color={Colors.primary} />
             <Text style={styles.infoLabel}>S'applique à :</Text>
-            <Text style={styles.infoValue}>{notificationDetails?.general ? 'Tout le monde' : 'Individuel'}</Text>
+            <Text style={styles.infoValue}>
+              {notificationDetails?.general ? 'Tout le monde' : 'Individuel'}
+            </Text>
           </View>
         </View>
 
         <View style={styles.contentCard}>
           <Text style={styles.contentTitle}>Contenu de la notification</Text>
-          <Text style={styles.contentText}>{notificationDetails?.description}</Text>
+          <Text style={styles.contentText}>
+            {notificationDetails?.description}
+          </Text>
         </View>
       </ScrollView>
 

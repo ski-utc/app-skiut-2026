@@ -2,7 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 
-export interface User {
+export type User = {
   id: number;
   name: string;
   lastName: string;
@@ -10,17 +10,19 @@ export interface User {
   roomName: string;
   admin: boolean;
   member: boolean;
-}
+};
 
-interface UserContextProps {
+type UserContextProps = {
   user: User | null;
   setUser: (user: User | null) => void;
   logout: () => void;
-}
+};
 
 const UserContext = createContext<UserContextProps | undefined>(undefined);
 
-export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -59,13 +61,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const contextValue = React.useMemo(
     () => ({ user, setUser: saveUser, logout }),
-    [user, saveUser, logout]
+    [user, saveUser, logout],
   );
 
   return (
-    <UserContext.Provider value={contextValue}>
-      {children}
-    </UserContext.Provider>
+    <UserContext.Provider value={contextValue}>{children}</UserContext.Provider>
   );
 };
 

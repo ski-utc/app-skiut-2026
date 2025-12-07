@@ -1,11 +1,29 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, FlatList, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { Bell, PenLine, Send, CheckCircle, AlertTriangle } from 'lucide-react-native';
+import {
+  Bell,
+  PenLine,
+  Send,
+  CheckCircle,
+  AlertTriangle,
+} from 'lucide-react-native';
 
 import BoutonGestion from '@/components/admins/boutonGestion';
-import { ApiError, apiGet, AppError, handleApiErrorScreen } from '@/constants/api/apiCalls';
+import {
+  ApiError,
+  apiGet,
+  AppError,
+  handleApiErrorScreen,
+} from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
@@ -21,25 +39,34 @@ type FilterButtonProps = {
   isActive: boolean;
   onPress: () => void;
   count?: number;
-}
+};
 
 type NotificationItem = {
   id: number;
   title: string;
   display: boolean;
   created_at: string;
-}
+};
 
-const FilterButton: React.FC<FilterButtonProps> = ({ label, icon, isActive, onPress, count }) => (
+const FilterButton: React.FC<FilterButtonProps> = ({
+  label,
+  icon,
+  isActive,
+  onPress,
+  count,
+}) => (
   <TouchableOpacity
     style={[styles.filterButton, isActive && styles.filterButtonActive]}
     onPress={onPress}
   >
     <View style={styles.filterButtonContent}>
-      <View style={styles.filterIcon}>
-        {icon}
-      </View>
-      <Text style={[styles.filterButtonText, isActive && styles.filterButtonTextActive]}>
+      <View style={styles.filterIcon}>{icon}</View>
+      <Text
+        style={[
+          styles.filterButtonText,
+          isActive && styles.filterButtonTextActive,
+        ]}
+      >
         {label}
       </Text>
       {count !== undefined && count > 0 && (
@@ -56,30 +83,43 @@ const GestionNotificationsScreen = () => {
   const { setUser } = useUser();
 
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [filteredNotifications, setFilteredNotifications] = useState<NotificationItem[]>([]);
+  const [filteredNotifications, setFilteredNotifications] = useState<
+    NotificationItem[]
+  >([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'displayed' | 'non_displayed'>('all');
+  const [activeFilter, setActiveFilter] = useState<
+    'all' | 'displayed' | 'non_displayed'
+  >('all');
 
-  const applyFilter = useCallback((filter: 'all' | 'displayed' | 'non_displayed', data: NotificationItem[]) => {
-    switch (filter) {
-      case 'displayed':
-        setFilteredNotifications(data.filter((item) => item.display));
-        break;
-      case 'non_displayed':
-        setFilteredNotifications(data.filter((item) => !item.display));
-        break;
-      default:
-        setFilteredNotifications(data);
-        break;
-    }
-  }, []);
+  const applyFilter = useCallback(
+    (
+      filter: 'all' | 'displayed' | 'non_displayed',
+      data: NotificationItem[],
+    ) => {
+      switch (filter) {
+        case 'displayed':
+          setFilteredNotifications(data.filter((item) => item.display));
+          break;
+        case 'non_displayed':
+          setFilteredNotifications(data.filter((item) => !item.display));
+          break;
+        default:
+          setFilteredNotifications(data);
+          break;
+      }
+    },
+    [],
+  );
 
-  const handleFilter = useCallback((filter: 'all' | 'displayed' | 'non_displayed') => {
-    setActiveFilter(filter);
-    applyFilter(filter, notifications);
-  }, [notifications, applyFilter]);
+  const handleFilter = useCallback(
+    (filter: 'all' | 'displayed' | 'non_displayed') => {
+      setActiveFilter(filter);
+      applyFilter(filter, notifications);
+    },
+    [notifications, applyFilter],
+  );
 
   const getFilterCounts = () => {
     return {
@@ -129,7 +169,9 @@ const GestionNotificationsScreen = () => {
         <Header refreshFunction={null} disableRefresh={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loadingText}>Chargement des notifications...</Text>
+          <Text style={styles.loadingText}>
+            Chargement des notifications...
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -137,7 +179,10 @@ const GestionNotificationsScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header refreshFunction={fetchAdminNotifications} disableRefresh={disableRefresh} />
+      <Header
+        refreshFunction={fetchAdminNotifications}
+        disableRefresh={disableRefresh}
+      />
       <View style={styles.headerContainer}>
         <BoutonRetour title="Gestion des notifications" />
       </View>
@@ -168,21 +213,38 @@ const GestionNotificationsScreen = () => {
       <View style={styles.filtersContainer}>
         <FilterButton
           label="Toutes"
-          icon={<CheckCircle size={16} color={activeFilter === 'all' ? Colors.white : Colors.primary} />}
+          icon={
+            <CheckCircle
+              size={16}
+              color={activeFilter === 'all' ? Colors.white : Colors.primary}
+            />
+          }
           isActive={activeFilter === 'all'}
           onPress={() => handleFilter('all')}
-        // count={getFilterCounts().all}
+          // count={getFilterCounts().all}
         />
         <FilterButton
           label="Affichées"
-          icon={<AlertTriangle size={16} color={activeFilter === 'displayed' ? Colors.white : Colors.error} />}
+          icon={
+            <AlertTriangle
+              size={16}
+              color={activeFilter === 'displayed' ? Colors.white : Colors.error}
+            />
+          }
           isActive={activeFilter === 'displayed'}
           onPress={() => handleFilter('displayed')}
           count={getFilterCounts().displayed}
         />
         <FilterButton
           label="Masquées"
-          icon={<AlertTriangle size={16} color={activeFilter === 'non_displayed' ? Colors.white : Colors.muted} />}
+          icon={
+            <AlertTriangle
+              size={16}
+              color={
+                activeFilter === 'non_displayed' ? Colors.white : Colors.muted
+              }
+            />
+          }
           isActive={activeFilter === 'non_displayed'}
           onPress={() => handleFilter('non_displayed')}
           count={getFilterCounts().non_displayed}
@@ -195,15 +257,21 @@ const GestionNotificationsScreen = () => {
           renderItem={({ item }) => (
             <BoutonGestion
               title={item.title}
-              subtitle={`Date : ${item?.created_at ? new Date(item.created_at).toLocaleDateString('fr-FR', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-              }) + ' ' + new Date(item.created_at).toLocaleTimeString('fr-FR', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false,
-              }) : 'Date non disponible'} | Statut : ${item.display === true ? 'Active' : 'Désactivée'}`}
+              subtitle={`Date : ${
+                item?.created_at
+                  ? new Date(item.created_at).toLocaleDateString('fr-FR', {
+                      weekday: 'long',
+                      month: 'long',
+                      day: 'numeric',
+                    }) +
+                    ' ' +
+                    new Date(item.created_at).toLocaleTimeString('fr-FR', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: false,
+                    })
+                  : 'Date non disponible'
+              } | Statut : ${item.display === true ? 'Active' : 'Désactivée'}`}
               subtitleStyle={undefined}
               nextRoute="valideNotificationsScreen"
               id={item.id}

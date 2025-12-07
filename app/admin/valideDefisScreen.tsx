@@ -1,16 +1,46 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator, Image, TouchableOpacity, ScrollView, Modal, StatusBar } from 'react-native';
+import {
+  Text,
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  Modal,
+  StatusBar,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute, NavigationProp, useNavigation } from '@react-navigation/native';
-import { X, Check, Trophy, User, Image as ImageIcon, Maximize, Play, Pause, Video as VideoIcon, FileQuestion } from 'lucide-react-native';
+import {
+  useRoute,
+  NavigationProp,
+  useNavigation,
+} from '@react-navigation/native';
+import {
+  X,
+  Check,
+  Trophy,
+  User,
+  Image as ImageIcon,
+  Maximize,
+  Play,
+  Pause,
+  Video as VideoIcon,
+  FileQuestion,
+} from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
-import { ImageViewer } from "react-native-image-zoom-viewer";
+import { ImageViewer } from 'react-native-image-zoom-viewer';
 import { useVideoPlayer, VideoView } from 'expo-video';
 
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
-import { ApiError, apiGet, apiPut, handleApiErrorScreen } from '@/constants/api/apiCalls';
+import {
+  ApiError,
+  apiGet,
+  apiPut,
+  handleApiErrorScreen,
+} from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
@@ -30,17 +60,17 @@ type ChallengeDetails = {
     title: string;
     points: number;
   };
-}
+};
 
 type ChallengeDetailsResponse = {
   challenge: ChallengeDetails;
   imagePath: string;
   mediaType: 'image' | 'video' | null;
-}
+};
 
 type RouteParams = {
   id: number;
-}
+};
 
 export default function ValideDefis() {
   const route = useRoute();
@@ -48,19 +78,26 @@ export default function ValideDefis() {
   const { setUser } = useUser();
   const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
 
-  const [challengeDetails, setChallengeDetails] = useState<ChallengeDetails | null>(null);
-  const [proofMedia, setProofMedia] = useState("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg");
+  const [challengeDetails, setChallengeDetails] =
+    useState<ChallengeDetails | null>(null);
+  const [proofMedia, setProofMedia] = useState(
+    'https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg',
+  );
   const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isFullscreenVideoPlaying, setIsFullscreenVideoPlaying] = useState(false);
+  const [isFullscreenVideoPlaying, setIsFullscreenVideoPlaying] =
+    useState(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const videoPlayer = useVideoPlayer(proofMedia && mediaType === 'video' ? proofMedia : '', player => {
-    player.loop = false;
-  });
+  const videoPlayer = useVideoPlayer(
+    proofMedia && mediaType === 'video' ? proofMedia : '',
+    (player) => {
+      player.loop = false;
+    },
+  );
 
   useEffect(() => {
     if (mediaType === 'video' && videoPlayer) {
@@ -85,7 +122,9 @@ export default function ValideDefis() {
   const fetchChallengeDetails = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiGet<ChallengeDetailsResponse>(`admin/challenges/${id}`);
+      const response = await apiGet<ChallengeDetailsResponse>(
+        `admin/challenges/${id}`,
+      );
       if (response.success) {
         setChallengeDetails(response.data.challenge);
         setProofMedia(response.data.imagePath);
@@ -103,7 +142,10 @@ export default function ValideDefis() {
   const handleValidation = async (isValid: number, isDelete: number) => {
     setLoading(true);
     try {
-      const response = await apiPut(`admin/challenges/${id}/status`, { is_valid: isValid, is_delete: isDelete });
+      const response = await apiPut(`admin/challenges/${id}/status`, {
+        is_valid: isValid,
+        is_delete: isDelete,
+      });
 
       if (response.success) {
         Toast.show({
@@ -125,7 +167,10 @@ export default function ValideDefis() {
           text1: 'Une erreur est survenue...',
           text2: response.message,
         });
-        setError(response.message || 'Une erreur est survenue lors de la validation du défi.');
+        setError(
+          response.message ||
+            'Une erreur est survenue lors de la validation du défi.',
+        );
       }
     } catch (error: unknown) {
       handleApiErrorScreen(error, setUser, setError);
@@ -180,8 +225,6 @@ export default function ValideDefis() {
     );
   };*/
 
-
-
   useEffect(() => {
     fetchChallengeDetails();
   }, [fetchChallengeDetails]);
@@ -224,12 +267,21 @@ export default function ValideDefis() {
           <View style={styles.infoRow}>
             <Trophy size={16} color={Colors.primary} />
             <Text style={styles.infoLabel}>Défi :</Text>
-            <Text style={styles.infoValue}>{challengeDetails?.challenge?.title || 'Pas de description'}</Text>
+            <Text style={styles.infoValue}>
+              {challengeDetails?.challenge?.title || 'Pas de description'}
+            </Text>
           </View>
           <View style={styles.infoRow}>
             <FileQuestion size={16} color={Colors.primary} />
             <Text style={styles.infoLabel}>Status :</Text>
-            <Text style={[styles.infoValue, challengeDetails?.valid ? styles.validStatus : styles.pendingStatus]}>
+            <Text
+              style={[
+                styles.infoValue,
+                challengeDetails?.valid
+                  ? styles.validStatus
+                  : styles.pendingStatus,
+              ]}
+            >
               {challengeDetails?.valid ? 'Validé' : 'En attente de validation'}
             </Text>
           </View>
@@ -250,16 +302,34 @@ export default function ValideDefis() {
           <View style={styles.infoRow}>
             <User size={16} color={Colors.primary} />
             <Text style={styles.infoLabel}>Auteur.ice :</Text>
-            <Text style={styles.infoValue}>{challengeDetails?.user?.firstName} {challengeDetails?.user?.lastName || 'Auteur inconnu'}</Text>
+            <Text style={styles.infoValue}>
+              {challengeDetails?.user?.firstName}{' '}
+              {challengeDetails?.user?.lastName || 'Auteur inconnu'}
+            </Text>
           </View>
         </View>
 
-        <View style={[styles.imageCard, challengeDetails?.valid === false ? styles.marginBottomLarge : styles.marginBottomSmall]}>
+        <View
+          style={[
+            styles.imageCard,
+            challengeDetails?.valid === false
+              ? styles.marginBottomLarge
+              : styles.marginBottomSmall,
+          ]}
+        >
           <View style={styles.imageHeader}>
-            {mediaType === 'video' ? <VideoIcon size={20} color={Colors.primary} /> : <ImageIcon size={20} color={Colors.primary} />}
+            {mediaType === 'video' ? (
+              <VideoIcon size={20} color={Colors.primary} />
+            ) : (
+              <ImageIcon size={20} color={Colors.primary} />
+            )}
             <Text style={styles.imageTitle}>Preuve soumise</Text>
           </View>
-          <TouchableOpacity onPress={toggleModal} style={styles.imageContainer} activeOpacity={0.8}>
+          <TouchableOpacity
+            onPress={toggleModal}
+            style={styles.imageContainer}
+            activeOpacity={0.8}
+          >
             {mediaType === 'video' ? (
               <>
                 <VideoView
@@ -274,12 +344,18 @@ export default function ValideDefis() {
                   <Text style={styles.mediaTypeText}>Vidéo</Text>
                 </View>
                 {!isPlaying && (
-                  <TouchableOpacity style={styles.playButton} onPress={() => setIsPlaying(true)}>
+                  <TouchableOpacity
+                    style={styles.playButton}
+                    onPress={() => setIsPlaying(true)}
+                  >
                     <Play size={28} color={Colors.white} />
                   </TouchableOpacity>
                 )}
                 {isPlaying && (
-                  <TouchableOpacity style={styles.pauseButton} onPress={() => setIsPlaying(false)}>
+                  <TouchableOpacity
+                    style={styles.pauseButton}
+                    onPress={() => setIsPlaying(false)}
+                  >
                     <Pause size={20} color={Colors.white} />
                   </TouchableOpacity>
                 )}
@@ -287,10 +363,16 @@ export default function ValideDefis() {
             ) : (
               <>
                 <Image
-                  source={{ uri: `${proofMedia}?timestamp=${new Date().getTime()}` }}
+                  source={{
+                    uri: `${proofMedia}?timestamp=${new Date().getTime()}`,
+                  }}
                   style={styles.proofImage}
                   resizeMode="cover"
-                  onError={() => setProofMedia("https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg")}
+                  onError={() =>
+                    setProofMedia(
+                      'https://www.shutterstock.com/image-vector/wifi-error-line-icon-vector-600nw-2043154736.jpg',
+                    )
+                  }
                 />
                 <View style={styles.mediaTypeBadge}>
                   <ImageIcon size={14} color={Colors.white} />
@@ -382,7 +464,7 @@ export default function ValideDefis() {
           )}
         </View>
       </Modal>
-    </SafeAreaView >
+    </SafeAreaView>
   );
 }
 

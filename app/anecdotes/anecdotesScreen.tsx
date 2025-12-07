@@ -1,12 +1,23 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, FlatList, ActivityIndicator, Text, StyleSheet } from 'react-native';
+import {
+  View,
+  FlatList,
+  ActivityIndicator,
+  Text,
+  StyleSheet,
+} from 'react-native';
 import { MessageCirclePlus } from 'lucide-react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import BoutonNavigationLarge from '@/components/divers/boutonNavigationLarge';
-import { apiGet, isSuccessResponse, handleApiErrorScreen, handleApiErrorToast } from '@/constants/api/apiCalls';
+import {
+  apiGet,
+  isSuccessResponse,
+  handleApiErrorScreen,
+  handleApiErrorToast,
+} from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 
 import AnecdoteComponent from '../../components/anecdotes/anecdote';
@@ -20,7 +31,7 @@ type Anecdote = {
   liked: boolean;
   warned: boolean;
   authorId: string;
-}
+};
 
 export default function AnecdotesScreen() {
   const [anecdotes, setAnecdotes] = useState<Anecdote[]>([]);
@@ -34,37 +45,42 @@ export default function AnecdotesScreen() {
 
   const { setUser } = useUser();
 
-  const fetchAnecdotes = useCallback(async (requestedQuantity: number, isIncremental: boolean) => {
-    if (isIncremental) {
-      setLoadingMore(true);
-    } else {
-      setLoading(true);
-      setError('');
-    }
-
-    try {
-      const response = await apiGet<Anecdote[]>(`anecdotes?quantity=${requestedQuantity}`);
-
-      if (isSuccessResponse(response)) {
-        const data = response.data || [];
-
-        if (data.length < requestedQuantity) {
-          setHasMoreData(false);
-        }
-
-        setAnecdotes(data);
-      }
-    } catch (err: unknown) {
+  const fetchAnecdotes = useCallback(
+    async (requestedQuantity: number, isIncremental: boolean) => {
       if (isIncremental) {
-        handleApiErrorToast(err, setUser);
+        setLoadingMore(true);
       } else {
-        handleApiErrorScreen(err, setUser, setError);
+        setLoading(true);
+        setError('');
       }
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [setUser]);
+
+      try {
+        const response = await apiGet<Anecdote[]>(
+          `anecdotes?quantity=${requestedQuantity}`,
+        );
+
+        if (isSuccessResponse(response)) {
+          const data = response.data || [];
+
+          if (data.length < requestedQuantity) {
+            setHasMoreData(false);
+          }
+
+          setAnecdotes(data);
+        }
+      } catch (err: unknown) {
+        if (isIncremental) {
+          handleApiErrorToast(err, setUser);
+        } else {
+          handleApiErrorScreen(err, setUser, setError);
+        }
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [setUser],
+  );
 
   useEffect(() => {
     fetchAnecdotes(10, false);
@@ -127,7 +143,9 @@ export default function AnecdotesScreen() {
           onEndReachedThreshold={0.5}
           ListFooterComponent={() => (
             <View style={styles.footerContainer}>
-              {loadingMore && <ActivityIndicator size="small" color={Colors.primaryBorder} />}
+              {loadingMore && (
+                <ActivityIndicator size="small" color={Colors.primaryBorder} />
+              )}
               <View style={styles.footerSeparator} />
             </View>
           )}
@@ -160,10 +178,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   footerSeparator: {
-    height: 90
+    height: 90,
   },
   itemSeparator: {
-    height: 36
+    height: 36,
   },
   loadingContainer: {
     alignItems: 'center',
@@ -175,6 +193,6 @@ const styles = StyleSheet.create({
   loadingText: {
     ...TextStyles.body,
     color: Colors.muted,
-    marginTop: 16
+    marginTop: 16,
   },
 });

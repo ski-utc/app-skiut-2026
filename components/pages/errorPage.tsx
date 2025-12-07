@@ -1,15 +1,19 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { useNavigation, NavigationProp, ParamListBase } from '@react-navigation/native';
-import { AlertTriangle, ArrowLeft, RotateCcw } from "lucide-react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  useNavigation,
+  NavigationProp,
+  ParamListBase,
+} from '@react-navigation/native';
+import { AlertTriangle, ArrowLeft, RotateCcw } from 'lucide-react-native';
 
-import { Colors, TextStyles } from "@/constants/GraphSettings";
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 
-import Header from "../header";
+import Header from '../header';
 
 type ErrorScreenProps = {
   error: string;
   retry?: () => void;
-}
+};
 
 export default function ErrorScreen({ error, retry }: ErrorScreenProps) {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
@@ -30,14 +34,10 @@ export default function ErrorScreen({ error, retry }: ErrorScreenProps) {
           <AlertTriangle size={64} color={Colors.error} />
         </View>
 
-        <Text style={styles.title}>
-          Oups ! Une erreur est survenue
-        </Text>
+        <Text style={styles.title}>Oups ! Une erreur est survenue</Text>
 
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>
-            {error}
-          </Text>
+          <Text style={styles.errorText}>{error}</Text>
         </View>
 
         <Text style={styles.helpText}>
@@ -55,7 +55,7 @@ export default function ErrorScreen({ error, retry }: ErrorScreenProps) {
             <ArrowLeft size={20} color={Colors.white} />
           )}
           <Text style={styles.actionButtonText}>
-            {retry ? "Réessayer" : "Retour"}
+            {retry ? 'Réessayer' : 'Retour'}
           </Text>
         </TouchableOpacity>
       </View>

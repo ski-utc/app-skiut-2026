@@ -1,16 +1,47 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert, Modal, StatusBar, StyleSheet } from 'react-native';
+import {
+  View,
+  Image,
+  Text,
+  ActivityIndicator,
+  TouchableOpacity,
+  Alert,
+  Modal,
+  StatusBar,
+  StyleSheet,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import * as ImageManipulator from "expo-image-manipulator";
+import * as ImageManipulator from 'expo-image-manipulator';
 import { useRoute, RouteProp } from '@react-navigation/native';
-import { LandPlot, Trash, Check, Hourglass, X, Upload, CloudOff, Maximize, Play, Pause, Image as ImageIcon, Video as VideoIcon } from 'lucide-react-native';
+import {
+  LandPlot,
+  Trash,
+  Check,
+  Hourglass,
+  X,
+  Upload,
+  CloudOff,
+  Maximize,
+  Play,
+  Pause,
+  Image as ImageIcon,
+  Video as VideoIcon,
+} from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
-import { ImageViewer } from "react-native-image-zoom-viewer";
+import { ImageViewer } from 'react-native-image-zoom-viewer';
 
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiPost, apiGet, apiDelete, isSuccessResponse, isPendingResponse, handleApiErrorToast, AppError } from '@/constants/api/apiCalls';
+import {
+  apiPost,
+  apiGet,
+  apiDelete,
+  isSuccessResponse,
+  isPendingResponse,
+  handleApiErrorToast,
+  AppError,
+} from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
@@ -28,12 +59,12 @@ type DefisInfosRouteProp = RouteProp<{ params: DefisInfosParams }, 'params'>;
 type ProofMediaResponse = {
   media: string | null;
   mediaType: 'image' | 'video' | null;
-}
+};
 
 type MaxFileSizeResponse = {
   maxImageSize: number;
   maxVideoSize: number;
-}
+};
 
 export default function DefisInfos() {
   const route = useRoute<DefisInfosRouteProp>();
@@ -55,11 +86,15 @@ export default function DefisInfos() {
   const [isCompressing, setIsCompressing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isFullscreenVideoPlaying, setIsFullscreenVideoPlaying] = useState(false);
+  const [isFullscreenVideoPlaying, setIsFullscreenVideoPlaying] =
+    useState(false);
 
-  const videoPlayer = useVideoPlayer(proofMedia && mediaType === 'video' ? proofMedia : '', player => {
-    player.loop = false;
-  });
+  const videoPlayer = useVideoPlayer(
+    proofMedia && mediaType === 'video' ? proofMedia : '',
+    (player) => {
+      player.loop = false;
+    },
+  );
 
   useEffect(() => {
     if (mediaType === 'video' && videoPlayer) {
@@ -87,7 +122,9 @@ export default function DefisInfos() {
     setError('');
 
     try {
-      const response = await apiGet<ProofMediaResponse>(`challenges/proof-media/${id}`);
+      const response = await apiGet<ProofMediaResponse>(
+        `challenges/proof-media/${id}`,
+      );
 
       if (isSuccessResponse(response)) {
         setProofMedia(response.data.media);
@@ -108,9 +145,15 @@ export default function DefisInfos() {
   }, [initialStatus, fetchProof]);
 
   const handleMediaPick = async (type: 'image' | 'video' | 'both' = 'both') => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.status !== 'granted') {
-      Toast.show({ type: 'error', text1: 'Permission requise', text2: 'Nous avons besoin de votre permission pour accéder à votre galerie.' });
+      Toast.show({
+        type: 'error',
+        text1: 'Permission requise',
+        text2:
+          'Nous avons besoin de votre permission pour accéder à votre galerie.',
+      });
       return;
     }
 
@@ -132,27 +175,34 @@ export default function DefisInfos() {
       const asset = result.assets[0];
       const { uri, width } = asset;
 
-      const isVideo = asset.type === 'video' || uri.endsWith('.mp4') || uri.endsWith('.mov');
+      const isVideo =
+        asset.type === 'video' || uri.endsWith('.mp4') || uri.endsWith('.mov');
       const currentMediaType = isVideo ? 'video' : 'image';
       setMediaType(currentMediaType);
 
       let maxFileSize = isVideo ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
 
       try {
-        const sizeRes = await apiGet<MaxFileSizeResponse>("challenges/max-file-size");
+        const sizeRes = await apiGet<MaxFileSizeResponse>(
+          'challenges/max-file-size',
+        );
         if (isSuccessResponse(sizeRes)) {
           maxFileSize = isVideo
-            ? (sizeRes.data.maxVideoSize || maxFileSize)
-            : (sizeRes.data.maxImageSize || maxFileSize);
+            ? sizeRes.data.maxVideoSize || maxFileSize
+            : sizeRes.data.maxImageSize || maxFileSize;
         }
       } catch {
         maxFileSize = isVideo ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
       }
 
       if (isVideo) {
-        const fileInfo = await fetch(uri).then(r => r.blob());
+        const fileInfo = await fetch(uri).then((r) => r.blob());
         if (fileInfo.size > maxFileSize) {
-          Toast.show({ type: 'error', text1: 'Erreur', text2: `Vidéo trop lourde (Max ${Math.round(maxFileSize / 1024 / 1024)} Mo).` });
+          Toast.show({
+            type: 'error',
+            text1: 'Erreur',
+            text2: `Vidéo trop lourde (Max ${Math.round(maxFileSize / 1024 / 1024)} Mo).`,
+          });
           return;
         }
         setModifiedMedia(true);
@@ -166,10 +216,13 @@ export default function DefisInfos() {
           const manipResult = await ImageManipulator.manipulateAsync(
             uri,
             [{ resize: { width: width > 1080 ? 1080 : width } }],
-            { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
+            {
+              compress: compressQuality,
+              format: ImageManipulator.SaveFormat.JPEG,
+            },
           );
 
-          const fileInfo = await fetch(manipResult.uri).then(r => r.blob());
+          const fileInfo = await fetch(manipResult.uri).then((r) => r.blob());
           fileSize = fileInfo.size;
           compressedUri = manipResult.uri;
 
@@ -179,7 +232,11 @@ export default function DefisInfos() {
         } while (fileSize > maxFileSize && compressQuality > 0.1);
 
         if (fileSize > maxFileSize) {
-          Toast.show({ type: 'error', text1: 'Erreur', text2: 'Image trop lourde même après compression.' });
+          Toast.show({
+            type: 'error',
+            text1: 'Erreur',
+            text2: 'Image trop lourde même après compression.',
+          });
           return;
         }
 
@@ -208,7 +265,7 @@ export default function DefisInfos() {
       formData.append('media', {
         uri: uri,
         name: fileName,
-        type: mimeType
+        type: mimeType,
       });
       formData.append('defiId', id.toString());
       formData.append('mediaType', mediaType);
@@ -221,7 +278,9 @@ export default function DefisInfos() {
         Toast.show({
           type: isPending ? 'info' : 'success',
           text1: isPending ? 'Sauvegardé (Hors ligne)' : 'Défi envoyé !',
-          text2: isPending ? 'Veuillez patienter, votre défi sera envoyé une fois que vous serez en ligne.' : 'Votre défi a bien été envoyé !'
+          text2: isPending
+            ? 'Veuillez patienter, votre défi sera envoyé une fois que vous serez en ligne.'
+            : 'Votre défi a bien été envoyé !',
         });
 
         setModifiedMedia(false);
@@ -232,7 +291,6 @@ export default function DefisInfos() {
       } else if (isPendingResponse(response)) {
         handleSuccessOrPending(true);
       }
-
     } catch (err: unknown) {
       handleApiErrorToast(err as AppError, setUser);
     } finally {
@@ -247,42 +305,39 @@ export default function DefisInfos() {
   };
 
   const handleRemoveDefi = async () => {
-    Alert.alert(
-      'Confirmation',
-      'Voulez-vous vraiment supprimer ce défi ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Supprimer',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const response = await apiDelete(`challenges/proof-media/${id}`);
+    Alert.alert('Confirmation', 'Voulez-vous vraiment supprimer ce défi ?', [
+      { text: 'Annuler', style: 'cancel' },
+      {
+        text: 'Supprimer',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const response = await apiDelete(`challenges/proof-media/${id}`);
 
-              if (isSuccessResponse(response)) {
-                setProofMedia(null);
-                setMediaType('image');
-                setDynamicStatus('todo');
+            if (isSuccessResponse(response)) {
+              setProofMedia(null);
+              setMediaType('image');
+              setDynamicStatus('todo');
 
-                Toast.show({
-                  type: 'success',
-                  text1: 'Défi supprimé',
-                  text2: 'Votre défi a bien été supprimé !'
-                });
-              } else if (isPendingResponse(response)) {
-                Toast.show({
-                  type: 'info',
-                  text1: 'Demande supprimée (Hors ligne)',
-                  text2: 'Votre défi sera supprimé une fois que vous serez en ligne.'
-                });
-              }
-            } catch (err: unknown) {
-              handleApiErrorToast(err as AppError, setUser);
+              Toast.show({
+                type: 'success',
+                text1: 'Défi supprimé',
+                text2: 'Votre défi a bien été supprimé !',
+              });
+            } else if (isPendingResponse(response)) {
+              Toast.show({
+                type: 'info',
+                text1: 'Demande supprimée (Hors ligne)',
+                text2:
+                  'Votre défi sera supprimé une fois que vous serez en ligne.',
+              });
             }
-          },
+          } catch (err: unknown) {
+            handleApiErrorToast(err as AppError, setUser);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   if (error) {
@@ -319,14 +374,20 @@ export default function DefisInfos() {
         <TouchableOpacity
           onPress={isEmptyStatus ? () => handleMediaPick() : toggleModal}
           style={styles.mediaTouchable}
-          disabled={(!isEmptyStatus && !proofMedia) || isCompressing || isUploading}
+          disabled={
+            (!isEmptyStatus && !proofMedia) || isCompressing || isUploading
+          }
           activeOpacity={0.8}
         >
           {networkError ? (
             <View style={styles.networkErrorContainer}>
               <CloudOff size={80} color={Colors.muted} />
-              <Text style={styles.networkErrorTitle}>Problème de connexion</Text>
-              <Text style={styles.networkErrorSubtitle}>Impossible de charger l'image</Text>
+              <Text style={styles.networkErrorTitle}>
+                Problème de connexion
+              </Text>
+              <Text style={styles.networkErrorSubtitle}>
+                Impossible de charger l'image
+              </Text>
             </View>
           ) : proofMedia ? (
             <View style={styles.mediaPreviewContainer}>
@@ -348,17 +409,29 @@ export default function DefisInfos() {
               )}
 
               <View style={styles.mediaTypeBadge}>
-                {mediaType === 'video' ? <VideoIcon size={14} color={Colors.white} /> : <ImageIcon size={14} color={Colors.white} />}
-                <Text style={styles.mediaTypeText}>{mediaType === 'video' ? 'Vidéo' : 'Image'}</Text>
+                {mediaType === 'video' ? (
+                  <VideoIcon size={14} color={Colors.white} />
+                ) : (
+                  <ImageIcon size={14} color={Colors.white} />
+                )}
+                <Text style={styles.mediaTypeText}>
+                  {mediaType === 'video' ? 'Vidéo' : 'Image'}
+                </Text>
               </View>
 
               {mediaType === 'video' && !isPlaying && (
-                <TouchableOpacity style={styles.playButton} onPress={() => setIsPlaying(true)}>
+                <TouchableOpacity
+                  style={styles.playButton}
+                  onPress={() => setIsPlaying(true)}
+                >
                   <Play size={28} color={Colors.white} />
                 </TouchableOpacity>
               )}
               {mediaType === 'video' && isPlaying && (
-                <TouchableOpacity style={styles.pauseButton} onPress={() => setIsPlaying(false)}>
+                <TouchableOpacity
+                  style={styles.pauseButton}
+                  onPress={() => setIsPlaying(false)}
+                >
                   <Pause size={20} color={Colors.white} />
                 </TouchableOpacity>
               )}
@@ -366,7 +439,9 @@ export default function DefisInfos() {
               {!isEmptyStatus && !isCompressing && !isUploading && (
                 <View style={styles.fullscreenHintContainer}>
                   <Maximize size={16} color={Colors.white} />
-                  <Text style={styles.fullscreenHintText}>Appuyez pour agrandir</Text>
+                  <Text style={styles.fullscreenHintText}>
+                    Appuyez pour agrandir
+                  </Text>
                 </View>
               )}
 
@@ -379,7 +454,7 @@ export default function DefisInfos() {
                 </View>
               )}
             </View>
-          ) : (isCompressing || isUploading) ? (
+          ) : isCompressing || isUploading ? (
             <View style={styles.processingContainer}>
               <ActivityIndicator size="large" color={Colors.primaryBorder} />
               <Text style={styles.processingText}>
@@ -390,7 +465,9 @@ export default function DefisInfos() {
             <View style={styles.emptyMediaContainer}>
               <Upload size={80} color={Colors.primary} />
               <Text style={styles.emptyMediaTitle}>Ajouter une preuve</Text>
-              <Text style={styles.emptyMediaSubtitle}>Photo ou vidéo (max 60s)</Text>
+              <Text style={styles.emptyMediaSubtitle}>
+                Photo ou vidéo (max 60s)
+              </Text>
             </View>
           )}
         </TouchableOpacity>
@@ -402,11 +479,20 @@ export default function DefisInfos() {
             <>
               <View style={styles.statusBadgeRejected}>
                 <Text style={styles.statusBadgeText}>
-                  {dynamicStatus === 'refused' ? 'Défi refusé' : 'En attente de validation'}
+                  {dynamicStatus === 'refused'
+                    ? 'Défi refusé'
+                    : 'En attente de validation'}
                 </Text>
-                {dynamicStatus === 'refused' ? <X color="white" size={20} /> : <Hourglass color="white" size={20} />}
+                {dynamicStatus === 'refused' ? (
+                  <X color="white" size={20} />
+                ) : (
+                  <Hourglass color="white" size={20} />
+                )}
               </View>
-              <TouchableOpacity style={styles.deleteButton} onPress={handleRemoveDefi}>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={handleRemoveDefi}
+              >
                 <Text style={styles.deleteButtonText}>Supprimer</Text>
                 <Trash color="white" size={20} />
               </TouchableOpacity>
@@ -421,7 +507,8 @@ export default function DefisInfos() {
           <TouchableOpacity
             style={[
               styles.publishButton,
-              (!modifiedMedia || isUploading || isCompressing) && styles.publishButtonDisabled
+              (!modifiedMedia || isUploading || isCompressing) &&
+                styles.publishButtonDisabled,
             ]}
             onPress={handleSendDefi}
             disabled={!modifiedMedia || isUploading || isCompressing}
@@ -441,7 +528,11 @@ export default function DefisInfos() {
         >
           <StatusBar hidden />
           <View style={styles.modalContainer}>
-            <TouchableOpacity style={styles.modalCloseButton} onPress={toggleModal} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={toggleModal}
+              activeOpacity={0.7}
+            >
               <X size={24} color={Colors.white} />
             </TouchableOpacity>
 
@@ -800,5 +891,3 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
 });
-
-

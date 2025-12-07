@@ -1,29 +1,68 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Text, View, ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, Linking, Dimensions, Animated } from "react-native";
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  Text,
+  View,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  Linking,
+  Dimensions,
+  Animated,
+} from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { Calendar, Trophy, MessageCircle, ChevronRight, MapPin, Thermometer, Wind, Droplets, Sun, Cloud, CloudRain, CloudSnow, Moon, CloudMoon, CloudLightning, CloudDrizzle, CloudFog, CloudMoonRain, Home, LucideProps } from 'lucide-react-native';
+import {
+  Calendar,
+  Trophy,
+  MessageCircle,
+  ChevronRight,
+  MapPin,
+  Thermometer,
+  Wind,
+  Droplets,
+  Sun,
+  Cloud,
+  CloudRain,
+  CloudSnow,
+  Moon,
+  CloudMoon,
+  CloudLightning,
+  CloudDrizzle,
+  CloudFog,
+  CloudMoonRain,
+  Home,
+  LucideProps,
+} from 'lucide-react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
-import { apiGet, isSuccessResponse, handleApiErrorToast, AppError } from '@/constants/api/apiCalls';
-import { useUser } from "@/contexts/UserContext";
-import ErrorScreen from "@/components/pages/errorPage";
+import {
+  apiGet,
+  isSuccessResponse,
+  handleApiErrorToast,
+  AppError,
+} from '@/constants/api/apiCalls';
+import { useUser } from '@/contexts/UserContext';
+import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles, FontSizes } from '@/constants/GraphSettings';
-import { OfflineStatusBanner, PendingRequestsWidget } from '@/components/home/offlineWidgets';
+import {
+  OfflineStatusBanner,
+  PendingRequestsWidget,
+} from '@/components/home/offlineWidgets';
 
-import Header from "../../components/header";
+import Header from '../../components/header';
 import { RootTabParamList } from '../_layout';
 
 type WeatherCondition = {
   text: string;
   code: number;
-}
+};
 
 type WeatherHour = {
   time: string;
   temp_c: number;
   is_day: number;
   condition: WeatherCondition;
-}
+};
 
 type WeatherData = {
   location: {
@@ -42,25 +81,25 @@ type WeatherData = {
       hour: WeatherHour[];
     }>;
   };
-}
+};
 
 type Activity = {
   text: string;
   date: number;
   startTime: string;
   endTime: string;
-}
+};
 
 type HomeData = {
   closestActivity?: Activity;
   randomChallenge?: string;
   bestAnecdote?: string;
-}
+};
 
 type TeamMember = {
   firstName: string;
   lastName: string;
-}
+};
 
 type TourStatus = {
   tour_active: boolean;
@@ -68,18 +107,18 @@ type TourStatus = {
   binome: {
     members: TeamMember[];
   };
-}
+};
 
 type WeatherWidgetProps = {
   weatherData: WeatherData;
-}
+};
 
 type HourlyDisplayData = {
   time: string;
   temp: number;
   icon: React.JSX.Element;
   condition: string;
-}
+};
 
 const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
   const [activeView, setActiveView] = useState(0);
@@ -93,11 +132,15 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
 
   const { location, current, forecast } = weatherData;
 
-  const getWeatherIcon = (conditionCode: number, isDay: number, size: number = 24) => {
+  const getWeatherIcon = (
+    conditionCode: number,
+    isDay: number,
+    size: number = 24,
+  ) => {
     const iconProps: LucideProps = {
       size,
       strokeWidth: 1.5,
-      color: Colors.primary
+      color: Colors.primary,
     };
 
     if (size <= 20) {
@@ -109,23 +152,43 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
     if (conditionCode === 1000 || conditionCode === 1003) {
       return isDayTime ? <Sun {...iconProps} /> : <Moon {...iconProps} />;
     } else if (conditionCode === 1006 || conditionCode === 1009) {
-      return isDayTime ? <Cloud {...iconProps} /> : <CloudMoon {...iconProps} />;
-    } else if (conditionCode === 1030 || conditionCode === 1135 || conditionCode === 1147) {
+      return isDayTime ? (
+        <Cloud {...iconProps} />
+      ) : (
+        <CloudMoon {...iconProps} />
+      );
+    } else if (
+      conditionCode === 1030 ||
+      conditionCode === 1135 ||
+      conditionCode === 1147
+    ) {
       return <CloudFog {...iconProps} />;
     } else if (conditionCode >= 1063 && conditionCode <= 1066) {
       return <CloudDrizzle {...iconProps} />;
     } else if (conditionCode >= 1069 && conditionCode <= 1198) {
-      return isDayTime ? <CloudRain {...iconProps} /> : <CloudMoonRain {...iconProps} />;
+      return isDayTime ? (
+        <CloudRain {...iconProps} />
+      ) : (
+        <CloudMoonRain {...iconProps} />
+      );
     } else if (conditionCode >= 1201 && conditionCode <= 1204) {
       return <CloudDrizzle {...iconProps} />;
     } else if (conditionCode >= 1207 && conditionCode <= 1207) {
-      return isDayTime ? <CloudRain {...iconProps} /> : <CloudMoonRain {...iconProps} />;
+      return isDayTime ? (
+        <CloudRain {...iconProps} />
+      ) : (
+        <CloudMoonRain {...iconProps} />
+      );
     } else if (conditionCode >= 1210 && conditionCode <= 1252) {
       return <CloudSnow {...iconProps} />;
     } else if (conditionCode >= 1255 && conditionCode <= 1306) {
       return <CloudLightning {...iconProps} />;
     } else {
-      return isDayTime ? <Cloud {...iconProps} /> : <CloudMoon {...iconProps} />;
+      return isDayTime ? (
+        <Cloud {...iconProps} />
+      ) : (
+        <CloudMoon {...iconProps} />
+      );
     }
   };
 
@@ -143,14 +206,14 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
     }
 
     for (let i = 0; i < 12; i++) {
-      const hourIndex = (startHour + (i * 2)) % 24;
+      const hourIndex = (startHour + i * 2) % 24;
       const hourData = hours[hourIndex];
       if (hourData) {
         hourlyData.push({
           time: `${hourIndex.toString().padStart(2, '0')}:00`,
           temp: Math.round(hourData.temp_c),
           icon: getWeatherIcon(hourData.condition.code, hourData.is_day, 20),
-          condition: hourData.condition.text
+          condition: hourData.condition.text,
         });
       }
     }
@@ -184,7 +247,10 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
 
       if ((translationX > threshold || velocityX > 300) && activeView === 1) {
         animateToView(0);
-      } else if ((translationX < -threshold || velocityX < -300) && activeView === 0) {
+      } else if (
+        (translationX < -threshold || velocityX < -300) &&
+        activeView === 0
+      ) {
         animateToView(1);
       } else {
         animateToView(activeView);
@@ -199,8 +265,12 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
             {getWeatherIcon(current.condition.code, current.is_day, 32)}
           </View>
           <View style={styles.weatherTempInfo}>
-            <Text style={styles.weatherTemp}>{Math.round(current.temp_c)}°C</Text>
-            <Text style={styles.weatherCondition}>{current.condition.text}</Text>
+            <Text style={styles.weatherTemp}>
+              {Math.round(current.temp_c)}°C
+            </Text>
+            <Text style={styles.weatherCondition}>
+              {current.condition.text}
+            </Text>
           </View>
         </View>
         <View style={styles.weatherLocation}>
@@ -212,11 +282,15 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
       <View style={styles.weatherDetails}>
         <View style={styles.weatherDetailItem}>
           <Thermometer size={16} color={Colors.muted} strokeWidth={2} />
-          <Text style={styles.weatherDetailText}>Ressenti {Math.round(current.feelslike_c)}°C</Text>
+          <Text style={styles.weatherDetailText}>
+            Ressenti {Math.round(current.feelslike_c)}°C
+          </Text>
         </View>
         <View style={styles.weatherDetailItem}>
           <Wind size={16} color={Colors.muted} strokeWidth={2} />
-          <Text style={styles.weatherDetailText}>{Math.round(current.wind_kph)} km/h</Text>
+          <Text style={styles.weatherDetailText}>
+            {Math.round(current.wind_kph)} km/h
+          </Text>
         </View>
         <View style={styles.weatherDetailItem}>
           <Droplets size={16} color={Colors.muted} strokeWidth={2} />
@@ -239,9 +313,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
           {hourlyData.slice(0, 6).map((hour, index) => (
             <View key={`row1-${index}`} style={styles.weatherHourlyItem}>
               <Text style={styles.weatherHourlyTime}>{hour.time}</Text>
-              <View style={styles.weatherHourlyIcon}>
-                {hour.icon}
-              </View>
+              <View style={styles.weatherHourlyIcon}>{hour.icon}</View>
               <Text style={styles.weatherHourlyTemp}>{hour.temp}°</Text>
             </View>
           ))}
@@ -251,9 +323,7 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
           {hourlyData.slice(6, 12).map((hour, index) => (
             <View key={`row2-${index}`} style={styles.weatherHourlyItem}>
               <Text style={styles.weatherHourlyTime}>{hour.time}</Text>
-              <View style={styles.weatherHourlyIcon}>
-                {hour.icon}
-              </View>
+              <View style={styles.weatherHourlyIcon}>{hour.icon}</View>
               <Text style={styles.weatherHourlyTemp}>{hour.temp}°</Text>
             </View>
           ))}
@@ -270,11 +340,13 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
             style={[
               styles.weatherSlider,
               {
-                transform: [{
-                  translateX: Animated.add(translateX, gestureX)
-                }],
+                transform: [
+                  {
+                    translateX: Animated.add(translateX, gestureX),
+                  },
+                ],
                 width: screenWidth * 2,
-              }
+              },
             ]}
           >
             <View style={[styles.weatherSlide, { width: screenWidth }]}>
@@ -291,19 +363,29 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({ weatherData }) => {
             style={styles.weatherIndicatorTouchable}
             onPress={() => animateToView(0)}
           >
-            <View style={[
-              styles.weatherIndicator,
-              { backgroundColor: activeView === 0 ? Colors.primaryBorder : Colors.lightMuted }
-            ]} />
+            <View
+              style={[
+                styles.weatherIndicator,
+                {
+                  backgroundColor:
+                    activeView === 0 ? Colors.primaryBorder : Colors.lightMuted,
+                },
+              ]}
+            />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.weatherIndicatorTouchable}
             onPress={() => animateToView(1)}
           >
-            <View style={[
-              styles.weatherIndicator,
-              { backgroundColor: activeView === 1 ? Colors.primaryBorder : Colors.lightMuted }
-            ]} />
+            <View
+              style={[
+                styles.weatherIndicator,
+                {
+                  backgroundColor:
+                    activeView === 1 ? Colors.primaryBorder : Colors.lightMuted,
+                },
+              ]}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -320,44 +402,48 @@ type WidgetCardProps = {
   icon: React.FC<LucideProps>;
   onPress?: () => void;
   variant?: 'primary' | 'secondary' | 'white';
-}
+};
 
 const WidgetCard: React.FC<WidgetCardProps> = ({
   title,
   subtitles,
   icon: IconComponent,
   onPress,
-  variant = 'primary'
+  variant = 'primary',
 }) => {
-  const backgroundColor = variant === 'primary'
-    ? Colors.primary
-    : variant === 'secondary'
-      ? Colors.secondaryBorder
-      : Colors.white;
+  const backgroundColor =
+    variant === 'primary'
+      ? Colors.primary
+      : variant === 'secondary'
+        ? Colors.secondaryBorder
+        : Colors.white;
 
-  const textColor = variant === 'primary'
-    ? Colors.white
-    : variant === 'secondary'
+  const textColor =
+    variant === 'primary'
       ? Colors.white
-      : Colors.primaryBorder;
+      : variant === 'secondary'
+        ? Colors.white
+        : Colors.primaryBorder;
 
-  const borderColor = variant === 'primary'
-    ? Colors.primaryBorder
-    : variant === 'secondary'
-      ? Colors.secondaryBorder
+  const borderColor =
+    variant === 'primary'
+      ? Colors.primaryBorder
+      : variant === 'secondary'
+        ? Colors.secondaryBorder
+        : Colors.lightMuted;
+
+  const iconContainerBg =
+    variant === 'primary' || variant === 'secondary'
+      ? 'rgba(255, 255, 255, 0.2)'
       : Colors.lightMuted;
 
-  const iconContainerBg = variant === 'primary' || variant === 'secondary'
-    ? 'rgba(255, 255, 255, 0.2)'
-    : Colors.lightMuted;
+  const iconColor =
+    variant === 'primary' || variant === 'secondary'
+      ? Colors.white
+      : Colors.primary;
 
-  const iconColor = variant === 'primary' || variant === 'secondary'
-    ? Colors.white
-    : Colors.primary;
-
-  const widgetBorderWidth = variant === 'primary' || variant === 'secondary'
-    ? 0
-    : 1;
+  const widgetBorderWidth =
+    variant === 'primary' || variant === 'secondary' ? 0 : 1;
 
   return (
     <TouchableOpacity
@@ -366,30 +452,38 @@ const WidgetCard: React.FC<WidgetCardProps> = ({
         {
           backgroundColor,
           borderColor,
-          borderWidth: widgetBorderWidth
-        }
+          borderWidth: widgetBorderWidth,
+        },
       ]}
       onPress={onPress}
       disabled={!onPress}
       activeOpacity={0.8}
     >
       <View style={styles.widgetHeader}>
-        <View style={[styles.widgetIconContainer, { backgroundColor: iconContainerBg }]}>
-          <IconComponent
-            size={24}
-            color={iconColor}
-            strokeWidth={2}
-          />
+        <View
+          style={[
+            styles.widgetIconContainer,
+            { backgroundColor: iconContainerBg },
+          ]}
+        >
+          <IconComponent size={24} color={iconColor} strokeWidth={2} />
         </View>
         <View style={styles.widgetContent}>
-          <Text style={[styles.widgetTitle, { color: textColor }]}>{title}</Text>
+          <Text style={[styles.widgetTitle, { color: textColor }]}>
+            {title}
+          </Text>
           {subtitles.map((subtitle, index) => (
-            <Text key={index} style={[styles.widgetSubtitle, { color: textColor }]}>
+            <Text
+              key={index}
+              style={[styles.widgetSubtitle, { color: textColor }]}
+            >
               {subtitle.text}
               {subtitle.link && (
                 <Text
                   style={[styles.widgetLink, { color: Colors.accent }]}
-                  onPress={() => subtitle.link && Linking.openURL(subtitle.link)}
+                  onPress={() =>
+                    subtitle.link && Linking.openURL(subtitle.link)
+                  }
                 >
                   {' '}
                   {subtitle.link}
@@ -426,9 +520,9 @@ export default function HomeScreen() {
 
     try {
       const [homeRes, weatherRes, tourRes] = await Promise.all([
-        apiGet<HomeData>("home/random-data"),
-        apiGet<WeatherData>("home/weather"),
-        apiGet<TourStatus>("room-tours/status")
+        apiGet<HomeData>('home/random-data'),
+        apiGet<WeatherData>('home/weather', false, undefined, true),
+        apiGet<TourStatus>('room-tours/status', false, undefined, true),
       ]);
 
       if (isSuccessResponse(homeRes) && homeRes.data) {
@@ -442,7 +536,6 @@ export default function HomeScreen() {
       if (isSuccessResponse(tourRes) && tourRes.data) {
         setTourStatus(tourRes.data);
       }
-
     } catch (err: unknown) {
       handleApiErrorToast(err as AppError, setUser);
     } finally {
@@ -455,9 +548,7 @@ export default function HomeScreen() {
   }, [fetchData]);
 
   if (error) {
-    return (
-      <ErrorScreen error={error} />
-    );
+    return <ErrorScreen error={error} />;
   }
 
   if (loading) {
@@ -466,19 +557,17 @@ export default function HomeScreen() {
         <Header refreshFunction={undefined} disableRefresh={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
-          <Text style={styles.loadingText}>
-            Chargement...
-          </Text>
+          <Text style={styles.loadingText}>Chargement...</Text>
         </View>
       </View>
     );
   }
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString("fr-FR", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+    return new Date(timestamp).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
   };
 
@@ -499,16 +588,17 @@ export default function HomeScreen() {
         {tourStatus && tourStatus.tour_active && (
           <WidgetCard
             title={`Tournée des chambres en cours`}
-            subtitles={
-              [
-                { text: `${tourStatus.binome.members[0].firstName} ${tourStatus.binome.members[0].lastName} et ${tourStatus.binome.members[1].firstName} ${tourStatus.binome.members[1].lastName} vont bientôt passer vous voir` },
-                {
-                  text: tourStatus.rooms_before === 0
+            subtitles={[
+              {
+                text: `${tourStatus.binome.members[0].firstName} ${tourStatus.binome.members[0].lastName} et ${tourStatus.binome.members[1].firstName} ${tourStatus.binome.members[1].lastName} vont bientôt passer vous voir`,
+              },
+              {
+                text:
+                  tourStatus.rooms_before === 0
                     ? 'Votre chambre est la prochaine sur la liste !'
-                    : `${tourStatus.rooms_before} chambre${tourStatus.rooms_before !== 1 ? 's' : ''} à visiter avant la vôtre`
-                },
-              ]
-            }
+                    : `${tourStatus.rooms_before} chambre${tourStatus.rooms_before !== 1 ? 's' : ''} à visiter avant la vôtre`,
+              },
+            ]}
             icon={Home}
             variant="secondary"
           />

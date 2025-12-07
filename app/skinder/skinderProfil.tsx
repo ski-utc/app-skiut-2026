@@ -1,14 +1,35 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, Image, Text, ActivityIndicator, TouchableOpacity, TextInput, KeyboardAvoidingView, ScrollView, Platform, StyleSheet } from 'react-native';
+import {
+  View,
+  Image,
+  Text,
+  ActivityIndicator,
+  TouchableOpacity,
+  TextInput,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
+  StyleSheet,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import * as ImageManipulator from "expo-image-manipulator";
+import * as ImageManipulator from 'expo-image-manipulator';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import { Camera, Save, X, UserCircle } from 'lucide-react-native';
 
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiPost, apiGet, apiPut, ApiResponse, isSuccessResponse, isPendingResponse, handleApiErrorToast, handleApiErrorScreen, AppError } from '@/constants/api/apiCalls';
+import {
+  apiPost,
+  apiGet,
+  apiPut,
+  ApiResponse,
+  isSuccessResponse,
+  isPendingResponse,
+  handleApiErrorToast,
+  handleApiErrorScreen,
+  AppError,
+} from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
@@ -22,11 +43,11 @@ type Profile = {
   description: string;
   passions: string[];
   image: string;
-}
+};
 
 type MaxFileSizeResponse = {
   maxImageSize: number;
-}
+};
 
 export default function SkinderProfil() {
   const [profile, setProfile] = useState<Profile>({
@@ -34,7 +55,7 @@ export default function SkinderProfil() {
     name: '',
     description: '',
     passions: ['', '', '', '', '', ''],
-    image: ''
+    image: '',
   });
 
   const [profileImage, setProfileImage] = useState('');
@@ -68,14 +89,16 @@ export default function SkinderProfil() {
           passionsList = data.passions;
         }
 
-        const paddedPassions = [...Array(6)].map((_, i) => passionsList[i] || '');
+        const paddedPassions = [...Array(6)].map(
+          (_, i) => passionsList[i] || '',
+        );
 
         setProfile({
           id: data.id,
           name: data.name,
           description: data.description || '',
           passions: paddedPassions,
-          image: data.image
+          image: data.image,
         });
 
         if (data.image) {
@@ -98,9 +121,15 @@ export default function SkinderProfil() {
   }, [fetchProfil]);
 
   const handleImagePick = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.status !== 'granted') {
-      Toast.show({ type: 'error', text1: 'Permission requise', text2: 'Nous avons besoin de votre permission pour accéder à votre galerie.' });
+      Toast.show({
+        type: 'error',
+        text1: 'Permission requise',
+        text2:
+          'Nous avons besoin de votre permission pour accéder à votre galerie.',
+      });
       return;
     }
 
@@ -120,7 +149,9 @@ export default function SkinderProfil() {
 
     let maxFileSize = 5 * 1024 * 1024; // 5MB default
     try {
-      const sizeRes = await apiGet<MaxFileSizeResponse>("challenges/max-file-size");
+      const sizeRes = await apiGet<MaxFileSizeResponse>(
+        'challenges/max-file-size',
+      );
       if (isSuccessResponse(sizeRes)) {
         maxFileSize = sizeRes.data.maxImageSize || maxFileSize;
       }
@@ -133,14 +164,18 @@ export default function SkinderProfil() {
       const manipResult = await ImageManipulator.manipulateAsync(
         uri,
         [{ resize: { width: width > 1080 ? 1080 : width } }],
-        { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
+        { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG },
       );
       currentUri = manipResult.uri;
       fileInfo = await fetch(manipResult.uri).then((res) => res.blob());
     }
 
     if (fileInfo.size > maxFileSize) {
-      Toast.show({ type: 'error', text1: 'Erreur', text2: 'Image trop lourde même après compression :(' });
+      Toast.show({
+        type: 'error',
+        text1: 'Erreur',
+        text2: 'Image trop lourde même après compression :(',
+      });
       return;
     }
 
@@ -155,7 +190,9 @@ export default function SkinderProfil() {
 
       let maxFileSize = 5 * 1024 * 1024; // 5MB default
       try {
-        const sizeRes = await apiGet<MaxFileSizeResponse>("challenges/max-file-size");
+        const sizeRes = await apiGet<MaxFileSizeResponse>(
+          'challenges/max-file-size',
+        );
         if (isSuccessResponse(sizeRes)) {
           maxFileSize = sizeRes.data.maxImageSize || maxFileSize;
         }
@@ -164,7 +201,11 @@ export default function SkinderProfil() {
       }
 
       if (fileInfo.size > maxFileSize) {
-        return { success: false, message: `Image trop lourde (>${Math.round(maxFileSize / 1024 / 1024)}Mo)`, pending: false };
+        return {
+          success: false,
+          message: `Image trop lourde (>${Math.round(maxFileSize / 1024 / 1024)}Mo)`,
+          pending: false,
+        };
       }
 
       const formData = new FormData();
@@ -173,13 +214,17 @@ export default function SkinderProfil() {
       formData.append('media', {
         uri: uri,
         name: `room_${profile.id || 'new'}.jpg`,
-        type: 'image/jpeg'
+        type: 'image/jpeg',
       });
 
       return await apiPost('skinder/my-profile/image', formData, true);
     } catch (err: unknown) {
       handleApiErrorToast(err as AppError, setUser);
-      return { success: false, message: "Problème lors de l'upload de l'image.", pending: false };
+      return {
+        success: false,
+        message: "Problème lors de l'upload de l'image.",
+        pending: false,
+      };
     }
   };
 
@@ -187,36 +232,53 @@ export default function SkinderProfil() {
     setLoading(true);
 
     try {
-      const filteredPassions = profile.passions.filter(p => p.trim() !== '');
+      const filteredPassions = profile.passions.filter((p) => p.trim() !== '');
 
       const textResponse = await apiPut('skinder/my-profile', {
         description: profile.description,
-        passions: filteredPassions
+        passions: filteredPassions,
       });
 
-      let imageResponse: ApiResponse = { success: true, pending: false, message: '', data: [] };
+      let imageResponse: ApiResponse = {
+        success: true,
+        pending: false,
+        message: '',
+        data: [],
+      };
 
       if (modifiedPicture) {
-        imageResponse = await uploadImage(profileImage) as ApiResponse;
+        imageResponse = (await uploadImage(profileImage)) as ApiResponse;
       }
 
-      const isSuccess = (isSuccessResponse(textResponse) || isPendingResponse(textResponse)) &&
-        (!modifiedPicture || (isSuccessResponse(imageResponse as ApiResponse<unknown>) || isPendingResponse(imageResponse as ApiResponse<unknown>)));
+      const isSuccess =
+        (isSuccessResponse(textResponse) || isPendingResponse(textResponse)) &&
+        (!modifiedPicture ||
+          isSuccessResponse(imageResponse as ApiResponse<unknown>) ||
+          isPendingResponse(imageResponse as ApiResponse<unknown>));
 
-      const isPending = isPendingResponse(textResponse) || (modifiedPicture && isPendingResponse(imageResponse as ApiResponse<unknown>));
+      const isPending =
+        isPendingResponse(textResponse) ||
+        (modifiedPicture &&
+          isPendingResponse(imageResponse as ApiResponse<unknown>));
 
       if (isSuccess) {
         Toast.show({
           type: isPending ? 'info' : 'success',
-          text1: isPending ? 'Modifications enregistrées (Hors ligne)' : 'Profil modifié !',
-          text2: isPending ? 'Synchronisation en attente.' : 'Vos changements sont en ligne.',
+          text1: isPending
+            ? 'Modifications enregistrées (Hors ligne)'
+            : 'Profil modifié !',
+          text2: isPending
+            ? 'Synchronisation en attente.'
+            : 'Vos changements sont en ligne.',
         });
         navigation.navigate('skinderDiscover');
       } else {
-        const msg = textResponse.message || imageResponse.message || 'Erreur lors de la sauvegarde.';
+        const msg =
+          textResponse.message ||
+          imageResponse.message ||
+          'Erreur lors de la sauvegarde.';
         Toast.show({ type: 'error', text1: 'Erreur', text2: msg });
       }
-
     } catch (err: unknown) {
       handleApiErrorToast(err as AppError, setUser);
     } finally {
@@ -251,10 +313,15 @@ export default function SkinderProfil() {
         <BoutonRetour title={'Informations de ma chambre'} />
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={styles.photoSection}>
-          <TouchableOpacity onPress={handleImagePick} style={styles.photoContainer}>
+          <TouchableOpacity
+            onPress={handleImagePick}
+            style={styles.photoContainer}
+          >
             {!imageError && profileImage ? (
               <Image
                 source={{ uri: profileImage }}
@@ -263,7 +330,9 @@ export default function SkinderProfil() {
                 onError={() => setImageError(true)}
               />
             ) : (
-              <View style={[styles.profileImage, styles.profileImagePlaceholder]}>
+              <View
+                style={[styles.profileImage, styles.profileImagePlaceholder]}
+              >
                 <UserCircle size={100} color={Colors.muted} />
               </View>
             )}
@@ -284,15 +353,22 @@ export default function SkinderProfil() {
             multiline={true}
             numberOfLines={4}
             value={profile.description}
-            onChangeText={(text) => text.length <= 100 && setProfile({ ...profile, description: text })}
+            onChangeText={(text) =>
+              text.length <= 100 &&
+              setProfile({ ...profile, description: text })
+            }
             textAlignVertical="top"
           />
-          <Text style={styles.characterCount}>{(profile.description || '').length}/100</Text>
+          <Text style={styles.characterCount}>
+            {(profile.description || '').length}/100
+          </Text>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Vos passions</Text>
-          <Text style={styles.sectionSubtitle}>Ajoutez jusqu'à 6 passions (16 caractères max chacune)</Text>
+          <Text style={styles.sectionSubtitle}>
+            Ajoutez jusqu'à 6 passions (16 caractères max chacune)
+          </Text>
           <View style={styles.passionsGrid}>
             {profile.passions.map((passion, index) => (
               <View key={index} style={styles.passionInputContainer}>

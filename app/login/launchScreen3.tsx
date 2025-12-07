@@ -31,7 +31,9 @@ export default function LaunchScreen3() {
               <Map size={32} color={Colors.primary} />
             </View>
             <Text style={styles.featureTitle}>Plans</Text>
-            <Text style={styles.featureDescription}>Ne soyez pas paumé.e.s</Text>
+            <Text style={styles.featureDescription}>
+              Ne soyez pas paumé.e.s
+            </Text>
           </View>
 
           <View style={[styles.featureCard, styles.featureCardSecondary]}>
@@ -39,7 +41,9 @@ export default function LaunchScreen3() {
               <PartyPopper size={32} color={Colors.primary} />
             </View>
             <Text style={styles.featureTitle}>Skinder</Text>
-            <Text style={styles.featureDescription}>Rencontrez d'autres chambres</Text>
+            <Text style={styles.featureDescription}>
+              Rencontrez d'autres chambres
+            </Text>
           </View>
 
           <View style={styles.featureCard}>
@@ -67,13 +71,14 @@ export default function LaunchScreen3() {
           </View>
 
           <Text style={styles.description}>
-            Consultez l'emploi du temps de la semaine, partagez vos meilleures anecdotes
-            du voyage et téléchargez le plan des pistes pour ne rien manquer !
+            Consultez l'emploi du temps de la semaine, partagez vos meilleures
+            anecdotes du voyage et téléchargez le plan des pistes pour ne rien
+            manquer !
           </Text>
 
           <View style={styles.buttonsContainer}>
             <TouchableOpacity
-              onPress={() => navigation.navigate("loginScreen")}
+              onPress={() => navigation.navigate('loginScreen')}
               style={styles.loginButton}
               activeOpacity={0.8}
             >

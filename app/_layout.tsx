@@ -1,9 +1,25 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { ActivityIndicator, View, Text, StyleSheet, Platform, Keyboard } from 'react-native';
+import {
+  ActivityIndicator,
+  View,
+  Text,
+  StyleSheet,
+  Platform,
+  Keyboard,
+} from 'react-native';
 import { NavigationContainer, NavigationProp } from '@react-navigation/native';
-import { createBottomTabNavigator, BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import {
+  createBottomTabNavigator,
+  BottomTabBarProps,
+} from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { Home, CalendarFold, LandPlot, MessageSquareText, Heart } from 'lucide-react-native';
+import {
+  Home,
+  CalendarFold,
+  LandPlot,
+  MessageSquareText,
+  Heart,
+} from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
 import { Colors, TextStyles, loadFonts } from '@/constants/GraphSettings';
@@ -47,8 +63,12 @@ function MainTabs() {
 
   useEffect(() => {
     if (Platform.OS !== 'ios') {
-      const showListener = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
-      const hideListener = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+      const showListener = Keyboard.addListener('keyboardDidShow', () =>
+        setKeyboardVisible(true),
+      );
+      const hideListener = Keyboard.addListener('keyboardDidHide', () =>
+        setKeyboardVisible(false),
+      );
       return () => {
         showListener.remove();
         hideListener.remove();
@@ -57,13 +77,17 @@ function MainTabs() {
   }, []);
 
   const tabBarComponent = useCallback(
-    (props: BottomTabBarProps) => (!keyboardVisible ? <CustomNavBar {...props} /> : null),
-    [keyboardVisible]
+    (props: BottomTabBarProps) =>
+      !keyboardVisible ? <CustomNavBar {...props} /> : null,
+    [keyboardVisible],
   );
 
   const planningListeners = useMemo(
     () => ({
-      tabPress: (e: TabPressEvent, navigation: NavigationProp<RootTabParamList>) => {
+      tabPress: (
+        e: TabPressEvent,
+        navigation: NavigationProp<RootTabParamList>,
+      ) => {
         e.preventDefault();
         navigation.reset({
           index: 0,
@@ -71,12 +95,15 @@ function MainTabs() {
         });
       },
     }),
-    []
+    [],
   );
 
   const defisListeners = useMemo(
     () => ({
-      tabPress: (e: TabPressEvent, navigation: NavigationProp<RootTabParamList>) => {
+      tabPress: (
+        e: TabPressEvent,
+        navigation: NavigationProp<RootTabParamList>,
+      ) => {
         e.preventDefault();
         navigation.reset({
           index: 0,
@@ -84,12 +111,15 @@ function MainTabs() {
         });
       },
     }),
-    []
+    [],
   );
 
   const anecdotesListeners = useMemo(
     () => ({
-      tabPress: (e: TabPressEvent, navigation: NavigationProp<RootTabParamList>) => {
+      tabPress: (
+        e: TabPressEvent,
+        navigation: NavigationProp<RootTabParamList>,
+      ) => {
         e.preventDefault();
         navigation.reset({
           index: 0,
@@ -97,7 +127,23 @@ function MainTabs() {
         });
       },
     }),
-    []
+    [],
+  );
+
+  const skinderListeners = useMemo(
+    () => ({
+      tabPress: (
+        e: TabPressEvent,
+        navigation: NavigationProp<RootTabParamList>,
+      ) => {
+        e.preventDefault();
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'skinderNavigator' }],
+        });
+      },
+    }),
+    [],
   );
 
   return (
@@ -108,14 +154,19 @@ function MainTabs() {
       <Tab.Screen
         name="homeNavigator"
         component={HomeNavigator}
-        options={{ tabBarLabel: 'Home', tabBarIcon: ({ color, size }) => <Home color={color} size={size} /> }}
+        options={{
+          tabBarLabel: 'Home',
+          tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
+        }}
       />
       <Tab.Screen
         name="planningNavigator"
         component={PlanningNavigator}
         options={{
           tabBarLabel: 'Planning',
-          tabBarIcon: ({ color, size }) => <CalendarFold color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => (
+            <CalendarFold color={color} size={size} />
+          ),
         }}
         listeners={({ navigation }) => ({
           tabPress: (e) => planningListeners.tabPress(e, navigation),
@@ -126,7 +177,9 @@ function MainTabs() {
         component={DefisNavigator}
         options={{
           tabBarLabel: 'Défi',
-          tabBarIcon: ({ color, size }) => <LandPlot color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => (
+            <LandPlot color={color} size={size} />
+          ),
         }}
         listeners={({ navigation }) => ({
           tabPress: (e) => defisListeners.tabPress(e, navigation),
@@ -137,7 +190,9 @@ function MainTabs() {
         component={AnecdotesNavigator}
         options={{
           tabBarLabel: 'Anecdotes',
-          tabBarIcon: ({ color, size }) => <MessageSquareText color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => (
+            <MessageSquareText color={color} size={size} />
+          ),
         }}
         listeners={({ navigation }) => ({
           tabPress: (e) => anecdotesListeners.tabPress(e, navigation),
@@ -159,7 +214,9 @@ function MainTabs() {
         component={DrawerNavigator}
         options={{
           tabBarLabel: 'Profil',
-          tabBarIcon: ({ color, size }) => <MessageSquareText color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => (
+            <MessageSquareText color={color} size={size} />
+          ),
           tabBarButton: () => null,
         }}
       />
@@ -192,7 +249,8 @@ function Content() {
     return () => clearTimeout(timer);
   }, []);
 
-  const shouldShowLoadingForNotifications = user && !isInitialized && !isLoading;
+  const shouldShowLoadingForNotifications =
+    user && !isInitialized && !isLoading;
 
   if (isLoading || shouldShowLoadingForNotifications) {
     return (
@@ -269,7 +327,7 @@ const styles = StyleSheet.create({
   loadingText: {
     color: Colors.muted,
     marginTop: 16,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   toastContainer: {
     alignItems: 'flex-start',

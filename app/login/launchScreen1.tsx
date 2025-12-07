@@ -17,7 +17,7 @@ export default function LaunchScreen1() {
     .runOnJS(true)
     .onEnd((e) => {
       if (e.velocityX < -350) {
-        navigation.navigate("launchScreen2");
+        navigation.navigate('launchScreen2');
       }
     });
 
@@ -53,12 +53,12 @@ export default function LaunchScreen1() {
           </View>
 
           <Text style={styles.description}>
-            Découvrez votre compagnon indispensable pour vivre une semaine de ski inoubliable !
-            Défis, planning, météo et bien plus encore.
+            Découvrez votre compagnon indispensable pour vivre une semaine de
+            ski inoubliable ! Défis, planning, météo et bien plus encore.
           </Text>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate("loginScreen")}
+            onPress={() => navigation.navigate('loginScreen')}
             style={styles.skipButton}
           >
             <Text style={styles.skipButtonText}>Passer l'introduction</Text>

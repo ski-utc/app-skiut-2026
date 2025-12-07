@@ -12,7 +12,7 @@ export type LoginStackParamList = {
   launchScreen2: undefined;
   launchScreen3: undefined;
   loginScreen: undefined;
-}
+};
 
 export default function LoginNavigator() {
   return (

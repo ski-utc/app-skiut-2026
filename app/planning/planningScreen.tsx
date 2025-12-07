@@ -1,12 +1,36 @@
-import { View, StyleSheet, Text, FlatList, ActivityIndicator, TouchableOpacity, Modal, ScrollView, Animated } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+  Animated,
+} from 'react-native';
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Calendar, Clock, MapPin, HousePlus, Info, X, Timer } from 'lucide-react-native';
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  HousePlus,
+  Info,
+  X,
+  Timer,
+} from 'lucide-react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import Header from "@/components/header";
-import ErrorScreen from "@/components/pages/errorPage";
-import BoutonRetour from "@/components/divers/boutonRetour";
-import { apiGet, isSuccessResponse, handleApiErrorScreen, handleApiErrorToast, AppError } from '@/constants/api/apiCalls';
+import Header from '@/components/header';
+import ErrorScreen from '@/components/pages/errorPage';
+import BoutonRetour from '@/components/divers/boutonRetour';
+import {
+  apiGet,
+  isSuccessResponse,
+  handleApiErrorScreen,
+  handleApiErrorToast,
+  AppError,
+} from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
 
 type PermanencePreview = {
@@ -15,7 +39,7 @@ type PermanencePreview = {
   description?: string;
   location?: string;
   status: string;
-}
+};
 
 type Activity = {
   activity: string;
@@ -27,7 +51,7 @@ type Activity = {
   status: 'past' | 'current' | 'future';
   is_permanence: boolean;
   permanence_data?: PermanencePreview;
-}
+};
 
 type DaysItem = {
   type: 'days';
@@ -60,18 +84,20 @@ type PermanenceDetails = {
   };
   duration_minutes: number;
   notes: string;
-}
+};
 
 export default function PlanningScreen() {
-  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<string>('');
   const [activitiesMap, setActivitiesMap] = useState<PlanningResponse>({});
   const [availableDates, setAvailableDates] = useState<string[]>([]);
 
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<string>('');
 
-  const [showPermanenceModal, setShowPermanenceModal] = useState<boolean>(false);
-  const [permanenceDetails, setPermanenceDetails] = useState<PermanenceDetails | null>(null);
+  const [showPermanenceModal, setShowPermanenceModal] =
+    useState<boolean>(false);
+  const [permanenceDetails, setPermanenceDetails] =
+    useState<PermanenceDetails | null>(null);
   const [loadingPermanence, setLoadingPermanence] = useState<boolean>(false);
 
   const { setUser } = useUser();
@@ -99,15 +125,15 @@ export default function PlanningScreen() {
     if (Object.keys(activitiesMap).length === 0) {
       setLoading(true);
     }
-    setError("");
+    setError('');
 
     try {
-      const response = await apiGet<PlanningResponse>("planning");
+      const response = await apiGet<PlanningResponse>('planning');
 
       if (isSuccessResponse(response) && response.data) {
         const sortedMap: PlanningResponse = {};
 
-        Object.keys(response.data).forEach(date => {
+        Object.keys(response.data).forEach((date) => {
           sortedMap[date] = sortActivitiesByTime(response.data[date]);
         });
 
@@ -115,7 +141,10 @@ export default function PlanningScreen() {
         const dates = Object.keys(sortedMap).sort();
         setAvailableDates(dates);
 
-        if (dates.length > 0 && (!selectedDate || !dates.includes(selectedDate))) {
+        if (
+          dates.length > 0 &&
+          (!selectedDate || !dates.includes(selectedDate))
+        ) {
           const defaultDate = getDefaultDate(sortedMap);
           if (defaultDate) setSelectedDate(defaultDate);
         }
@@ -135,40 +164,45 @@ export default function PlanningScreen() {
     setSelectedDate(date);
   }, []);
 
-  const handlePermanencePress = useCallback(async (permanenceId: number) => {
-    setLoadingPermanence(true);
-    setShowPermanenceModal(true);
+  const handlePermanencePress = useCallback(
+    async (permanenceId: number) => {
+      setLoadingPermanence(true);
+      setShowPermanenceModal(true);
 
-    // Animate modal opening
-    slideAnim.setValue(1000);
-    fadeAnim.setValue(0);
-    Animated.parallel([
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 65,
-        friction: 11,
-      }),
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-    ]).start();
+      // Animate modal opening
+      slideAnim.setValue(1000);
+      fadeAnim.setValue(0);
+      Animated.parallel([
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 65,
+          friction: 11,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]).start();
 
-    try {
-      const response = await apiGet<PermanenceDetails>(`permanences/${permanenceId}`);
+      try {
+        const response = await apiGet<PermanenceDetails>(
+          `permanences/${permanenceId}`,
+        );
 
-      if (isSuccessResponse(response) && response.data) {
-        setPermanenceDetails(response.data);
+        if (isSuccessResponse(response) && response.data) {
+          setPermanenceDetails(response.data);
+        }
+      } catch (err: unknown) {
+        setShowPermanenceModal(false);
+        handleApiErrorToast(err as AppError, setUser);
+      } finally {
+        setLoadingPermanence(false);
       }
-    } catch (err: unknown) {
-      setShowPermanenceModal(false);
-      handleApiErrorToast(err as AppError, setUser);
-    } finally {
-      setLoadingPermanence(false);
-    }
-  }, [setUser]);
+    },
+    [setUser],
+  );
 
   const closePermanenceModal = useCallback(() => {
     Animated.parallel([
@@ -197,12 +231,12 @@ export default function PlanningScreen() {
   const selectedActivities = activitiesMap[selectedDate] || [];
 
   const listData: PlanningListItem[] = [
-    { type: "days", dates: availableDates },
-    { type: "activities", activities: selectedActivities },
+    { type: 'days', dates: availableDates },
+    { type: 'activities', activities: selectedActivities },
   ];
 
   const renderItem = ({ item }: { item: PlanningListItem }) => {
-    if (item.type === "days") {
+    if (item.type === 'days') {
       if (item.dates.length === 0) {
         return (
           <View style={styles.noDatesContainer}>
@@ -216,21 +250,33 @@ export default function PlanningScreen() {
         <View style={styles.daysContainer}>
           {item.dates.map((date: string, index: number) => {
             const isSelected = selectedDate === date;
-            const [dayName, dayNumber] = formatDateForDisplay(date).split(" ");
+            const [dayName, dayNumber] = formatDateForDisplay(date).split(' ');
 
             return (
               <TouchableOpacity
                 key={index}
                 style={[
                   styles.dayButton,
-                  { backgroundColor: isSelected ? Colors.primary : Colors.white }
+                  {
+                    backgroundColor: isSelected ? Colors.primary : Colors.white,
+                  },
                 ]}
                 onPress={() => handleDatePress(date)}
               >
-                <Text style={[styles.dayLetter, { color: isSelected ? Colors.white : Colors.primaryBorder }]}>
+                <Text
+                  style={[
+                    styles.dayLetter,
+                    { color: isSelected ? Colors.white : Colors.primaryBorder },
+                  ]}
+                >
                   {dayName}
                 </Text>
-                <Text style={[styles.dayNumber, { color: isSelected ? Colors.white : Colors.primaryBorder }]}>
+                <Text
+                  style={[
+                    styles.dayNumber,
+                    { color: isSelected ? Colors.white : Colors.primaryBorder },
+                  ]}
+                >
                   {dayNumber}
                 </Text>
               </TouchableOpacity>
@@ -240,18 +286,24 @@ export default function PlanningScreen() {
       );
     }
 
-    if (item.type === "activities") {
+    if (item.type === 'activities') {
       const formattedDate0 = selectedDate
-        ? new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(selectedDate))
-        : "Sélectionnez une date";
-      const formattedDate = formattedDate0.charAt(0).toUpperCase() + formattedDate0.slice(1);
+        ? new Intl.DateTimeFormat('fr-FR', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+          }).format(new Date(selectedDate))
+        : 'Sélectionnez une date';
+      const formattedDate =
+        formattedDate0.charAt(0).toUpperCase() + formattedDate0.slice(1);
 
       return (
         <View style={styles.activitiesContainer}>
           <View style={styles.infoCard}>
             <Calendar size={20} color={Colors.primary} />
             <Text style={styles.infoText}>
-              Les animations réservées sont en <Text style={styles.primaryText}>bleu</Text>.
+              Les animations réservées sont en{' '}
+              <Text style={styles.primaryText}>bleu</Text>.
             </Text>
           </View>
 
@@ -262,24 +314,40 @@ export default function PlanningScreen() {
           {item.activities.length > 0 ? (
             <View style={styles.activitiesList}>
               {item.activities.map((activity: Activity, index: number) => {
-                const titleColor = activity.payant ? Colors.primary : Colors.primaryBorder;
+                const titleColor = activity.payant
+                  ? Colors.primary
+                  : Colors.primaryBorder;
                 return (
                   <View
                     key={index}
                     style={[
                       styles.activityCard,
-                      { opacity: activity.status === "past" ? inactiveOpacity : activeOpacity }
+                      {
+                        opacity:
+                          activity.status === 'past'
+                            ? inactiveOpacity
+                            : activeOpacity,
+                      },
                     ]}
                   >
                     <View style={styles.activityIndicator}>
-                      <View style={[
-                        styles.statusDot,
-                        { backgroundColor: activity.status === "current" ? Colors.success : Colors.lightMuted }
-                      ]} />
+                      <View
+                        style={[
+                          styles.statusDot,
+                          {
+                            backgroundColor:
+                              activity.status === 'current'
+                                ? Colors.success
+                                : Colors.lightMuted,
+                          },
+                        ]}
+                      />
                     </View>
 
                     <View style={styles.activityContent}>
-                      <Text style={[styles.activityTitle, { color: titleColor }]}>
+                      <Text
+                        style={[styles.activityTitle, { color: titleColor }]}
+                      >
                         {activity.activity}
                       </Text>
                       <View style={styles.activityTime}>
@@ -293,7 +361,9 @@ export default function PlanningScreen() {
                     {activity.is_permanence && activity.permanence_data && (
                       <TouchableOpacity
                         style={styles.permanenceButton}
-                        onPress={() => handlePermanencePress(activity.permanence_data!.id)}
+                        onPress={() =>
+                          handlePermanencePress(activity.permanence_data!.id)
+                        }
                       >
                         <HousePlus size={18} color={Colors.primary} />
                         <Text style={styles.permanenceButtonText}>Perm</Text>
@@ -307,7 +377,9 @@ export default function PlanningScreen() {
           ) : (
             <View style={styles.noActivitiesContainer}>
               <MapPin size={48} color={Colors.muted} />
-              <Text style={styles.noActivitiesText}>Rien de prévu ce jour-là.</Text>
+              <Text style={styles.noActivitiesText}>
+                Rien de prévu ce jour-là.
+              </Text>
             </View>
           )}
         </View>
@@ -351,12 +423,7 @@ export default function PlanningScreen() {
         transparent={true}
         onRequestClose={closePermanenceModal}
       >
-        <Animated.View
-          style={[
-            styles.modalOverlay,
-            { opacity: fadeAnim }
-          ]}
-        >
+        <Animated.View style={[styles.modalOverlay, { opacity: fadeAnim }]}>
           <TouchableOpacity
             style={{ flex: 1 }}
             activeOpacity={1}
@@ -367,7 +434,7 @@ export default function PlanningScreen() {
         <Animated.View
           style={[
             styles.modalAnimatedContainer,
-            { transform: [{ translateY: slideAnim }] }
+            { transform: [{ translateY: slideAnim }] },
           ]}
         >
           <TouchableOpacity
@@ -382,7 +449,10 @@ export default function PlanningScreen() {
                   {permanenceDetails?.name || 'Permanence'}
                 </Text>
               </View>
-              <TouchableOpacity onPress={closePermanenceModal} style={styles.closeButton}>
+              <TouchableOpacity
+                onPress={closePermanenceModal}
+                style={styles.closeButton}
+              >
                 <X size={24} color={Colors.primaryBorder} />
               </TouchableOpacity>
             </View>
@@ -393,37 +463,59 @@ export default function PlanningScreen() {
                 <Text style={styles.loadingText}>Chargement...</Text>
               </View>
             ) : permanenceDetails ? (
-              <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+              <ScrollView
+                style={styles.modalContent}
+                showsVerticalScrollIndicator={false}
+              >
                 <View style={styles.detailSection}>
                   <View style={styles.detailCard}>
                     <View style={styles.detailCardHeader}>
-                      <Clock size={20} color={Colors.primary} strokeWidth={2.5} />
+                      <Clock
+                        size={20}
+                        color={Colors.primary}
+                        strokeWidth={2.5}
+                      />
                       <Text style={styles.detailCardTitle}>Horaires</Text>
                     </View>
                     <View style={styles.detailCardContent}>
                       <Text style={styles.detailValue}>
-                        {new Date(permanenceDetails.start_datetime).toLocaleDateString('fr-FR', {
-                          weekday: 'long', day: 'numeric', month: 'long'
+                        {new Date(
+                          permanenceDetails.start_datetime,
+                        ).toLocaleDateString('fr-FR', {
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'long',
                         })}
                       </Text>
                       <View style={styles.timeRow}>
                         <Text style={styles.timeValue}>
-                          {new Date(permanenceDetails.start_datetime).toLocaleTimeString('fr-FR', {
-                            hour: '2-digit', minute: '2-digit'
+                          {new Date(
+                            permanenceDetails.start_datetime,
+                          ).toLocaleTimeString('fr-FR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
                           })}
                         </Text>
                         <Text style={styles.detailSeparator}>→</Text>
                         <Text style={styles.timeValue}>
-                          {new Date(permanenceDetails.end_datetime).toLocaleTimeString('fr-FR', {
-                            hour: '2-digit', minute: '2-digit'
+                          {new Date(
+                            permanenceDetails.end_datetime,
+                          ).toLocaleTimeString('fr-FR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
                           })}
                         </Text>
                       </View>
                       <View style={styles.durationBadge}>
-                        <Timer size={14} color={Colors.primary} strokeWidth={2.5} />
+                        <Timer
+                          size={14}
+                          color={Colors.primary}
+                          strokeWidth={2.5}
+                        />
                         <Text style={styles.durationText}>
                           {Math.floor(permanenceDetails.duration_minutes / 60)}h
-                          {permanenceDetails.duration_minutes % 60 > 0 && ` ${permanenceDetails.duration_minutes % 60}min`}
+                          {permanenceDetails.duration_minutes % 60 > 0 &&
+                            ` ${permanenceDetails.duration_minutes % 60}min`}
                         </Text>
                       </View>
                     </View>
@@ -432,11 +524,17 @@ export default function PlanningScreen() {
                   {permanenceDetails.location && (
                     <View style={styles.detailCard}>
                       <View style={styles.detailCardHeader}>
-                        <MapPin size={20} color={Colors.primary} strokeWidth={2.5} />
+                        <MapPin
+                          size={20}
+                          color={Colors.primary}
+                          strokeWidth={2.5}
+                        />
                         <Text style={styles.detailCardTitle}>Lieu</Text>
                       </View>
                       <View style={styles.detailCardContent}>
-                        <Text style={styles.detailValue}>{permanenceDetails.location}</Text>
+                        <Text style={styles.detailValue}>
+                          {permanenceDetails.location}
+                        </Text>
                       </View>
                     </View>
                   )}
@@ -444,10 +542,16 @@ export default function PlanningScreen() {
                   {permanenceDetails.notes && (
                     <View style={styles.notesCard}>
                       <View style={styles.detailCardHeader}>
-                        <Info size={20} color={Colors.primary} strokeWidth={2.5} />
+                        <Info
+                          size={20}
+                          color={Colors.primary}
+                          strokeWidth={2.5}
+                        />
                         <Text style={styles.detailCardTitle}>Notes</Text>
                       </View>
-                      <Text style={styles.notesText}>{permanenceDetails.notes}</Text>
+                      <Text style={styles.notesText}>
+                        {permanenceDetails.notes}
+                      </Text>
                     </View>
                   )}
                 </View>
@@ -526,11 +630,11 @@ const styles = StyleSheet.create({
     color: Colors.primaryBorder,
   },
   dayButton: {
-    alignItems: "center",
+    alignItems: 'center',
     borderRadius: 12,
     flex: 1,
-    flexDirection: "column",
-    justifyContent: "center",
+    flexDirection: 'column',
+    justifyContent: 'center',
     marginHorizontal: 2,
     paddingVertical: 8,
   },
@@ -549,16 +653,16 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 2,
     elevation: 2,
-    flexDirection: "row",
+    flexDirection: 'row',
     height: 64,
-    justifyContent: "space-around",
+    justifyContent: 'space-around',
     marginBottom: 12,
     padding: 4,
     shadowColor: Colors.primaryBorder,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    width: "100%",
+    width: '100%',
   },
   detailCard: {
     backgroundColor: Colors.white,
@@ -647,6 +751,12 @@ const styles = StyleSheet.create({
     color: Colors.muted,
     marginTop: 16,
   },
+  modalAnimatedContainer: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+  },
   modalContainer: {
     backgroundColor: Colors.white,
     borderTopLeftRadius: 24,
@@ -683,17 +793,11 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    bottom: 0,
+    left: 0,
     position: 'absolute',
+    right: 0,
     top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  modalAnimatedContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
   },
   modalTitle: {
     ...TextStyles.h2Bold,

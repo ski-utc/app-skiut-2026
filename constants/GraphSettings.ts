@@ -1,33 +1,44 @@
 import * as Font from 'expo-font';
 
+import LibreBaskervilleRegular from '@/assets/fonts/Titre/LibreBaskerville-Regular.ttf';
+import LibreBaskervilleBold from '@/assets/fonts/Titre/LibreBaskerville-Bold.ttf';
+import LibreBaskervilleItalic from '@/assets/fonts/Titre/LibreBaskerville-Italic.ttf';
+import ProximaNovaRegular from '@/assets/fonts/Text/proximanova_regular.ttf';
+import ProximaNovaBold from '@/assets/fonts/Text/proximanova_bold.otf';
+import ProximaNovaLight from '@/assets/fonts/Text/proximanova_light.otf';
+import ProximaNovaExtraBold from '@/assets/fonts/Text/proximanova_extrabold.otf';
+import ProximaNovaBlack from '@/assets/fonts/Text/proximanova_black.ttf';
+import ProximaNovaBlackItalic from '@/assets/fonts/Text/proximanova_blackit.otf';
+import ProximaNovaBoldItalic from '@/assets/fonts/Text/proximanova_boldit.otf';
+
 export const Colors = {
-  primary: '#79a8ce',      // Fond bleu principal
+  primary: '#79a8ce', // Fond bleu principal
   primaryBorder: '#35446d', // Bord bleu (foncé)
-  secondary: '#e9c9d4',      // Fond rose
+  secondary: '#e9c9d4', // Fond rose
   secondaryBorder: '#eaa4bb', // Bord rose (foncé)
-  accent: '#fe734e',        // Texte orange sur fond blanc
-  error: '#b50043',         // Rouge pour erreurs et indicateurs
-  success: '#006259',       // Vert
-  muted: '#7F7D7D',         // Gris foncé
-  lightMuted: '#EBEBEB',    // Gris clair
-  white: '#FFFFFF',         // Blanc
+  accent: '#fe734e', // Texte orange sur fond blanc
+  error: '#b50043', // Rouge pour erreurs et indicateurs
+  success: '#006259', // Vert
+  muted: '#7F7D7D', // Gris foncé
+  lightMuted: '#EBEBEB', // Gris clair
+  white: '#FFFFFF', // Blanc
 };
 
 export const loadFonts = async () => {
   await Font.loadAsync({
     // Polices Libre Baskerville pour les titres
-    'LibreBaskerville-Regular': require('../assets/fonts/Titre/LibreBaskerville-Regular.ttf'),
-    'LibreBaskerville-Bold': require('../assets/fonts/Titre/LibreBaskerville-Bold.ttf'),
-    'LibreBaskerville-Italic': require('../assets/fonts/Titre/LibreBaskerville-Italic.ttf'),
+    'LibreBaskerville-Regular': LibreBaskervilleRegular,
+    'LibreBaskerville-Bold': LibreBaskervilleBold,
+    'LibreBaskerville-Italic': LibreBaskervilleItalic,
 
     // Polices Proxima Nova pour le texte
-    'ProximaNova-Regular': require('../assets/fonts/Text/proximanova_regular.ttf'),
-    'ProximaNova-Bold': require('../assets/fonts/Text/proximanova_bold.otf'),
-    'ProximaNova-Light': require('../assets/fonts/Text/proximanova_light.otf'),
-    'ProximaNova-ExtraBold': require('../assets/fonts/Text/proximanova_extrabold.otf'),
-    'ProximaNova-Black': require('../assets/fonts/Text/proximanova_black.ttf'),
-    'ProximaNova-BlackItalic': require('../assets/fonts/Text/proximanova_blackit.otf'),
-    'ProximaNova-BoldItalic': require('../assets/fonts/Text/proximanova_boldit.otf'),
+    'ProximaNova-Regular': ProximaNovaRegular,
+    'ProximaNova-Bold': ProximaNovaBold,
+    'ProximaNova-Light': ProximaNovaLight,
+    'ProximaNova-ExtraBold': ProximaNovaExtraBold,
+    'ProximaNova-Black': ProximaNovaBlack,
+    'ProximaNova-BlackItalic': ProximaNovaBlackItalic,
+    'ProximaNova-BoldItalic': ProximaNovaBoldItalic,
   });
 };
 
@@ -142,4 +153,3 @@ export const TextStyles = {
     lineHeight: FontSizes.large * 1.2,
   },
 };
-

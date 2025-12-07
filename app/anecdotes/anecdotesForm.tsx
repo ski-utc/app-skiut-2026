@@ -1,5 +1,15 @@
 import { useState } from 'react';
-import { View, Text, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, Keyboard, Pressable, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  ActivityIndicator,
+  Platform,
+  KeyboardAvoidingView,
+  Keyboard,
+  Pressable,
+  StyleSheet,
+} from 'react-native';
 import { Checkbox } from 'expo-checkbox';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Send, PenTool } from 'lucide-react-native';
@@ -8,10 +18,16 @@ import Toast from 'react-native-toast-message';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import BoutonActiverLarge from '@/components/divers/boutonActiverLarge';
-import { apiPost, isSuccessResponse, isPendingResponse, handleApiErrorToast, AppError } from '@/constants/api/apiCalls';
+import {
+  apiPost,
+  isSuccessResponse,
+  isPendingResponse,
+  handleApiErrorToast,
+  AppError,
+} from '@/constants/api/apiCalls';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
-import Header from "../../components/header";
+import Header from '../../components/header';
 import { AnecdotesStackParamList } from '../anecdotesNavigator';
 
 export default function AnecdotesForm() {
@@ -27,13 +43,15 @@ export default function AnecdotesForm() {
 
     setLoading(true);
     try {
-      const response = await apiPost("anecdotes", { texte: text });
+      const response = await apiPost('anecdotes', { texte: text });
 
       if (isSuccessResponse(response)) {
         Toast.show({
           type: 'success',
           text1: 'Anecdote postée !',
-          text2: response.message || 'Anecdote postée ! Elle sera visible une fois validée par le bureau',
+          text2:
+            response.message ||
+            'Anecdote postée ! Elle sera visible une fois validée par le bureau',
         });
       } else if (isPendingResponse(response)) {
         Toast.show({
@@ -67,9 +85,7 @@ export default function AnecdotesForm() {
         <Header refreshFunction={undefined} disableRefresh={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
-          <Text style={styles.loadingText}>
-            Envoi en cours...
-          </Text>
+          <Text style={styles.loadingText}>Envoi en cours...</Text>
         </View>
       </View>
     );
@@ -78,13 +94,13 @@ export default function AnecdotesForm() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.content}>
         <Header refreshFunction={null} disableRefresh={true} />
 
         <View style={styles.headerContainer}>
-          <BoutonRetour title={"Rédiger un potin"} />
+          <BoutonRetour title={'Rédiger un potin'} />
         </View>
 
         <View style={styles.heroSection}>
@@ -126,7 +142,8 @@ export default function AnecdotesForm() {
               />
               <View style={styles.termsTextContainer}>
                 <Text style={styles.termsText}>
-                  En postant cette anecdote, je certifie qu'elle respecte les autres participant.e.s du voyage
+                  En postant cette anecdote, je certifie qu'elle respecte les
+                  autres participant.e.s du voyage
                 </Text>
               </View>
             </View>
@@ -213,7 +230,7 @@ const styles = StyleSheet.create({
   loadingText: {
     ...TextStyles.body,
     color: Colors.muted,
-    marginTop: 16
+    marginTop: 16,
   },
   termsRow: {
     alignItems: 'flex-start',

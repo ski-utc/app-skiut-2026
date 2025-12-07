@@ -1,17 +1,17 @@
-import { useState } from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
-import { WebView, WebViewNavigation } from "react-native-webview";
-import * as Linking from "expo-linking";
-import * as SecureStore from "expo-secure-store";
+import { useState } from 'react';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { WebView, WebViewNavigation } from 'react-native-webview';
+import * as Linking from 'expo-linking';
+import * as SecureStore from 'expo-secure-store';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { X } from "lucide-react-native";
+import { X } from 'lucide-react-native';
 
-import { useUser, User } from "@/contexts/UserContext";
-import { apiGet, handleApiErrorScreen } from "@/constants/api/apiCalls";
-import { Colors } from "@/constants/GraphSettings";
-import ErrorScreen from "@/components/pages/errorPage";
+import { useUser, User } from '@/contexts/UserContext';
+import { apiGet, handleApiErrorScreen } from '@/constants/api/apiCalls';
+import { Colors } from '@/constants/GraphSettings';
+import ErrorScreen from '@/components/pages/errorPage';
 
-import * as config from "../../constants/api/apiConfig";
+import * as config from '../../constants/api/apiConfig';
 import { LoginStackParamList } from '../loginNavigator';
 
 export default function OAuthScreen() {
@@ -25,7 +25,11 @@ export default function OAuthScreen() {
     const url = state.url || '';
     const { hostname, path, queryParams } = Linking.parse(url);
 
-    if (canEnter && hostname === config.DOMAIN && path === "skiutc/api/connected") {
+    if (
+      canEnter &&
+      hostname === config.DOMAIN &&
+      path === 'skiutc/api/connected'
+    ) {
       setCanEnter(false);
 
       const accessToken = Array.isArray(queryParams?.access_token)
@@ -37,10 +41,10 @@ export default function OAuthScreen() {
 
       if (accessToken && refreshToken) {
         try {
-          await SecureStore.setItemAsync("accessToken", accessToken);
-          await SecureStore.setItemAsync("refreshToken", refreshToken);
+          await SecureStore.setItemAsync('accessToken', accessToken);
+          await SecureStore.setItemAsync('refreshToken', refreshToken);
 
-          const response = await apiGet<User>("auth/me");
+          const response = await apiGet<User>('auth/me');
           if (response.success) {
             setUser({
               id: response.data.id,
@@ -49,11 +53,13 @@ export default function OAuthScreen() {
               room: response.data.room,
               roomName: response.data.roomName,
               admin: response.data.admin,
-              member: response.data.member
+              member: response.data.member,
             });
           } else {
             setWebViewVisible(false);
-            setError(`Une erreur est survenue lors de la récupération du user : ${response.message}`);
+            setError(
+              `Une erreur est survenue lors de la récupération du user : ${response.message}`,
+            );
           }
         } catch (err: unknown) {
           setWebViewVisible(false);
@@ -61,10 +67,13 @@ export default function OAuthScreen() {
         }
       } else {
         setWebViewVisible(false);
-        setError("Access Token ou Refresh Token manquant")
+        setError('Access Token ou Refresh Token manquant');
         setCanEnter(true);
       }
-    } else if (hostname === config.DOMAIN && path === "skiutc/api/notConnected") {
+    } else if (
+      hostname === config.DOMAIN &&
+      path === 'skiutc/api/notConnected'
+    ) {
       setWebViewVisible(false);
       const message = Array.isArray(queryParams?.message)
         ? queryParams.message[0]
@@ -74,9 +83,7 @@ export default function OAuthScreen() {
   };
 
   if (error !== '') {
-    return (
-      <ErrorScreen error={error} />
-    );
+    return <ErrorScreen error={error} />;
   }
 
   return (
@@ -93,7 +100,7 @@ export default function OAuthScreen() {
           </View>
           <WebView
             source={{ uri: `${config.APP_URL}/auth/login` }}
-            originWhitelist={["*"]}
+            originWhitelist={['*']}
             style={styles.webView}
             onNavigationStateChange={handleNavigationStateChange}
             incognito={true}
@@ -134,5 +141,5 @@ const styles = StyleSheet.create({
   },
   webView: {
     flex: 1,
-  }
+  },
 });

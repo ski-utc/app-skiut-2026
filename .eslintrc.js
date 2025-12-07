@@ -9,6 +9,7 @@ module.exports = {
     "plugin:react-native/all",
     "plugin:import/recommended",
     "plugin:import/typescript",
+    "plugin:prettier/recommended"
   ],
   parser: "@typescript-eslint/parser",
   plugins: [

@@ -1,12 +1,37 @@
-import { useEffect, useState, useCallback } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator, Modal, FlatList, StatusBar, StyleSheet } from "react-native";
-import { BlurView } from "expo-blur";
-import { X, Bell, Clock, AlertCircle, Globe, Users, Home, Check } from "lucide-react-native";
+import { useEffect, useState, useCallback } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  Modal,
+  FlatList,
+  StatusBar,
+  StyleSheet,
+} from 'react-native';
+import { BlurView } from 'expo-blur';
+import {
+  X,
+  Bell,
+  Clock,
+  AlertCircle,
+  Globe,
+  Users,
+  Home,
+  Check,
+} from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
-import { Colors, TextStyles, FontSizes } from "@/constants/GraphSettings";
-import { apiGet, apiPost, isSuccessResponse, isPendingResponse, handleApiErrorToast, AppError, } from "@/constants/api/apiCalls";
-import { useUser } from "@/contexts/UserContext";
+import { Colors, TextStyles, FontSizes } from '@/constants/GraphSettings';
+import {
+  apiGet,
+  apiPost,
+  isSuccessResponse,
+  isPendingResponse,
+  handleApiErrorToast,
+  AppError,
+} from '@/constants/api/apiCalls';
+import { useUser } from '@/contexts/UserContext';
 
 type NotificationItem = {
   id: number;
@@ -17,14 +42,17 @@ type NotificationItem = {
   read: boolean;
   read_at?: string;
   delete?: boolean;
-}
+};
 
 type NotificationPopupProps = {
   visible: boolean;
   onClose: () => void;
-}
+};
 
-export default function NotificationPopup({ visible, onClose }: NotificationPopupProps) {
+export default function NotificationPopup({
+  visible,
+  onClose,
+}: NotificationPopupProps) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -52,15 +80,17 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
 
   const markAsRead = async (notificationId: number) => {
     try {
-      const response = await apiPost(`notifications/${notificationId}/read`, { 'read': true });
+      const response = await apiPost(`notifications/${notificationId}/read`, {
+        read: true,
+      });
 
       const updateLocalState = () => {
-        setNotifications(prev =>
-          prev.map(notif =>
+        setNotifications((prev) =>
+          prev.map((notif) =>
             notif.id === notificationId
               ? { ...notif, read: true, read_at: new Date().toISOString() }
-              : notif
-          )
+              : notif,
+          ),
         );
       };
 
@@ -71,7 +101,7 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
         Toast.show({
           type: 'info',
           text1: 'Marqué comme lu',
-          text2: 'Sera synchronisé au retour de la connexion'
+          text2: 'Sera synchronisé au retour de la connexion',
         });
       }
     } catch (err: unknown) {
@@ -81,10 +111,14 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
 
   const getNotificationIcon = (type?: string) => {
     switch (type) {
-      case 'global': return Globe;
-      case 'targeted': return Users;
-      case 'room_based': return Home;
-      default: return Clock;
+      case 'global':
+        return Globe;
+      case 'targeted':
+        return Users;
+      case 'room_based':
+        return Home;
+      default:
+        return Clock;
     }
   };
 
@@ -94,7 +128,7 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
       day: 'numeric',
       month: 'short',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
@@ -112,7 +146,11 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
         animationType="fade"
         onRequestClose={onClose}
       >
-        <StatusBar barStyle="light-content" translucent={true} backgroundColor="rgba(0,0,0,0.3)" />
+        <StatusBar
+          barStyle="light-content"
+          translucent={true}
+          backgroundColor="rgba(0,0,0,0.3)"
+        />
         <BlurView intensity={30} tint="dark" style={styles.overlay}>
           <View style={styles.modalContainer}>
             <View style={styles.header}>
@@ -149,7 +187,11 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
         animationType="fade"
         onRequestClose={onClose}
       >
-        <StatusBar barStyle="light-content" translucent={true} backgroundColor="rgba(0,0,0,0.3)" />
+        <StatusBar
+          barStyle="light-content"
+          translucent={true}
+          backgroundColor="rgba(0,0,0,0.3)"
+        />
         <BlurView intensity={30} tint="dark" style={styles.overlay}>
           <View style={styles.modalContainer}>
             <View style={styles.header}>
@@ -161,7 +203,9 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
 
             <View style={styles.content}>
               <ActivityIndicator size="large" color={Colors.primary} />
-              <Text style={styles.loadingText}>Chargement des notifications...</Text>
+              <Text style={styles.loadingText}>
+                Chargement des notifications...
+              </Text>
             </View>
 
             <View style={styles.footer}>
@@ -182,7 +226,11 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
       animationType="fade"
       onRequestClose={onClose}
     >
-      <StatusBar barStyle="light-content" translucent={true} backgroundColor="rgba(0,0,0,0.3)" />
+      <StatusBar
+        barStyle="light-content"
+        translucent={true}
+        backgroundColor="rgba(0,0,0,0.3)"
+      />
       <BlurView intensity={30} tint="dark" style={styles.overlay}>
         <View style={styles.modalContainer}>
           <View style={styles.header}>
@@ -202,23 +250,31 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
                     <TouchableOpacity
                       style={[
                         styles.notificationItem,
-                        !item.read && styles.notificationItemUnread
+                        !item.read && styles.notificationItemUnread,
                       ]}
                       onPress={() => !item.read && markAsRead(item.id)}
                       activeOpacity={0.8}
                     >
-                      <View style={[
-                        styles.notificationIcon,
-                        !item.read && styles.notificationIconUnread
-                      ]}>
-                        <IconComponent size={16} color={Colors.primary} strokeWidth={2} />
+                      <View
+                        style={[
+                          styles.notificationIcon,
+                          !item.read && styles.notificationIconUnread,
+                        ]}
+                      >
+                        <IconComponent
+                          size={16}
+                          color={Colors.primary}
+                          strokeWidth={2}
+                        />
                       </View>
                       <View style={styles.notificationContent}>
                         <View style={styles.notificationHeader}>
-                          <Text style={[
-                            styles.notificationTitle,
-                            !item.read && styles.notificationTitleUnread
-                          ]}>
+                          <Text
+                            style={[
+                              styles.notificationTitle,
+                              !item.read && styles.notificationTitleUnread,
+                            ]}
+                          >
                             {item.title}
                           </Text>
                           {!item.read && (
@@ -227,7 +283,9 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
                             </View>
                           )}
                         </View>
-                        <Text style={styles.notificationDescription}>{item.description}</Text>
+                        <Text style={styles.notificationDescription}>
+                          {item.description}
+                        </Text>
                         <View style={styles.notificationFooter}>
                           <View style={styles.notificationMeta}>
                             <Text style={styles.notificationDate}>
@@ -275,12 +333,12 @@ export default function NotificationPopup({ visible, onClose }: NotificationPopu
 
 const styles = StyleSheet.create({
   closeButton: {
-    alignItems: "center",
+    alignItems: 'center',
     backgroundColor: Colors.primaryBorder,
     borderRadius: 24,
     elevation: 6,
     height: 48,
-    justifyContent: "center",
+    justifyContent: 'center',
     shadowColor: Colors.primaryBorder,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -295,21 +353,21 @@ const styles = StyleSheet.create({
   emptyDescription: {
     ...TextStyles.body,
     color: Colors.muted,
-    textAlign: "center",
+    textAlign: 'center',
   },
   emptyIcon: {
-    alignItems: "center",
+    alignItems: 'center',
     backgroundColor: Colors.lightMuted,
     borderRadius: 40,
     height: 80,
-    justifyContent: "center",
+    justifyContent: 'center',
     marginBottom: 20,
     width: 80,
   },
   emptyState: {
-    alignItems: "center",
+    alignItems: 'center',
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
     paddingHorizontal: 20,
     paddingVertical: 20,
   },
@@ -318,7 +376,7 @@ const styles = StyleSheet.create({
     ...TextStyles.h4,
     color: Colors.primaryBorder,
     marginBottom: 8,
-    textAlign: "center",
+    textAlign: 'center',
   },
 
   errorDescription: {
@@ -326,43 +384,43 @@ const styles = StyleSheet.create({
     color: Colors.muted,
     lineHeight: 22,
     marginBottom: 20,
-    textAlign: "center",
+    textAlign: 'center',
   },
   errorFooter: {
     ...TextStyles.small,
     color: Colors.muted,
-    fontStyle: "italic",
-    textAlign: "center",
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
   errorTitle: {
     ...TextStyles.h3,
     color: Colors.primaryBorder,
     marginBottom: 16,
-    textAlign: "center",
+    textAlign: 'center',
   },
 
   footer: {
-    alignItems: "center",
+    alignItems: 'center',
     borderTopColor: Colors.lightMuted,
     borderTopWidth: 1,
     paddingVertical: 12,
   },
 
   header: {
-    alignItems: "center",
+    alignItems: 'center',
     borderBottomColor: Colors.lightMuted,
     borderBottomWidth: 1,
-    flexDirection: "row",
-    justifyContent: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
     paddingHorizontal: 24,
     paddingVertical: 20,
   },
   headerIcon: {
-    alignItems: "center",
+    alignItems: 'center',
     backgroundColor: Colors.lightMuted,
     borderRadius: 20,
     height: 40,
-    justifyContent: "center",
+    justifyContent: 'center',
     marginRight: 12,
     width: 40,
   },
@@ -378,18 +436,18 @@ const styles = StyleSheet.create({
     ...TextStyles.body,
     color: Colors.muted,
     marginTop: 16,
-    textAlign: "center",
+    textAlign: 'center',
   },
   modalContainer: {
     backgroundColor: Colors.white,
     borderRadius: 24,
     elevation: 15,
-    height: "90%",
+    height: '90%',
     shadowColor: Colors.primaryBorder,
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.25,
     shadowRadius: 24,
-    width: "90%",
+    width: '90%',
   },
   notificationContent: {
     flex: 1,
@@ -418,12 +476,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   notificationIcon: {
-    alignItems: "center",
+    alignItems: 'center',
     backgroundColor: Colors.lightMuted,
     borderRadius: 16,
     flexShrink: 0,
     height: 32,
-    justifyContent: "center",
+    justifyContent: 'center',
     marginRight: 12,
     width: 32,
   },
@@ -436,7 +494,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     elevation: 2,
-    flexDirection: "row",
+    flexDirection: 'row',
     marginBottom: 8,
     padding: 16,
     shadowColor: Colors.primaryBorder,
@@ -464,10 +522,10 @@ const styles = StyleSheet.create({
   },
 
   overlay: {
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   readIndicator: {
     alignItems: 'center',

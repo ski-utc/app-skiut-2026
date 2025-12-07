@@ -1,11 +1,37 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, Text, ActivityIndicator, FlatList, TouchableOpacity, StyleSheet, Modal, ScrollView, Image, StatusBar } from 'react-native';
-import { PartyPopper, User, Sparkles, Eye, X, Trophy, UserCircle } from 'lucide-react-native';
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  ScrollView,
+  Image,
+  StatusBar,
+} from 'react-native';
+import {
+  PartyPopper,
+  User,
+  Sparkles,
+  Eye,
+  X,
+  Trophy,
+  UserCircle,
+} from 'lucide-react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiGet, isSuccessResponse, handleApiErrorScreen, handleApiErrorToast, AppError, ApiError } from '@/constants/api/apiCalls';
+import {
+  apiGet,
+  isSuccessResponse,
+  handleApiErrorScreen,
+  handleApiErrorToast,
+  AppError,
+  ApiError,
+} from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 
 import Header from '../../components/header';
@@ -14,7 +40,7 @@ type Statistics = {
   likesReceived: number;
   likesGiven: number;
   matches: number;
-}
+};
 
 type RoomDetails = {
   id: number | null;
@@ -27,13 +53,13 @@ type RoomDetails = {
   totalPoints: number;
   respUser: { fullName: string } | null;
   statistics: Statistics;
-}
+};
 
 type MatchedRoom = {
   roomId: number;
   roomNumber: string;
   respRoom?: string;
-}
+};
 
 const INITIAL_ROOM_DETAILS: RoomDetails = {
   id: null,
@@ -48,8 +74,8 @@ const INITIAL_ROOM_DETAILS: RoomDetails = {
   statistics: {
     likesReceived: 0,
     likesGiven: 0,
-    matches: 0
-  }
+    matches: 0,
+  },
 };
 
 export default function SkinderMyMatches() {
@@ -59,7 +85,8 @@ export default function SkinderMyMatches() {
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [loadingRoomDetails, setLoadingRoomDetails] = useState(false);
-  const [roomDetails, setRoomDetails] = useState<RoomDetails>(INITIAL_ROOM_DETAILS);
+  const [roomDetails, setRoomDetails] =
+    useState<RoomDetails>(INITIAL_ROOM_DETAILS);
   const [imageError, setImageError] = useState(false);
 
   const { setUser } = useUser();
@@ -81,34 +108,37 @@ export default function SkinderMyMatches() {
     }
   }, [setUser]);
 
-  const fetchRoomDetails = useCallback(async (roomId: number) => {
-    setLoadingRoomDetails(true);
-    try {
-      const response = await apiGet<RoomDetails>(`skinder/rooms/${roomId}`);
+  const fetchRoomDetails = useCallback(
+    async (roomId: number) => {
+      setLoadingRoomDetails(true);
+      try {
+        const response = await apiGet<RoomDetails>(`skinder/rooms/${roomId}`);
 
-      if (isSuccessResponse(response)) {
-        const data = response.data;
-        setRoomDetails({
-          id: data.id,
-          roomNumber: data.roomNumber,
-          name: data.name,
-          description: data.description,
-          mood: data.mood,
-          passions: Array.isArray(data.passions) ? data.passions : [],
-          image: data.image || '',
-          totalPoints: data.totalPoints,
-          respUser: data.respUser,
-          statistics: data.statistics || INITIAL_ROOM_DETAILS.statistics
-        });
-      } else {
-        handleApiErrorToast(new ApiError(response.message), setUser);
+        if (isSuccessResponse(response)) {
+          const data = response.data;
+          setRoomDetails({
+            id: data.id,
+            roomNumber: data.roomNumber,
+            name: data.name,
+            description: data.description,
+            mood: data.mood,
+            passions: Array.isArray(data.passions) ? data.passions : [],
+            image: data.image || '',
+            totalPoints: data.totalPoints,
+            respUser: data.respUser,
+            statistics: data.statistics || INITIAL_ROOM_DETAILS.statistics,
+          });
+        } else {
+          handleApiErrorToast(new ApiError(response.message), setUser);
+        }
+      } catch (err: unknown) {
+        handleApiErrorToast(err as AppError, setUser);
+      } finally {
+        setLoadingRoomDetails(false);
       }
-    } catch (err: unknown) {
-      handleApiErrorToast(err as AppError, setUser);
-    } finally {
-      setLoadingRoomDetails(false);
-    }
-  }, [setUser]);
+    },
+    [setUser],
+  );
 
   const handleOpenModal = (room: MatchedRoom) => {
     setRoomDetails(INITIAL_ROOM_DETAILS);
@@ -215,7 +245,10 @@ export default function SkinderMyMatches() {
               <Text style={styles.loadingText}>Chargement du profil...</Text>
             </View>
           ) : (
-            <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={styles.modalContent}
+              showsVerticalScrollIndicator={false}
+            >
               <View style={styles.modalImageContainer}>
                 {!imageError && roomDetails.image ? (
                   <Image
@@ -225,14 +258,18 @@ export default function SkinderMyMatches() {
                     onError={() => setImageError(true)}
                   />
                 ) : (
-                  <View style={[styles.modalImage, styles.modalImagePlaceholder]}>
+                  <View
+                    style={[styles.modalImage, styles.modalImagePlaceholder]}
+                  >
                     <UserCircle size={120} color={Colors.muted} />
                   </View>
                 )}
                 <View style={styles.modalImageOverlay}>
                   <Text style={styles.modalRoomName}>{roomDetails.name}</Text>
                   {roomDetails.roomNumber && (
-                    <Text style={styles.modalRoomNumber}>Chambre {roomDetails.roomNumber}</Text>
+                    <Text style={styles.modalRoomNumber}>
+                      Chambre {roomDetails.roomNumber}
+                    </Text>
                   )}
                 </View>
               </View>
@@ -240,8 +277,12 @@ export default function SkinderMyMatches() {
               <View style={styles.modalInfo}>
                 {roomDetails.respUser && (
                   <View style={styles.modalInfoCard}>
-                    <Text style={styles.modalInfoLabel}>Responsable de chambre</Text>
-                    <Text style={styles.modalInfoValue}>{roomDetails.respUser.fullName}</Text>
+                    <Text style={styles.modalInfoLabel}>
+                      Responsable de chambre
+                    </Text>
+                    <Text style={styles.modalInfoValue}>
+                      {roomDetails.respUser.fullName}
+                    </Text>
                   </View>
                 )}
 
@@ -249,21 +290,27 @@ export default function SkinderMyMatches() {
                   <View style={styles.modalInfoCard}>
                     <Trophy size={16} color={Colors.primary} />
                     <Text style={styles.modalInfoLabel}>Points Défis</Text>
-                    <Text style={styles.modalInfoValue}>{roomDetails.totalPoints} pts</Text>
+                    <Text style={styles.modalInfoValue}>
+                      {roomDetails.totalPoints} pts
+                    </Text>
                   </View>
                 )}
 
                 {roomDetails.mood && (
                   <View style={styles.modalSection}>
                     <Text style={styles.modalSectionTitle}>Humeur</Text>
-                    <Text style={styles.modalDescriptionText}>{roomDetails.mood}</Text>
+                    <Text style={styles.modalDescriptionText}>
+                      {roomDetails.mood}
+                    </Text>
                   </View>
                 )}
 
                 {roomDetails.description ? (
                   <View style={styles.modalSection}>
                     <Text style={styles.modalSectionTitle}>À propos</Text>
-                    <Text style={styles.modalDescriptionText}>{roomDetails.description}</Text>
+                    <Text style={styles.modalDescriptionText}>
+                      {roomDetails.description}
+                    </Text>
                   </View>
                 ) : null}
 
@@ -280,18 +327,23 @@ export default function SkinderMyMatches() {
                   </View>
                 )}
 
-                {(roomDetails.statistics.matches > 0 || roomDetails.statistics.likesReceived > 0) && (
+                {(roomDetails.statistics.matches > 0 ||
+                  roomDetails.statistics.likesReceived > 0) && (
                   <View style={styles.modalSection}>
                     <Text style={styles.modalSectionTitle}>Statistiques</Text>
                     <View style={styles.modalStatsContainer}>
                       <View style={styles.modalStatItem}>
                         <PartyPopper size={20} color={Colors.primary} />
-                        <Text style={styles.modalStatValue}>{roomDetails.statistics.likesReceived}</Text>
+                        <Text style={styles.modalStatValue}>
+                          {roomDetails.statistics.likesReceived}
+                        </Text>
                         <Text style={styles.modalStatLabel}>Likes reçus</Text>
                       </View>
                       <View style={styles.modalStatItem}>
                         <Sparkles size={20} color={Colors.accent} />
-                        <Text style={styles.modalStatValue}>{roomDetails.statistics.matches}</Text>
+                        <Text style={styles.modalStatValue}>
+                          {roomDetails.statistics.matches}
+                        </Text>
                         <Text style={styles.modalStatLabel}>Matches</Text>
                       </View>
                     </View>

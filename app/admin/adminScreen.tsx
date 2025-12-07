@@ -1,10 +1,31 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, FlatList, ActivityIndicator, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  FlatList,
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronRight, Shield, MessageSquare, Trophy, Bell, Clock, Home } from 'lucide-react-native';
+import {
+  ChevronRight,
+  Shield,
+  MessageSquare,
+  Trophy,
+  Bell,
+  Clock,
+  Home,
+} from 'lucide-react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 
-import { apiGet, AppError, handleApiErrorScreen, handleApiErrorToast, isSuccessResponse } from '@/constants/api/apiCalls';
+import {
+  apiGet,
+  AppError,
+  handleApiErrorScreen,
+  handleApiErrorToast,
+  isSuccessResponse,
+} from '@/constants/api/apiCalls';
 import BoutonRetour from '@/components/divers/boutonRetour';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
@@ -28,7 +49,12 @@ type AdminControl = {
   description: string;
 };
 
-const BoutonAdmin: React.FC<BoutonAdminProps> = ({ nextRoute, title, icon, description }) => {
+const BoutonAdmin: React.FC<BoutonAdminProps> = ({
+  nextRoute,
+  title,
+  icon,
+  description,
+}) => {
   const navigation = useNavigation<NavigationProp<AdminGestionParamList>>();
 
   return (
@@ -37,9 +63,7 @@ const BoutonAdmin: React.FC<BoutonAdminProps> = ({ nextRoute, title, icon, descr
       style={styles.adminCard}
       activeOpacity={0.8}
     >
-      <View style={styles.cardIconContainer}>
-        {icon}
-      </View>
+      <View style={styles.cardIconContainer}>{icon}</View>
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle}>{title}</Text>
         <Text style={styles.cardDescription}>{description}</Text>
@@ -56,31 +80,31 @@ const adminControls: AdminControl[] = [
     title: 'Gestion des défis',
     nextRoute: 'gestionDefisScreen',
     icon: <Trophy size={24} color={Colors.primary} />,
-    description: 'Créer et gérer les défis'
+    description: 'Créer et gérer les défis',
   },
   {
     title: 'Gestion des anecdotes',
     nextRoute: 'gestionAnecdotesScreen',
     icon: <MessageSquare size={24} color={Colors.primary} />,
-    description: 'Modérer les anecdotes partagées'
+    description: 'Modérer les anecdotes partagées',
   },
   {
     title: 'Gestion des notifications',
     nextRoute: 'gestionNotificationsScreen',
     icon: <Bell size={24} color={Colors.primary} />,
-    description: 'Envoyer des notifications'
+    description: 'Envoyer des notifications',
   },
   {
     title: 'Gestion des permanences',
     nextRoute: 'gestionPermanencesScreen',
     icon: <Clock size={24} color={Colors.primary} />,
-    description: 'Planifier et gérer les permanences'
+    description: 'Planifier et gérer les permanences',
   },
   {
     title: 'Tournée des chambres',
     nextRoute: 'gestionTourneeChambreScreen',
     icon: <Home size={24} color={Colors.primary} />,
-    description: 'Organiser les tournées de chambres'
+    description: 'Organiser les tournées de chambres',
   },
 ];
 
@@ -94,10 +118,10 @@ export default function Admin() {
   const fetchAdmin = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiGet("admin");
+      const response = await apiGet('admin');
       if (!isSuccessResponse(response)) {
         navigation.goBack();
-        handleApiErrorToast("Accès non autorisé", setUser);
+        handleApiErrorToast('Accès non autorisé', setUser);
         return null;
       }
     } catch (error: unknown) {

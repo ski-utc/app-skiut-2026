@@ -1,12 +1,31 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, FlatList, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { MessageSquare, AlertTriangle, Clock, CheckCircle, Zap, ChevronRight } from 'lucide-react-native';
+import {
+  MessageSquare,
+  AlertTriangle,
+  Clock,
+  CheckCircle,
+  Zap,
+  ChevronRight,
+} from 'lucide-react-native';
 
 import BoutonRetour from '@/components/divers/boutonRetour';
 import BoutonGestion from '@/components/admins/boutonGestion';
-import { ApiError, apiGet, AppError, handleApiErrorScreen } from '@/constants/api/apiCalls';
+import {
+  ApiError,
+  apiGet,
+  AppError,
+  handleApiErrorScreen,
+} from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
@@ -21,7 +40,7 @@ type FilterButtonProps = {
   isActive: boolean;
   onPress: () => void;
   count?: number;
-}
+};
 
 type AnecdoteItem = {
   id: number;
@@ -35,9 +54,15 @@ type AnecdoteItem = {
     lastName: string;
   };
   room_id: number;
-}
+};
 
-const FilterButton: React.FC<FilterButtonProps> = ({ label, icon, isActive, onPress, count }) => {
+const FilterButton: React.FC<FilterButtonProps> = ({
+  label,
+  icon,
+  isActive,
+  onPress,
+  count,
+}) => {
   return (
     <TouchableOpacity
       style={[styles.filterButton, isActive && styles.filterButtonActive]}
@@ -46,7 +71,12 @@ const FilterButton: React.FC<FilterButtonProps> = ({ label, icon, isActive, onPr
     >
       <View style={styles.filterButtonContent}>
         {icon}
-        <Text style={[styles.filterButtonText, isActive && styles.filterButtonTextActive]}>
+        <Text
+          style={[
+            styles.filterButtonText,
+            isActive && styles.filterButtonTextActive,
+          ]}
+        >
           {label}
         </Text>
         {count !== undefined && count > 0 && (
@@ -61,7 +91,9 @@ const FilterButton: React.FC<FilterButtonProps> = ({ label, icon, isActive, onPr
 
 const GestionAnecdotesScreen = () => {
   const [anecdotes, setAnecdotes] = useState<AnecdoteItem[]>([]);
-  const [filteredAnecdotes, setFilteredAnecdotes] = useState<AnecdoteItem[]>([]);
+  const [filteredAnecdotes, setFilteredAnecdotes] = useState<AnecdoteItem[]>(
+    [],
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);
@@ -91,23 +123,30 @@ const GestionAnecdotesScreen = () => {
     }
   }, [setUser]);
 
-  const handleFilter = useCallback((filter: string) => {
-    setActiveFilter(filter);
-    switch (filter) {
-      case 'pending':
-        setFilteredAnecdotes(anecdotes.filter((item) => !item.valid && !item.alert));
-        break;
-      case 'reported':
-        setFilteredAnecdotes(anecdotes.filter((item) => item.nbWarns > 0));
-        break;
-      default:
-        setFilteredAnecdotes(anecdotes);
-        break;
-    }
-  }, [anecdotes]);
+  const handleFilter = useCallback(
+    (filter: string) => {
+      setActiveFilter(filter);
+      switch (filter) {
+        case 'pending':
+          setFilteredAnecdotes(
+            anecdotes.filter((item) => !item.valid && !item.alert),
+          );
+          break;
+        case 'reported':
+          setFilteredAnecdotes(anecdotes.filter((item) => item.nbWarns > 0));
+          break;
+        default:
+          setFilteredAnecdotes(anecdotes);
+          break;
+      }
+    },
+    [anecdotes],
+  );
 
   const getFilterCounts = () => {
-    const pending = anecdotes.filter((item) => !item.valid && !item.alert).length;
+    const pending = anecdotes.filter(
+      (item) => !item.valid && !item.alert,
+    ).length;
     const reported = anecdotes.filter((item) => item.nbWarns > 0).length;
     return { pending, reported, all: anecdotes.length };
   };
@@ -145,7 +184,10 @@ const GestionAnecdotesScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header refreshFunction={fetchAdminAnecdotes} disableRefresh={disableRefresh} />
+      <Header
+        refreshFunction={fetchAdminAnecdotes}
+        disableRefresh={disableRefresh}
+      />
       <View style={styles.headerContainer}>
         <BoutonRetour title="Gestion des anecdotes" />
       </View>
@@ -176,21 +218,36 @@ const GestionAnecdotesScreen = () => {
       <View style={styles.filtersContainer}>
         <FilterButton
           label="Toutes"
-          icon={<CheckCircle size={16} color={activeFilter === 'all' ? Colors.white : Colors.primary} />}
+          icon={
+            <CheckCircle
+              size={16}
+              color={activeFilter === 'all' ? Colors.white : Colors.primary}
+            />
+          }
           isActive={activeFilter === 'all'}
           onPress={() => handleFilter('all')}
-        // count={counts.all}
+          // count={counts.all}
         />
         <FilterButton
           label="En attente"
-          icon={<Clock size={16} color={activeFilter === 'pending' ? Colors.white : Colors.primary} />}
+          icon={
+            <Clock
+              size={16}
+              color={activeFilter === 'pending' ? Colors.white : Colors.primary}
+            />
+          }
           isActive={activeFilter === 'pending'}
           onPress={() => handleFilter('pending')}
           count={counts.pending}
         />
         <FilterButton
           label="Signalées"
-          icon={<AlertTriangle size={16} color={activeFilter === 'reported' ? Colors.white : Colors.error} />}
+          icon={
+            <AlertTriangle
+              size={16}
+              color={activeFilter === 'reported' ? Colors.white : Colors.error}
+            />
+          }
           isActive={activeFilter === 'reported'}
           onPress={() => handleFilter('reported')}
           count={counts.reported}

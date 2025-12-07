@@ -4,7 +4,14 @@ import { Heart, TriangleAlert } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { apiPost, apiDelete, isSuccessResponse, isPendingResponse, handleApiErrorToast, AppError } from '@/constants/api/apiCalls';
+import {
+  apiPost,
+  apiDelete,
+  isSuccessResponse,
+  isPendingResponse,
+  handleApiErrorToast,
+  AppError,
+} from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
 
 type RoomInfo = {
@@ -23,7 +30,16 @@ type AnecdoteProps = {
   refresh: () => void;
 };
 
-export default function Anecdote({ id, text, room, nbLikes, liked, warned, authorId, refresh }: AnecdoteProps) {
+export default function Anecdote({
+  id,
+  text,
+  room,
+  nbLikes,
+  liked,
+  warned,
+  authorId,
+  refresh,
+}: AnecdoteProps) {
   const [isLiked, setIsLiked] = useState(liked);
   const [dynamicNbLikes, setDynamicNbLikes] = useState(nbLikes);
   const [isWarned, setIsWarned] = useState(warned);
@@ -35,10 +51,15 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
     const previousCount = dynamicNbLikes;
 
     const willLike = !isLiked;
-    const newCount = willLike ? previousCount + 1 : Math.max(0, previousCount - 1);
+    const newCount = willLike
+      ? previousCount + 1
+      : Math.max(0, previousCount - 1);
 
     try {
-      const response = await apiPost<{ liked?: boolean }>(`anecdotes/${id}/like`, { like: willLike });
+      const response = await apiPost<{ liked?: boolean }>(
+        `anecdotes/${id}/like`,
+        { like: willLike },
+      );
 
       if (isSuccessResponse(response)) {
         setIsLiked(willLike);
@@ -47,7 +68,11 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
         setIsLiked(willLike);
         setDynamicNbLikes(newCount);
       } else {
-        Toast.show({ type: 'error', text1: 'Erreur', text2: response.message || "Erreur lors du like" });
+        Toast.show({
+          type: 'error',
+          text1: 'Erreur',
+          text2: response.message || 'Erreur lors du like',
+        });
       }
     } catch (error: unknown) {
       setIsLiked(previousLiked);
@@ -61,20 +86,35 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
     const willWarn = !isWarned;
 
     try {
-      const response = await apiPost<{ warn?: boolean }>(`anecdotes/${id}/warn`, { warn: willWarn });
+      const response = await apiPost<{ warn?: boolean }>(
+        `anecdotes/${id}/warn`,
+        { warn: willWarn },
+      );
 
       if (isSuccessResponse(response)) {
         setIsWarned(willWarn);
         if (willWarn) {
-          Toast.show({ type: 'success', text1: 'Signalement pris en compte', text2: "N'hésitez pas à nous contacter si vous pensez que cette anecdote doit disparaître immédiatement" });
+          Toast.show({
+            type: 'success',
+            text1: 'Signalement pris en compte',
+            text2:
+              "N'hésitez pas à nous contacter si vous pensez que cette anecdote doit disparaître immédiatement",
+          });
         }
       } else if (isPendingResponse(response)) {
         setIsWarned(willWarn);
         if (willWarn) {
-          Toast.show({ type: 'info', text1: 'Signalement sauvegardé (Hors ligne)' });
+          Toast.show({
+            type: 'info',
+            text1: 'Signalement sauvegardé (Hors ligne)',
+          });
         }
       } else {
-        Toast.show({ type: 'error', text1: 'Erreur', text2: response.message || "Erreur lors du signalement" });
+        Toast.show({
+          type: 'error',
+          text1: 'Erreur',
+          text2: response.message || 'Erreur lors du signalement',
+        });
       }
     } catch (error: unknown) {
       setIsWarned(previousWarned);
@@ -112,7 +152,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
                 Toast.show({
                   type: 'error',
                   text1: 'Erreur',
-                  text2: response.message
+                  text2: response.message,
                 });
               }
             } catch (error: unknown) {
@@ -121,7 +161,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
           },
         },
       ],
-      { cancelable: true }
+      { cancelable: true },
     );
   };
 
@@ -134,9 +174,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
     <View style={styles.anecdoteContainer}>
       <View style={styles.contentContainer}>
         <Text style={styles.anecdoteText}>{text}</Text>
-        <Text style={styles.roomText}>
-          Chambre : {getRoomName()}
-        </Text>
+        <Text style={styles.roomText}>Chambre : {getRoomName()}</Text>
       </View>
 
       <View style={styles.actionsContainer}>
@@ -158,10 +196,7 @@ export default function Anecdote({ id, text, room, nbLikes, liked, warned, autho
           style={[styles.actionButton, styles.warnButton]}
           activeOpacity={0.7}
         >
-          <TriangleAlert
-            size={18}
-            color={isWarned ? '#E3A300' : '#000000'}
-          />
+          <TriangleAlert size={18} color={isWarned ? '#E3A300' : '#000000'} />
         </TouchableOpacity>
 
         {user?.id && String(user.id) === String(authorId) && (

@@ -1,9 +1,32 @@
 import { useState, useEffect } from 'react';
-import { View, Image, StyleSheet, TouchableOpacity, Text, ScrollView, Linking, Modal, StatusBar, Platform } from 'react-native';
+import {
+  View,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  ScrollView,
+  Linking,
+  Modal,
+  StatusBar,
+  Platform,
+} from 'react-native';
 import { WebView } from 'react-native-webview';
-import { ImageViewer } from "react-native-image-zoom-viewer";
+import { ImageViewer } from 'react-native-image-zoom-viewer';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import { Link, Download, Webcam, Map, Mountain, MapPin, Navigation, X, Maximize, RotateCw, LucideIcon } from 'lucide-react-native';
+import {
+  Link,
+  Download,
+  Webcam,
+  Map,
+  Mountain,
+  MapPin,
+  Navigation,
+  X,
+  Maximize,
+  RotateCw,
+  LucideIcon,
+} from 'lucide-react-native';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
@@ -30,7 +53,9 @@ export default function PlanScreen() {
       setIsImageModalVisible(true);
     } else {
       if (isLandscape) {
-        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+        await ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.PORTRAIT,
+        );
         setIsLandscape(false);
       }
       setIsImageModalVisible(false);
@@ -39,10 +64,14 @@ export default function PlanScreen() {
 
   const toggleRotation = async () => {
     if (!isLandscape) {
-      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+      await ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.LANDSCAPE,
+      );
       setIsLandscape(true);
     } else {
-      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+      await ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.PORTRAIT,
+      );
       setIsLandscape(false);
     }
   };
@@ -65,18 +94,19 @@ export default function PlanScreen() {
         console.warn(`Don't know how to open URL: ${url}`);
       }
     } catch (err) {
-      console.error("An error occurred", err);
+      console.error('An error occurred', err);
     }
   };
 
-  const openMapsApp = async () => { // TODO : update with exact position of the station we have
+  const openMapsApp = async () => {
+    // TODO : update with exact position of the station we have
     const latitude = 42.5442;
     const longitude = 1.7333;
-    const label = "Pas de la Case";
+    const label = 'Pas de la Case';
 
     const url = Platform.select({
       ios: `maps:0,0?q=${label}@${latitude},${longitude}`,
-      android: `geo:0,0?q=${latitude},${longitude}(${label})`
+      android: `geo:0,0?q=${latitude},${longitude}(${label})`,
     });
 
     if (url) {
@@ -84,16 +114,37 @@ export default function PlanScreen() {
     }
   };
 
-  const ActionButton = ({ title, onPress, icon: IconComponent, variant = 'primary' }: ActionButtonProps) => (
+  const ActionButton = ({
+    title,
+    onPress,
+    icon: IconComponent,
+    variant = 'primary',
+  }: ActionButtonProps) => (
     <TouchableOpacity
-      style={[styles.actionButton, variant === 'secondary' && styles.actionButtonSecondary]}
+      style={[
+        styles.actionButton,
+        variant === 'secondary' && styles.actionButtonSecondary,
+      ]}
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <View style={[styles.actionButtonIcon, variant === 'secondary' && styles.actionButtonIconSecondary]}>
-        <IconComponent size={20} color={variant === 'primary' ? Colors.primary : Colors.primaryBorder} />
+      <View
+        style={[
+          styles.actionButtonIcon,
+          variant === 'secondary' && styles.actionButtonIconSecondary,
+        ]}
+      >
+        <IconComponent
+          size={20}
+          color={variant === 'primary' ? Colors.primary : Colors.primaryBorder}
+        />
       </View>
-      <Text style={[styles.actionButtonText, variant === 'secondary' && styles.actionButtonTextSecondary]}>
+      <Text
+        style={[
+          styles.actionButtonText,
+          variant === 'secondary' && styles.actionButtonTextSecondary,
+        ]}
+      >
         {title}
       </Text>
     </TouchableOpacity>
@@ -104,11 +155,10 @@ export default function PlanScreen() {
       <Header refreshFunction={null} disableRefresh={true} />
 
       <View style={styles.headerContainer}>
-        <BoutonRetour title={"Plans"} />
+        <BoutonRetour title={'Plans'} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
             <Mountain size={24} color={Colors.primary} />
@@ -135,7 +185,9 @@ export default function PlanScreen() {
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
             <Map size={24} color={Colors.primary} />
-            <Text style={styles.sectionTitle}>Localisation - Pas de la Case</Text>
+            <Text style={styles.sectionTitle}>
+              Localisation - Pas de la Case
+            </Text>
           </View>
 
           <View style={styles.locationInfo}>
@@ -156,9 +208,17 @@ export default function PlanScreen() {
               javaScriptEnabled={true}
               domStorageEnabled={true}
               startInLoadingState={true}
-              renderLoading={() => <View style={styles.loadingMap}><Text>Chargement...</Text></View>}
+              renderLoading={() => (
+                <View style={styles.loadingMap}>
+                  <Text>Chargement...</Text>
+                </View>
+              )}
             />
-            <TouchableOpacity style={styles.mapOverlay} onPress={toggleMapModal} activeOpacity={0.8}>
+            <TouchableOpacity
+              style={styles.mapOverlay}
+              onPress={toggleMapModal}
+              activeOpacity={0.8}
+            >
               <View style={styles.mapOverlayContent}>
                 <Maximize size={16} color={Colors.white} />
                 <Text style={styles.mapOverlayText}>Plein écran</Text>
@@ -166,13 +226,19 @@ export default function PlanScreen() {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.mapButton} onPress={openMapsApp} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={styles.mapButton}
+            onPress={openMapsApp}
+            activeOpacity={0.7}
+          >
             <View style={styles.mapButtonIcon}>
               <Navigation size={20} color={Colors.primary} />
             </View>
             <View style={styles.mapButtonContent}>
               <Text style={styles.mapButtonTitle}>Ouvrir dans Maps</Text>
-              <Text style={styles.mapButtonSubtitle}>Navigation GPS vers la station</Text>
+              <Text style={styles.mapButtonSubtitle}>
+                Navigation GPS vers la station
+              </Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -184,20 +250,30 @@ export default function PlanScreen() {
             <ActionButton
               title="Voir les pistes en ligne"
               icon={Link}
-              onPress={() => openLink("https://www.snowtrex.fr/andorre/pas_de_la_case/meteo.html")}
+              onPress={() =>
+                openLink(
+                  'https://www.snowtrex.fr/andorre/pas_de_la_case/meteo.html',
+                )
+              }
             />
 
             <ActionButton
               title="Webcam en live"
               icon={Webcam}
               variant="secondary"
-              onPress={() => openLink("https://webtv.feratel.com/webtv/?cam=15056&design=v5&c0=1&c2=0&c4=0&c8=0&c11=0&c34=0&lg=en&pg=1CBFD854-58C3-430D-B207-821354188323&s=0")}
+              onPress={() =>
+                openLink(
+                  'https://webtv.feratel.com/webtv/?cam=15056&design=v5&c0=1&c2=0&c4=0&c8=0&c11=0&c34=0&lg=en&pg=1CBFD854-58C3-430D-B207-821354188323&s=0',
+                )
+              }
             />
 
             <ActionButton
               title="Télécharger le plan"
               icon={Download}
-              onPress={() => openLink(`${config.BASE_URL}/storage/plan-grandvalira.jpg`)}
+              onPress={() =>
+                openLink(`${config.BASE_URL}/storage/plan-grandvalira.jpg`)
+              }
             />
           </View>
         </View>
@@ -315,22 +391,6 @@ const styles = StyleSheet.create({
     width: 44,
     zIndex: 1000,
   },
-  fullScreenControls: {
-    flexDirection: 'row',
-    gap: 12,
-    position: 'absolute',
-    right: 20,
-    top: 50,
-    zIndex: 1000,
-  },
-  rotateButton: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    borderRadius: 22,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
   container: {
     backgroundColor: Colors.white,
     flex: 1,
@@ -343,6 +403,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primaryBorder,
     flex: 1,
     position: 'relative',
+  },
+  fullScreenControls: {
+    flexDirection: 'row',
+    gap: 12,
+    position: 'absolute',
+    right: 20,
+    top: 50,
+    zIndex: 1000,
   },
   fullScreenWebView: {
     flex: 1,
@@ -464,6 +532,14 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginLeft: 6,
   },
+  rotateButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 22,
+    height: 44,
+    justifyContent: 'center',
+    width: 44,
+  },
   sectionCard: {
     backgroundColor: Colors.white,
     borderColor: 'rgba(0,0,0,0.06)',
@@ -493,7 +569,7 @@ const styles = StyleSheet.create({
     color: Colors.primaryBorder,
     flex: 1,
     marginBottom: 16,
-    marginLeft: 12
+    marginLeft: 12,
   },
   webMap: {
     height: '100%',

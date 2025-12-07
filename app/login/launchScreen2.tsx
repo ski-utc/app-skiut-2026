@@ -16,7 +16,7 @@ export default function LaunchScreen2() {
     .runOnJS(true)
     .onEnd((e) => {
       if (e.velocityX < -350) {
-        navigation.navigate("launchScreen3");
+        navigation.navigate('launchScreen3');
       } else if (e.velocityX > 350) {
         navigation.goBack();
       }
@@ -33,7 +33,9 @@ export default function LaunchScreen2() {
               <Calendar size={32} color={Colors.primary} />
             </View>
             <Text style={styles.featureTitle}>Planning</Text>
-            <Text style={styles.featureDescription}>Emploi du temps de la semaine</Text>
+            <Text style={styles.featureDescription}>
+              Emploi du temps de la semaine
+            </Text>
           </View>
 
           <View style={[styles.featureCard, styles.featureCardSecondary]}>
@@ -41,7 +43,9 @@ export default function LaunchScreen2() {
               <Trophy size={32} color={Colors.primary} />
             </View>
             <Text style={styles.featureTitle}>Défis</Text>
-            <Text style={styles.featureDescription}>Relevez des défis avec votre chambre</Text>
+            <Text style={styles.featureDescription}>
+              Relevez des défis avec votre chambre
+            </Text>
           </View>
 
           <View style={styles.featureCard}>
@@ -49,7 +53,9 @@ export default function LaunchScreen2() {
               <MessageCircle size={32} color={Colors.primary} />
             </View>
             <Text style={styles.featureTitle}>Anecdotes</Text>
-            <Text style={styles.featureDescription}>Partagez vos meilleurs souvenirs</Text>
+            <Text style={styles.featureDescription}>
+              Partagez vos meilleurs souvenirs
+            </Text>
           </View>
         </View>
 
@@ -69,12 +75,13 @@ export default function LaunchScreen2() {
           </View>
 
           <Text style={styles.description}>
-            Participez à des défis passionnants avec les membres de votre chambre et
-            partagez vos réussites avec tous les participants du voyage.
+            Participez à des défis passionnants avec les membres de votre
+            chambre et partagez vos réussites avec tous les participants du
+            voyage.
           </Text>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate("loginScreen")}
+            onPress={() => navigation.navigate('loginScreen')}
             style={styles.skipButton}
           >
             <Text style={styles.skipButtonText}>Passer l'introduction</Text>

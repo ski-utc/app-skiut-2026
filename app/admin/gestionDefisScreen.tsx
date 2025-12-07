@@ -1,12 +1,30 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, FlatList, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { Trophy, Clock, CheckCircle, Zap, ChevronRight } from 'lucide-react-native';
+import {
+  Trophy,
+  Clock,
+  CheckCircle,
+  Zap,
+  ChevronRight,
+} from 'lucide-react-native';
 
 import BoutonRetour from '@/components/divers/boutonRetour';
 import BoutonGestion from '@/components/admins/boutonGestion';
-import { ApiError, apiGet, AppError, handleApiErrorScreen } from '@/constants/api/apiCalls';
+import {
+  ApiError,
+  apiGet,
+  AppError,
+  handleApiErrorScreen,
+} from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
@@ -21,7 +39,7 @@ type FilterButtonProps = {
   isActive: boolean;
   onPress: () => void;
   count?: number;
-}
+};
 
 type DefiItem = {
   id: number;
@@ -36,18 +54,27 @@ type DefiItem = {
     firstName: string;
     lastName: string;
   };
-}
+};
 
-const FilterButton: React.FC<FilterButtonProps> = ({ label, icon, isActive, onPress, count }) => (
+const FilterButton: React.FC<FilterButtonProps> = ({
+  label,
+  icon,
+  isActive,
+  onPress,
+  count,
+}) => (
   <TouchableOpacity
     style={[styles.filterButton, isActive && styles.filterButtonActive]}
     onPress={onPress}
   >
     <View style={styles.filterButtonContent}>
-      <View style={styles.filterIcon}>
-        {icon}
-      </View>
-      <Text style={[styles.filterButtonText, isActive && styles.filterButtonTextActive]}>
+      <View style={styles.filterIcon}>{icon}</View>
+      <Text
+        style={[
+          styles.filterButtonText,
+          isActive && styles.filterButtonTextActive,
+        ]}
+      >
         {label}
       </Text>
       {count !== undefined && count > 0 && (
@@ -65,7 +92,9 @@ const GestionDefisScreen = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [disableRefresh, setDisableRefresh] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'valid'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'pending' | 'valid'>(
+    'all',
+  );
 
   const { setUser } = useUser();
   const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
@@ -91,20 +120,23 @@ const GestionDefisScreen = () => {
     }
   }, [setUser]);
 
-  const handleFilter = useCallback((filter: 'all' | 'pending' | 'valid') => {
-    setActiveFilter(filter);
-    switch (filter) {
-      case 'pending':
-        setFilteredDefis(defis.filter((item) => !item.valid && !item.delete));
-        break;
-      case 'valid':
-        setFilteredDefis(defis.filter((item) => !item.delete && item.valid));
-        break;
-      default:
-        setFilteredDefis(defis.filter((item) => !item.delete));
-        break;
-    }
-  }, [defis]);
+  const handleFilter = useCallback(
+    (filter: 'all' | 'pending' | 'valid') => {
+      setActiveFilter(filter);
+      switch (filter) {
+        case 'pending':
+          setFilteredDefis(defis.filter((item) => !item.valid && !item.delete));
+          break;
+        case 'valid':
+          setFilteredDefis(defis.filter((item) => !item.delete && item.valid));
+          break;
+        default:
+          setFilteredDefis(defis.filter((item) => !item.delete));
+          break;
+      }
+    },
+    [defis],
+  );
 
   const getFilterCounts = () => {
     return {
@@ -145,7 +177,10 @@ const GestionDefisScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header refreshFunction={fetchAdminDefis} disableRefresh={disableRefresh} />
+      <Header
+        refreshFunction={fetchAdminDefis}
+        disableRefresh={disableRefresh}
+      />
       <View style={styles.headerContainer}>
         <BoutonRetour title="Gestion des défis" />
       </View>
@@ -176,21 +211,36 @@ const GestionDefisScreen = () => {
       <View style={styles.filtersContainer}>
         <FilterButton
           label="Tous"
-          icon={<CheckCircle size={16} color={activeFilter === 'all' ? Colors.white : Colors.primary} />}
+          icon={
+            <CheckCircle
+              size={16}
+              color={activeFilter === 'all' ? Colors.white : Colors.primary}
+            />
+          }
           isActive={activeFilter === 'all'}
           onPress={() => handleFilter('all')}
-        // count={getFilterCounts().all}
+          // count={getFilterCounts().all}
         />
         <FilterButton
           label="En attente"
-          icon={<Clock size={16} color={activeFilter === 'pending' ? Colors.white : Colors.primary} />}
+          icon={
+            <Clock
+              size={16}
+              color={activeFilter === 'pending' ? Colors.white : Colors.primary}
+            />
+          }
           isActive={activeFilter === 'pending'}
           onPress={() => handleFilter('pending')}
           count={getFilterCounts().pending}
         />
         <FilterButton
           label="Validés"
-          icon={<Trophy size={16} color={activeFilter === 'valid' ? Colors.white : Colors.primary} />}
+          icon={
+            <Trophy
+              size={16}
+              color={activeFilter === 'valid' ? Colors.white : Colors.primary}
+            />
+          }
           isActive={activeFilter === 'valid'}
           onPress={() => handleFilter('valid')}
           count={getFilterCounts().valid}

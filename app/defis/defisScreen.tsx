@@ -1,16 +1,38 @@
 import React, { useState, useCallback } from 'react';
-import { View, FlatList, StyleSheet, ActivityIndicator, Text, TouchableOpacity } from "react-native";
-import { Trophy, ChevronRight, Check, X, ListTodo, Hourglass } from 'lucide-react-native';
-import { NavigationProp, useNavigation, useFocusEffect } from '@react-navigation/native';
+import {
+  View,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
+import {
+  Trophy,
+  ChevronRight,
+  Check,
+  X,
+  ListTodo,
+  Hourglass,
+} from 'lucide-react-native';
+import {
+  NavigationProp,
+  useNavigation,
+  useFocusEffect,
+} from '@react-navigation/native';
 
-import BoutonNavigationLarge from "@/components/divers/boutonNavigationLarge";
-import BoutonRetour from "@/components/divers/boutonRetour";
+import BoutonNavigationLarge from '@/components/divers/boutonNavigationLarge';
+import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { apiGet, isSuccessResponse, handleApiErrorScreen } from "@/constants/api/apiCalls";
+import {
+  apiGet,
+  isSuccessResponse,
+  handleApiErrorScreen,
+} from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
-import Header from "../../components/header";
+import Header from '../../components/header';
 import { DefisStackParamList } from '../defisNavigator';
 
 type Challenge = {
@@ -18,24 +40,23 @@ type Challenge = {
   title: string;
   nbPoints: number;
   status: 'todo' | 'pending' | 'done' | 'refused';
-}
+};
 
 type BoutonDefiProps = {
   defi: Challenge;
-}
+};
 
 const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi }) => {
   const navigation = useNavigation<NavigationProp<DefisStackParamList>>();
 
   const onPress = () => {
-    navigation.navigate("defisInfos", {
+    navigation.navigate('defisInfos', {
       id: defi.id,
       title: defi.title,
       points: defi.nbPoints,
       status: defi.status,
     });
   };
-
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -52,10 +73,14 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi }) => {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'done': return 'Validé';
-      case 'refused': return 'Refusé';
-      case 'pending': return 'En attente';
-      default: return 'À faire';
+      case 'done':
+        return 'Validé';
+      case 'refused':
+        return 'Refusé';
+      case 'pending':
+        return 'En attente';
+      default:
+        return 'À faire';
     }
   };
 
@@ -69,7 +94,9 @@ const BoutonDefi: React.FC<BoutonDefiProps> = ({ defi }) => {
         <View style={styles.statusIcon}>{getStatusIcon(defi.status)}</View>
         <View style={styles.defiRight}>
           <Text style={styles.defiTitle}>{defi.title}</Text>
-          <Text style={styles.defiSubtitle}>{getStatusText(defi.status)} • {defi.nbPoints} pts</Text>
+          <Text style={styles.defiSubtitle}>
+            {getStatusText(defi.status)} • {defi.nbPoints} pts
+          </Text>
         </View>
       </View>
       <ChevronRight size={22} color={Colors.primaryBorder} />
@@ -88,7 +115,7 @@ export default function Defis() {
     setError('');
 
     try {
-      const response = await apiGet<Challenge[]>("challenges");
+      const response = await apiGet<Challenge[]>('challenges');
 
       if (isSuccessResponse(response) && response.data) {
         setChallenges(response.data);
@@ -103,7 +130,7 @@ export default function Defis() {
   useFocusEffect(
     useCallback(() => {
       fetchChallenges();
-    }, [fetchChallenges])
+    }, [fetchChallenges]),
   );
 
   if (error) {
@@ -126,7 +153,7 @@ export default function Defis() {
     <View style={styles.container}>
       <Header refreshFunction={fetchChallenges} disableRefresh={false} />
       <View style={styles.headerContainer}>
-        <BoutonRetour title={"Défis"} />
+        <BoutonRetour title={'Défis'} />
       </View>
 
       <FlatList
@@ -136,18 +163,14 @@ export default function Defis() {
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         ListFooterComponent={() => <View style={styles.footerSeparator} />}
-        renderItem={({ item }) => (
-          <BoutonDefi
-            defi={item}
-          />
-        )}
+        renderItem={({ item }) => <BoutonDefi defi={item} />}
         style={styles.list}
       />
 
       <View style={styles.navigationContainer}>
         <BoutonNavigationLarge
-          nextRoute={"defisClassement"}
-          title={"Classement"}
+          nextRoute={'defisClassement'}
+          title={'Classement'}
           IconComponent={Trophy}
         />
       </View>
@@ -157,40 +180,40 @@ export default function Defis() {
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: "center",
+    alignItems: 'center',
     backgroundColor: Colors.white,
-    display: "flex",
-    flexDirection: "column",
-    height: "100%",
-    justifyContent: "center",
-    width: "100%",
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
+    justifyContent: 'center',
+    width: '100%',
   },
   defiCard: {
-    alignItems: "center",
-    alignSelf: "center",
+    alignItems: 'center',
+    alignSelf: 'center',
     backgroundColor: Colors.white,
-    borderColor: "rgba(0,0,0,0.06)",
+    borderColor: 'rgba(0,0,0,0.06)',
     borderRadius: 14,
     borderWidth: 1,
     elevation: 3,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 2, height: 3 },
     shadowOpacity: 0.08,
     shadowRadius: 5,
-    width: "100%",
+    width: '100%',
   },
   defiLeft: {
-    alignItems: "center",
-    flexDirection: "row",
+    alignItems: 'center',
+    flexDirection: 'row',
     flex: 1,
   },
   defiRight: {
-    flex: 1
+    flex: 1,
   },
   defiSubtitle: {
     color: Colors.muted,
@@ -201,10 +224,10 @@ const styles = StyleSheet.create({
     ...TextStyles.body,
     color: Colors.primaryBorder,
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   footerSeparator: {
-    height: 20
+    height: 20,
   },
   headerContainer: {
     paddingHorizontal: 20,
@@ -212,24 +235,24 @@ const styles = StyleSheet.create({
   },
   list: {
     flex: 1,
-    width: "100%",
+    width: '100%',
   },
   listContent: {
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
   loadingContainer: {
-    alignItems: "center",
+    alignItems: 'center',
     backgroundColor: Colors.white,
-    display: "flex",
-    height: "100%",
-    justifyContent: "center",
-    width: "100%",
+    display: 'flex',
+    height: '100%',
+    justifyContent: 'center',
+    width: '100%',
   },
   loadingText: {
     ...TextStyles.body,
     color: Colors.muted,
-    marginTop: 16
+    marginTop: 16,
   },
   navigationContainer: {
     backgroundColor: Colors.white,

@@ -39,7 +39,9 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.ACCESS_BACKGROUND_LOCATION"
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION"
       ],
       "package": "fr.utc.assos.skiutc",
       "googleServicesFile": "./google-services.json",
@@ -68,7 +70,10 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Autoriser Ski'Ut à accéder à votre localisation pour calculer votre vitesse de glisse."
+          "locationAlwaysAndWhenInUsePermission": "Autoriser Ski'Ut à accéder à votre localisation pour calculer votre vitesse de glisse.",
+          "locationWhenInUsePermission": "Autoriser Ski'Ut à accéder à votre localisation pour calculer votre vitesse de glisse.",
+          "locationAlwaysPermission": "Autoriser Ski'Ut à accéder à votre localisation pour calculer votre vitesse de glisse.",
+          "locationBackgroundPermission": "Autoriser Ski'Ut à accéder à votre localisation pour calculer votre vitesse de glisse."
         }
       ],
       "expo-font",

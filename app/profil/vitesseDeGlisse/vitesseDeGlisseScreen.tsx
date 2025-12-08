@@ -119,14 +119,22 @@ TaskManager.defineTask<LocationTaskData>(
         if (currentSpeedKmh > 150) continue;
 
         if (sessionData.lastLocation) {
+          const timeDelta =
+            (location.timestamp - sessionData.lastLocation.timestamp) / 1000;
           const deltaDist = getDistanceFromLatLonInMeters(
             sessionData.lastLocation.latitude,
             sessionData.lastLocation.longitude,
             coords.latitude,
             coords.longitude,
           );
+          const calculatedSpeed = (deltaDist / timeDelta) * 3.6;
 
-          if (deltaDist > 0 && deltaDist < 100) {
+          if (
+            deltaDist > 0 &&
+            deltaDist < 100 &&
+            calculatedSpeed < 150 &&
+            timeDelta > 0.5
+          ) {
             sessionData.distance += deltaDist;
             sessionData.maxSpeed = Math.max(
               sessionData.maxSpeed,
@@ -265,7 +273,7 @@ export default function VitesseDeGlisseScreen() {
       } catch (err) {
         console.error('Error syncing session data:', err);
       }
-    }, 1000);
+    }, 3000);
 
     return () => clearInterval(syncInterval);
   }, [isTracking]);
@@ -277,9 +285,9 @@ export default function VitesseDeGlisseScreen() {
       try {
         foregroundSubscription.current = await Location.watchPositionAsync(
           {
-            accuracy: Location.Accuracy.BestForNavigation,
-            timeInterval: 500,
-            distanceInterval: 0,
+            accuracy: Location.Accuracy.Balanced,
+            timeInterval: 1000,
+            distanceInterval: 3,
           },
           (location) => {
             if (location.coords.accuracy && location.coords.accuracy > 30)
@@ -405,6 +413,15 @@ export default function VitesseDeGlisseScreen() {
       console.warn('Error stopping location updates:', err);
     }
 
+    if (foregroundSubscription.current) {
+      foregroundSubscription.current.remove();
+      foregroundSubscription.current = null;
+    }
+    if (trackingInterval.current) {
+      clearInterval(trackingInterval.current);
+      trackingInterval.current = null;
+    }
+
     let finalDistance = distance;
     let finalMaxSpeed = maxSpeed;
     let finalAvgSpeed = averageSpeed;
@@ -422,9 +439,7 @@ export default function VitesseDeGlisseScreen() {
           sessionData.speedReadings > 0
             ? sessionData.totalSpeed / sessionData.speedReadings
             : 0;
-        finalDuration = Math.floor(
-          (Date.now() - sessionData.startTime) / 1000,
-        );
+        finalDuration = Math.floor((Date.now() - sessionData.startTime) / 1000);
       }
     } catch (err) {
       console.error('Error reading final session data:', err);

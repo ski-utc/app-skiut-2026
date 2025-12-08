@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/images/logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#aad1cd"
+      "backgroundColor": "#79a8ce"
     },
     "ios": {
       "bundleIdentifier": "fr.utc.assos.skiutc",
@@ -43,11 +43,7 @@
       ],
       "package": "fr.utc.assos.skiutc",
       "googleServicesFile": "./google-services.json",
-      "icon": "./assets/images/logo.png",
-      "notification": {
-        "icon": "./assets/images/notification-icon.png",
-        "color": "#1E40AF"
-      }
+      "icon": "./assets/images/logo.png"
     },
     "web": {
       "bundler": "metro",
@@ -58,8 +54,8 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/logo.png",
-          "color": "#aad1cd"
+          "icon": "./assets/images/logo-monochrome.png",
+          "color": "#79a8ce"
         }
       ],
       [
@@ -87,12 +83,12 @@
     ],
     "notification": {
       "icon": "./assets/images/logo.png",
-      "color": "#023c69",
+      "color": "#79a8ce",
       "iosDisplayInForeground": true
     },
     "androidStatusBar": {
-      "barStyle": "dark-content",
-      "backgroundColor": "#aad1cd"
+      "barStyle": "light-content",
+      "backgroundColor": "#ffffff"
     },
     "extra": {
       "eas": {

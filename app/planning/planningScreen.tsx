@@ -28,17 +28,24 @@ import {
   apiGet,
   isSuccessResponse,
   handleApiErrorScreen,
-  handleApiErrorToast,
-  AppError,
 } from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
 
 type PermanencePreview = {
   id: number;
   name: string;
-  description?: string;
-  location?: string;
+  start_datetime: string;
+  end_datetime: string;
+  location: string;
   status: string;
+  is_responsible: boolean;
+  responsible: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  duration_minutes: number;
+  notes: string;
 };
 
 type Activity = {
@@ -102,7 +109,6 @@ export default function PlanningScreen() {
 
   const { setUser } = useUser();
 
-  // Animations for modal
   const slideAnim = useRef(new Animated.Value(1000)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -139,7 +145,6 @@ export default function PlanningScreen() {
         const dates = Object.keys(sortedMap).sort();
         setAvailableDates(dates);
 
-        // Set default date only if we have dates and no date is selected yet
         setSelectedDate((currentDate) => {
           if (dates.length === 0) return currentDate;
           if (currentDate && dates.includes(currentDate)) return currentDate;
@@ -205,28 +210,18 @@ export default function PlanningScreen() {
   }, []); // slideAnim and fadeAnim are stable refs from useRef
 
   const handlePermanencePress = useCallback(
-    async (permanenceId: number) => {
+    (permanenceData: PermanenceDetails) => {
       setLoadingPermanence(true);
       setShowPermanenceModal(true);
+      setPermanenceDetails(permanenceData);
 
       animateModalOpen();
 
-      try {
-        const response = await apiGet<PermanenceDetails>(
-          `permanences/${permanenceId}`,
-        );
-
-        if (isSuccessResponse(response) && response.data) {
-          setPermanenceDetails(response.data);
-        }
-      } catch (err: unknown) {
-        setShowPermanenceModal(false);
-        handleApiErrorToast(err as AppError, setUser);
-      } finally {
+      setTimeout(() => {
         setLoadingPermanence(false);
-      }
+      }, 100);
     },
-    [setUser, animateModalOpen],
+    [animateModalOpen],
   );
 
   const closePermanenceModal = useCallback(() => {
@@ -373,7 +368,7 @@ export default function PlanningScreen() {
                       <TouchableOpacity
                         style={styles.permanenceButton}
                         onPress={() =>
-                          handlePermanencePress(activity.permanence_data!.id)
+                          handlePermanencePress(activity.permanence_data!)
                         }
                       >
                         <HousePlus size={18} color={Colors.primary} />

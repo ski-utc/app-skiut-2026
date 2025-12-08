@@ -78,7 +78,6 @@ export default function PlanScreen() {
 
   const toggleMapModal = () => setIsMapModalVisible(!isMapModalVisible);
 
-  // Reset orientation when component unmounts
   useEffect(() => {
     return () => {
       ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);

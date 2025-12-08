@@ -129,14 +129,12 @@ export default function MonoprutScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  // Form states
   const [formProduct, setFormProduct] = useState('');
   const [formQuantity, setFormQuantity] = useState('');
   const [formType, setFormType] = useState<ArticleType>('other');
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formIsChecked, setFormIsChecked] = useState(false);
 
-  // Animations for modal
   const slideAnim = useRef(new Animated.Value(1000)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 

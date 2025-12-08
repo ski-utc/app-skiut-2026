@@ -136,7 +136,6 @@ const GestionNotificationsScreen = () => {
       const response = await apiGet<NotificationItem[]>('admin/notifications');
       if (response.success) {
         setNotifications(response.data);
-        // Apply filter directly here with current state
         setFilteredNotifications(response.data);
       } else {
         handleApiErrorScreen(new ApiError(response.message), setUser, setError);
@@ -160,7 +159,6 @@ const GestionNotificationsScreen = () => {
     return unsubscribe;
   }, [navigation, fetchAdminNotifications]);
 
-  // Re-apply filter when activeFilter changes
   useEffect(() => {
     applyFilter(activeFilter, notifications);
     // eslint-disable-next-line react-hooks/exhaustive-deps

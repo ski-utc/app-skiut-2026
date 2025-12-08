@@ -521,8 +521,8 @@ export default function HomeScreen() {
     try {
       const [homeRes, weatherRes, tourRes] = await Promise.all([
         apiGet<HomeData>('home/random-data'),
-        apiGet<WeatherData>('home/weather', false, undefined, true),
-        apiGet<TourStatus>('room-tours/status', false, undefined, true),
+        apiGet<WeatherData>('home/weather', true),
+        apiGet<TourStatus>('room-tours/status', true),
       ]);
 
       if (isSuccessResponse(homeRes) && homeRes.data) {

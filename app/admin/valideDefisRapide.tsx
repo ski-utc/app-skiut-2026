@@ -129,7 +129,7 @@ export default function ValideDefisRapide() {
 
   const prefetchNextDefi = useCallback(async () => {
     try {
-      const response = await apiGet<Defi[]>('admin/challenges', false);
+      const response = await apiGet<Defi[]>('admin/challenges');
 
       if (isSuccessResponse(response)) {
         setViewedDefiIds((currentViewedIds) => {
@@ -169,7 +169,7 @@ export default function ValideDefisRapide() {
     setIsPlaying(false);
 
     try {
-      const response = await apiGet<Defi[]>('admin/challenges', false);
+      const response = await apiGet<Defi[]>('admin/challenges');
       setLoading(true);
 
       if (isSuccessResponse(response)) {

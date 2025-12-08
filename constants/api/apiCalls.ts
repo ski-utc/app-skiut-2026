@@ -7,7 +7,6 @@ import { Alert } from 'react-native';
 import { User } from '@/contexts/UserContext';
 
 import * as config from './apiConfig';
-import { apiCache } from './apiCache';
 
 /**
  * --- TYPES ---
@@ -55,8 +54,6 @@ export type SyncPendingRequestsResult = {
 };
 
 type ApiCallOptions = {
-  useCache?: boolean;
-  cacheTTL?: number;
   multimedia?: boolean;
   invalidateCache?: string | string[];
   skipPendingSave?: boolean;
@@ -184,19 +181,7 @@ const apiCall = async <T = unknown>(
   options: ApiCallOptions = {},
   bypassLogoutAlert = false,
 ): Promise<ApiResponse<T>> => {
-  const {
-    useCache = false,
-    cacheTTL,
-    multimedia = false,
-    invalidateCache,
-    skipPendingSave = false,
-    timeout,
-  } = options;
-
-  if (method === 'GET' && useCache) {
-    const cached = apiCache.get<T>(url);
-    if (cached) return { success: true, data: cached };
-  }
+  const { multimedia = false, skipPendingSave = false, timeout } = options;
 
   try {
     const accessToken = await SecureStore.getItemAsync('accessToken');
@@ -249,14 +234,6 @@ const apiCall = async <T = unknown>(
 
     if (method === 'GET') {
       await saveOfflineCache(url, finalData);
-      if (useCache) apiCache.set(url, finalData, cacheTTL);
-    }
-
-    if (invalidateCache) {
-      const keys = Array.isArray(invalidateCache)
-        ? invalidateCache
-        : [invalidateCache];
-      keys.forEach((k) => apiCache.deleteByPrefix(k));
     }
 
     return { success: true, data: finalData, message: responseData.message };
@@ -361,12 +338,15 @@ export const syncPendingRequests =
       try {
         await apiCall(req.method, req.url, req.data, {
           ...req.options,
-          useCache: false,
           skipPendingSave: true,
         });
 
         await removePendingRequest(req.id);
         success++;
+
+        if (pending.indexOf(req) < pending.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 800));
+        }
       } catch (e) {
         const currentRetries = req.retries || 0;
 
@@ -439,12 +419,8 @@ export const handleApiErrorScreen = (
   setError(message);
 };
 
-export const apiGet = <T>(
-  url: string,
-  useCache = false,
-  cacheTTL?: number,
-  bypassLogoutAlert = false,
-) => apiCall<T>('GET', url, null, { useCache, cacheTTL }, bypassLogoutAlert);
+export const apiGet = <T>(url: string, bypassLogoutAlert = false) =>
+  apiCall<T>('GET', url, null, {}, bypassLogoutAlert);
 export const apiPost = <T>(
   url: string,
   data: any,

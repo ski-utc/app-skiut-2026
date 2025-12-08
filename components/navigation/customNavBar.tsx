@@ -91,11 +91,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     flexDirection: 'column',
-    gap: 10,
+    gap: 8,
     justifyContent: 'flex-start',
   },
   tabText: {
     ...TextStyles.bodyBold,
+    fontSize: 13,
     marginBottom: 2,
     textAlign: 'center',
   },

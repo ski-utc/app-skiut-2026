@@ -7,11 +7,9 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Package, Plus, ShoppingBag, Clock } from 'lucide-react-native';
-import Toast from 'react-native-toast-message';
+import { Package, ShoppingBag, Clock } from 'lucide-react-native';
 import {
   useNavigation,
   useFocusEffect,
@@ -28,7 +26,6 @@ import {
   handleApiErrorScreen,
 } from '@/constants/api/apiCalls';
 import ArticleCard from '@/components/monoprut/articleCard';
-import CreateArticleModal from '@/components/monoprut/createArticleModal';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
 
@@ -76,7 +73,6 @@ export default function MyOffersScreen() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const fetchArticles = useCallback(
     async (isRefresh = false) => {
@@ -114,23 +110,16 @@ export default function MyOffersScreen() {
     fetchArticles(true);
   };
 
-  const handleArticleCreated = () => {
-    setShowCreateModal(false);
-    Toast.show({
-      type: 'success',
-      text1: 'Article créé !',
-      text2: 'Votre proposition est en ligne.',
-    });
-    fetchArticles(true);
-  };
-
   if (error) {
     return <ErrorScreen error={error} />;
   }
 
   if (loading && articles.length === 0) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <Header refreshFunction={undefined} disableRefresh={true} />
         <View style={styles.headerContainer}>
           <BoutonRetour title="Mes propositions" />
@@ -144,7 +133,7 @@ export default function MyOffersScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Header refreshFunction={handleRefresh} disableRefresh={refreshing} />
       <View style={styles.headerContainer}>
         <BoutonRetour title="Mes propositions" />
@@ -203,14 +192,6 @@ export default function MyOffersScreen() {
             <Text style={styles.emptyText}>
               Proposez de la nourriture à partager avec les autres chambres !
             </Text>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => setShowCreateModal(true)}
-              activeOpacity={0.7}
-            >
-              <Plus size={20} color={Colors.white} />
-              <Text style={styles.addButtonText}>Proposer un article</Text>
-            </TouchableOpacity>
           </View>
         ) : (
           <View style={styles.articlesList}>
@@ -226,51 +207,11 @@ export default function MyOffersScreen() {
           </View>
         )}
       </ScrollView>
-
-      {articles.length > 0 && (
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => setShowCreateModal(true)}
-          activeOpacity={0.8}
-        >
-          <Plus size={28} color={Colors.white} />
-        </TouchableOpacity>
-      )}
-
-      <Modal
-        visible={showCreateModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowCreateModal(false)}
-      >
-        <CreateArticleModal
-          onClose={() => setShowCreateModal(false)}
-          onSuccess={handleArticleCreated}
-        />
-      </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  addButton: {
-    alignItems: 'center',
-    backgroundColor: Colors.accent,
-    borderRadius: 24,
-    elevation: 4,
-    flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  addButtonText: {
-    ...TextStyles.bodyBold,
-    color: Colors.white,
-  },
   articlesList: {
     gap: 12,
     paddingBottom: 80,
@@ -300,22 +241,6 @@ const styles = StyleSheet.create({
     color: Colors.primaryBorder,
     marginBottom: 8,
     marginTop: 16,
-  },
-  fab: {
-    alignItems: 'center',
-    backgroundColor: Colors.accent,
-    borderRadius: 28,
-    bottom: 24,
-    elevation: 8,
-    height: 56,
-    justifyContent: 'center',
-    position: 'absolute',
-    right: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    width: 56,
   },
   headerContainer: {
     paddingBottom: 8,

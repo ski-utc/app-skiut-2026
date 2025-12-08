@@ -141,7 +141,10 @@ export default function Admin() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <Header refreshFunction={null} disableRefresh={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
@@ -152,7 +155,7 @@ export default function Admin() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Header refreshFunction={null} disableRefresh={true} />
       <View style={styles.headerContainer}>
         <BoutonRetour title="Contrôle Admin" />

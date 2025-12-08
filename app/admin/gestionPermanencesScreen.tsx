@@ -508,7 +508,10 @@ export default function GestionPermanencesScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <Header refreshFunction={null} disableRefresh={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
@@ -524,7 +527,7 @@ export default function GestionPermanencesScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Header refreshFunction={onRefresh} disableRefresh={refreshing} />
 
       <View style={styles.headerContainer}>
@@ -591,10 +594,19 @@ export default function GestionPermanencesScreen() {
         visible={showCreateModal}
         animationType="fade"
         transparent={true}
+        statusBarTranslucent={true}
         onRequestClose={() => setShowCreateModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowCreateModal(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={styles.modalCard}
+            onPress={(e) => e.stopPropagation()}
+          >
             <View style={styles.modalHeader}>
               <View style={styles.modalHeaderContent}>
                 <Clock size={24} color={Colors.primary} />
@@ -807,8 +819,8 @@ export default function GestionPermanencesScreen() {
                 )}
               </TouchableOpacity>
             </View>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
 
       {Platform.OS === 'ios' && showStartDatePicker && (

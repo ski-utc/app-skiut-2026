@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { Calendar, Map, LogIn, PartyPopper, Cookie } from 'lucide-react-native';
+import { LogIn, Bell, Trophy, Gauge, Brush } from 'lucide-react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
@@ -22,36 +22,39 @@ export default function LaunchScreen3() {
 
   return (
     <GestureDetector gesture={panGesture}>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <View style={styles.backgroundDecoration} />
 
         <View style={styles.illustrationContainer}>
           <View style={styles.featureCard}>
             <View style={styles.featureIconContainer}>
-              <Map size={32} color={Colors.primary} />
+              <Bell size={32} color={Colors.primary} />
             </View>
-            <Text style={styles.featureTitle}>Plans</Text>
-            <Text style={styles.featureDescription}>
-              Ne soyez pas paumé.e.s
-            </Text>
+            <Text style={styles.featureTitle}>Notifications</Text>
+            <Text style={styles.featureDescription}>Normalement ça marche</Text>
           </View>
 
           <View style={[styles.featureCard, styles.featureCardSecondary]}>
             <View style={styles.featureIconContainer}>
-              <PartyPopper size={32} color={Colors.primary} />
+              <Trophy size={32} color={Colors.primary} />
             </View>
-            <Text style={styles.featureTitle}>Skinder</Text>
+            <Text style={styles.featureTitle}>Défis vidéos</Text>
             <Text style={styles.featureDescription}>
-              Rencontrez d'autres chambres
+              Envoyez nous vos défis vidéos !
             </Text>
           </View>
 
           <View style={styles.featureCard}>
             <View style={styles.featureIconContainer}>
-              <Cookie size={32} color={Colors.primary} />
+              <Gauge size={32} color={Colors.primary} />
             </View>
-            <Text style={styles.featureTitle}>Monopr'ut</Text>
-            <Text style={styles.featureDescription}>Limitez le gaspillage</Text>
+            <Text style={styles.featureTitle}>Vitese de glisse</Text>
+            <Text style={styles.featureDescription}>
+              Avec le téléphone éteint !
+            </Text>
           </View>
         </View>
 
@@ -66,14 +69,14 @@ export default function LaunchScreen3() {
           </View>
 
           <View style={styles.titleContainer}>
-            <Calendar size={28} color={Colors.primary} />
-            <Text style={styles.title}>Et bien plus encore !</Text>
+            <Brush size={28} color={Colors.primary} />
+            <Text style={styles.title}>Et des améliorations !</Text>
           </View>
 
           <Text style={styles.description}>
-            Consultez l'emploi du temps de la semaine, partagez vos meilleures
-            anecdotes du voyage et téléchargez le plan des pistes pour ne rien
-            manquer !
+            Recevez des notifications du bureau, soyez prévenu sur la page
+            d'acceuil lors de la tournée des chambres, mesurez votre vitesse de
+            glisse, et profitez d'une appli sans trop de bugs !
           </Text>
 
           <View style={styles.buttonsContainer}>
@@ -181,7 +184,7 @@ const styles = StyleSheet.create({
   illustrationContainer: {
     alignItems: 'center',
     flex: 1,
-    gap: 16,
+    gap: 24,
     justifyContent: 'center',
     paddingHorizontal: 32,
     paddingTop: 40,

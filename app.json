@@ -17,7 +17,6 @@
       "bundleIdentifier": "fr.utc.assos.skiutc",
       "supportsTablet": true,
       "buildNumber": "1.0.0",
-      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSCameraUsageDescription": "Autoriser Ski'Ut à accéder à la Caméra.",
         "NSPhotoLibraryUsageDescription": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images.",
@@ -32,7 +31,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo.png",
-        "backgroundColor": "#aad1cd"
+        "backgroundColor": "#FFFFFF"
       },
       "permissions": [
         "android.permission.CAMERA",
@@ -44,7 +43,11 @@
       ],
       "package": "fr.utc.assos.skiutc",
       "googleServicesFile": "./google-services.json",
-      "icon": "./assets/images/logo.png"
+      "icon": "./assets/images/logo.png",
+      "notification": {
+        "icon": "./assets/images/notification-icon.png",
+        "color": "#1E40AF"
+      }
     },
     "web": {
       "bundler": "metro",

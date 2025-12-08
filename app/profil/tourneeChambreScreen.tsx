@@ -119,8 +119,13 @@ export default function TourneeChambreScreen() {
       const response = await apiGet<TourData>('room-tours/my-tour');
 
       if (isSuccessResponse(response)) {
-        setTourData(response.data);
-        setVisits(response.data.visits || []);
+        if (response.data) {
+          setTourData(response.data);
+          setVisits(response.data.visits || []);
+        } else {
+          setTourData(null);
+          setVisits([]);
+        }
       } else {
         if (
           response.message &&
@@ -427,7 +432,10 @@ export default function TourneeChambreScreen() {
 
   if (!tourData) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <Header refreshFunction={null} disableRefresh={true} />
         <View style={styles.headerContainer}>
           <BoutonRetour title="Tournée des chambres" />
@@ -452,7 +460,10 @@ export default function TourneeChambreScreen() {
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <Header refreshFunction={onRefresh} disableRefresh={refreshing} />
         <View style={styles.headerContainer}>
           <BoutonRetour title="Tournée des chambres" />

@@ -103,23 +103,28 @@ export class NotificationService {
    */
   private async getExpoPushToken(): Promise<string | null> {
     try {
+      console.log('🔵 [NotificationService] Getting Expo Push Token...');
       const token = await Notifications.getExpoPushTokenAsync({
         projectId:
           Constants.expoConfig?.extra?.eas?.projectId ||
           'f03f1a56-74c7-4c87-a0b2-60b420f7de94',
       });
       this.pushToken = token.data;
+      console.log('✅ [NotificationService] Expo Push Token obtained:', token.data);
       return token.data;
     } catch (error) {
+      console.error('❌ [NotificationService] Error getting Expo push token:', error);
       return null;
     }
   }
+
 
   /**
    * Envoie le token au serveur
    */
   private async saveTokenToServer(token: string): Promise<void> {
     try {
+      console.log('🔵 [NotificationService] Saving token to server...', token);
       const deviceType = Platform.OS === 'ios' ? 'ios' : 'android';
       const deviceName =
         `${Device.brand || 'Unknown'} ${Device.modelName || 'Device'}`.trim();
@@ -138,11 +143,11 @@ export class NotificationService {
 
       if (!response.success) {
         console.error(
-          'Erreur lors de la sauvegarde du token:',
-          response.message,
+          '❌ [NotificationService] Error saving token to server:',
+          response,
         );
       } else {
-        console.log('Token push enregistré avec succès sur le serveur');
+        console.log('✅ [NotificationService] Token successfully saved to server');
       }
     } catch (error) {
       console.error('Erreur réseau lors de la sauvegarde du token:', error);

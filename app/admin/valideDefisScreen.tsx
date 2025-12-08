@@ -235,7 +235,10 @@ export default function ValideDefis() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <Header refreshFunction={null} disableRefresh={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
@@ -246,7 +249,7 @@ export default function ValideDefis() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Header refreshFunction={null} disableRefresh={true} />
       <View style={styles.headerContainer}>
         <BoutonRetour title="Gestion défis" />

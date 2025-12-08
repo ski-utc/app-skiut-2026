@@ -136,7 +136,8 @@ const GestionNotificationsScreen = () => {
       const response = await apiGet<NotificationItem[]>('admin/notifications');
       if (response.success) {
         setNotifications(response.data);
-        applyFilter(activeFilter, response.data);
+        // Apply filter directly here with current state
+        setFilteredNotifications(response.data);
       } else {
         handleApiErrorScreen(new ApiError(response.message), setUser, setError);
       }
@@ -148,7 +149,7 @@ const GestionNotificationsScreen = () => {
         setDisableRefresh(false);
       }, 5000);
     }
-  }, [setUser, activeFilter]);
+  }, [setUser]);
 
   useEffect(() => {
     fetchAdminNotifications();
@@ -159,13 +160,22 @@ const GestionNotificationsScreen = () => {
     return unsubscribe;
   }, [navigation, fetchAdminNotifications]);
 
+  // Re-apply filter when activeFilter changes
+  useEffect(() => {
+    applyFilter(activeFilter, notifications);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFilter]);
+
   if (error !== '') {
     return <ErrorScreen error={error} />;
   }
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <Header refreshFunction={null} disableRefresh={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
@@ -178,7 +188,7 @@ const GestionNotificationsScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Header
         refreshFunction={fetchAdminNotifications}
         disableRefresh={disableRefresh}

@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderTopColor: Colors.lightMuted,
     borderTopWidth: 1,
-    paddingVertical: 12,
+    paddingVertical: 14,
   },
 
   header: {

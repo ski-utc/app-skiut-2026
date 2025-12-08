@@ -305,7 +305,11 @@ export default function PlanScreen() {
           </View>
 
           <ImageViewer
-            imageUrls={[{ url: Image.resolveAssetSource(stationPlan).uri }]}
+            imageUrls={[
+              {
+                url: `${config.BASE_URL}/storage/plan-grandvalira.jpg`,
+              },
+            ]}
             index={0}
             backgroundColor="transparent"
             enableSwipeDown={!isLandscape}
@@ -400,7 +404,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   fullScreenContainer: {
-    backgroundColor: Colors.primaryBorder,
+    backgroundColor: '#000',
     flex: 1,
     position: 'relative',
   },

@@ -326,12 +326,12 @@ const refreshTokens = async (bypassLogoutAlert = false): Promise<boolean> => {
   if (!refreshToken) throw new AuthError('NO_REFRESH_TOKEN');
 
   try {
-    const res = await axios.get(`${config.API_BASE_URL}/auth/refresh`, {
+    const res = await axios.get(`${config.APP_URL}/auth/refresh`, {
       headers: { Authorization: `Bearer ${refreshToken}` },
     });
     await SecureStore.setItemAsync('accessToken', res.data.access_token);
     return true;
-  } catch (error) {
+  } catch {
     await SecureStore.deleteItemAsync('accessToken');
     await SecureStore.deleteItemAsync('refreshToken');
     if (!bypassLogoutAlert)

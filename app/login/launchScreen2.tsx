@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { Trophy, MessageCircle, Calendar } from 'lucide-react-native';
+import { PartyPopper, Cookie, Shield, House } from 'lucide-react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
@@ -24,37 +24,40 @@ export default function LaunchScreen2() {
 
   return (
     <GestureDetector gesture={panGesture}>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <View style={styles.backgroundDecoration} />
 
         <View style={styles.illustrationContainer}>
           <View style={styles.featureCard}>
             <View style={styles.featureIconContainer}>
-              <Calendar size={32} color={Colors.primary} />
+              <Cookie size={32} color={Colors.primary} />
             </View>
-            <Text style={styles.featureTitle}>Planning</Text>
+            <Text style={styles.featureTitle}>Monopr'ut</Text>
             <Text style={styles.featureDescription}>
-              Emploi du temps de la semaine
+              Limitez le gaspillage, partagez !
             </Text>
           </View>
 
           <View style={[styles.featureCard, styles.featureCardSecondary]}>
             <View style={styles.featureIconContainer}>
-              <Trophy size={32} color={Colors.primary} />
+              <House size={32} color={Colors.primary} />
             </View>
-            <Text style={styles.featureTitle}>Défis</Text>
+            <Text style={styles.featureTitle}>Tournée des chambres</Text>
             <Text style={styles.featureDescription}>
-              Relevez des défis avec votre chambre
+              On vous tient au courant avant de passer :)
             </Text>
           </View>
 
           <View style={styles.featureCard}>
             <View style={styles.featureIconContainer}>
-              <MessageCircle size={32} color={Colors.primary} />
+              <Shield size={32} color={Colors.primary} />
             </View>
-            <Text style={styles.featureTitle}>Anecdotes</Text>
+            <Text style={styles.featureTitle}>RGPD</Text>
             <Text style={styles.featureDescription}>
-              Partagez vos meilleurs souvenirs
+              Soyez maître de vos données !
             </Text>
           </View>
         </View>
@@ -70,14 +73,16 @@ export default function LaunchScreen2() {
           </View>
 
           <View style={styles.titleContainer}>
-            <Trophy size={28} color={Colors.primary} />
-            <Text style={styles.title}>Relevez tous les défis</Text>
+            <PartyPopper size={28} color={Colors.primary} />
+            <Text style={styles.title}>
+              Plein de nouvelles fonctionnalités !
+            </Text>
           </View>
 
           <Text style={styles.description}>
-            Participez à des défis passionnants avec les membres de votre
-            chambre et partagez vos réussites avec tous les participants du
-            voyage.
+            Découvrez les nouvelles fonctionnalités de l'application de ce
+            semestre : Monopr'ut, la tournée des chambres, l'onglet RGPD, et
+            bien plus encore !
           </Text>
 
           <TouchableOpacity
@@ -177,7 +182,7 @@ const styles = StyleSheet.create({
   illustrationContainer: {
     alignItems: 'center',
     flex: 1,
-    gap: 16,
+    gap: 24,
     justifyContent: 'center',
     paddingHorizontal: 32,
     paddingTop: 40,
@@ -205,6 +210,7 @@ const styles = StyleSheet.create({
     ...TextStyles.h2Bold,
     color: Colors.primaryBorder,
     flex: 1,
+    marginLeft: 4,
   },
   titleContainer: {
     alignItems: 'center',

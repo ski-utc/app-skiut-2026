@@ -436,7 +436,10 @@ export default function GestionTourneeChambreScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <Header refreshFunction={undefined} disableRefresh={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
@@ -447,7 +450,7 @@ export default function GestionTourneeChambreScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Header refreshFunction={onRefresh} disableRefresh={refreshing} />
       <View style={styles.headerContainer}>
         <BoutonRetour title="Gestion des Tournées" />

@@ -122,9 +122,7 @@ export default function PlanningScreen() {
   };
 
   const fetchPlanning = useCallback(async () => {
-    if (Object.keys(activitiesMap).length === 0) {
-      setLoading(true);
-    }
+    setLoading(true);
     setError('');
 
     try {
@@ -141,13 +139,13 @@ export default function PlanningScreen() {
         const dates = Object.keys(sortedMap).sort();
         setAvailableDates(dates);
 
-        if (
-          dates.length > 0 &&
-          (!selectedDate || !dates.includes(selectedDate))
-        ) {
+        // Set default date only if we have dates and no date is selected yet
+        setSelectedDate((currentDate) => {
+          if (dates.length === 0) return currentDate;
+          if (currentDate && dates.includes(currentDate)) return currentDate;
           const defaultDate = getDefaultDate(sortedMap);
-          if (defaultDate) setSelectedDate(defaultDate);
-        }
+          return defaultDate || currentDate;
+        });
       }
     } catch (err: unknown) {
       handleApiErrorScreen(err, setUser, setError);
@@ -164,27 +162,54 @@ export default function PlanningScreen() {
     setSelectedDate(date);
   }, []);
 
+  const animateModalOpen = useCallback(() => {
+    const slide = slideAnim;
+    const fade = fadeAnim;
+    slide.setValue(1000);
+    fade.setValue(0);
+    Animated.parallel([
+      Animated.spring(slide, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 11,
+      }),
+      Animated.timing(fade, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // slideAnim and fadeAnim are stable refs from useRef
+
+  const animateModalClose = useCallback(() => {
+    const slide = slideAnim;
+    const fade = fadeAnim;
+    Animated.parallel([
+      Animated.timing(slide, {
+        toValue: 1000,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fade, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setShowPermanenceModal(false);
+      setPermanenceDetails(null);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // slideAnim and fadeAnim are stable refs from useRef
+
   const handlePermanencePress = useCallback(
     async (permanenceId: number) => {
       setLoadingPermanence(true);
       setShowPermanenceModal(true);
 
-      // Animate modal opening
-      slideAnim.setValue(1000);
-      fadeAnim.setValue(0);
-      Animated.parallel([
-        Animated.spring(slideAnim, {
-          toValue: 0,
-          useNativeDriver: true,
-          tension: 65,
-          friction: 11,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      animateModalOpen();
 
       try {
         const response = await apiGet<PermanenceDetails>(
@@ -201,26 +226,12 @@ export default function PlanningScreen() {
         setLoadingPermanence(false);
       }
     },
-    [setUser],
+    [setUser, animateModalOpen],
   );
 
   const closePermanenceModal = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(slideAnim, {
-        toValue: 1000,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      setShowPermanenceModal(false);
-      setPermanenceDetails(null);
-    });
-  }, [slideAnim, fadeAnim]);
+    animateModalClose();
+  }, [animateModalClose]);
 
   const formatDateForDisplay = (dateString: string) => {
     const date = new Date(dateString);
@@ -421,11 +432,12 @@ export default function PlanningScreen() {
         visible={showPermanenceModal}
         animationType="none"
         transparent={true}
+        statusBarTranslucent={true}
         onRequestClose={closePermanenceModal}
       >
         <Animated.View style={[styles.modalOverlay, { opacity: fadeAnim }]}>
           <TouchableOpacity
-            style={{ flex: 1 }}
+            style={styles.container}
             activeOpacity={1}
             onPress={closePermanenceModal}
           />

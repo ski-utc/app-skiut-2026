@@ -334,7 +334,10 @@ export default function ValideDefisRapide() {
 
   if (loading && !defi && !noDefis) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <Header refreshFunction={null} disableRefresh={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
@@ -345,7 +348,7 @@ export default function ValideDefisRapide() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Header refreshFunction={fetchNextDefi} disableRefresh={false} />
       <View style={styles.headerContainer}>
         <BoutonRetour title="Validation rapide" />

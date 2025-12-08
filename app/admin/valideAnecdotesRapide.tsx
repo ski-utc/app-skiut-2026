@@ -289,7 +289,10 @@ export default function ValideAnecdotesRapide() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <Header refreshFunction={null} disableRefresh={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
@@ -300,7 +303,7 @@ export default function ValideAnecdotesRapide() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Header refreshFunction={fetchNextAnecdote} disableRefresh={false} />
       <View style={styles.headerContainer}>
         <BoutonRetour title="Validation rapide" />

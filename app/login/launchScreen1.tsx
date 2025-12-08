@@ -23,7 +23,10 @@ export default function LaunchScreen1() {
 
   return (
     <GestureDetector gesture={panGesture}>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <View style={styles.backgroundDecoration} />
 
         <View style={styles.logoContainer}>

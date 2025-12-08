@@ -263,7 +263,7 @@ export default function RGPDScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Header refreshFunction={null} disableRefresh={true} />
       <View style={styles.headerContainer}>
         <BoutonRetour title="RGPD & Données" />

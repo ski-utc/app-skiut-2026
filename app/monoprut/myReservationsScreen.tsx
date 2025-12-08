@@ -187,7 +187,10 @@ export default function MyReservationsScreen() {
 
   if (loading && articles.length === 0) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <Header refreshFunction={undefined} disableRefresh={true} />
         <View style={styles.headerContainer}>
           <BoutonRetour title="Mes réservations" />
@@ -201,7 +204,7 @@ export default function MyReservationsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Header refreshFunction={handleRefresh} disableRefresh={refreshing} />
       <View style={styles.headerContainer}>
         <BoutonRetour title="Mes réservations" />

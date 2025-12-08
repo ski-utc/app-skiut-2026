@@ -1,220 +1,236 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Image, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useNavigation,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native';
+import { PartyPopper, Sparkles, MapPin, User } from 'lucide-react-native';
+
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import Header from '@/components/header';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Heart, Sparkles, MapPin, MessageCircle } from 'lucide-react-native';
 
-//@ts-ignore
+import { SkinderStackParamList } from './skinderNavigator';
+
+type MatchScreenRouteProp = RouteProp<SkinderStackParamList, 'matchScreen'>;
+
 export default function MatchScreen() {
-    const navigation = useNavigation();
-    const route = useRoute();
+  const navigation = useNavigation<NavigationProp<SkinderStackParamList>>();
+  const route = useRoute<MatchScreenRouteProp>();
 
-    const { myImage, roomImage, roomNumber, roomResp } = (route.params as any) || {};
+  const { myImage, roomImage, roomNumber, roomResp } = route.params || {};
 
-    const [myRoomImage, setMyRoomImage] = useState(myImage);
-    const [otherRoomImage, setOtherRoomImage] = useState(roomImage);
+  const [myImageError, setMyImageError] = useState(false);
+  const [roomImageError, setRoomImageError] = useState(false);
+
+  useEffect(() => {
     if (!myImage || !roomImage || !roomNumber) {
-        navigation.goBack();
-        return null;
+      navigation.goBack();
     }
+  }, [myImage, roomImage, roomNumber, navigation]);
 
-    return (
-        <View style={styles.container}>
-            <Header refreshFunction={null} disableRefresh={true} />
-            <View style={styles.headerContainer}>
-                <BoutonRetour previousRoute={'homeNavigator'} title={'Skinder'} />
-            </View>
+  if (!myImage || !roomImage || !roomNumber) {
+    return null;
+  }
 
-            <View style={styles.content}>
-                <View style={styles.celebrationContainer}>
-                    <Sparkles size={32} color={Colors.primary} />
-                    <Text style={styles.matchTitle}>C'est un Match !</Text>
-                    <Sparkles size={32} color={Colors.primary} />
-                </View>
+  return (
+    <View style={styles.container}>
+      <Header refreshFunction={null} disableRefresh={true} />
+      <View style={styles.headerContainer}>
+        <BoutonRetour title={'Skinder'} />
+      </View>
 
-                <View style={styles.profilesContainer}>
-                    <View style={styles.profileImageContainer}>
-                        <Image
-                            source={{ uri: `${myRoomImage}?timestamp=${new Date().getTime()}` }}
-                            style={styles.profileImage}
-                            resizeMode="cover"
-                            onError={() => setMyRoomImage("https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png")}
-                        />
-                        <View style={styles.profileLabel}>
-                            <Text style={styles.profileLabelText}>Vous</Text>
-                        </View>
-                    </View>
-
-                    <View style={styles.heartContainer}>
-                        <Heart size={40} color={Colors.primary} fill={Colors.primary} />
-                    </View>
-
-                    <View style={styles.profileImageContainer}>
-                        <Image
-                            source={{ uri: otherRoomImage }}
-                            style={styles.profileImage}
-                            resizeMode="cover"
-                            onError={() => setOtherRoomImage("https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png")}
-                        />
-                        <View style={styles.profileLabel}>
-                            <Text style={styles.profileLabelText}>Chambre {roomNumber}</Text>
-                        </View>
-                    </View>
-                </View>
-
-                <View style={styles.contactCard}>
-                    <View style={styles.contactHeader}>
-                        <MapPin size={20} color={Colors.primary} />
-                        <Text style={styles.contactTitle}>Comment se rencontrer ?</Text>
-                    </View>
-                    <Text style={styles.contactText}>
-                        Allez toquer à la chambre {roomNumber}
-                        {roomResp ? ` ou contactez ${roomResp}` : ''} pour vous rencontrer en vrai !
-                    </Text>
-                </View>
-
-                <View style={styles.encouragementCard}>
-                    <MessageCircle size={20} color={Colors.primary} />
-                    <Text style={styles.encouragementText}>
-                        N'hésitez pas à faire le premier pas ! Les meilleures rencontres commencent par un simple "Salut" 😊
-                    </Text>
-                </View>
-
-                <TouchableOpacity
-                    onPress={() => navigation.goBack()}
-                    style={styles.continueButton}
-                >
-                    <Text style={styles.continueButtonText}>Continuer à découvrir</Text>
-                </TouchableOpacity>
-            </View>
+      <View style={styles.content}>
+        <View style={styles.celebrationContainer}>
+          <Sparkles size={32} color={Colors.primary} />
+          <Text style={styles.matchTitle}>C'est un Match !</Text>
+          <Sparkles size={32} color={Colors.primary} />
         </View>
-    );
+
+        <View style={styles.profilesContainer}>
+          <View style={styles.profileImageContainer}>
+            {!myImageError && myImage ? (
+              <Image
+                source={{ uri: myImage }}
+                style={styles.profileImage}
+                resizeMode="cover"
+                onError={() => setMyImageError(true)}
+              />
+            ) : (
+              <View
+                style={[styles.profileImage, styles.profileImagePlaceholder]}
+              >
+                <User size={60} color={Colors.muted} />
+              </View>
+            )}
+            <View style={styles.profileLabel}>
+              <Text style={styles.profileLabelText}>Vous</Text>
+            </View>
+          </View>
+
+          <View style={styles.heartContainer}>
+            <PartyPopper size={40} stroke={Colors.primary} />
+          </View>
+
+          <View style={styles.profileImageContainer}>
+            {!roomImageError && roomImage ? (
+              <Image
+                source={{ uri: roomImage }}
+                style={styles.profileImage}
+                resizeMode="cover"
+                onError={() => setRoomImageError(true)}
+              />
+            ) : (
+              <View
+                style={[styles.profileImage, styles.profileImagePlaceholder]}
+              >
+                <User size={60} color={Colors.muted} />
+              </View>
+            )}
+            <View style={styles.profileLabel}>
+              <Text style={styles.profileLabelText}>Chambre {roomNumber}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.contactCard}>
+          <View style={styles.contactHeader}>
+            <MapPin size={20} color={Colors.primary} />
+            <Text style={styles.contactTitle}>Comment se rencontrer ?</Text>
+          </View>
+          <Text style={styles.contactText}>
+            Allez toquer à la chambre {roomNumber}
+            {roomResp ? ` ou contactez ${roomResp}` : ''} pour vous rencontrer
+            en vrai !
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.continueButton}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.continueButtonText}>Continuer à découvrir</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.white,
-    },
-    headerContainer: {
-        width: '100%',
-        paddingHorizontal: 20,
-        paddingBottom: 8,
-    },
-    content: {
-        flex: 1,
-        paddingHorizontal: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 32,
-    },
-    celebrationContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 16,
-        marginBottom: 16,
-    },
-    matchTitle: {
-        ...TextStyles.h1Bold,
-        color: Colors.primary,
-        textAlign: 'center',
-    },
-    profilesContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 24,
-        width: '100%',
-    },
-    profileImageContainer: {
-        alignItems: 'center',
-    },
-    profileImage: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        borderWidth: 4,
-        borderColor: Colors.primary,
-    },
-    profileLabel: {
-        backgroundColor: Colors.primary,
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 12,
-        marginTop: 12,
-    },
-    profileLabelText: {
-        ...TextStyles.small,
-        color: Colors.white,
-        fontWeight: '600',
-    },
-    heartContainer: {
-        backgroundColor: Colors.lightMuted,
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    contactCard: {
-        backgroundColor: Colors.white,
-        borderRadius: 14,
-        borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.06)',
-        shadowColor: '#000',
-        shadowOpacity: 0.08,
-        shadowOffset: { width: 2, height: 3 },
-        shadowRadius: 5,
-        elevation: 3,
-        padding: 20,
-        width: '100%',
-    },
-    contactHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        marginBottom: 12,
-    },
-    contactTitle: {
-        ...TextStyles.bodyBold,
-        color: Colors.primaryBorder,
-    },
-    contactText: {
-        ...TextStyles.body,
-        color: Colors.muted,
-        lineHeight: 22,
-    },
-    encouragementCard: {
-        backgroundColor: Colors.lightMuted,
-        borderRadius: 14,
-        padding: 16,
-        width: '100%',
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        gap: 12,
-    },
-    encouragementText: {
-        ...TextStyles.body,
-        color: Colors.primary,
-        lineHeight: 22,
-        flex: 1,
-    },
-    continueButton: {
-        backgroundColor: Colors.primary,
-        paddingVertical: 16,
-        paddingHorizontal: 32,
-        borderRadius: 14,
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    continueButtonText: {
-        ...TextStyles.button,
-        color: Colors.white,
-        fontWeight: '600',
-    },
+  celebrationContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 16,
+  },
+  contactCard: {
+    backgroundColor: Colors.white,
+    borderColor: 'rgba(0,0,0,0.06)',
+    borderRadius: 14,
+    borderWidth: 1,
+    elevation: 3,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+    width: '100%',
+  },
+  contactHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  contactText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    lineHeight: 22,
+  },
+  contactTitle: {
+    ...TextStyles.bodyBold,
+    color: Colors.primaryBorder,
+  },
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  content: {
+    alignItems: 'center',
+    flex: 1,
+    gap: 32,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  continueButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 14,
+    elevation: 3,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  continueButtonText: {
+    ...TextStyles.button,
+    color: Colors.white,
+    fontWeight: '600',
+  },
+  headerContainer: {
+    paddingBottom: 8,
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  heartContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 32,
+    height: 64,
+    justifyContent: 'center',
+    width: 64,
+  },
+  matchTitle: {
+    ...TextStyles.h1Bold,
+    color: Colors.primary,
+    textAlign: 'center',
+  },
+  profileImage: {
+    borderColor: Colors.primary,
+    borderRadius: 60,
+    borderWidth: 4,
+    height: 120,
+    width: 120,
+  },
+  profileImageContainer: {
+    alignItems: 'center',
+  },
+  profileImagePlaceholder: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    justifyContent: 'center',
+  },
+  profileLabel: {
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  profileLabelText: {
+    ...TextStyles.small,
+    color: Colors.white,
+    fontWeight: '600',
+  },
+  profilesContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 24,
+    justifyContent: 'center',
+    width: '100%',
+  },
 });

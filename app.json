@@ -6,12 +6,12 @@
     "orientation": "portrait",
     "newArchEnabled": true,
     "icon": "./assets/images/logo.png",
-    "scheme": "myapp",
+    "scheme": "skiutc",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#aad1cd"
+      "backgroundColor": "#79a8ce"
     },
     "ios": {
       "bundleIdentifier": "fr.utc.assos.skiutc",
@@ -21,34 +21,43 @@
         "NSCameraUsageDescription": "Autoriser Ski'Ut à accéder à la Caméra.",
         "NSPhotoLibraryUsageDescription": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Autoriser Ski'Ut à accéder à la localisation pour calculer votre vitesse de glisse.",
-        "NSLocationWhenInUseUsageDescription": "Nous utilisons votre localisation lorsque l'application est en cours d'utilisation pour calculer votre vitesse de glisse."
+        "NSLocationWhenInUseUsageDescription": "Autoriser Ski'Ut à accéder à la localisation lorsque l'application est en cours d'utilisation pour calculer votre vitesse de glisse.",
+        "NSLocationAlwaysUsageDescription": "Autoriser Ski'Ut à accéder à votre localisation en arrière-plan pour continuer le suivi de votre vitesse de glisse.",
+        "UIBackgroundModes": [
+          "location"
+        ]
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo.png",
-        "backgroundColor": "#aad1cd"
+        "backgroundColor": "#FFFFFF"
       },
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION"
       ],
       "package": "fr.utc.assos.skiutc",
+      "googleServicesFile": "./google-services.json",
       "icon": "./assets/images/logo.png"
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/logo.png"
     },
     "plugins": [
-      "expo-router",
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/logo.png",
-          "color": "#aad1cd"
+          "icon": "./assets/images/logo-monochrome.png",
+          "color": "#79a8ce"
         }
       ],
       [
@@ -58,32 +67,45 @@
           "cameraPermission": "Autoriser Ski'Ut à accéder à la Caméra."
         }
       ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Autoriser Ski'Ut à accéder à votre localisation pour calculer votre vitesse de glisse.",
+          "locationWhenInUsePermission": "Autoriser Ski'Ut à accéder à votre localisation pour calculer votre vitesse de glisse.",
+          "locationAlwaysPermission": "Autoriser Ski'Ut à accéder à votre localisation pour calculer votre vitesse de glisse.",
+          "locationBackgroundPermission": "Autoriser Ski'Ut à accéder à votre localisation pour calculer votre vitesse de glisse."
+        }
+      ],
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-video",
+      "expo-audio",
+      "expo-asset"
     ],
     "assetBundlePatterns": [
       "**/*"
     ],
-    "experiments": {
-      "typedRoutes": true
-    },
     "notification": {
       "icon": "./assets/images/logo.png",
-      "color": "#023c69",
+      "color": "#79a8ce",
       "iosDisplayInForeground": true
     },
     "androidStatusBar": {
-      "barStyle": "dark-content",
-      "backgroundColor": "#aad1cd"
+      "barStyle": "light-content",
+      "backgroundColor": "#ffffff"
     },
     "extra": {
-      "router": {
-        "origin": false
-      },
       "eas": {
         "projectId": "f03f1a56-74c7-4c87-a0b2-60b420f7de94"
       }
     },
-    "owner": "skiutcapp"
+    "owner": "skiutcapp",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f03f1a56-74c7-4c87-a0b2-60b420f7de94"
+    }
   }
 }

@@ -1,506 +1,525 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert, Modal, StatusBar } from 'react-native';
+import { useEffect, useState, useCallback } from 'react';
+import {
+  View,
+  Image,
+  Text,
+  ActivityIndicator,
+  TouchableOpacity,
+  Alert,
+  Modal,
+  StatusBar,
+  StyleSheet,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import * as ImageManipulator from "expo-image-manipulator";
-import { useRoute } from '@react-navigation/native';
-import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { LandPlot, Trash, Check, Hourglass, X, Upload, CloudOff, Maximize } from 'lucide-react-native';
-import Header from '../../components/header';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import * as ImageManipulator from 'expo-image-manipulator';
+import { useRoute, RouteProp } from '@react-navigation/native';
+import {
+  LandPlot,
+  Trash,
+  Check,
+  Hourglass,
+  X,
+  Upload,
+  CloudOff,
+  Maximize,
+  Play,
+  Pause,
+  Image as ImageIcon,
+  Video as VideoIcon,
+} from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
+import { ImageViewer } from 'react-native-image-zoom-viewer';
+
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiPost, apiGet } from '@/constants/api/apiCalls';
+import {
+  apiPost,
+  apiGet,
+  apiDelete,
+  isSuccessResponse,
+  isPendingResponse,
+  handleApiErrorToast,
+  AppError,
+} from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
-import Toast from 'react-native-toast-message';
-import ImageViewer from "react-native-image-zoom-viewer";
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+
+import Header from '../../components/header';
+
+type DefisInfosParams = {
+  id: number;
+  title: string;
+  points: number;
+  status: string;
+};
+
+type DefisInfosRouteProp = RouteProp<{ params: DefisInfosParams }, 'params'>;
+
+type ProofMediaResponse = {
+  media: string | null;
+  mediaType: 'image' | 'video' | null;
+};
+
+type MaxFileSizeResponse = {
+  maxImageSize: number;
+  maxVideoSize: number;
+};
 
 export default function DefisInfos() {
-  const route = useRoute();
-  const { id, title, points, status } = route.params;
+  const route = useRoute<DefisInfosRouteProp>();
+  const { id, title, points, status: initialStatus } = route.params;
 
-  const [proofImage, setProofImage] = useState(null);
+  const [proofMedia, setProofMedia] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [networkError, setNetworkError] = useState(false);
 
   const { setUser, user } = useUser();
 
-  const [modifiedPicture, setModifiedPicture] = useState(false);
-  const [challengeSent, setChallengeSent] = useState(false);
-  const [dynamicStatus, setStatus] = useState(status);
-  const [imageAspectRatio] = useState(1.0);
-  const [networkError, setNetworkError] = useState(false);
+  const [modifiedMedia, setModifiedMedia] = useState(false);
+  const [dynamicStatus, setDynamicStatus] = useState(initialStatus);
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isFullscreenVideoPlaying, setIsFullscreenVideoPlaying] =
+    useState(false);
+
+  const videoPlayer = useVideoPlayer(
+    proofMedia && mediaType === 'video' ? proofMedia : '',
+    (player) => {
+      player.loop = false;
+    },
+  );
+
+  useEffect(() => {
+    if (mediaType === 'video' && videoPlayer) {
+      if (isPlaying || isFullscreenVideoPlaying) {
+        videoPlayer.play();
+      } else {
+        videoPlayer.pause();
+      }
+    }
+  }, [isPlaying, isFullscreenVideoPlaying, mediaType, videoPlayer]);
 
   const toggleModal = () => {
+    if (!isModalVisible) {
+      setIsPlaying(false);
+      setIsFullscreenVideoPlaying(false);
+    } else {
+      setIsFullscreenVideoPlaying(false);
+    }
     setIsModalVisible(!isModalVisible);
   };
 
   const fetchProof = useCallback(async () => {
     setLoading(true);
     setNetworkError(false);
+    setError('');
+
     try {
-      const response = await apiPost('challenges/getProofImage', { defiId: id });
-      if (response.success) {
-        setProofImage(response.image);
-      } else {
-        setError(response.message || 'Une erreur est survenue lors de la récupération des matchs.');
+      const response = await apiGet<ProofMediaResponse>(
+        `challenges/proof-media/${id}`,
+      );
+
+      if (isSuccessResponse(response)) {
+        setProofMedia(response.data.media);
+        setMediaType(response.data.mediaType || 'image');
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setNetworkError(true);
-        setError(error.message || 'Erreur réseau.');
-      }
+    } catch (err: unknown) {
+      handleApiErrorToast(err as AppError, setUser);
+      setNetworkError(true);
     } finally {
       setLoading(false);
     }
   }, [id, setUser]);
 
   useEffect(() => {
-    if (status !== 'empty') {
+    if (initialStatus !== 'empty' && initialStatus !== 'todo') {
       fetchProof();
     }
-  }, [status, fetchProof]);
+  }, [initialStatus, fetchProof]);
 
-  const handleImagePick = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  const handleMediaPick = async (type: 'image' | 'video' | 'both' = 'both') => {
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.status !== 'granted') {
-      Alert.alert('Permission requise', 'Nous avons besoin de votre permission pour accéder à votre galerie.');
+      Toast.show({
+        type: 'error',
+        text1: 'Permission requise',
+        text2:
+          'Nous avons besoin de votre permission pour accéder à votre galerie.',
+      });
       return;
     }
+
+    let mediaTypes: ('images' | 'videos')[] = ['images', 'videos'];
+    if (type === 'image') mediaTypes = ['images'];
+    else if (type === 'video') mediaTypes = ['videos'];
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes,
       quality: 1,
+      videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium,
+      videoMaxDuration: 60,
     });
 
-    if (result.canceled) {
-      return;
-    }
+    if (result.canceled) return;
 
     try {
       setIsCompressing(true);
-      const { uri, width } = result.assets[0];
-      let compressQuality = 1;
+      const asset = result.assets[0];
+      const { uri, width } = asset;
 
-      let compressedImage = await ImageManipulator.manipulateAsync(
-        uri,
-        [{ resize: { width: width > 1080 ? 1080 : width } }],
-        { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
-      );
+      const isVideo =
+        asset.type === 'video' || uri.endsWith('.mp4') || uri.endsWith('.mov');
+      const currentMediaType = isVideo ? 'video' : 'image';
+      setMediaType(currentMediaType);
 
-      let fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
-      let maxFileSize = 1024 * 1024;
+      let maxFileSize = isVideo ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
+
       try {
-        const getTailleMax = await apiGet("getMaxFileSize");
-        if (getTailleMax.success) {
-          maxFileSize = getTailleMax.data;
-        }
-      } catch (error: any) {
-        if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-          setUser(null);
-        } else {
-          setError(error.message);
-        }
-      }
-
-      while (fileInfo.size > maxFileSize && compressQuality > 0.1) {
-        compressQuality -= 0.1;
-        compressedImage = await ImageManipulator.manipulateAsync(
-          uri,
-          [{ resize: { width: width > 1080 ? 1080 : width } }],
-          { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
+        const sizeRes = await apiGet<MaxFileSizeResponse>(
+          'challenges/max-file-size',
         );
-        fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
+        if (isSuccessResponse(sizeRes)) {
+          maxFileSize = isVideo
+            ? sizeRes.data.maxVideoSize || maxFileSize
+            : sizeRes.data.maxImageSize || maxFileSize;
+        }
+      } catch {
+        maxFileSize = isVideo ? 15 * 1024 * 1024 : 5 * 1024 * 1024;
       }
 
-      if (fileInfo.size > 1 * 1024 * 1024) {
-        Alert.alert('Erreur', 'Image trop lourde même après compression :(');
-        setIsCompressing(false);
-        return;
+      if (isVideo) {
+        const fileInfo = await fetch(uri).then((r) => r.blob());
+        if (fileInfo.size > maxFileSize) {
+          Toast.show({
+            type: 'error',
+            text1: 'Erreur',
+            text2: `Vidéo trop lourde (Max ${Math.round(maxFileSize / 1024 / 1024)} Mo).`,
+          });
+          return;
+        }
+        setModifiedMedia(true);
+        setProofMedia(uri);
+      } else {
+        let compressQuality = 1;
+        let compressedUri = uri;
+        let fileSize = Infinity;
+
+        do {
+          const manipResult = await ImageManipulator.manipulateAsync(
+            uri,
+            [{ resize: { width: width > 1080 ? 1080 : width } }],
+            {
+              compress: compressQuality,
+              format: ImageManipulator.SaveFormat.JPEG,
+            },
+          );
+
+          const fileInfo = await fetch(manipResult.uri).then((r) => r.blob());
+          fileSize = fileInfo.size;
+          compressedUri = manipResult.uri;
+
+          if (fileSize > maxFileSize) {
+            compressQuality -= 0.1;
+          }
+        } while (fileSize > maxFileSize && compressQuality > 0.1);
+
+        if (fileSize > maxFileSize) {
+          Toast.show({
+            type: 'error',
+            text1: 'Erreur',
+            text2: 'Image trop lourde même après compression.',
+          });
+          return;
+        }
+
+        setModifiedMedia(true);
+        setProofMedia(compressedUri);
       }
-      setModifiedPicture(true);
-      setProofImage(compressedImage.uri);
-    } catch (error: any) {
-      setError('Erreur lors de la compression de l\'image :', error);
+    } catch (err: unknown) {
+      handleApiErrorToast(err as AppError, setUser);
     } finally {
       setIsCompressing(false);
     }
   };
 
-  const uploadImage = async (uri) => {
+  const uploadMedia = async (uri: string) => {
+    if (!uri) return;
+
     try {
       setIsUploading(true);
-      const fileInfo = await fetch(uri).then((res) => res.blob());
-      if (fileInfo.size > 1 * 1024 * 1024) {
-        Alert.alert('Erreur', 'L\'image dépasse la taille maximale de 1 Mo.');
-        setIsUploading(false);
-        return;
-      }
 
       const formData = new FormData();
-      formData.append('image', {
-        uri,
-        name: `challenge_${id}_room_${user?.room}.jpg`,
-        type: 'image/jpeg',
-      });
-      formData.append('defiId', id);
+      const mimeType = mediaType === 'video' ? 'video/mp4' : 'image/jpeg';
+      const extension = mediaType === 'video' ? '.mp4' : '.jpg';
+      const fileName = `challenge_${id}_user_${user?.id}_${Date.now()}${extension}`;
 
-      const response = await apiPost('challenges/uploadProofImage', formData, true);
-      if (response.success) {
-        setStatus('pending');
-        try {
-          route.params.onUpdate(id, 'pending');
-        } catch (error: any) {
-          setError(error.message || 'Erreur lors de la mise à jour du défi');
-        }
+      // @ts-expect-error ts(2769)
+      formData.append('media', {
+        uri: uri,
+        name: fileName,
+        type: mimeType,
+      });
+      formData.append('defiId', id.toString());
+      formData.append('mediaType', mediaType);
+
+      const response = await apiPost('challenges/proof-media', formData, true);
+      const handleSuccessOrPending = (isPending: boolean) => {
+        const newStatus = 'pending';
+        setDynamicStatus(newStatus);
+
         Toast.show({
-          type: 'success',
-          text1: 'Défi posté !',
-          text2: response.message,
+          type: isPending ? 'info' : 'success',
+          text1: isPending ? 'Sauvegardé (Hors ligne)' : 'Défi envoyé !',
+          text2: isPending
+            ? 'Veuillez patienter, votre défi sera envoyé une fois que vous serez en ligne.'
+            : 'Votre défi a bien été envoyé !',
         });
-        setChallengeSent(true);
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Une erreur est survenue...',
-          text2: response.message,
-        });
+
+        setModifiedMedia(false);
+      };
+
+      if (isSuccessResponse(response)) {
+        handleSuccessOrPending(false);
+      } else if (isPendingResponse(response)) {
+        handleSuccessOrPending(true);
       }
-    } catch (error: any) {
-      setError(error.message || "Erreur lors du téléversement de l'image");
+    } catch (err: unknown) {
+      handleApiErrorToast(err as AppError, setUser);
     } finally {
       setIsUploading(false);
     }
   };
 
   const handleSendDefi = async () => {
-    try {
-      await uploadImage(proofImage);
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message || 'Erreur réseau ou serveur.');
-      }
+    if (proofMedia) {
+      await uploadMedia(proofMedia);
     }
   };
 
   const handleRemoveDefi = async () => {
-    Alert.alert(
-      'Confirmation',
-      'Êtes-vous sûr de vouloir supprimer ce défi ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Supprimer',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const response = await apiPost('challenges/deleteproofImage', { defiId: id });
-              if (response.success) {
-                setProofImage(null);
-                setStatus('empty');
-                route.params.onUpdate(id, 'empty');
-                setChallengeSent(false);
-                Toast.show({
-                  type: 'success',
-                  text1: 'Défi supprimé !',
-                  text2: response.message,
-                });
-              } else {
-                setError(response.message || 'Une erreur est survenue.');
-              }
-            } catch (error: any) {
-              if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
-              } else {
-                setError(error.message || 'Erreur réseau.');
-              }
-            } finally {
-              setLoading(false);
+    Alert.alert('Confirmation', 'Voulez-vous vraiment supprimer ce défi ?', [
+      { text: 'Annuler', style: 'cancel' },
+      {
+        text: 'Supprimer',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const response = await apiDelete(`challenges/proof-media/${id}`);
+
+            if (isSuccessResponse(response)) {
+              setProofMedia(null);
+              setMediaType('image');
+              setDynamicStatus('todo');
+
+              Toast.show({
+                type: 'success',
+                text1: 'Défi supprimé',
+                text2: 'Votre défi a bien été supprimé !',
+              });
+            } else if (isPendingResponse(response)) {
+              Toast.show({
+                type: 'info',
+                text1: 'Demande supprimée (Hors ligne)',
+                text2:
+                  'Votre défi sera supprimé une fois que vous serez en ligne.',
+              });
             }
-          },
+          } catch (err: unknown) {
+            handleApiErrorToast(err as AppError, setUser);
+          }
         },
-      ],
-      { cancelable: true }
-    );
+      },
+    ]);
   };
 
   if (error) {
-    return (
-      <ErrorScreen error={error} />
-    );
+    return <ErrorScreen error={error} />;
   }
 
   if (loading) {
     return (
-      <View style={{
-        flex: 1,
-        backgroundColor: Colors.white,
-      }}>
+      <View style={styles.container}>
         <Header refreshFunction={undefined} disableRefresh={true} />
-        <View style={{
-          width: '100%',
-          flex: 1,
-          backgroundColor: Colors.white,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
-          <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
-            Chargement...
-          </Text>
+          <Text style={styles.loadingText}>Chargement...</Text>
         </View>
       </View>
     );
   }
 
+  const isEmptyStatus = dynamicStatus === 'empty' || dynamicStatus === 'todo';
+
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.white }}>
-      <Header refreshFunction={undefined} disableRefresh={undefined} />
-      <View style={{ width: '100%', paddingHorizontal: 20 }}>
-        <BoutonRetour previousRoute="defisScreen" title={title} />
-      </View>
-      <View style={{ width: '100%', paddingHorizontal: 20 }}>
-        <Text style={{ ...TextStyles.h2Bold, color: Colors.primaryBorder }}>
-          Points : {points}
-        </Text>
+    <View style={styles.pageContainer}>
+      <Header refreshFunction={null} disableRefresh={undefined} />
+
+      <View style={styles.headerTitleContainer}>
+        <BoutonRetour title={title} />
       </View>
 
-      <View style={{ width: '100%', height: '60%', justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.pointsContainer}>
+        <Text style={styles.pointsText}>Points : {points}</Text>
+      </View>
+
+      <View style={styles.mediaContainer}>
         <TouchableOpacity
-          onPress={status === 'empty' ? handleImagePick : toggleModal}
-          style={{ justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%', position: 'relative' }}
-          disabled={(challengeSent && status === 'empty') || isCompressing || isUploading}
+          onPress={isEmptyStatus ? () => handleMediaPick() : toggleModal}
+          style={styles.mediaTouchable}
+          disabled={
+            (!isEmptyStatus && !proofMedia) || isCompressing || isUploading
+          }
           activeOpacity={0.8}
         >
           {networkError ? (
-            <View style={{
-              width: '90%',
-              aspectRatio: 1,
-              borderWidth: 2,
-              borderColor: Colors.primaryBorder,
-              borderRadius: 20,
-              justifyContent: 'center',
-              alignItems: 'center',
-              padding: 40,
-            }}>
+            <View style={styles.networkErrorContainer}>
               <CloudOff size={80} color={Colors.muted} />
-              <Text style={{
-                ...TextStyles.body,
-                color: Colors.muted,
-                marginTop: 16,
-                textAlign: 'center',
-                fontWeight: '600',
-              }}>
+              <Text style={styles.networkErrorTitle}>
                 Problème de connexion
               </Text>
-              <Text style={{
-                ...TextStyles.small,
-                color: Colors.muted,
-                marginTop: 8,
-                textAlign: 'center',
-              }}>
+              <Text style={styles.networkErrorSubtitle}>
                 Impossible de charger l'image
               </Text>
             </View>
-          ) : proofImage ? (
-            <View style={{ width: '90%', height: '100%', position: 'relative', justifyContent: 'center', alignItems: 'center' }}>
-              <Image
-                source={{ uri: proofImage }}
-                style={{ width: '100%', aspectRatio: imageAspectRatio, maxHeight: '100%', borderRadius: 25 }}
-                resizeMode="contain"
-                onError={() => setNetworkError(true)}
-              />
-              {status !== 'empty' && !isCompressing && !isUploading && (
-                <View style={{
-                  position: 'absolute',
-                  bottom: 20,
-                  left: 0,
-                  right: 0,
-                  backgroundColor: 'rgba(0,0,0,0.5)',
-                  paddingVertical: 8,
-                  paddingHorizontal: 12,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 8,
-                  marginHorizontal: 20,
-                }}>
+          ) : proofMedia ? (
+            <View style={styles.mediaPreviewContainer}>
+              {mediaType === 'video' ? (
+                <VideoView
+                  player={videoPlayer}
+                  style={styles.mediaPreview}
+                  contentFit="cover"
+                  allowsPictureInPicture={false}
+                  nativeControls={false}
+                />
+              ) : (
+                <Image
+                  source={{ uri: proofMedia }}
+                  style={styles.mediaPreview}
+                  resizeMode="cover"
+                  onError={() => setNetworkError(true)}
+                />
+              )}
+
+              <View style={styles.mediaTypeBadge}>
+                {mediaType === 'video' ? (
+                  <VideoIcon size={14} color={Colors.white} />
+                ) : (
+                  <ImageIcon size={14} color={Colors.white} />
+                )}
+                <Text style={styles.mediaTypeText}>
+                  {mediaType === 'video' ? 'Vidéo' : 'Image'}
+                </Text>
+              </View>
+
+              {mediaType === 'video' && !isPlaying && (
+                <TouchableOpacity
+                  style={styles.playButton}
+                  onPress={() => setIsPlaying(true)}
+                >
+                  <Play size={28} color={Colors.white} />
+                </TouchableOpacity>
+              )}
+              {mediaType === 'video' && isPlaying && (
+                <TouchableOpacity
+                  style={styles.pauseButton}
+                  onPress={() => setIsPlaying(false)}
+                >
+                  <Pause size={20} color={Colors.white} />
+                </TouchableOpacity>
+              )}
+
+              {!isEmptyStatus && !isCompressing && !isUploading && (
+                <View style={styles.fullscreenHintContainer}>
                   <Maximize size={16} color={Colors.white} />
-                  <Text style={{
-                    ...TextStyles.small,
-                    color: Colors.white,
-                    textAlign: 'center',
-                    fontWeight: '500',
-                    marginLeft: 6,
-                  }}>Appuyez pour agrandir</Text>
+                  <Text style={styles.fullscreenHintText}>
+                    Appuyez pour agrandir
+                  </Text>
                 </View>
               )}
+
               {(isCompressing || isUploading) && (
-                <View style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  backgroundColor: 'rgba(0,0,0,0.6)',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  borderRadius: 25,
-                }}>
+                <View style={styles.uploadOverlay}>
                   <ActivityIndicator size="large" color={Colors.white} />
-                  <Text style={{
-                    ...TextStyles.body,
-                    color: Colors.white,
-                    marginTop: 12,
-                    fontWeight: '600',
-                  }}>
-                    {isCompressing ? 'Compression...' : 'Upload en cours...'}
+                  <Text style={styles.uploadOverlayText}>
+                    {isCompressing ? 'Traitement...' : 'Envoi en cours...'}
                   </Text>
                 </View>
               )}
             </View>
-          ) : (isCompressing || isUploading) ? (
-            <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+          ) : isCompressing || isUploading ? (
+            <View style={styles.processingContainer}>
               <ActivityIndicator size="large" color={Colors.primaryBorder} />
-              <Text style={{
-                ...TextStyles.body,
-                color: Colors.muted,
-                marginTop: 12,
-              }}>
-                {isCompressing ? 'Compression...' : 'Upload en cours...'}
+              <Text style={styles.processingText}>
+                {isCompressing ? 'Compression...' : 'Envoi en cours...'}
               </Text>
             </View>
           ) : (
-            <View style={{
-              width: '90%',
-              aspectRatio: 1,
-              borderWidth: 2,
-              borderColor: Colors.primaryBorder,
-              borderRadius: 20,
-              borderStyle: 'dashed',
-              justifyContent: 'center',
-              alignItems: 'center',
-              padding: 40,
-            }}>
+            <View style={styles.emptyMediaContainer}>
               <Upload size={80} color={Colors.primary} />
-              <Text style={{
-                ...TextStyles.h3Bold,
-                color: Colors.primaryBorder,
-                marginTop: 16,
-                textAlign: 'center',
-              }}>
-                Ajouter une photo
-              </Text>
-              <Text style={{
-                ...TextStyles.body,
-                color: Colors.muted,
-                marginTop: 8,
-                textAlign: 'center',
-              }}>
-                Appuyez pour sélectionner un média
+              <Text style={styles.emptyMediaTitle}>Ajouter une preuve</Text>
+              <Text style={styles.emptyMediaSubtitle}>
+                Photo ou vidéo (max 60s)
               </Text>
             </View>
           )}
         </TouchableOpacity>
       </View>
 
-      <View style={{ position: 'absolute', width: '100%', bottom: 0 }}>
-        {dynamicStatus !== 'empty' ? (
+      <View style={styles.bottomActions}>
+        {!isEmptyStatus ? (
           dynamicStatus !== 'done' ? (
-            <View style={{ width: '100%', alignItems: 'center' }}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: Colors.muted,
-                  borderRadius: 8,
-                  padding: 10,
-                  marginBottom: 8,
-                  width: '90%',
-                  justifyContent: 'center',
-                }}
-              >
-                <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
-                  {dynamicStatus !== 'pending' ? 'Défi refusé' : 'En attente de validation'}
+            <>
+              <View style={styles.statusBadgeRejected}>
+                <Text style={styles.statusBadgeText}>
+                  {dynamicStatus === 'refused'
+                    ? 'Défi refusé'
+                    : 'En attente de validation'}
                 </Text>
-                {dynamicStatus !== 'pending' ? <X color="white" size={20} /> : <Hourglass color="white" size={20} />}
+                {dynamicStatus === 'refused' ? (
+                  <X color="white" size={20} />
+                ) : (
+                  <Hourglass color="white" size={20} />
+                )}
               </View>
               <TouchableOpacity
-                style={{
-                  width: '90%',
-                  backgroundColor: Colors.error,
-                  borderRadius: 10,
-                  padding: 12,
-                  marginBottom: 10,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+                style={styles.deleteButton}
                 onPress={handleRemoveDefi}
               >
-                <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
-                  Supprimer
-                </Text>
+                <Text style={styles.deleteButtonText}>Supprimer</Text>
                 <Trash color="white" size={20} />
               </TouchableOpacity>
-            </View>
+            </>
           ) : (
-            <View style={{ width: '100%', alignItems: 'center' }}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: Colors.success,
-                  borderRadius: 10,
-                  padding: 12,
-                  marginBottom: 10,
-                  width: '90%',
-                  justifyContent: 'center',
-                }}
-              >
-                <Text style={{ color: 'white', fontSize: 16, fontWeight: '600', marginRight: 10 }}>
-                  Défi validé
-                </Text>
-                <Check color="white" size={20} />
-              </View>
+            <View style={styles.statusBadgeValidated}>
+              <Text style={styles.statusBadgeText}>Défi validé</Text>
+              <Check color="white" size={20} />
             </View>
           )
         ) : (
-          <View style={{ width: '100%', alignItems: 'center' }}>
-            <TouchableOpacity
-              style={{
-                paddingVertical: 16,
-                paddingHorizontal: 20,
-                backgroundColor: Colors.primary,
-                borderRadius: 10,
-                justifyContent: 'center',
-                alignItems: 'center',
-                flexDirection: 'row',
-                width: '90%',
-                marginBottom: 20,
-                gap: 10,
-                shadowColor: Colors.primaryBorder,
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.2,
-                shadowRadius: 3,
-                elevation: 3,
-                opacity: (modifiedPicture && !isUploading && !isCompressing) ? 1 : 0.4
-              }}
-              onPress={handleSendDefi}
-              disabled={!modifiedPicture || isUploading || isCompressing}
-            >
-              <Text style={{ ...TextStyles.button, color: Colors.white }}> Publier mon défi </Text> <LandPlot color="white" size={20} />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={[
+              styles.publishButton,
+              (!modifiedMedia || isUploading || isCompressing) &&
+                styles.publishButtonDisabled,
+            ]}
+            onPress={handleSendDefi}
+            disabled={!modifiedMedia || isUploading || isCompressing}
+          >
+            <Text style={styles.publishButtonText}>Publier mon défi</Text>
+            <LandPlot color="white" size={20} />
+          </TouchableOpacity>
         )}
       </View>
 
-      {proofImage && (
+      {proofMedia && (
         <Modal
           visible={isModalVisible}
           transparent={false}
@@ -508,40 +527,367 @@ export default function DefisInfos() {
           onRequestClose={toggleModal}
         >
           <StatusBar hidden />
-          <View style={{
-            flex: 1,
-            backgroundColor: Colors.primaryBorder,
-            position: 'relative',
-          }}>
+          <View style={styles.modalContainer}>
             <TouchableOpacity
-              style={{
-                position: 'absolute',
-                top: 50,
-                right: 20,
-                zIndex: 1000,
-                width: 44,
-                height: 44,
-                borderRadius: 22,
-                backgroundColor: 'rgba(0,0,0,0.6)',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
+              style={styles.modalCloseButton}
               onPress={toggleModal}
               activeOpacity={0.7}
             >
               <X size={24} color={Colors.white} />
             </TouchableOpacity>
 
-            <ImageViewer
-              imageUrls={[{ url: proofImage }]}
-              index={0}
-              backgroundColor="transparent"
-              enableSwipeDown={true}
-              onSwipeDown={toggleModal}
-            />
+            {mediaType === 'video' ? (
+              <View style={styles.modalVideoContainer}>
+                <VideoView
+                  player={videoPlayer}
+                  style={styles.modalVideo}
+                  contentFit="contain"
+                  allowsPictureInPicture
+                />
+                {!isFullscreenVideoPlaying && (
+                  <TouchableOpacity
+                    style={styles.modalPlayButton}
+                    onPress={() => setIsFullscreenVideoPlaying(true)}
+                  >
+                    <Play size={28} color={Colors.white} />
+                  </TouchableOpacity>
+                )}
+              </View>
+            ) : (
+              <ImageViewer
+                imageUrls={[{ url: proofMedia }]}
+                index={0}
+                backgroundColor="transparent"
+                enableSwipeDown={true}
+                onSwipeDown={toggleModal}
+                renderIndicator={() => <View />}
+              />
+            )}
           </View>
         </Modal>
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  bottomActions: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    bottom: 0,
+    paddingBottom: 20,
+    position: 'absolute',
+    width: '100%',
+  },
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  deleteButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.error,
+    borderRadius: 10,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 10,
+    padding: 12,
+    width: '90%',
+  },
+  deleteButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 10,
+  },
+  emptyMediaContainer: {
+    alignItems: 'center',
+    aspectRatio: 1,
+    borderColor: Colors.primaryBorder,
+    borderRadius: 12,
+    borderStyle: 'dashed',
+    borderWidth: 2,
+    justifyContent: 'center',
+    padding: 40,
+    width: '100%',
+  },
+  emptyMediaSubtitle: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  emptyMediaTitle: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+
+  fullscreenHintContainer: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    bottom: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    left: 0,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    position: 'absolute',
+    right: 0,
+  },
+  fullscreenHintText: {
+    ...TextStyles.small,
+    color: Colors.white,
+    fontWeight: '500',
+    marginLeft: 6,
+    textAlign: 'center',
+  },
+  headerTitleContainer: {
+    paddingHorizontal: 20,
+    paddingRight: 30,
+    width: '100%',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    flex: 1,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16,
+  },
+  mediaContainer: {
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  mediaPreview: {
+    height: '100%',
+    width: '100%',
+  },
+  mediaPreviewContainer: {
+    aspectRatio: 1,
+    backgroundColor: '#000000',
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+    width: '100%',
+  },
+  mediaTouchable: {
+    backgroundColor: Colors.white,
+    borderColor: 'rgba(0,0,0,0.06)',
+    borderRadius: 14,
+    borderWidth: 1,
+    elevation: 3,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+    width: '100%',
+  },
+  mediaTypeBadge: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 6,
+    flexDirection: 'row',
+    left: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    position: 'absolute',
+    top: 12,
+    zIndex: 10,
+  },
+  mediaTypeText: {
+    ...TextStyles.small,
+    color: Colors.white,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  modalCloseButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 22,
+    height: 44,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 20,
+    top: 50,
+    width: 44,
+    zIndex: 1000,
+  },
+  modalContainer: {
+    backgroundColor: '#000000',
+    flex: 1,
+    position: 'relative',
+  },
+
+  modalPlayButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 30,
+    height: 60,
+    justifyContent: 'center',
+    left: '50%',
+    position: 'absolute',
+    top: '50%',
+    transform: [{ translateX: -30 }, { translateY: -10 }],
+    width: 60,
+    zIndex: 20,
+  },
+  modalVideo: {
+    height: '100%',
+    width: '100%',
+  },
+  modalVideoContainer: {
+    alignItems: 'center',
+    backgroundColor: '#000000',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  networkErrorContainer: {
+    alignItems: 'center',
+    aspectRatio: 1,
+    backgroundColor: Colors.white,
+    borderColor: Colors.lightMuted,
+    borderRadius: 12,
+    borderWidth: 1,
+    justifyContent: 'center',
+    padding: 40,
+    width: '100%',
+  },
+  networkErrorSubtitle: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  networkErrorTitle: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    fontWeight: '600',
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  pageContainer: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  pauseButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 20,
+    height: 40,
+    justifyContent: 'center',
+    position: 'absolute',
+    right: 12,
+    top: 12,
+    width: 40,
+    zIndex: 20,
+  },
+
+  playButton: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 30,
+    height: 60,
+    justifyContent: 'center',
+    left: '50%',
+    position: 'absolute',
+    top: '50%',
+    transform: [{ translateX: -30 }, { translateY: -30 }],
+    width: 60,
+    zIndex: 20,
+  },
+  pointsContainer: {
+    marginBottom: 32,
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  pointsText: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+  },
+  processingContainer: {
+    alignItems: 'center',
+    aspectRatio: 1,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  processingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 12,
+  },
+  publishButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: 10,
+    elevation: 3,
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    shadowColor: Colors.primaryBorder,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    width: '90%',
+  },
+  publishButtonDisabled: {
+    opacity: 0.4,
+  },
+  publishButtonText: {
+    ...TextStyles.button,
+    color: Colors.white,
+  },
+
+  statusBadgeRejected: {
+    alignItems: 'center',
+    backgroundColor: Colors.muted,
+    borderRadius: 8,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 8,
+    padding: 10,
+    width: '90%',
+  },
+  statusBadgeText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 10,
+  },
+
+  statusBadgeValidated: {
+    alignItems: 'center',
+    backgroundColor: Colors.success,
+    borderRadius: 10,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginBottom: 10,
+    padding: 12,
+    width: '90%',
+  },
+  uploadOverlay: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    bottom: 0,
+    justifyContent: 'center',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 30,
+  },
+  uploadOverlayText: {
+    ...TextStyles.body,
+    color: Colors.white,
+    fontWeight: '600',
+    marginTop: 12,
+  },
+});

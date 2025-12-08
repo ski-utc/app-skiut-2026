@@ -1,49 +1,62 @@
-import React from 'react';
-import { Text, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity, ViewStyle, StyleSheet } from 'react-native';
+import { LucideIcon } from 'lucide-react-native';
+
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 
-// @ts-ignore
-export default function BoutonActiver({
-    title,
-    IconComponent,
-    color,
-    onPress = () => { },
-    disabled = false,
-    customStyles = {}
-}) {
-    return (
-        <TouchableOpacity
-            onPress={disabled ? () => { } : onPress}
-            style={[
-                {
-                    padding: 10,
-                    backgroundColor: disabled ? Colors.muted : color,
-                    borderRadius: 8,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    flexDirection: 'row',
-                    gap: 10,
-                    opacity: disabled ? 0.5 : 1,
-                },
-                customStyles,
-            ]}
-            activeOpacity={disabled ? 1 : 0.7}
-            disabled={disabled}
-        >
-            <Text
-                style={{
-                    ...TextStyles.button,
-                    color: Colors.white,
-                }}
-            >
-                {title}
-            </Text>
-            {IconComponent && (
-                <IconComponent
-                    size={20}
-                    color={Colors.white}
-                />
-            )}
-        </TouchableOpacity>
-    );
+type BoutonActiverProps = {
+  title: string;
+  IconComponent?: LucideIcon;
+  color?: string;
+  onPress?: () => void;
+  disabled?: boolean;
+  customStyles?: ViewStyle;
 };
+
+export default function BoutonActiver({
+  title,
+  IconComponent,
+  color = Colors.primary,
+  onPress = () => {},
+  disabled = false,
+  customStyles = {},
+}: BoutonActiverProps) {
+  const activeOpacity = 1;
+  const inactiveOpacity = 0.4;
+
+  return (
+    <TouchableOpacity
+      onPress={disabled ? () => {} : onPress}
+      style={[
+        styles.button,
+        {
+          backgroundColor: disabled ? Colors.muted : color,
+          opacity: disabled ? inactiveOpacity : activeOpacity,
+        },
+        customStyles,
+      ]}
+      activeOpacity={disabled ? 1 : 0.7}
+      disabled={disabled}
+    >
+      <Text
+        style={{
+          ...TextStyles.button,
+          color: Colors.white,
+        }}
+      >
+        {title}
+      </Text>
+      {IconComponent && <IconComponent size={20} color={Colors.white} />}
+    </TouchableOpacity>
+  );
+}
+
+const styles = StyleSheet.create({
+  button: {
+    alignItems: 'center',
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'center',
+    padding: 14,
+  },
+});

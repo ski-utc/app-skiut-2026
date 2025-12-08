@@ -1,33 +1,69 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, FlatList, ActivityIndicator, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
-import { apiGet } from '@/constants/api/apiCalls';
+import {
+  View,
+  FlatList,
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  ChevronRight,
+  Shield,
+  MessageSquare,
+  Trophy,
+  Bell,
+  Clock,
+  Home,
+} from 'lucide-react-native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+
+import {
+  apiGet,
+  AppError,
+  handleApiErrorScreen,
+  handleApiErrorToast,
+  isSuccessResponse,
+} from '@/constants/api/apiCalls';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import Header from '../../components/header';
 import ErrorScreen from '@/components/pages/errorPage';
-import { useNavigation } from '@react-navigation/native';
 import { useUser } from '@/contexts/UserContext';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
-import { ChevronRight, Shield, MessageSquare, Trophy, Bell } from 'lucide-react-native';
 
-interface BoutonAdminProps {
-  nextRoute: string;
+import Header from '../../components/header';
+
+import { AdminGestionParamList } from './adminNavigator';
+
+type BoutonAdminProps = {
+  nextRoute: keyof AdminGestionParamList;
   title: string;
   icon: React.ReactNode;
   description: string;
-}
+};
 
-const BoutonAdmin: React.FC<BoutonAdminProps> = ({ nextRoute, title, icon, description }) => {
-  const navigation = useNavigation();
+type AdminControl = {
+  title: string;
+  nextRoute: keyof AdminGestionParamList;
+  icon: React.ReactNode;
+  description: string;
+};
 
-  const onPress = () => {
-    (navigation as any).navigate(nextRoute);
-  };
+const BoutonAdmin: React.FC<BoutonAdminProps> = ({
+  nextRoute,
+  title,
+  icon,
+  description,
+}) => {
+  const navigation = useNavigation<NavigationProp<AdminGestionParamList>>();
 
   return (
-    <TouchableOpacity onPress={onPress} style={styles.adminCard} activeOpacity={0.8}>
-      <View style={styles.cardIconContainer}>
-        {icon}
-      </View>
+    <TouchableOpacity
+      onPress={() => navigation.navigate(nextRoute)}
+      style={styles.adminCard}
+      activeOpacity={0.8}
+    >
+      <View style={styles.cardIconContainer}>{icon}</View>
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle}>{title}</Text>
         <Text style={styles.cardDescription}>{description}</Text>
@@ -39,24 +75,36 @@ const BoutonAdmin: React.FC<BoutonAdminProps> = ({ nextRoute, title, icon, descr
   );
 };
 
-const adminControls = [
+const adminControls: AdminControl[] = [
   {
     title: 'Gestion des défis',
     nextRoute: 'gestionDefisScreen',
     icon: <Trophy size={24} color={Colors.primary} />,
-    description: 'Créer et gérer les défis'
+    description: 'Créer et gérer les défis',
   },
   {
     title: 'Gestion des anecdotes',
     nextRoute: 'gestionAnecdotesScreen',
     icon: <MessageSquare size={24} color={Colors.primary} />,
-    description: 'Modérer les anecdotes partagées'
+    description: 'Modérer les anecdotes partagées',
   },
   {
     title: 'Gestion des notifications',
     nextRoute: 'gestionNotificationsScreen',
     icon: <Bell size={24} color={Colors.primary} />,
-    description: 'Envoyer des notifications'
+    description: 'Envoyer des notifications',
+  },
+  {
+    title: 'Gestion des permanences',
+    nextRoute: 'gestionPermanencesScreen',
+    icon: <Clock size={24} color={Colors.primary} />,
+    description: 'Planifier et gérer les permanences',
+  },
+  {
+    title: 'Tournée des chambres',
+    nextRoute: 'gestionTourneeChambreScreen',
+    icon: <Home size={24} color={Colors.primary} />,
+    description: 'Organiser les tournées de chambres',
   },
 ];
 
@@ -64,31 +112,27 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<AdminGestionParamList>>();
   const { setUser } = useUser();
 
   const fetchAdmin = useCallback(async () => {
     setLoading(true);
-
     try {
-      const response = await apiGet("admin");
-      if (!response.success) {
+      const response = await apiGet('admin');
+      if (!isSuccessResponse(response)) {
         navigation.goBack();
+        handleApiErrorToast('Accès non autorisé', setUser);
         return null;
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message);
-      }
+    } catch (error: unknown) {
+      handleApiErrorScreen(error as AppError, setUser, setError);
     } finally {
       setLoading(false);
     }
   }, [navigation, setUser]);
 
   useEffect(() => {
-fetchAdmin();
+    fetchAdmin();
   }, [fetchAdmin]);
 
   if (error !== '') {
@@ -97,7 +141,10 @@ fetchAdmin();
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <Header refreshFunction={null} disableRefresh={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
@@ -108,10 +155,10 @@ fetchAdmin();
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Header refreshFunction={null} disableRefresh={true} />
       <View style={styles.headerContainer}>
-        <BoutonRetour previousRoute="homeNavigator" title="Contrôle Admin" />
+        <BoutonRetour title="Contrôle Admin" />
       </View>
 
       <View style={styles.heroSection}>
@@ -127,7 +174,7 @@ fetchAdmin();
       <View style={styles.contentContainer}>
         <FlatList
           data={adminControls}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={(item) => item.title}
           renderItem={({ item }) => (
             <BoutonAdmin
               nextRoute={item.nextRoute}
@@ -145,19 +192,97 @@ fetchAdmin();
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  adminCard: {
+    alignItems: 'center',
     backgroundColor: Colors.white,
+    borderColor: 'rgba(0,0,0,0.06)',
+    borderRadius: 16,
+    borderWidth: 1,
+    elevation: 3,
+    flexDirection: 'row',
+    marginBottom: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+  },
+  cardArrow: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 16,
+    height: 32,
+    justifyContent: 'center',
+    width: 32,
+  },
+  cardContent: {
+    flex: 1,
+  },
+  cardDescription: {
+    ...TextStyles.small,
+    color: Colors.muted,
+  },
+  cardIconContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 24,
+    height: 48,
+    justifyContent: 'center',
+    marginRight: 16,
+    width: 48,
+  },
+  cardTitle: {
+    ...TextStyles.bodyBold,
+    color: Colors.primaryBorder,
+    marginBottom: 4,
+  },
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
   },
   headerContainer: {
-    width: '100%',
-    paddingHorizontal: 20,
     paddingBottom: 8,
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  heroIcon: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 32,
+    height: 64,
+    justifyContent: 'center',
+    marginBottom: 16,
+    width: 64,
+  },
+  heroSection: {
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 8,
+    paddingHorizontal: 32,
+  },
+  heroSubtitle: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    lineHeight: 22,
+    textAlign: 'center',
+  },
+  heroTitle: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  listContainer: {
+    paddingBottom: 20,
   },
   loadingContainer: {
+    alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
     paddingHorizontal: 20,
   },
   loadingText: {
@@ -165,83 +290,5 @@ const styles = StyleSheet.create({
     color: Colors.muted,
     marginTop: 16,
     textAlign: 'center',
-  },
-  heroSection: {
-    alignItems: 'center',
-    paddingHorizontal: 32,
-    paddingBottom: 8,
-    marginBottom: 16,
-  },
-  heroIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: Colors.lightMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  heroTitle: {
-    ...TextStyles.h2Bold,
-    color: Colors.primaryBorder,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  heroSubtitle: {
-    ...TextStyles.body,
-    color: Colors.muted,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
-  contentContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  listContainer: {
-    paddingBottom: 20,
-  },
-  adminCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.06)',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 2, height: 3 },
-    shadowRadius: 5,
-    elevation: 3,
-    marginBottom: 12,
-    padding: 16,
-  },
-  cardIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.lightMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  cardContent: {
-    flex: 1,
-  },
-  cardTitle: {
-    ...TextStyles.bodyBold,
-    color: Colors.primaryBorder,
-    marginBottom: 4,
-  },
-  cardDescription: {
-    ...TextStyles.small,
-    color: Colors.muted,
-  },
-  cardArrow: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.lightMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

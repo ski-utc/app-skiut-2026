@@ -1,17 +1,52 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator, ScrollView, SafeAreaView } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import { X, Check, MessageSquare, Calendar, User, Heart, AlertTriangle } from 'lucide-react-native';
-import Header from '../../components/header';
+import { useState, useEffect, useCallback } from 'react';
+import {
+  Text,
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  ScrollView,
+  Alert,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  useRoute,
+  NavigationProp,
+  useNavigation,
+  RouteProp,
+} from '@react-navigation/native';
+import {
+  X,
+  Check,
+  FileQuestion,
+  User,
+  Heart,
+  AlertTriangle,
+  Trash2,
+} from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
+
 import BoutonRetour from '@/components/divers/boutonRetour';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
-import { apiPost, apiGet } from '@/constants/api/apiCalls';
+import {
+  apiGet,
+  apiPut,
+  apiDelete,
+  isSuccessResponse,
+  isPendingResponse,
+  handleApiErrorToast,
+  handleApiErrorScreen,
+  AppError,
+  ApiError,
+} from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
-import Toast from 'react-native-toast-message';
 
-interface AnecdoteDetails {
+import Header from '../../components/header';
+
+import { AdminStackParamList } from './adminNavigator';
+
+type AnecdoteDetails = {
   id: number;
   text: string;
   valid: number;
@@ -21,41 +56,44 @@ interface AnecdoteDetails {
     lastName: string;
     room: string;
   };
-}
+  nbLikes: number;
+  nbWarns: number;
+};
 
-interface RouteParams {
-  id: number;
-}
+type RouteParams = RouteProp<AdminStackParamList, 'valideAnecdotesScreen'>;
 
 export default function ValideAnecdotes() {
-  const route = useRoute();
-  const { id } = (route.params as RouteParams) || { id: 0 };
-  const { setUser } = useUser();
-  const navigation = useNavigation();
+  const route = useRoute<RouteParams>();
+  const { id } = route.params || { id: 0 };
 
-  const [anecdoteDetails, setAnecdoteDetails] = useState<AnecdoteDetails | null>(null);
-  const [nbLikes, setNbLikes] = useState<number | null>(null);
-  const [nbWarns, setNbWarns] = useState<number | null>(null);
+  const { setUser } = useUser();
+  const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
+
+  const [anecdoteDetails, setAnecdoteDetails] =
+    useState<AnecdoteDetails | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const fetchAnecdoteDetails = useCallback(async () => {
+    if (!id) return;
+
     setLoading(true);
+    setError('');
+
     try {
-      const response = await apiGet(`getAnecdoteDetails/${id}`);
-      if (response.success) {
+      const response = await apiGet<AnecdoteDetails>(
+        `admin/anecdotes/${id}`,
+        false,
+      );
+
+      if (isSuccessResponse(response)) {
         setAnecdoteDetails(response.data);
-        setNbLikes(response.nbLikes);
-        setNbWarns(response.nbWarns);
       } else {
-        setError('Erreur lors de la récupération des détails de l\'anecdote');
+        handleApiErrorScreen(new ApiError(response.message), setUser, setError);
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message);
-      }
+    } catch (err: unknown) {
+      handleApiErrorScreen(err, setUser, setError);
     } finally {
       setLoading(false);
     }
@@ -64,42 +102,103 @@ export default function ValideAnecdotes() {
   const handleValidation = async (isValid: number) => {
     setLoading(true);
     try {
-      const response = await apiPost(`updateAnecdoteStatus/${id}/${isValid}`);
-      if (response.success) {
-        setAnecdoteDetails(prevDetails => prevDetails ? ({
-          ...prevDetails,
-          valid: isValid,
-        }) : null);
+      const response = await apiPut(`admin/anecdotes/${id}/status`, {
+        is_valid: isValid,
+      });
+
+      const handleSuccess = (isPending: boolean) => {
+        setAnecdoteDetails((prev) =>
+          prev ? { ...prev, valid: isValid } : null,
+        );
 
         Toast.show({
-          type: 'success',
-          text1: isValid === 0 ? 'Anecdote désactivée !' : 'Anecdote validée !',
-          text2: response.message,
+          type: isPending ? 'info' : 'success',
+          text1: isPending
+            ? 'Action sauvegardée'
+            : isValid === 0
+              ? 'Désactivée'
+              : 'Validée',
+          text2: isPending ? 'Sera synchronisé plus tard' : response.message,
         });
+
         navigation.goBack();
+      };
+
+      if (isSuccessResponse(response)) {
+        handleSuccess(false);
+      } else if (isPendingResponse(response)) {
+        handleSuccess(true);
       } else {
         Toast.show({
           type: 'error',
-          text1: 'Une erreur est survenue...',
+          text1: 'Erreur',
           text2: response.message,
         });
-        setError(response.message || 'Une erreur est survenue lors de la validation de l\'anecdote.');
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message);
-      }
+    } catch (err: unknown) {
+      handleApiErrorToast(err as AppError, setUser);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleDelete = async () => {
+    Alert.alert(
+      'Confirmation',
+      'Êtes-vous sûr de vouloir supprimer cette anecdote ?',
+      [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+        },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              const response = await apiDelete(`admin/anecdotes/${id}`);
+
+              if (isSuccessResponse(response)) {
+                Toast.show({
+                  type: 'success',
+                  text1: 'Anecdote supprimée !',
+                  text2: response.message,
+                });
+                navigation.goBack();
+              } else if (isPendingResponse(response)) {
+                Toast.show({
+                  type: 'info',
+                  text1: 'Action sauvegardée',
+                  text2: 'Sera synchronisé plus tard',
+                });
+                navigation.goBack();
+              } else {
+                Toast.show({
+                  type: 'error',
+                  text1: 'Erreur',
+                  text2: response.message,
+                });
+              }
+            } catch (err: unknown) {
+              handleApiErrorToast(err as AppError, setUser);
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+      { cancelable: true },
+    );
+  };
 
   useEffect(() => {
     fetchAnecdoteDetails();
   }, [fetchAnecdoteDetails]);
+
+  if (!id) {
+    return <ErrorScreen error="ID de l'anecdote manquant" />;
+  }
 
   if (error !== '') {
     return <ErrorScreen error={error} />;
@@ -107,7 +206,10 @@ export default function ValideAnecdotes() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <Header refreshFunction={null} disableRefresh={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
@@ -118,13 +220,14 @@ export default function ValideAnecdotes() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Header refreshFunction={null} disableRefresh={true} />
+
       <View style={styles.headerContainer}>
-        <BoutonRetour previousRoute="gestionAnecdotesScreen" title={`Gérer l'anecdote ${id}`} />
+        <BoutonRetour title={`Gérer l'anecdote ${id}`} />
       </View>
 
-      <View style={styles.heroSection}>
+      {/* <View style={styles.heroSection}>
         <View style={styles.heroIcon}>
           <MessageSquare size={24} color={Colors.primary} />
         </View>
@@ -132,18 +235,26 @@ export default function ValideAnecdotes() {
         <Text style={styles.heroSubtitle}>
           Validez ou modérez cette anecdote
         </Text>
-      </View>
+      </View> */}
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
-            <MessageSquare size={16} color={Colors.primary} />
+            <FileQuestion size={16} color={Colors.primary} />
             <Text style={styles.infoLabel}>Status :</Text>
-            <Text style={[styles.infoValue, anecdoteDetails?.valid ? styles.validStatus : styles.pendingStatus]}>
+            <Text
+              style={[
+                styles.infoValue,
+                anecdoteDetails?.valid
+                  ? styles.validStatus
+                  : styles.pendingStatus,
+              ]}
+            >
               {anecdoteDetails?.valid ? 'Validée' : 'En attente de validation'}
             </Text>
           </View>
-          <View style={styles.infoRow}>
+
+          {/* <View style={styles.infoRow}>
             <Calendar size={16} color={Colors.primary} />
             <Text style={styles.infoLabel}>Date :</Text>
             <Text style={styles.infoValue}>
@@ -154,23 +265,36 @@ export default function ValideAnecdotes() {
                 hour: '2-digit',
                 minute: '2-digit',
                 hour12: false,
-              }) : 'Date non disponible'}
+              }) : 'N/A'}
             </Text>
-          </View>
+          </View> */}
+
           <View style={styles.infoRow}>
             <User size={16} color={Colors.primary} />
-            <Text style={styles.infoLabel}>Auteur :</Text>
-            <Text style={styles.infoValue}>{anecdoteDetails?.user?.firstName} {anecdoteDetails?.user?.lastName || 'Auteur inconnu'}</Text>
+            <Text style={styles.infoLabel}>Auteur.ice :</Text>
+            <Text style={styles.infoValue}>
+              {anecdoteDetails?.user?.firstName}{' '}
+              {anecdoteDetails?.user?.lastName || 'Anonyme'}
+            </Text>
           </View>
+
           <View style={styles.infoRow}>
             <Heart size={16} color={Colors.primary} />
             <Text style={styles.infoLabel}>Likes :</Text>
-            <Text style={styles.infoValue}>{nbLikes}</Text>
+            <Text style={styles.infoValue}>{anecdoteDetails?.nbLikes}</Text>
           </View>
+
           <View style={styles.infoRow}>
             <AlertTriangle size={16} color={Colors.error} />
             <Text style={styles.infoLabel}>Signalements :</Text>
-            <Text style={[styles.infoValue, (nbWarns ?? 0) > 0 && styles.warningText]}>{nbWarns}</Text>
+            <Text
+              style={[
+                styles.infoValue,
+                anecdoteDetails?.nbWarns ? styles.warningText : null,
+              ]}
+            >
+              {anecdoteDetails?.nbWarns}
+            </Text>
           </View>
         </View>
 
@@ -182,20 +306,43 @@ export default function ValideAnecdotes() {
 
       <View style={styles.buttonContainer}>
         {anecdoteDetails?.valid === 1 ? (
-          <BoutonActiver
-            title="Désactiver l'anecdote"
-            IconComponent={X}
-            color={Colors.error}
-            onPress={() => handleValidation(0)}
-          />
+          <View style={styles.buttonRow}>
+            <View style={styles.buttonHalf}>
+              <BoutonActiver
+                title="Désactiver"
+                IconComponent={X}
+                color={Colors.primary}
+                onPress={() => handleValidation(0)}
+              />
+            </View>
+            <View style={styles.buttonHalf}>
+              <BoutonActiver
+                title="Supprimer"
+                IconComponent={Trash2}
+                color={Colors.error}
+                onPress={handleDelete}
+              />
+            </View>
+          </View>
         ) : (
-          <BoutonActiver
-            title="Valider l'anecdote"
-            IconComponent={Check}
-            disabled={anecdoteDetails?.valid === 1}
-            color={Colors.success}
-            onPress={() => handleValidation(1)}
-          />
+          <View style={styles.buttonRow}>
+            <View style={styles.buttonHalf}>
+              <BoutonActiver
+                title="Supprimer"
+                IconComponent={Trash2}
+                color={Colors.error}
+                onPress={handleDelete}
+              />
+            </View>
+            <View style={styles.buttonHalf}>
+              <BoutonActiver
+                title="Valider"
+                IconComponent={Check}
+                color={Colors.success}
+                onPress={() => handleValidation(1)}
+              />
+            </View>
+          </View>
         )}
       </View>
     </SafeAreaView>
@@ -203,75 +350,69 @@ export default function ValideAnecdotes() {
 }
 
 const styles = StyleSheet.create({
+  buttonContainer: {
+    bottom: 20,
+    left: 20,
+    position: 'absolute',
+    right: 20,
+  },
+  buttonHalf: {
+    flex: 1,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
   container: {
-    flex: 1,
     backgroundColor: Colors.white,
-  },
-  loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-  },
-  loadingText: {
-    ...TextStyles.body,
-    color: Colors.muted,
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  headerContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 8,
-  },
-  heroSection: {
-    alignItems: 'center',
-    paddingBottom: 24,
-    paddingHorizontal: 20,
-  },
-  heroIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: Colors.lightMuted,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  heroTitle: {
-    ...TextStyles.h2Bold,
-    color: Colors.primaryBorder,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  heroSubtitle: {
-    ...TextStyles.body,
-    color: Colors.muted,
-    textAlign: 'center',
-    lineHeight: 20,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
     paddingBottom: 120,
+    paddingHorizontal: 20,
   },
+  contentCard: {
+    backgroundColor: Colors.white,
+    borderColor: Colors.primary,
+    borderRadius: 14,
+    borderWidth: 2,
+    elevation: 3,
+    marginBottom: 88,
+    minHeight: 150,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+  },
+  contentText: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    lineHeight: 22,
+  },
+  contentTitle: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 12,
+  },
+  headerContainer: {
+    paddingBottom: 8,
+    paddingHorizontal: 20,
+  },
+
   infoCard: {
     backgroundColor: Colors.white,
+    borderColor: 'rgba(0,0,0,0.06)',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.06)',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 2, height: 3 },
-    shadowRadius: 5,
     elevation: 3,
-    padding: 16,
     marginBottom: 16,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    flexWrap: 'wrap',
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
   },
   infoLabel: {
     ...TextStyles.body,
@@ -281,52 +422,40 @@ const styles = StyleSheet.create({
     marginRight: 8,
     minWidth: 80,
   },
+  infoRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 12,
+  },
   infoValue: {
     ...TextStyles.body,
     color: Colors.muted,
     flex: 1,
     lineHeight: 20,
   },
-  validStatus: {
-    color: Colors.success,
-    fontWeight: '600',
+  loadingContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16,
+    textAlign: 'center',
   },
   pendingStatus: {
     color: Colors.primary,
     fontWeight: '600',
   },
+  validStatus: {
+    color: Colors.success,
+    fontWeight: '600',
+  },
   warningText: {
     color: Colors.error,
     fontWeight: '600',
-  },
-  contentCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 2, height: 3 },
-    shadowRadius: 5,
-    elevation: 3,
-    padding: 16,
-    minHeight: 150,
-    marginBottom: 88,
-  },
-  contentTitle: {
-    ...TextStyles.h3Bold,
-    color: Colors.primaryBorder,
-    marginBottom: 12,
-  },
-  contentText: {
-    ...TextStyles.body,
-    color: Colors.primaryBorder,
-    lineHeight: 22,
-  },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
   },
 });

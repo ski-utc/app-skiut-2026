@@ -12,6 +12,7 @@ npm-debug.*
 *.orig.*
 web-build/
 android/
+firebase-service-account.json
 
 # macOS
 .DS_Store

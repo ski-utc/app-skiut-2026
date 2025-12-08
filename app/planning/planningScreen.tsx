@@ -1,14 +1,54 @@
-import { View, StyleSheet, Text, FlatList, ActivityIndicator, TouchableOpacity } from "react-native";
-import { Colors, TextStyles } from '@/constants/GraphSettings';
-import React, { useState, useCallback, useEffect } from 'react';
-import Header from "@/components/header";
-import ErrorScreen from "@/components/pages/errorPage";
-import BoutonRetour from "@/components/divers/boutonRetour";
-import { apiGet } from '@/constants/api/apiCalls';
-import { useUser } from '@/contexts/UserContext';
-import { Calendar, Clock, MapPin } from 'lucide-react-native';
+import {
+  View,
+  StyleSheet,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+  Animated,
+} from 'react-native';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  HousePlus,
+  Info,
+  X,
+  Timer,
+} from 'lucide-react-native';
 
-interface Activity {
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+import Header from '@/components/header';
+import ErrorScreen from '@/components/pages/errorPage';
+import BoutonRetour from '@/components/divers/boutonRetour';
+import {
+  apiGet,
+  isSuccessResponse,
+  handleApiErrorScreen,
+} from '@/constants/api/apiCalls';
+import { useUser } from '@/contexts/UserContext';
+
+type PermanencePreview = {
+  id: number;
+  name: string;
+  start_datetime: string;
+  end_datetime: string;
+  location: string;
+  status: string;
+  is_responsible: boolean;
+  responsible: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  duration_minutes: number;
+  notes: string;
+};
+
+type Activity = {
   activity: string;
   time: {
     start: string;
@@ -16,141 +56,246 @@ interface Activity {
   };
   payant: boolean;
   status: 'past' | 'current' | 'future';
-}
+  is_permanence: boolean;
+  permanence_data?: PermanencePreview;
+};
+
+type DaysItem = {
+  type: 'days';
+  dates: string[];
+};
+
+type ActivitiesItem = {
+  type: 'activities';
+  activities: Activity[];
+};
+
+type PlanningListItem = DaysItem | ActivitiesItem;
+
+type PlanningResponse = {
+  [date: string]: Activity[];
+};
+
+type PermanenceDetails = {
+  id: number;
+  name: string;
+  start_datetime: string;
+  end_datetime: string;
+  location: string;
+  status: string;
+  is_responsible: boolean;
+  responsible: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  duration_minutes: number;
+  notes: string;
+};
 
 export default function PlanningScreen() {
-  const [selectedDate, setSelectedDate] = useState<string>("");
-  const [activitiesMap, setActivitiesMap] = useState<{ [key: string]: Activity[] }>({});
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [activitiesMap, setActivitiesMap] = useState<PlanningResponse>({});
   const [availableDates, setAvailableDates] = useState<string[]>([]);
+
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
-  const [disableRefresh, setDisableRefresh] = useState(false);
+  const [error, setError] = useState<string>('');
+
+  const [showPermanenceModal, setShowPermanenceModal] =
+    useState<boolean>(false);
+  const [permanenceDetails, setPermanenceDetails] =
+    useState<PermanenceDetails | null>(null);
+  const [loadingPermanence, setLoadingPermanence] = useState<boolean>(false);
+
   const { setUser } = useUser();
 
+  const slideAnim = useRef(new Animated.Value(1000)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  const activeOpacity = 1;
+  const inactiveOpacity = 0.4;
 
   const sortActivitiesByTime = (activities: Activity[]) => {
-    return activities.sort((a, b) => {
-      const timeA = a.time.start;
-      const timeB = b.time.start;
-      return timeA.localeCompare(timeB);
-    });
+    return activities.sort((a, b) => a.time.start.localeCompare(b.time.start));
   };
 
-  // Fonction pour déterminer la date par défaut à afficher
-  const getDefaultDate = (activitiesMap: { [key: string]: Activity[] }) => {
-    const dates = Object.keys(activitiesMap).sort();
-    if (dates.length === 0) return null;
+  const addDays = (dateString: string, days: number): string => {
+    const date = new Date(dateString);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+  };
 
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+  const processActivitiesSpanningMidnight = useCallback(
+    (data: PlanningResponse): PlanningResponse => {
+      const processed: PlanningResponse = {};
 
-    // S'il y a des activités en cours aujourd'hui
-    if (activitiesMap[todayStr]) {
-      const todayActivities = activitiesMap[todayStr];
-      const currentTime = new Date().toTimeString().split(' ')[0];
-
-      // S'il y a des activités qui ont commencé aujourd'hui et ne sont pas finies
-      const hasOngoingActivities = todayActivities.some(activity => {
-        const startTime = activity.time.start;
-        const endTime = activity.time.end;
-
-        if (startTime > endTime) {
-          return currentTime >= startTime || currentTime <= endTime;
-        } else {
-          return currentTime >= startTime && currentTime <= endTime;
+      Object.keys(data).forEach((date) => {
+        if (!processed[date]) {
+          processed[date] = [];
         }
+
+        data[date].forEach((activity) => {
+          if (activity.time.start > activity.time.end) {
+            processed[date].push({
+              ...activity,
+              time: {
+                start: activity.time.start,
+                end: '23:59',
+              },
+            });
+
+            const nextDay = addDays(date, 1);
+            if (!processed[nextDay]) {
+              processed[nextDay] = [];
+            }
+            processed[nextDay].push({
+              ...activity,
+              time: {
+                start: '00:00',
+                end: activity.time.end,
+              },
+            });
+          } else {
+            processed[date].push(activity);
+          }
+        });
       });
 
-      if (hasOngoingActivities) {
-        return todayStr;
-      }
-    }
+      return processed;
+    },
+    [],
+  );
 
-    // Sinon s'il y a des activités demain
-    if (activitiesMap[tomorrowStr]) {
-      return tomorrowStr;
-    }
+  const getDefaultDate = (map: PlanningResponse) => {
+    const dates = Object.keys(map).sort();
+    if (dates.length === 0) return null;
 
-    // Sinon, retourner la première date disponible
-    return dates[0];
+    const today = new Date().toISOString().split('T')[0];
+    return dates.includes(today) ? today : dates[0];
   };
 
   const fetchPlanning = useCallback(async () => {
     setLoading(true);
-    setDisableRefresh(true);
+    setError('');
+
     try {
-      const response = await apiGet("getPlanning");
-      if (response.success) {
-        const sortedActivitiesMap: { [key: string]: Activity[] } = {};
-        Object.keys(response.data).forEach(date => {
-          sortedActivitiesMap[date] = sortActivitiesByTime(response.data[date]);
+      const response = await apiGet<PlanningResponse>('planning');
+
+      if (isSuccessResponse(response) && response.data) {
+        const processedData = processActivitiesSpanningMidnight(response.data);
+        const sortedMap: PlanningResponse = {};
+
+        Object.keys(processedData).forEach((date) => {
+          sortedMap[date] = sortActivitiesByTime(processedData[date]);
         });
 
-        setActivitiesMap(sortedActivitiesMap);
-        const dates = Object.keys(sortedActivitiesMap).sort();
+        setActivitiesMap(sortedMap);
+        const dates = Object.keys(sortedMap).sort();
         setAvailableDates(dates);
 
-        if (dates.length > 0 && !selectedDate) {
-          const defaultDate = getDefaultDate(sortedActivitiesMap);
-          if (defaultDate) {
-            setSelectedDate(defaultDate);
-          }
-        }
-      } else {
-        setError("Une erreur est survenue lors de la récupération du planning");
+        setSelectedDate((currentDate) => {
+          if (dates.length === 0) return currentDate;
+          if (currentDate && dates.includes(currentDate)) return currentDate;
+          const defaultDate = getDefaultDate(sortedMap);
+          return defaultDate || currentDate;
+        });
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message || "Une erreur inattendue est survenue");
-      }
+    } catch (err: unknown) {
+      handleApiErrorScreen(err, setUser, setError);
     } finally {
       setLoading(false);
-      setTimeout(() => {
-        setDisableRefresh(false);
-      }, 5000);
     }
-  }, [setUser, selectedDate]);
+  }, [setUser, processActivitiesSpanningMidnight]);
 
   useEffect(() => {
-fetchPlanning();
+    fetchPlanning();
   }, [fetchPlanning]);
 
-  const handleDatePress = useCallback(
-    (date: string) => {
-      setSelectedDate(date);
+  const handleDatePress = useCallback((date: string) => {
+    setSelectedDate(date);
+  }, []);
+
+  const animateModalOpen = useCallback(() => {
+    const slide = slideAnim;
+    const fade = fadeAnim;
+    slide.setValue(1000);
+    fade.setValue(0);
+    Animated.parallel([
+      Animated.spring(slide, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 11,
+      }),
+      Animated.timing(fade, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // slideAnim and fadeAnim are stable refs from useRef
+
+  const animateModalClose = useCallback(() => {
+    const slide = slideAnim;
+    const fade = fadeAnim;
+    Animated.parallel([
+      Animated.timing(slide, {
+        toValue: 1000,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fade, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setShowPermanenceModal(false);
+      setPermanenceDetails(null);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // slideAnim and fadeAnim are stable refs from useRef
+
+  const handlePermanencePress = useCallback(
+    (permanenceData: PermanenceDetails) => {
+      setLoadingPermanence(true);
+      setShowPermanenceModal(true);
+      setPermanenceDetails(permanenceData);
+
+      animateModalOpen();
+
+      setTimeout(() => {
+        setLoadingPermanence(false);
+      }, 100);
     },
-    []
+    [animateModalOpen],
   );
 
-  const selectedActivities = activitiesMap[selectedDate] || [];
+  const closePermanenceModal = useCallback(() => {
+    animateModalClose();
+  }, [animateModalClose]);
 
   const formatDateForDisplay = (dateString: string) => {
     const date = new Date(dateString);
     const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-    const dayName = dayNames[date.getDay()];
-    const dayNumber = date.getDate().toString().padStart(2, '0');
-    return `${dayName} ${dayNumber}`;
+    return `${dayNames[date.getDay()]} ${date.getDate().toString().padStart(2, '0')}`;
   };
 
-  const data = [
-    { type: "days", dates: availableDates },
-    { type: "activities", activities: selectedActivities },
+  const selectedActivities = activitiesMap[selectedDate] || [];
+
+  const listData: PlanningListItem[] = [
+    { type: 'days', dates: availableDates },
+    { type: 'activities', activities: selectedActivities },
   ];
 
-  const renderItem = ({ item }: { item: any }) => {
-    if (item.type === "days") {
+  const renderItem = ({ item }: { item: PlanningListItem }) => {
+    if (item.type === 'days') {
       if (item.dates.length === 0) {
         return (
           <View style={styles.noDatesContainer}>
             <Calendar size={48} color={Colors.muted} />
-            <Text style={styles.noDatesText}>
-              Aucune activité planifiée pour le moment.
-            </Text>
+            <Text style={styles.noDatesText}>Aucune activité planifiée.</Text>
           </View>
         );
       }
@@ -159,28 +304,33 @@ fetchPlanning();
         <View style={styles.daysContainer}>
           {item.dates.map((date: string, index: number) => {
             const isSelected = selectedDate === date;
-            const displayText = formatDateForDisplay(date);
-            const [dayName, dayNumber] = displayText.split(" ");
+            const [dayName, dayNumber] = formatDateForDisplay(date).split(' ');
 
             return (
               <TouchableOpacity
                 key={index}
                 style={[
                   styles.dayButton,
-                  { backgroundColor: isSelected ? Colors.primary : Colors.white }
+                  {
+                    backgroundColor: isSelected ? Colors.primary : Colors.white,
+                  },
                 ]}
                 onPress={() => handleDatePress(date)}
               >
-                <Text style={[
-                  styles.dayLetter,
-                  { color: isSelected ? Colors.white : Colors.primaryBorder }
-                ]}>
+                <Text
+                  style={[
+                    styles.dayLetter,
+                    { color: isSelected ? Colors.white : Colors.primaryBorder },
+                  ]}
+                >
                   {dayName}
                 </Text>
-                <Text style={[
-                  styles.dayNumber,
-                  { color: isSelected ? Colors.white : Colors.primaryBorder }
-                ]}>
+                <Text
+                  style={[
+                    styles.dayNumber,
+                    { color: isSelected ? Colors.white : Colors.primaryBorder },
+                  ]}
+                >
                   {dayNumber}
                 </Text>
               </TouchableOpacity>
@@ -188,50 +338,70 @@ fetchPlanning();
           })}
         </View>
       );
-    } else if (item.type === "activities") {
-      const formattedDate0 = selectedDate
-        ? new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(selectedDate))
-        : "Sélectionnez une date";
+    }
 
-      const formattedDate = formattedDate0.charAt(0).toUpperCase() + formattedDate0.slice(1);
+    if (item.type === 'activities') {
+      const formattedDate0 = selectedDate
+        ? new Intl.DateTimeFormat('fr-FR', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+          }).format(new Date(selectedDate))
+        : 'Sélectionnez une date';
+      const formattedDate =
+        formattedDate0.charAt(0).toUpperCase() + formattedDate0.slice(1);
 
       return (
         <View style={styles.activitiesContainer}>
           <View style={styles.infoCard}>
             <Calendar size={20} color={Colors.primary} />
             <Text style={styles.infoText}>
-              Les animations déjà réservées sont indiquées en{" "}
+              Les animations réservées sont en{' '}
               <Text style={styles.primaryText}>bleu</Text>.
-              Vas-y seulement si tu as pris ta place !
             </Text>
           </View>
 
           <View style={styles.dateHeader}>
-            <Text style={styles.dateTitle}>
-              {formattedDate || "Sélectionnez une date"}
-            </Text>
+            <Text style={styles.dateTitle}>{formattedDate}</Text>
           </View>
 
           {item.activities.length > 0 ? (
             <View style={styles.activitiesList}>
               {item.activities.map((activity: Activity, index: number) => {
-                const titleColor = activity.payant ? Colors.primary : Colors.primaryBorder;
+                const titleColor = activity.payant
+                  ? Colors.primary
+                  : Colors.primaryBorder;
                 return (
                   <View
                     key={index}
                     style={[
                       styles.activityCard,
-                      { opacity: (activity.status === "past") ? 0.4 : 1 }
+                      {
+                        opacity:
+                          activity.status === 'past'
+                            ? inactiveOpacity
+                            : activeOpacity,
+                      },
                     ]}
                   >
                     <View style={styles.activityIndicator}>
-                      <View style={[
-                        styles.statusDot,
-                        { backgroundColor: (activity.status === "current") ? Colors.success : Colors.lightMuted }
-                      ]} />
+                      <View
+                        style={[
+                          styles.statusDot,
+                          {
+                            backgroundColor:
+                              activity.status === 'current'
+                                ? Colors.success
+                                : Colors.lightMuted,
+                          },
+                        ]}
+                      />
                     </View>
+
                     <View style={styles.activityContent}>
-                      <Text style={[styles.activityTitle, { color: titleColor }]}>
+                      <Text
+                        style={[styles.activityTitle, { color: titleColor }]}
+                      >
                         {activity.activity}
                       </Text>
                       <View style={styles.activityTime}>
@@ -241,6 +411,19 @@ fetchPlanning();
                         </Text>
                       </View>
                     </View>
+
+                    {activity.is_permanence && activity.permanence_data && (
+                      <TouchableOpacity
+                        style={styles.permanenceButton}
+                        onPress={() =>
+                          handlePermanencePress(activity.permanence_data!)
+                        }
+                      >
+                        <HousePlus size={18} color={Colors.primary} />
+                        <Text style={styles.permanenceButtonText}>Perm</Text>
+                        <Info size={16} color={Colors.primary} />
+                      </TouchableOpacity>
+                    )}
                   </View>
                 );
               })}
@@ -249,7 +432,7 @@ fetchPlanning();
             <View style={styles.noActivitiesContainer}>
               <MapPin size={48} color={Colors.muted} />
               <Text style={styles.noActivitiesText}>
-                Aucune activité prévue pour cette date.
+                Rien de prévu ce jour-là.
               </Text>
             </View>
           )}
@@ -263,22 +446,11 @@ fetchPlanning();
 
   if (loading) {
     return (
-      <View style={{
-        flex: 1,
-        backgroundColor: Colors.white,
-      }}>
+      <View style={styles.container}>
         <Header refreshFunction={undefined} disableRefresh={true} />
-        <View style={{
-          width: '100%',
-          flex: 1,
-          backgroundColor: Colors.white,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
-          <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
-            Chargement...
-          </Text>
+          <Text style={styles.loadingText}>Chargement...</Text>
         </View>
       </View>
     );
@@ -286,62 +458,240 @@ fetchPlanning();
 
   return (
     <View style={styles.container}>
-      <Header refreshFunction={fetchPlanning} disableRefresh={disableRefresh} />
+      <Header refreshFunction={fetchPlanning} disableRefresh={loading} />
       <View style={styles.headerContainer}>
-        <BoutonRetour previousRoute="homeScreen" title="Planning" />
+        <BoutonRetour title="Planning" />
       </View>
+
       <FlatList
-        data={data}
-        keyExtractor={(item, index) => index.toString()}
+        data={listData}
+        keyExtractor={(item) => item.type}
         renderItem={renderItem}
         contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
       />
+
+      <Modal
+        visible={showPermanenceModal}
+        animationType="none"
+        transparent={true}
+        statusBarTranslucent={true}
+        onRequestClose={closePermanenceModal}
+      >
+        <Animated.View style={[styles.modalOverlay, { opacity: fadeAnim }]}>
+          <TouchableOpacity
+            style={styles.container}
+            activeOpacity={1}
+            onPress={closePermanenceModal}
+          />
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.modalAnimatedContainer,
+            { transform: [{ translateY: slideAnim }] },
+          ]}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+            style={styles.modalContainer}
+          >
+            <View style={styles.modalHeader}>
+              <View style={styles.modalHeaderContent}>
+                <HousePlus size={28} color={Colors.primary} />
+                <Text style={styles.modalTitle}>
+                  {permanenceDetails?.name || 'Permanence'}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={closePermanenceModal}
+                style={styles.closeButton}
+              >
+                <X size={24} color={Colors.primaryBorder} />
+              </TouchableOpacity>
+            </View>
+
+            {loadingPermanence ? (
+              <View style={styles.modalLoading}>
+                <ActivityIndicator size="large" color={Colors.primary} />
+                <Text style={styles.loadingText}>Chargement...</Text>
+              </View>
+            ) : permanenceDetails ? (
+              <ScrollView
+                style={styles.modalContent}
+                showsVerticalScrollIndicator={false}
+              >
+                <View style={styles.detailSection}>
+                  <View style={styles.detailCard}>
+                    <View style={styles.detailCardHeader}>
+                      <Clock
+                        size={20}
+                        color={Colors.primary}
+                        strokeWidth={2.5}
+                      />
+                      <Text style={styles.detailCardTitle}>Horaires</Text>
+                    </View>
+                    <View style={styles.detailCardContent}>
+                      <Text style={styles.detailValue}>
+                        {new Date(
+                          permanenceDetails.start_datetime,
+                        ).toLocaleDateString('fr-FR', {
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'long',
+                        })}
+                      </Text>
+                      <View style={styles.timeRow}>
+                        <Text style={styles.timeValue}>
+                          {new Date(
+                            permanenceDetails.start_datetime,
+                          ).toLocaleTimeString('fr-FR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </Text>
+                        <Text style={styles.detailSeparator}>→</Text>
+                        <Text style={styles.timeValue}>
+                          {new Date(
+                            permanenceDetails.end_datetime,
+                          ).toLocaleTimeString('fr-FR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </Text>
+                      </View>
+                      <View style={styles.durationBadge}>
+                        <Timer
+                          size={14}
+                          color={Colors.primary}
+                          strokeWidth={2.5}
+                        />
+                        <Text style={styles.durationText}>
+                          {Math.floor(permanenceDetails.duration_minutes / 60)}h
+                          {permanenceDetails.duration_minutes % 60 > 0 &&
+                            ` ${permanenceDetails.duration_minutes % 60}min`}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {permanenceDetails.location && (
+                    <View style={styles.detailCard}>
+                      <View style={styles.detailCardHeader}>
+                        <MapPin
+                          size={20}
+                          color={Colors.primary}
+                          strokeWidth={2.5}
+                        />
+                        <Text style={styles.detailCardTitle}>Lieu</Text>
+                      </View>
+                      <View style={styles.detailCardContent}>
+                        <Text style={styles.detailValue}>
+                          {permanenceDetails.location}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+
+                  {permanenceDetails.notes && (
+                    <View style={styles.notesCard}>
+                      <View style={styles.detailCardHeader}>
+                        <Info
+                          size={20}
+                          color={Colors.primary}
+                          strokeWidth={2.5}
+                        />
+                        <Text style={styles.detailCardTitle}>Notes</Text>
+                      </View>
+                      <Text style={styles.notesText}>
+                        {permanenceDetails.notes}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </ScrollView>
+            ) : null}
+          </TouchableOpacity>
+        </Animated.View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.white,
+  activitiesContainer: {
+    marginTop: 0,
   },
-  headerContainer: {
-    width: '100%',
-    paddingHorizontal: 20,
+  activitiesList: {
+    gap: 12,
+    marginBottom: 20,
   },
-  listContainer: {
-    paddingHorizontal: 20,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  activityCard: {
     alignItems: 'center',
-  },
-  daysContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-    marginBottom: 12,
-    height: 64,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: Colors.primary,
     backgroundColor: Colors.white,
-    padding: 4,
+    borderColor: Colors.lightMuted,
+    borderRadius: 12,
+    borderWidth: 1,
+    elevation: 1,
+    flexDirection: 'row',
+    padding: 16,
+    position: 'relative',
     shadowColor: Colors.primaryBorder,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  activityContent: {
+    flex: 1,
+    gap: 4,
+  },
+  activityIndicator: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  activityTime: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
+  },
+  activityTimeText: {
+    ...TextStyles.small,
+    color: Colors.muted,
+  },
+  activityTitle: {
+    ...TextStyles.bodyBold,
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  closeButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 20,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
+  },
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  dateHeader: {
+    marginBottom: 16,
+  },
+  dateTitle: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
   },
   dayButton: {
-    flex: 1,
-    paddingVertical: 8,
+    alignItems: 'center',
     borderRadius: 12,
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'center',
     marginHorizontal: 2,
+    paddingVertical: 8,
   },
   dayLetter: {
     ...TextStyles.small,
@@ -352,17 +702,88 @@ const styles = StyleSheet.create({
     ...TextStyles.body,
     fontWeight: '700',
   },
-  activitiesContainer: {
-    marginTop: 0,
+  daysContainer: {
+    backgroundColor: Colors.white,
+    borderColor: Colors.primary,
+    borderRadius: 16,
+    borderWidth: 2,
+    elevation: 2,
+    flexDirection: 'row',
+    height: 64,
+    justifyContent: 'space-around',
+    marginBottom: 12,
+    padding: 4,
+    shadowColor: Colors.primaryBorder,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    width: '100%',
+  },
+  detailCard: {
+    backgroundColor: Colors.white,
+    borderColor: Colors.lightMuted,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 12,
+    padding: 16,
+  },
+  detailCardContent: {
+    gap: 8,
+  },
+  detailCardHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 4,
+  },
+  detailCardTitle: {
+    ...TextStyles.bodyBold,
+    color: Colors.primaryBorder,
+    fontSize: 16,
+  },
+  detailSection: {
+    gap: 16,
+    paddingBottom: 20,
+  },
+  detailSeparator: {
+    ...TextStyles.body,
+    color: Colors.primary,
+    fontSize: 20,
+  },
+  detailValue: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    lineHeight: 22,
+    textTransform: 'capitalize',
+  },
+  durationBadge: {
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  durationText: {
+    ...TextStyles.small,
+    color: Colors.primaryBorder,
+    fontWeight: '600',
+  },
+  headerContainer: {
+    paddingHorizontal: 20,
+    width: '100%',
   },
   infoCard: {
-    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.lightMuted,
     borderRadius: 12,
-    padding: 12,
-    marginBottom: 10,
+    flexDirection: 'row',
     gap: 12,
+    marginBottom: 10,
+    padding: 12,
   },
   infoText: {
     ...TextStyles.small,
@@ -370,92 +791,151 @@ const styles = StyleSheet.create({
     flex: 1,
     lineHeight: 20,
   },
+  listContainer: {
+    paddingHorizontal: 20,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    flex: 1,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16,
+  },
+  modalAnimatedContainer: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+  },
+  modalContainer: {
+    backgroundColor: Colors.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    elevation: 12,
+    maxHeight: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+  },
+  modalContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+  modalHeader: {
+    alignItems: 'center',
+    borderBottomColor: Colors.lightMuted,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+  modalHeaderContent: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalLoading: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  modalOverlay: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  modalTitle: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+    flex: 1,
+    flexWrap: 'wrap',
+  },
+  noActivitiesContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 16,
+    justifyContent: 'center',
+    marginTop: 20,
+    padding: 40,
+  },
+  noActivitiesText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    lineHeight: 20,
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  noDatesContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 16,
+    justifyContent: 'center',
+    marginTop: 20,
+    padding: 40,
+  },
+  noDatesText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    lineHeight: 20,
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  notesCard: {
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 12,
+    gap: 8,
+    padding: 16,
+  },
+  notesText: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    lineHeight: 22,
+  },
+  permanenceButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderColor: Colors.primary,
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  permanenceButtonText: {
+    ...TextStyles.body,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
   primaryText: {
     ...TextStyles.body,
     color: Colors.primary,
     fontWeight: '600',
   },
-  dateHeader: {
-    marginBottom: 16,
+  statusDot: {
+    borderRadius: 6,
+    height: 12,
+    width: 12,
   },
-  dateTitle: {
+  timeRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 4,
+  },
+  timeValue: {
     ...TextStyles.h3Bold,
     color: Colors.primaryBorder,
-  },
-  activitiesList: {
-    gap: 12,
-    marginBottom: 20,
-  },
-  activityCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: Colors.lightMuted,
-    shadowColor: Colors.primaryBorder,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  activityIndicator: {
-    marginRight: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  statusDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  activityContent: {
-    flex: 1,
-    gap: 4,
-  },
-  activityTitle: {
-    ...TextStyles.bodyBold,
-    fontSize: 16,
-    lineHeight: 20,
-  },
-  activityTime: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  activityTimeText: {
-    ...TextStyles.small,
-    color: Colors.muted,
-  },
-  noActivitiesContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-    backgroundColor: Colors.lightMuted,
-    borderRadius: 16,
-    marginTop: 20,
-  },
-  noActivitiesText: {
-    ...TextStyles.body,
-    textAlign: 'center',
-    color: Colors.muted,
-    marginTop: 12,
-    lineHeight: 20,
-  },
-  noDatesContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-    backgroundColor: Colors.lightMuted,
-    borderRadius: 16,
-    marginTop: 20,
-  },
-  noDatesText: {
-    ...TextStyles.body,
-    textAlign: 'center',
-    color: Colors.muted,
-    marginTop: 12,
-    lineHeight: 20,
+    fontSize: 18,
   },
 });

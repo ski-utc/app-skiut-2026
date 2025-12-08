@@ -1,18 +1,21 @@
-import { SafeAreaView, StyleSheet } from "react-native";
-import OAuthScreen from "./OAuthScreen";
-import { Colors } from "@/constants/GraphSettings";
+import { StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { Colors } from '@/constants/GraphSettings';
+
+import OAuthScreen from './OAuthScreen';
 
 export default function LoginScreen() {
-    return (
-        <SafeAreaView style={styles.container}>
-          <OAuthScreen/>
-        </SafeAreaView>
-    );
+  return (
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+      <OAuthScreen />
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.white,
-    },
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
 });

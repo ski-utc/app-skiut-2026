@@ -1,56 +1,116 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Image, Text, ActivityIndicator, TouchableOpacity, Alert, TextInput, KeyboardAvoidingView, ScrollView, Platform, StyleSheet } from 'react-native';
+import { useEffect, useState, useCallback } from 'react';
+import {
+  View,
+  Image,
+  Text,
+  ActivityIndicator,
+  TouchableOpacity,
+  TextInput,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform,
+  StyleSheet,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import * as ImageManipulator from "expo-image-manipulator";
-import { Colors, TextStyles } from '@/constants/GraphSettings';
-import Header from '../../components/header';
-import { useUser } from '@/contexts/UserContext';
-import { useNavigation } from '@react-navigation/native';
-import BoutonRetour from '@/components/divers/boutonRetour';
-import { apiPost, apiGet } from '@/constants/api/apiCalls';
-import ErrorScreen from '@/components/pages/errorPage';
+import * as ImageManipulator from 'expo-image-manipulator';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
-import { Camera, Save, X } from 'lucide-react-native';
+import { Camera, Save, X, UserCircle } from 'lucide-react-native';
+
+import { useUser } from '@/contexts/UserContext';
+import BoutonRetour from '@/components/divers/boutonRetour';
+import {
+  apiPost,
+  apiGet,
+  apiPut,
+  ApiResponse,
+  isSuccessResponse,
+  isPendingResponse,
+  handleApiErrorToast,
+  handleApiErrorScreen,
+  AppError,
+} from '@/constants/api/apiCalls';
+import ErrorScreen from '@/components/pages/errorPage';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+
+import Header from '../../components/header';
+
+import { SkinderStackParamList } from './skinderNavigator';
+
+type Profile = {
+  id: number | null;
+  name: string;
+  description: string;
+  passions: string[];
+  image: string;
+};
+
+type MaxFileSizeResponse = {
+  maxImageSize: number;
+};
 
 export default function SkinderProfil() {
-  const [profile, setProfile] = useState({
+  const [profile, setProfile] = useState<Profile>({
     id: null,
-    nom: '',
+    name: '',
     description: '',
     passions: ['', '', '', '', '', ''],
+    image: '',
   });
-  const [profileImage, setProfileImage] = useState('https://i.fbcd.co/products/resized/resized-750-500/563d0201e4359c2e890569e254ea14790eb370b71d08b6de5052511cc0352313.jpg');
-  const [loading, setLoading] = useState(false);
+
+  const [profileImage, setProfileImage] = useState('');
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [modifiedPicture, setModifiedPicture] = useState(false);
-  const [charLimits, setCharLimits] = useState(Array(6).fill(0));
+  const [charLimits, setCharLimits] = useState<number[]>(Array(6).fill(0));
+  const [imageError, setImageError] = useState(false);
 
   const { setUser } = useUser();
-  const navigation = useNavigation();
-const fetchProfil = useCallback(async () => {
+  const navigation = useNavigation<NavigationProp<SkinderStackParamList>>();
+
+  const fetchProfil = useCallback(async () => {
     setLoading(true);
+    setError('');
+
     try {
-      const response = await apiGet('getMyProfilSkinder');
-      if (response.success) {
-        const passions = Array.isArray(response.data.passions)
-          ? response.data.passions
-          : JSON.parse(response.data.passions || '[]');
+      const response = await apiGet<Profile>('skinder/my-profile');
+
+      if (isSuccessResponse(response)) {
+        const data = response.data;
+
+        let passionsList: string[] = [];
+        if (typeof data.passions === 'string') {
+          try {
+            passionsList = JSON.parse(data.passions);
+          } catch {
+            passionsList = [];
+          }
+        } else if (Array.isArray(data.passions)) {
+          passionsList = data.passions;
+        }
+
+        const paddedPassions = [...Array(6)].map(
+          (_, i) => passionsList[i] || '',
+        );
+
         setProfile({
-          id: response.data.id,
-          nom: response.data.name,
-          description: response.data.description,
-          passions: [...Array(6)].map((_, i) => passions[i] || ''),
+          id: data.id,
+          name: data.name,
+          description: data.description || '',
+          passions: paddedPassions,
+          image: data.image,
         });
-        setProfileImage(`${response.data.image}?timestamp=${Date.now()}`);
-      } else {
-        setError(response.message || "Erreur lors de la récupération du profil.");
+
+        if (data.image) {
+          setProfileImage(`${data.image}?timestamp=${Date.now()}`);
+          setImageError(false);
+        } else {
+          setProfileImage('');
+          setImageError(true);
+        }
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message || "Erreur réseau.");
-      }
+    } catch (err: unknown) {
+      handleApiErrorScreen(err, setUser, setError);
     } finally {
       setLoading(false);
     }
@@ -61,94 +121,110 @@ const fetchProfil = useCallback(async () => {
   }, [fetchProfil]);
 
   const handleImagePick = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.status !== 'granted') {
-      Alert.alert('Permission requise', 'Nous avons besoin de votre permission pour accéder à votre galerie.');
+      Toast.show({
+        type: 'error',
+        text1: 'Permission requise',
+        text2:
+          'Nous avons besoin de votre permission pour accéder à votre galerie.',
+      });
       return;
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 1,
     });
 
-    if (result.canceled) {
+    if (result.canceled) return;
+
+    const { uri, width } = result.assets[0];
+    let compressQuality = 1;
+    let currentUri = uri;
+    let fileInfo = await fetch(uri).then((res) => res.blob());
+
+    let maxFileSize = 5 * 1024 * 1024; // 5MB default
+    try {
+      const sizeRes = await apiGet<MaxFileSizeResponse>(
+        'challenges/max-file-size',
+      );
+      if (isSuccessResponse(sizeRes)) {
+        maxFileSize = sizeRes.data.maxImageSize || maxFileSize;
+      }
+    } catch {
+      maxFileSize = 5 * 1024 * 1024;
+    }
+
+    while (fileInfo.size > maxFileSize && compressQuality > 0.1) {
+      compressQuality -= 0.1;
+      const manipResult = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ resize: { width: width > 1080 ? 1080 : width } }],
+        { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG },
+      );
+      currentUri = manipResult.uri;
+      fileInfo = await fetch(manipResult.uri).then((res) => res.blob());
+    }
+
+    if (fileInfo.size > maxFileSize) {
+      Toast.show({
+        type: 'error',
+        text1: 'Erreur',
+        text2: 'Image trop lourde même après compression :(',
+      });
       return;
     }
 
-    try {
-      const { uri, width } = result.assets[0];
-      let compressQuality = 1;
-
-      let compressedImage = await ImageManipulator.manipulateAsync(
-        uri,
-        [
-          { resize: { width: width > 1080 ? 1080 : width } },
-        ],
-        { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
-      );
-
-      let fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
-      let maxFileSize = 1024 * 1024;
-      try {
-        const getTailleMax = await apiGet("getMaxFileSize");
-        if (getTailleMax.success) {
-          maxFileSize = getTailleMax.data;
-        }
-      } catch (error: any) {
-        if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-          setUser(null);
-        } else {
-          setError(error.message);
-        }
-      }
-      while (fileInfo.size > maxFileSize && compressQuality > 0.1) {
-        compressQuality -= 0.1;
-        compressedImage = await ImageManipulator.manipulateAsync(
-          uri,
-          [
-            { resize: { width: width > 1080 ? 1080 : width } },
-          ],
-          { compress: compressQuality, format: ImageManipulator.SaveFormat.JPEG }
-        );
-
-        fileInfo = await fetch(compressedImage.uri).then((res) => res.blob());
-      }
-
-      if (fileInfo.size > 1 * 1024 * 1024) {
-        Alert.alert('Erreur', 'Image trop lourde même après compression :(');
-        return;
-      }
-
-      setModifiedPicture(true);
-      setProfileImage(compressedImage.uri);
-    } catch {
-      setError('Erreur lors de la compression de l\'image.');
-    }
+    setModifiedPicture(true);
+    setProfileImage(currentUri);
+    setImageError(false);
   };
 
   const uploadImage = async (uri: string) => {
     try {
       const fileInfo = await fetch(uri).then((res) => res.blob());
 
-      if (fileInfo.size > 1 * 1024 * 1024) {
-        Alert.alert('Erreur', 'L\'image dépasse la taille maximale de 1 Mo.');
-        return;
+      let maxFileSize = 5 * 1024 * 1024; // 5MB default
+      try {
+        const sizeRes = await apiGet<MaxFileSizeResponse>(
+          'challenges/max-file-size',
+        );
+        if (isSuccessResponse(sizeRes)) {
+          maxFileSize = sizeRes.data.maxImageSize || maxFileSize;
+        }
+      } catch {
+        maxFileSize = 5 * 1024 * 1024;
+      }
+
+      if (fileInfo.size > maxFileSize) {
+        return {
+          success: false,
+          message: `Image trop lourde (>${Math.round(maxFileSize / 1024 / 1024)}Mo)`,
+          pending: false,
+        };
       }
 
       const formData = new FormData();
-      formData.append('image', {
-        uri,
-        name: `room_${profile.id}.jpg`,
-        type: 'image/jpeg',
-      } as any);
 
-      const response = await apiPost('uploadRoomImage', formData, true);
-      return response;
-    } catch (error: any) {
-      setError(error.message || "Erreur lors du téléversement de l'image");
+      // @ts-expect-error ts(2769)
+      formData.append('media', {
+        uri: uri,
+        name: `room_${profile.id || 'new'}.jpg`,
+        type: 'image/jpeg',
+      });
+
+      return await apiPost('skinder/my-profile/image', formData, true);
+    } catch (err: unknown) {
+      handleApiErrorToast(err as AppError, setUser);
+      return {
+        success: false,
+        message: "Problème lors de l'upload de l'image.",
+        pending: false,
+      };
     }
   };
 
@@ -156,72 +232,71 @@ const fetchProfil = useCallback(async () => {
     setLoading(true);
 
     try {
-      const filteredPassions = profile.passions.filter(p => p.trim() !== '');
-      const response = await apiPost('modifyProfilSkinder', { 'description': profile.description, 'passions': filteredPassions });
+      const filteredPassions = profile.passions.filter((p) => p.trim() !== '');
+
+      const textResponse = await apiPut('skinder/my-profile', {
+        description: profile.description,
+        passions: filteredPassions,
+      });
+
+      let imageResponse: ApiResponse = {
+        success: true,
+        pending: false,
+        message: '',
+        data: [],
+      };
+
       if (modifiedPicture) {
-        const response2 = await uploadImage(profileImage);
+        imageResponse = (await uploadImage(profileImage)) as ApiResponse;
+      }
+
+      const isSuccess =
+        (isSuccessResponse(textResponse) || isPendingResponse(textResponse)) &&
+        (!modifiedPicture ||
+          isSuccessResponse(imageResponse as ApiResponse<unknown>) ||
+          isPendingResponse(imageResponse as ApiResponse<unknown>));
+
+      const isPending =
+        isPendingResponse(textResponse) ||
+        (modifiedPicture &&
+          isPendingResponse(imageResponse as ApiResponse<unknown>));
+
+      if (isSuccess) {
         Toast.show({
-          type: (response.success && response2.success ? 'success' : 'error'),
-          text1: 'Profil modifié !',
-          text2: response.message + ' ' + response2.message,
+          type: isPending ? 'info' : 'success',
+          text1: isPending
+            ? 'Modifications enregistrées (Hors ligne)'
+            : 'Profil modifié !',
+          text2: isPending
+            ? 'Synchronisation en attente.'
+            : 'Vos changements sont en ligne.',
         });
-        if (response.success && response2.success) {
-          (navigation as any).navigate('skinderDiscover');
-        } else {
-          setError(response.message || 'Erreur lors de la sauvegarde des données.');
-        }
+        navigation.navigate('skinderDiscover');
       } else {
-        if (response.success) {
-          Toast.show({
-            type: 'success',
-            text1: 'Profil modifié !',
-            text2: response.message,
-          });
-          (navigation as any).navigate('skinderDiscover');
-        } else {
-          Toast.show({
-            type: 'error',
-            text1: 'Une erreur est survenue...',
-            text2: response.message,
-          });
-          setError(response.message || 'Erreur lors de la sauvegarde des données.');
-        }
+        const msg =
+          textResponse.message ||
+          imageResponse.message ||
+          'Erreur lors de la sauvegarde.';
+        Toast.show({ type: 'error', text1: 'Erreur', text2: msg });
       }
-    } catch (error: any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message || 'Erreur réseau ou serveur.');
-      }
+    } catch (err: unknown) {
+      handleApiErrorToast(err as AppError, setUser);
     } finally {
       setLoading(false);
     }
   };
 
   if (error) {
-    return (
-      <ErrorScreen error={error} />
-    );
+    return <ErrorScreen error={error} />;
   }
 
-  if (loading) {
+  if (loading && !profile.id) {
     return (
-      <View style={{
-        flex: 1,
-        backgroundColor: Colors.white,
-      }}>
+      <View style={styles.container}>
         <Header refreshFunction={undefined} disableRefresh={true} />
-        <View style={{
-          width: '100%',
-          flex: 1,
-          backgroundColor: Colors.white,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primaryBorder} />
-          <Text style={[TextStyles.body, { color: Colors.muted, marginTop: 16 }]}>
-            Chargement...
-          </Text>
+          <Text style={styles.loadingText}>Chargement...</Text>
         </View>
       </View>
     );
@@ -233,25 +308,40 @@ const fetchProfil = useCallback(async () => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <Header refreshFunction={null} disableRefresh={true} />
+
       <View style={styles.headerContainer}>
-        <BoutonRetour previousRoute={'homeNavigator'} title={'Modifier mon profil'} />
+        <BoutonRetour title={'Informations de ma chambre'} />
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={styles.photoSection}>
-          <TouchableOpacity onPress={handleImagePick} style={styles.photoContainer}>
-            <Image
-              source={{ uri: profileImage }}
-              style={styles.profileImage}
-              resizeMode="cover"
-              onError={() => setProfileImage("https://i.fbcd.co/products/resized/resized-750-500/563d0201e4359c2e890569e254ea14790eb370b71d08b6de5052511cc0352313.jpg")}
-            />
+          <TouchableOpacity
+            onPress={handleImagePick}
+            style={styles.photoContainer}
+          >
+            {!imageError && profileImage ? (
+              <Image
+                source={{ uri: profileImage }}
+                style={styles.profileImage}
+                resizeMode="cover"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <View
+                style={[styles.profileImage, styles.profileImagePlaceholder]}
+              >
+                <UserCircle size={100} color={Colors.muted} />
+              </View>
+            )}
             <View style={styles.photoOverlay}>
               <Camera size={24} color={Colors.white} />
               <Text style={styles.photoOverlayText}>Modifier</Text>
             </View>
           </TouchableOpacity>
-          <Text style={styles.profileName}>{profile.nom}</Text>
+          <Text style={styles.profileName}>{profile.name}</Text>
         </View>
 
         <View style={styles.section}>
@@ -263,15 +353,22 @@ const fetchProfil = useCallback(async () => {
             multiline={true}
             numberOfLines={4}
             value={profile.description}
-            onChangeText={(text) => text.length <= 100 ? setProfile({ ...profile, description: text }) : null}
+            onChangeText={(text) =>
+              text.length <= 100 &&
+              setProfile({ ...profile, description: text })
+            }
             textAlignVertical="top"
           />
-          <Text style={styles.characterCount}>{profile.description.length}/100</Text>
+          <Text style={styles.characterCount}>
+            {(profile.description || '').length}/100
+          </Text>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Vos passions</Text>
-          <Text style={styles.sectionSubtitle}>Ajoutez jusqu'à 6 passions (16 caractères max chacune)</Text>
+          <Text style={styles.sectionSubtitle}>
+            Ajoutez jusqu'à 6 passions (16 caractères max chacune)
+          </Text>
           <View style={styles.passionsGrid}>
             {profile.passions.map((passion, index) => (
               <View key={index} style={styles.passionInputContainer}>
@@ -285,14 +382,15 @@ const fetchProfil = useCallback(async () => {
                       const newPassions = [...profile.passions];
                       newPassions[index] = text;
                       setProfile({ ...profile, passions: newPassions });
+
                       const newCharLimits = [...charLimits];
                       newCharLimits[index] = text.length;
                       setCharLimits(newCharLimits);
                     }
                   }}
                 />
-                {16 - charLimits[index] === 0 && (
-                  <Text style={styles.passionError}>Trop long</Text>
+                {passion.length === 16 && (
+                  <Text style={styles.passionError}>Max atteint</Text>
                 )}
               </View>
             ))}
@@ -303,17 +401,25 @@ const fetchProfil = useCallback(async () => {
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={styles.cancelButton}
+            disabled={loading}
           >
             <X size={20} color={Colors.muted} />
             <Text style={styles.cancelButtonText}>Annuler</Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             onPress={handleSendData}
             style={styles.saveButton}
             disabled={loading}
           >
-            <Save size={20} color={Colors.white} />
-            <Text style={styles.saveButtonText}>Sauvegarder</Text>
+            {loading ? (
+              <ActivityIndicator color={Colors.white} size="small" />
+            ) : (
+              <>
+                <Save size={20} color={Colors.white} />
+                <Text style={styles.saveButtonText}>Sauvegarder</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -322,19 +428,66 @@ const fetchProfil = useCallback(async () => {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  actionsContainer: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 24,
+  },
+  cancelButton: {
+    alignItems: 'center',
     backgroundColor: Colors.white,
+    borderColor: Colors.muted,
+    borderRadius: 12,
+    borderWidth: 1,
+    flex: 1,
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  cancelButtonText: {
+    ...TextStyles.button,
+    color: Colors.muted,
+    fontWeight: '600',
+  },
+  characterCount: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    marginTop: 8,
+    textAlign: 'right',
+  },
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+  },
+  descriptionInput: {
+    backgroundColor: Colors.white,
+    borderColor: 'rgba(0,0,0,0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 16,
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    elevation: 2,
+    minHeight: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
   },
   headerContainer: {
-    width: '100%',
-    paddingHorizontal: 20,
     paddingBottom: 8,
+    paddingHorizontal: 20,
+    width: '100%',
   },
   loadingContainer: {
+    alignItems: 'center',
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
     paddingHorizontal: 20,
   },
   loadingText: {
@@ -343,155 +496,114 @@ const styles = StyleSheet.create({
     marginTop: 16,
     textAlign: 'center',
   },
-  content: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-  photoSection: {
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  photoContainer: {
-    position: 'relative',
-    marginBottom: 16,
-  },
-  profileImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    borderWidth: 4,
-    borderColor: Colors.primary,
-  },
-  photoOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: Colors.primary,
-    borderRadius: 20,
-    padding: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  photoOverlayText: {
+  passionError: {
     ...TextStyles.small,
-    color: Colors.white,
-    fontWeight: '600',
-  },
-  profileName: {
-    ...TextStyles.h2Bold,
-    color: Colors.primaryBorder,
+    color: Colors.accent,
+    fontSize: 10,
+    marginTop: 4,
     textAlign: 'center',
   },
-  section: {
-    marginBottom: 0,
-  },
-  sectionTitle: {
-    ...TextStyles.h3Bold,
-    color: Colors.primaryBorder,
-    marginBottom: 8,
-  },
-  sectionSubtitle: {
-    ...TextStyles.small,
-    color: Colors.muted,
-    marginBottom: 16,
-  },
-  descriptionInput: {
+  passionInput: {
     backgroundColor: Colors.white,
+    borderColor: Colors.primary,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.1)',
-    borderRadius: 12,
-    padding: 16,
-    ...TextStyles.body,
-    color: Colors.primaryBorder,
-    minHeight: 100,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  characterCount: {
+    padding: 12,
     ...TextStyles.small,
-    color: Colors.muted,
-    textAlign: 'right',
-    marginTop: 8,
+    color: Colors.primaryBorder,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    textAlign: 'center',
+  },
+  passionInputContainer: {
+    minWidth: 100,
+    width: '30%',
   },
   passionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
   },
-  passionInputContainer: {
-    width: '30%',
-    minWidth: 100,
+  photoContainer: {
+    marginBottom: 16,
+    position: 'relative',
   },
-  passionInput: {
-    backgroundColor: Colors.white,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    borderRadius: 8,
-    padding: 12,
-    ...TextStyles.small,
-    color: Colors.primaryBorder,
-    textAlign: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  passionError: {
-    ...TextStyles.small,
-    color: Colors.accent,
-    textAlign: 'center',
-    marginTop: 4,
-  },
-  actionsContainer: {
-    flexDirection: 'row',
-    gap: 16,
-    marginTop: 24,
-  },
-  cancelButton: {
-    flex: 1,
-    flexDirection: 'row',
+  photoOverlay: {
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: Colors.white,
-    borderWidth: 1,
-    borderColor: Colors.muted,
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    backgroundColor: Colors.primary,
+    borderRadius: 20,
+    bottom: 0,
+    flexDirection: 'row',
+    gap: 4,
+    padding: 8,
+    position: 'absolute',
+    right: 0,
   },
-  cancelButtonText: {
-    ...TextStyles.button,
-    color: Colors.muted,
+  photoOverlayText: {
+    ...TextStyles.small,
+    color: Colors.white,
     fontWeight: '600',
   },
-  saveButton: {
-    flex: 1,
-    flexDirection: 'row',
+  photoSection: {
     alignItems: 'center',
+    marginVertical: 24,
+  },
+  profileImage: {
+    borderColor: Colors.primary,
+    borderRadius: 75,
+    borderWidth: 4,
+    height: 150,
+    width: 150,
+  },
+  profileImagePlaceholder: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
     justifyContent: 'center',
-    gap: 8,
+  },
+  profileName: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+    textAlign: 'center',
+  },
+  saveButton: {
+    alignItems: 'center',
     backgroundColor: Colors.primary,
     borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
     elevation: 3,
+    flex: 1,
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   saveButtonText: {
     ...TextStyles.button,
     color: Colors.white,
     fontWeight: '600',
+  },
+  scrollContent: {
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+  },
+  section: {
+    marginBottom: 4,
+  },
+  sectionSubtitle: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 8,
   },
 });

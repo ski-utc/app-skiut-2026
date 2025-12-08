@@ -119,6 +119,53 @@ export default function PlanningScreen() {
     return activities.sort((a, b) => a.time.start.localeCompare(b.time.start));
   };
 
+  const addDays = (dateString: string, days: number): string => {
+    const date = new Date(dateString);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+  };
+
+  const processActivitiesSpanningMidnight = useCallback(
+    (data: PlanningResponse): PlanningResponse => {
+      const processed: PlanningResponse = {};
+
+      Object.keys(data).forEach((date) => {
+        if (!processed[date]) {
+          processed[date] = [];
+        }
+
+        data[date].forEach((activity) => {
+          if (activity.time.start > activity.time.end) {
+            processed[date].push({
+              ...activity,
+              time: {
+                start: activity.time.start,
+                end: '23:59',
+              },
+            });
+
+            const nextDay = addDays(date, 1);
+            if (!processed[nextDay]) {
+              processed[nextDay] = [];
+            }
+            processed[nextDay].push({
+              ...activity,
+              time: {
+                start: '00:00',
+                end: activity.time.end,
+              },
+            });
+          } else {
+            processed[date].push(activity);
+          }
+        });
+      });
+
+      return processed;
+    },
+    [],
+  );
+
   const getDefaultDate = (map: PlanningResponse) => {
     const dates = Object.keys(map).sort();
     if (dates.length === 0) return null;
@@ -135,10 +182,11 @@ export default function PlanningScreen() {
       const response = await apiGet<PlanningResponse>('planning');
 
       if (isSuccessResponse(response) && response.data) {
+        const processedData = processActivitiesSpanningMidnight(response.data);
         const sortedMap: PlanningResponse = {};
 
-        Object.keys(response.data).forEach((date) => {
-          sortedMap[date] = sortActivitiesByTime(response.data[date]);
+        Object.keys(processedData).forEach((date) => {
+          sortedMap[date] = sortActivitiesByTime(processedData[date]);
         });
 
         setActivitiesMap(sortedMap);
@@ -157,7 +205,7 @@ export default function PlanningScreen() {
     } finally {
       setLoading(false);
     }
-  }, [setUser]);
+  }, [setUser, processActivitiesSpanningMidnight]);
 
   useEffect(() => {
     fetchPlanning();

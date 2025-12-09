@@ -30,6 +30,7 @@ import {
   Carrot,
   Fish,
   Wheat,
+  Send,
   LucideProps,
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
@@ -387,25 +388,15 @@ export default function MonoprutScreen() {
 
       <Modal
         visible={showCreateModal}
-        animationType="none"
+        animationType="fade"
         transparent={true}
         statusBarTranslucent={true}
         onRequestClose={closeCreateModal}
       >
-        <Animated.View style={[styles.modalOverlay, { opacity: fadeAnim }]}>
-          <TouchableOpacity
-            style={styles.container}
-            activeOpacity={1}
-            onPress={closeCreateModal}
-          />
-        </Animated.View>
-
-        <Animated.View
-          style={[
-            styles.modalAnimatedContainer,
-            { transform: [{ translateY: slideAnim }] },
-          ]}
-          pointerEvents="box-none"
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={closeCreateModal}
         >
           <TouchableOpacity
             activeOpacity={1}
@@ -413,11 +404,12 @@ export default function MonoprutScreen() {
             style={styles.modalContainer}
           >
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Proposer un article</Text>
+              <View style={styles.modalHeaderContent}>
+                <Text style={styles.modalTitle}>Proposer un article</Text>
+              </View>
               <TouchableOpacity
-                style={styles.closeButton}
                 onPress={closeCreateModal}
-                disabled={formSubmitting}
+                style={styles.modalCloseButton}
               >
                 <X size={24} color={Colors.primaryBorder} />
               </TouchableOpacity>
@@ -512,38 +504,41 @@ export default function MonoprutScreen() {
                   </View>
                 </View>
               </View>
-            </ScrollView>
 
-            <View style={styles.footer}>
-              <TouchableOpacity
-                style={[
-                  styles.cancelButton,
-                  formSubmitting && styles.buttonDisabled,
-                ]}
-                onPress={closeCreateModal}
-                disabled={formSubmitting}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.cancelButtonText}>Annuler</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.submitButton,
-                  formSubmitting && styles.buttonDisabled,
-                  (!formIsChecked || formSubmitting) && styles.buttonDisabled,
-                ]}
-                onPress={handleSubmit}
-                disabled={formSubmitting || !formIsChecked}
-              >
-                {formSubmitting ? (
-                  <ActivityIndicator size="small" color={Colors.white} />
-                ) : (
-                  <Text style={styles.submitButtonText}>Publier</Text>
-                )}
-              </TouchableOpacity>
-            </View>
+              <View style={styles.footer}>
+                <TouchableOpacity
+                  style={[
+                    styles.cancelButton,
+                    formSubmitting && styles.buttonDisabled,
+                  ]}
+                  onPress={closeCreateModal}
+                  disabled={formSubmitting}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.cancelButtonText}>Annuler</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.submitButton,
+                    formSubmitting && styles.buttonDisabled,
+                    (!formIsChecked || formSubmitting) && styles.buttonDisabled,
+                  ]}
+                  onPress={handleSubmit}
+                  disabled={formSubmitting || !formIsChecked}
+                >
+                  {formSubmitting ? (
+                    <ActivityIndicator size="small" color={Colors.white} />
+                  ) : (
+                    <>
+                      <Send size={20} color={Colors.white} />
+                      <Text style={styles.submitButtonText}>Publier</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </TouchableOpacity>
-        </Animated.View>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );
@@ -574,14 +569,6 @@ const styles = StyleSheet.create({
     height: 24,
     marginTop: 2,
     width: 24,
-  },
-  closeButton: {
-    alignItems: 'center',
-    backgroundColor: Colors.lightMuted,
-    borderRadius: 20,
-    height: 40,
-    justifyContent: 'center',
-    width: 40,
   },
   container: {
     backgroundColor: Colors.white,
@@ -628,11 +615,12 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     flexDirection: 'row',
     gap: 12,
+    paddingBottom: 40,
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
   formGroup: {
-    marginBottom: 24,
+    marginBottom: 6,
   },
   headerContainer: {
     paddingBottom: 8,
@@ -668,22 +656,18 @@ const styles = StyleSheet.create({
     ...TextStyles.body,
     color: Colors.muted,
   },
-  modalAnimatedContainer: {
-    bottom: 0,
-    justifyContent: 'flex-end',
-    left: 0,
-    position: 'absolute',
-    right: 0,
+  modalCloseButton: {
+    padding: 4,
   },
   modalContainer: {
     backgroundColor: Colors.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     elevation: 12,
-    maxHeight: '70%',
+    maxHeight: '80%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.25,
     shadowRadius: 12,
   },
   modalContentScroll: {
@@ -696,16 +680,19 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingBottom: 16,
     paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingTop: 24,
+  },
+  modalHeaderContent: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
   },
   modalOverlay: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
+    flex: 1,
+    justifyContent: 'flex-end',
   },
   modalTitle: {
     ...TextStyles.h2Bold,
@@ -758,9 +745,13 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     alignItems: 'center',
-    backgroundColor: Colors.accent,
-    borderRadius: 8,
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
     flex: 1,
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
     paddingVertical: 14,
   },
   submitButtonText: {

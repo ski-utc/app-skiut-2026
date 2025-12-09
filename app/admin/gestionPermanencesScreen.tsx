@@ -626,7 +626,6 @@ export default function GestionPermanencesScreen() {
               style={styles.modalContent}
               showsVerticalScrollIndicator={false}
             >
-              {/* Name */}
               <View style={styles.inputSection}>
                 <View style={styles.inputHeader}>
                   <FileText size={16} color={Colors.primary} />

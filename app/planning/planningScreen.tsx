@@ -54,6 +54,10 @@ type Activity = {
     start: string;
     end: string;
   };
+  originalTime?: {
+    start: string;
+    end: string;
+  };
   payant: boolean;
   status: 'past' | 'current' | 'future';
   is_permanence: boolean;
@@ -136,12 +140,18 @@ export default function PlanningScreen() {
 
         data[date].forEach((activity) => {
           if (activity.time.start > activity.time.end) {
+            const originalTime = {
+              start: activity.time.start,
+              end: activity.time.end,
+            };
+
             processed[date].push({
               ...activity,
               time: {
                 start: activity.time.start,
                 end: '23:59',
               },
+              originalTime,
             });
 
             const nextDay = addDays(date, 1);
@@ -154,6 +164,7 @@ export default function PlanningScreen() {
                 start: '00:00',
                 end: activity.time.end,
               },
+              originalTime,
             });
           } else {
             processed[date].push(activity);
@@ -407,7 +418,9 @@ export default function PlanningScreen() {
                       <View style={styles.activityTime}>
                         <Clock size={14} color={Colors.muted} />
                         <Text style={styles.activityTimeText}>
-                          {activity.time.start} - {activity.time.end}
+                          {activity.originalTime
+                            ? `${activity.originalTime.start} - ${activity.originalTime.end}`
+                            : `${activity.time.start} - ${activity.time.end}`}
                         </Text>
                       </View>
                     </View>
@@ -473,24 +486,15 @@ export default function PlanningScreen() {
 
       <Modal
         visible={showPermanenceModal}
-        animationType="none"
+        animationType="fade"
         transparent={true}
         statusBarTranslucent={true}
         onRequestClose={closePermanenceModal}
       >
-        <Animated.View style={[styles.modalOverlay, { opacity: fadeAnim }]}>
-          <TouchableOpacity
-            style={styles.container}
-            activeOpacity={1}
-            onPress={closePermanenceModal}
-          />
-        </Animated.View>
-
-        <Animated.View
-          style={[
-            styles.modalAnimatedContainer,
-            { transform: [{ translateY: slideAnim }] },
-          ]}
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={closePermanenceModal}
         >
           <TouchableOpacity
             activeOpacity={1}
@@ -499,14 +503,14 @@ export default function PlanningScreen() {
           >
             <View style={styles.modalHeader}>
               <View style={styles.modalHeaderContent}>
-                <HousePlus size={28} color={Colors.primary} />
-                <Text style={styles.modalTitle}>
-                  {permanenceDetails?.name || 'Permanence'}
+                <HousePlus size={24} color={Colors.primary} />
+                <Text style={styles.modalTitle} numberOfLines={2}>
+                  {permanenceDetails?.name}
                 </Text>
               </View>
               <TouchableOpacity
-                onPress={closePermanenceModal}
-                style={styles.closeButton}
+                onPress={animateModalClose}
+                style={styles.modalCloseButton}
               >
                 <X size={24} color={Colors.primaryBorder} />
               </TouchableOpacity>
@@ -515,105 +519,67 @@ export default function PlanningScreen() {
             {loadingPermanence ? (
               <View style={styles.modalLoading}>
                 <ActivityIndicator size="large" color={Colors.primary} />
-                <Text style={styles.loadingText}>Chargement...</Text>
               </View>
             ) : permanenceDetails ? (
               <ScrollView
                 style={styles.modalContent}
                 showsVerticalScrollIndicator={false}
               >
-                <View style={styles.detailSection}>
-                  <View style={styles.detailCard}>
-                    <View style={styles.detailCardHeader}>
-                      <Clock
-                        size={20}
-                        color={Colors.primary}
-                        strokeWidth={2.5}
-                      />
-                      <Text style={styles.detailCardTitle}>Horaires</Text>
-                    </View>
-                    <View style={styles.detailCardContent}>
-                      <Text style={styles.detailValue}>
-                        {new Date(
-                          permanenceDetails.start_datetime,
-                        ).toLocaleDateString('fr-FR', {
-                          weekday: 'long',
-                          day: 'numeric',
-                          month: 'long',
-                        })}
-                      </Text>
-                      <View style={styles.timeRow}>
-                        <Text style={styles.timeValue}>
-                          {new Date(
-                            permanenceDetails.start_datetime,
-                          ).toLocaleTimeString('fr-FR', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </Text>
-                        <Text style={styles.detailSeparator}>→</Text>
-                        <Text style={styles.timeValue}>
-                          {new Date(
-                            permanenceDetails.end_datetime,
-                          ).toLocaleTimeString('fr-FR', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </Text>
-                      </View>
-                      <View style={styles.durationBadge}>
-                        <Timer
-                          size={14}
-                          color={Colors.primary}
-                          strokeWidth={2.5}
-                        />
-                        <Text style={styles.durationText}>
-                          {Math.floor(permanenceDetails.duration_minutes / 60)}h
-                          {permanenceDetails.duration_minutes % 60 > 0 &&
-                            ` ${permanenceDetails.duration_minutes % 60}min`}
-                        </Text>
-                      </View>
-                    </View>
+                <View style={styles.notesCard}>
+                  <View style={styles.timeRow}>
+                    <Clock size={20} color={Colors.primary} />
+                    <Text style={styles.timeValue}>
+                      {permanenceDetails.start_datetime
+                        .split(/[T ]/)[1]
+                        .slice(0, 5)}
+                      {' - '}
+                      {permanenceDetails.end_datetime
+                        .split(/[T ]/)[1]
+                        .slice(0, 5)}
+                    </Text>
                   </View>
 
-                  {permanenceDetails.location && (
-                    <View style={styles.detailCard}>
-                      <View style={styles.detailCardHeader}>
-                        <MapPin
-                          size={20}
-                          color={Colors.primary}
-                          strokeWidth={2.5}
-                        />
-                        <Text style={styles.detailCardTitle}>Lieu</Text>
-                      </View>
-                      <View style={styles.detailCardContent}>
-                        <Text style={styles.detailValue}>
-                          {permanenceDetails.location}
-                        </Text>
-                      </View>
+                  {permanenceDetails.location ? (
+                    <View style={styles.timeRow}>
+                      <MapPin size={20} color={Colors.primary} />
+                      <Text style={styles.timeValue}>
+                        {permanenceDetails.location}
+                      </Text>
                     </View>
-                  )}
+                  ) : null}
 
-                  {permanenceDetails.notes && (
-                    <View style={styles.notesCard}>
-                      <View style={styles.detailCardHeader}>
-                        <Info
-                          size={20}
-                          color={Colors.primary}
-                          strokeWidth={2.5}
-                        />
-                        <Text style={styles.detailCardTitle}>Notes</Text>
-                      </View>
+                  <View style={styles.timeRow}>
+                    <Timer size={20} color={Colors.primary} />
+                    <Text style={styles.notesText}>
+                      {Math.floor(permanenceDetails.duration_minutes / 60)}h
+                      {String(permanenceDetails.duration_minutes % 60).padStart(
+                        2,
+                        '0',
+                      )}
+                    </Text>
+                  </View>
+
+                  {permanenceDetails.notes ? (
+                    <>
+                      <View style={styles.spacer} />
                       <Text style={styles.notesText}>
                         {permanenceDetails.notes}
                       </Text>
-                    </View>
-                  )}
+                    </>
+                  ) : null}
+
+                  <View style={styles.spacer} />
+                  <View style={styles.timeRow}>
+                    <Text style={styles.notesText}>Responsable:</Text>
+                    <Text style={styles.primaryText}>
+                      {permanenceDetails.responsible.name}
+                    </Text>
+                  </View>
                 </View>
               </ScrollView>
             ) : null}
           </TouchableOpacity>
-        </Animated.View>
+        </TouchableOpacity>
       </Modal>
     </View>
   );
@@ -665,25 +631,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 20,
   },
-  closeButton: {
-    alignItems: 'center',
-    backgroundColor: Colors.lightMuted,
-    borderRadius: 20,
-    height: 40,
-    justifyContent: 'center',
-    width: 40,
-  },
+
   container: {
     backgroundColor: Colors.white,
     flex: 1,
   },
   dateHeader: {
-    marginBottom: 16,
+    marginVertical: 6,
   },
   dateTitle: {
     ...TextStyles.h3Bold,
     color: Colors.primaryBorder,
+    marginBottom: 16,
+    paddingHorizontal: 20,
   },
+
   dayButton: {
     alignItems: 'center',
     borderRadius: 12,
@@ -719,59 +681,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     width: '100%',
   },
-  detailCard: {
-    backgroundColor: Colors.white,
-    borderColor: Colors.lightMuted,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 12,
-    padding: 16,
-  },
-  detailCardContent: {
-    gap: 8,
-  },
-  detailCardHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 4,
-  },
-  detailCardTitle: {
-    ...TextStyles.bodyBold,
-    color: Colors.primaryBorder,
-    fontSize: 16,
-  },
-  detailSection: {
-    gap: 16,
-    paddingBottom: 20,
-  },
-  detailSeparator: {
-    ...TextStyles.body,
-    color: Colors.primary,
-    fontSize: 20,
-  },
-  detailValue: {
-    ...TextStyles.body,
-    color: Colors.primaryBorder,
-    lineHeight: 22,
-    textTransform: 'capitalize',
-  },
-  durationBadge: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: Colors.lightMuted,
-    borderRadius: 8,
-    flexDirection: 'row',
-    gap: 6,
-    marginTop: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  durationText: {
-    ...TextStyles.small,
-    color: Colors.primaryBorder,
-    fontWeight: '600',
-  },
   headerContainer: {
     paddingHorizontal: 20,
     width: '100%',
@@ -806,21 +715,18 @@ const styles = StyleSheet.create({
     color: Colors.muted,
     marginTop: 16,
   },
-  modalAnimatedContainer: {
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
+  modalCloseButton: {
+    padding: 4,
   },
   modalContainer: {
     backgroundColor: Colors.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     elevation: 12,
-    maxHeight: '90%',
+    maxHeight: '80%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.25,
     shadowRadius: 12,
   },
   modalContent: {
@@ -833,13 +739,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingBottom: 16,
     paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingTop: 24,
   },
   modalHeaderContent: {
     alignItems: 'center',
+    flex: 1,
     flexDirection: 'row',
     gap: 12,
+    paddingRight: 16,
   },
   modalLoading: {
     alignItems: 'center',
@@ -848,17 +757,13 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
+    flex: 1,
+    justifyContent: 'flex-end',
   },
   modalTitle: {
     ...TextStyles.h2Bold,
     color: Colors.primaryBorder,
     flex: 1,
-    flexWrap: 'wrap',
   },
   noActivitiesContainer: {
     alignItems: 'center',
@@ -922,17 +827,22 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontWeight: '600',
   },
+  spacer: {
+    height: 8,
+  },
   statusDot: {
     borderRadius: 6,
     height: 12,
     width: 12,
   },
+
   timeRow: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: 12,
     marginTop: 4,
   },
+
   timeValue: {
     ...TextStyles.h3Bold,
     color: Colors.primaryBorder,

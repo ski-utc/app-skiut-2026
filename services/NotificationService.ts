@@ -110,10 +110,16 @@ export class NotificationService {
           'f03f1a56-74c7-4c87-a0b2-60b420f7de94',
       });
       this.pushToken = token.data;
-      console.log('✅ [NotificationService] Expo Push Token obtained:', token.data);
+      console.log(
+        '[NotificationService] Expo Push Token obtained:',
+        token.data,
+      );
       return token.data;
     } catch (error) {
-      console.error('❌ [NotificationService] Error getting Expo push token:', error);
+      console.error(
+        '[NotificationService] Error getting Expo push token:',
+        error,
+      );
       return null;
     }
   }
@@ -143,11 +149,11 @@ export class NotificationService {
 
       if (!response.success) {
         console.error(
-          '❌ [NotificationService] Error saving token to server:',
+          '[NotificationService] Error saving token to server:',
           response,
         );
       } else {
-        console.log('✅ [NotificationService] Token successfully saved to server');
+        console.log('[NotificationService] Token successfully saved to server');
       }
     } catch (error) {
       console.error('Erreur réseau lors de la sauvegarde du token:', error);

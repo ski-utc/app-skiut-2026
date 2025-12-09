@@ -249,11 +249,11 @@ const apiCall = async <T = unknown>(
       if (method === 'GET') {
         const offlineData = await getOfflineCache<T>(url);
         if (offlineData) {
-          Toast.show({
-            type: 'info',
-            text1: 'Mode hors ligne',
-            text2: 'Données récupérées du cache.',
-          });
+          // Toast.show({
+          //   type: 'info',
+          //   text1: 'Mode hors ligne',
+          //   text2: 'Données récupérées du cache.',
+          // });
           return {
             success: true,
             data: offlineData,

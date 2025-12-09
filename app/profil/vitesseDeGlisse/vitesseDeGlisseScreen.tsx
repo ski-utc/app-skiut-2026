@@ -472,7 +472,7 @@ export default function VitesseDeGlisseScreen() {
           Toast.show({
             type: 'info',
             text1: 'Session sauvegardée (Hors ligne)',
-            text2: 'Elle sera synchronisée plus tard.',
+            text2: 'Synchronisez votre téléphone une fois en ligne !',
           });
         } else {
           Toast.show({

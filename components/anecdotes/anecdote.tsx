@@ -107,6 +107,7 @@ export default function Anecdote({
           Toast.show({
             type: 'info',
             text1: 'Signalement sauvegardé (Hors ligne)',
+            text2: 'Synchronisez votre téléphone une fois en ligne !',
           });
         }
       } else {

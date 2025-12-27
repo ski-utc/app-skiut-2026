@@ -1,4 +1,3 @@
-
 import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { MapPin, X, Check } from 'lucide-react-native';
 import { Colors, TextStyles } from '@/constants/GraphSettings';

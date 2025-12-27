@@ -29,3 +29,6 @@ Ce problème peut aussi se produire dans d'autres zones. Vérifiez tous les él�
 ## Détail du problème
 - Les activités passées ne se mettent pas en grisée
 - Les activités actuelles n'ont pas le petit cercle vert
+
+# Merge avec ce qui est sur le MSI Katana
+- En particulier l'indicateur de qualité de localisation dans vitesseDeGlisseScreen

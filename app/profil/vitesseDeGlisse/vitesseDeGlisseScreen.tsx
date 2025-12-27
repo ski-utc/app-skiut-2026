@@ -37,6 +37,7 @@ import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import BoutonRetour from '../../../components/divers/boutonRetour';
 import Header from '../../../components/header';
+import BackgroundLocationDisclosure from '@/components/modals/BackgroundLocationDisclosure';
 
 const LOCATION_TASK_NAME = 'background-location-task';
 
@@ -171,6 +172,7 @@ export default function VitesseDeGlisseScreen() {
   const [currentSpeed, setCurrentSpeed] = useState(0);
   const [trackingTime, setTrackingTime] = useState(0);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [showLocationDisclosure, setShowLocationDisclosure] = useState(false);
 
   const { user, setUser } = useUser();
   const navigation =
@@ -311,28 +313,7 @@ export default function VitesseDeGlisseScreen() {
     };
   }, [isTracking]);
 
-  const startTracking = async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      handleApiErrorToast(
-        "Permission refusée pour l'accès à la localisation.",
-        setUser,
-      );
-      return;
-    }
-
-    if (Platform.OS === 'ios') {
-      const { status: bgStatus } =
-        await Location.requestBackgroundPermissionsAsync();
-      if (bgStatus !== 'granted') {
-        Toast.show({
-          type: 'warning',
-          text1: 'Permission background refusée',
-          text2: "Le tracking s'arrêtera si vous verrouillez l'écran.",
-        });
-      }
-    }
-
+  const startLocationUpdates = async () => {
     const newSessionId = Date.now().toString();
 
     const initialData: StoredSessionData = {
@@ -398,6 +379,57 @@ export default function VitesseDeGlisseScreen() {
       setIsTracking(false);
       await AsyncStorage.removeItem(STORAGE_KEYS.IS_TRACKING);
     }
+  };
+
+  const startTracking = async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      handleApiErrorToast(
+        "Permission refusée pour l'accès à la localisation.",
+        setUser,
+      );
+      return;
+    }
+
+    // Check background permission status first
+    const { status: bgStatus } = await Location.getBackgroundPermissionsAsync();
+    
+    if (bgStatus !== 'granted') {
+      // Show disclosure before requesting permission
+      setShowLocationDisclosure(true);
+      return;
+    }
+
+    // Already granted, proceed
+    await startLocationUpdates();
+  };
+
+  const handleDisclosureAccept = async () => {
+    setShowLocationDisclosure(false);
+    
+    const { status: bgStatus } = await Location.requestBackgroundPermissionsAsync();
+    
+    if (bgStatus === 'granted') {
+      await startLocationUpdates();
+    } else {
+      Toast.show({
+        type: 'warning',
+        text1: 'Permission background refusée',
+        text2: "Le tracking s'arrêtera si vous verrouillez l'écran.",
+      });
+      // Still allow tracking but warn user (or we could block it)
+      // For now, let's allow it as per original logic fallback
+      await startLocationUpdates();
+    }
+  };
+
+  const handleDisclosureDeny = () => {
+    setShowLocationDisclosure(false);
+    Toast.show({
+      type: 'info',
+      text1: 'Tracking annulé',
+      text2: 'La permission est nécessaire pour le suivi en arrière-plan.',
+    });
   };
 
   const stopTracking = async () => {
@@ -709,6 +741,11 @@ export default function VitesseDeGlisseScreen() {
           />
         </View>
       </ScrollView>
+      <BackgroundLocationDisclosure
+        visible={showLocationDisclosure}
+        onAccept={handleDisclosureAccept}
+        onDeny={handleDisclosureDeny}
+      />
     </View>
   );
 }

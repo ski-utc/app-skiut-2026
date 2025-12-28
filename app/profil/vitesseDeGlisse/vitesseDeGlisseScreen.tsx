@@ -37,6 +37,8 @@ import { Colors, TextStyles } from '@/constants/GraphSettings';
 
 import BoutonRetour from '../../../components/divers/boutonRetour';
 import Header from '../../../components/header';
+import BackgroundLocationDisclosure from '@/components/modals/BackgroundLocationDisclosure';
+import GpsSignalIndicator from '@/components/divers/GpsSignalIndicator';
 
 const LOCATION_TASK_NAME = 'background-location-task';
 
@@ -115,7 +117,6 @@ TaskManager.defineTask<LocationTaskData>(
         if (coords.accuracy && coords.accuracy > 30) continue;
 
         const currentSpeedKmh = Math.max(0, (coords.speed || 0) * 3.6);
-
         if (currentSpeedKmh > 150) continue;
 
         if (sessionData.lastLocation) {
@@ -127,12 +128,10 @@ TaskManager.defineTask<LocationTaskData>(
             coords.latitude,
             coords.longitude,
           );
-          const calculatedSpeed = (deltaDist / timeDelta) * 3.6;
-
+          
           if (
             deltaDist > 0 &&
             deltaDist < 100 &&
-            calculatedSpeed < 150 &&
             timeDelta > 0.5
           ) {
             sessionData.distance += deltaDist;
@@ -171,6 +170,8 @@ export default function VitesseDeGlisseScreen() {
   const [currentSpeed, setCurrentSpeed] = useState(0);
   const [trackingTime, setTrackingTime] = useState(0);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [showLocationDisclosure, setShowLocationDisclosure] = useState(false);
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
 
   const { user, setUser } = useUser();
   const navigation =
@@ -180,6 +181,7 @@ export default function VitesseDeGlisseScreen() {
   const foregroundSubscription = useRef<Location.LocationSubscription | null>(
     null,
   );
+  const hasAskedBackgroundPermission = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -236,8 +238,8 @@ export default function VitesseDeGlisseScreen() {
 
   useEffect(() => {
     if (isTracking) {
-      trackingInterval.current = setInterval(() => {
-        setTrackingTime((time) => time + 1);
+      trackingInterval.current = setInterval(async () => {
+        setTrackingTime((t) => t + 1);
       }, 1000);
     } else {
       if (trackingInterval.current) {
@@ -270,10 +272,14 @@ export default function VitesseDeGlisseScreen() {
             ? sessionData.totalSpeed / sessionData.speedReadings
             : 0;
         setAverageSpeed(avgSpeed);
+        
+        const realDuration = Math.floor((Date.now() - sessionData.startTime) / 1000);
+        setTrackingTime(realDuration);
+
       } catch (err) {
         console.error('Error syncing session data:', err);
       }
-    }, 3000);
+    }, 2000);
 
     return () => clearInterval(syncInterval);
   }, [isTracking]);
@@ -287,9 +293,11 @@ export default function VitesseDeGlisseScreen() {
           {
             accuracy: Location.Accuracy.Balanced,
             timeInterval: 1000,
-            distanceInterval: 3,
+            distanceInterval: 2,
           },
           (location) => {
+            setGpsAccuracy(location.coords.accuracy);
+            
             if (location.coords.accuracy && location.coords.accuracy > 30)
               return;
             const speedKmh = Math.max(0, (location.coords.speed || 0) * 3.6);
@@ -311,28 +319,7 @@ export default function VitesseDeGlisseScreen() {
     };
   }, [isTracking]);
 
-  const startTracking = async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      handleApiErrorToast(
-        "Permission refusée pour l'accès à la localisation.",
-        setUser,
-      );
-      return;
-    }
-
-    if (Platform.OS === 'ios') {
-      const { status: bgStatus } =
-        await Location.requestBackgroundPermissionsAsync();
-      if (bgStatus !== 'granted') {
-        Toast.show({
-          type: 'warning',
-          text1: 'Permission background refusée',
-          text2: "Le tracking s'arrêtera si vous verrouillez l'écran.",
-        });
-      }
-    }
-
+  const startLocationUpdates = async () => {
     const newSessionId = Date.now().toString();
 
     const initialData: StoredSessionData = {
@@ -398,6 +385,56 @@ export default function VitesseDeGlisseScreen() {
       setIsTracking(false);
       await AsyncStorage.removeItem(STORAGE_KEYS.IS_TRACKING);
     }
+  };
+
+  const startTracking = async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      handleApiErrorToast(
+        "Permission refusée pour l'accès à la localisation.",
+        setUser,
+      );
+      return;
+    }
+
+    const { status: bgStatus } = await Location.getBackgroundPermissionsAsync();
+    
+    if (bgStatus !== 'granted' && !hasAskedBackgroundPermission.current) {
+      setShowLocationDisclosure(true);
+      return;
+    }
+
+    await startLocationUpdates();
+  };
+
+  const handleDisclosureAccept = async () => {
+    setShowLocationDisclosure(false);
+    hasAskedBackgroundPermission.current = true;
+    
+    const { status: bgStatus } = await Location.requestBackgroundPermissionsAsync();
+    
+    if (bgStatus === 'granted') {
+      await startLocationUpdates();
+    } else {
+      Toast.show({
+        type: 'info',
+        text1: 'Mode premier plan',
+        text2: "Le tracking s'arrêtera si vous verrouillez l'écran.",
+      });
+      await startLocationUpdates();
+    }
+  };
+
+  const handleDisclosureDeny = () => {
+    setShowLocationDisclosure(false);
+    hasAskedBackgroundPermission.current = true;
+    
+    Toast.show({
+      type: 'info',
+      text1: 'Mode premier plan',
+      text2: "Le tracking s'arrêtera si vous verrouillez l'écran.",
+    });
+    startLocationUpdates();
   };
 
   const stopTracking = async () => {
@@ -604,6 +641,7 @@ export default function VitesseDeGlisseScreen() {
       <Header refreshFunction={null} disableRefresh={true} />
       <View style={styles.headerContainer}>
         <BoutonRetour title={'Vitesse de glisse'} />
+        <GpsSignalIndicator accuracy={gpsAccuracy} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -709,6 +747,11 @@ export default function VitesseDeGlisseScreen() {
           />
         </View>
       </ScrollView>
+      <BackgroundLocationDisclosure
+        visible={showLocationDisclosure}
+        onAccept={handleDisclosureAccept}
+        onDeny={handleDisclosureDeny}
+      />
     </View>
   );
 }
@@ -771,6 +814,9 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     paddingHorizontal: 20,
     width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   heroIcon: {
     alignItems: 'center',

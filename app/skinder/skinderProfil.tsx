@@ -121,17 +121,6 @@ export default function SkinderProfil() {
   }, [fetchProfil]);
 
   const handleImagePick = async () => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (permissionResult.status !== 'granted') {
-      Toast.show({
-        type: 'error',
-        text1: 'Permission requise',
-        text2:
-          'Nous avons besoin de votre permission pour accéder à votre galerie.',
-      });
-      return;
-    }
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],

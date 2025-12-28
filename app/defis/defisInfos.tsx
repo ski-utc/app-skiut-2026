@@ -145,17 +145,6 @@ export default function DefisInfos() {
   }, [initialStatus, fetchProof]);
 
   const handleMediaPick = async (type: 'image' | 'video' | 'both' = 'both') => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (permissionResult.status !== 'granted') {
-      Toast.show({
-        type: 'error',
-        text1: 'Permission requise',
-        text2:
-          'Nous avons besoin de votre permission pour accéder à votre galerie.',
-      });
-      return;
-    }
 
     let mediaTypes: ('images' | 'videos')[] = ['images', 'videos'];
     if (type === 'image') mediaTypes = ['images'];

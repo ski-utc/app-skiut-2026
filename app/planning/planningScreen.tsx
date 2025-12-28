@@ -129,6 +129,20 @@ export default function PlanningScreen() {
     return date.toISOString().split('T')[0];
   };
 
+  const getActivityStatus = (
+    dateStr: string,
+    startTime: string,
+    endTime: string,
+  ): 'past' | 'current' | 'future' => {
+    const now = new Date();
+    const start = new Date(`${dateStr}T${startTime}:00`);
+    const end = new Date(`${dateStr}T${endTime}:00`);
+
+    if (now > end) return 'past';
+    if (now >= start && now <= end) return 'current';
+    return 'future';
+  };
+
   const processActivitiesSpanningMidnight = useCallback(
     (data: PlanningResponse): PlanningResponse => {
       const processed: PlanningResponse = {};
@@ -145,29 +159,40 @@ export default function PlanningScreen() {
               end: activity.time.end,
             };
 
+            const end1 = '23:59';
             processed[date].push({
               ...activity,
               time: {
                 start: activity.time.start,
-                end: '23:59',
+                end: end1,
               },
               originalTime,
+              status: getActivityStatus(date, activity.time.start, end1),
             });
 
             const nextDay = addDays(date, 1);
             if (!processed[nextDay]) {
               processed[nextDay] = [];
             }
+            const start2 = '00:00';
             processed[nextDay].push({
               ...activity,
               time: {
-                start: '00:00',
+                start: start2,
                 end: activity.time.end,
               },
               originalTime,
+              status: getActivityStatus(nextDay, start2, activity.time.end),
             });
           } else {
-            processed[date].push(activity);
+            processed[date].push({
+              ...activity,
+              status: getActivityStatus(
+                date,
+                activity.time.start,
+                activity.time.end,
+              ),
+            });
           }
         });
       });
@@ -220,6 +245,8 @@ export default function PlanningScreen() {
 
   useEffect(() => {
     fetchPlanning();
+    const interval = setInterval(fetchPlanning, 60000);
+    return () => clearInterval(interval);
   }, [fetchPlanning]);
 
   const handleDatePress = useCallback((date: string) => {

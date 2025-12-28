@@ -34,11 +34,11 @@ import {
 } from '@/constants/api/apiCalls';
 import { useUser } from '@/contexts/UserContext';
 import { Colors, TextStyles } from '@/constants/GraphSettings';
+import BackgroundLocationDisclosure from '@/components/modals/BackgroundLocationDisclosure';
+import GpsSignalIndicator from '@/components/divers/GpsSignalIndicator';
 
 import BoutonRetour from '../../../components/divers/boutonRetour';
 import Header from '../../../components/header';
-import BackgroundLocationDisclosure from '@/components/modals/BackgroundLocationDisclosure';
-import GpsSignalIndicator from '@/components/divers/GpsSignalIndicator';
 
 const LOCATION_TASK_NAME = 'background-location-task';
 
@@ -128,12 +128,8 @@ TaskManager.defineTask<LocationTaskData>(
             coords.latitude,
             coords.longitude,
           );
-          
-          if (
-            deltaDist > 0 &&
-            deltaDist < 100 &&
-            timeDelta > 0.5
-          ) {
+
+          if (deltaDist > 0 && deltaDist < 100 && timeDelta > 0.5) {
             sessionData.distance += deltaDist;
             sessionData.maxSpeed = Math.max(
               sessionData.maxSpeed,
@@ -272,10 +268,11 @@ export default function VitesseDeGlisseScreen() {
             ? sessionData.totalSpeed / sessionData.speedReadings
             : 0;
         setAverageSpeed(avgSpeed);
-        
-        const realDuration = Math.floor((Date.now() - sessionData.startTime) / 1000);
-        setTrackingTime(realDuration);
 
+        const realDuration = Math.floor(
+          (Date.now() - sessionData.startTime) / 1000,
+        );
+        setTrackingTime(realDuration);
       } catch (err) {
         console.error('Error syncing session data:', err);
       }
@@ -297,7 +294,7 @@ export default function VitesseDeGlisseScreen() {
           },
           (location) => {
             setGpsAccuracy(location.coords.accuracy);
-            
+
             if (location.coords.accuracy && location.coords.accuracy > 30)
               return;
             const speedKmh = Math.max(0, (location.coords.speed || 0) * 3.6);
@@ -398,7 +395,7 @@ export default function VitesseDeGlisseScreen() {
     }
 
     const { status: bgStatus } = await Location.getBackgroundPermissionsAsync();
-    
+
     if (bgStatus !== 'granted' && !hasAskedBackgroundPermission.current) {
       setShowLocationDisclosure(true);
       return;
@@ -410,9 +407,10 @@ export default function VitesseDeGlisseScreen() {
   const handleDisclosureAccept = async () => {
     setShowLocationDisclosure(false);
     hasAskedBackgroundPermission.current = true;
-    
-    const { status: bgStatus } = await Location.requestBackgroundPermissionsAsync();
-    
+
+    const { status: bgStatus } =
+      await Location.requestBackgroundPermissionsAsync();
+
     if (bgStatus === 'granted') {
       await startLocationUpdates();
     } else {
@@ -428,7 +426,7 @@ export default function VitesseDeGlisseScreen() {
   const handleDisclosureDeny = () => {
     setShowLocationDisclosure(false);
     hasAskedBackgroundPermission.current = true;
-    
+
     Toast.show({
       type: 'info',
       text1: 'Mode premier plan',
@@ -811,12 +809,12 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   headerContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     paddingBottom: 8,
     paddingHorizontal: 20,
     width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
   },
   heroIcon: {
     alignItems: 'center',

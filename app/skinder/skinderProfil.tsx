@@ -121,7 +121,6 @@ export default function SkinderProfil() {
   }, [fetchProfil]);
 
   const handleImagePick = async () => {
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,

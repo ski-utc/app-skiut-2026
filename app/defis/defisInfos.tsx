@@ -145,7 +145,6 @@ export default function DefisInfos() {
   }, [initialStatus, fetchProof]);
 
   const handleMediaPick = async (type: 'image' | 'video' | 'both' = 'both') => {
-
     let mediaTypes: ('images' | 'videos')[] = ['images', 'videos'];
     if (type === 'image') mediaTypes = ['images'];
     else if (type === 'video') mediaTypes = ['videos'];

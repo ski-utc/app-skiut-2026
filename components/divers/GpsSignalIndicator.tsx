@@ -1,12 +1,15 @@
 import { View, StyleSheet } from 'react-native';
 import { MapPin } from 'lucide-react-native';
+
 import { Colors } from '@/constants/GraphSettings';
 
 type GpsSignalIndicatorProps = {
   accuracy: number | null;
 };
 
-export default function GpsSignalIndicator({ accuracy }: GpsSignalIndicatorProps) {
+export default function GpsSignalIndicator({
+  accuracy,
+}: GpsSignalIndicatorProps) {
   // Determine signal quality
   // Accuracy is in meters (lower is better)
   // < 10m: Excellent (4 bars)
@@ -56,26 +59,26 @@ export default function GpsSignalIndicator({ accuracy }: GpsSignalIndicatorProps
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 6,
-  },
-  icon: {
-    marginRight: 2,
+  bar: {
+    borderRadius: 1,
+    width: 3,
   },
   barsContainer: {
-    flexDirection: 'row',
     alignItems: 'flex-end',
+    flexDirection: 'row',
     gap: 2,
     height: 18,
   },
-  bar: {
-    width: 3,
-    borderRadius: 1,
+  container: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 12,
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  icon: {
+    marginRight: 2,
   },
 });

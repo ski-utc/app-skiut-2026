@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ski'UT",
     "slug": "app-skiut-2026",
-    "version": "1.0.0",
+    "version": "3.0.0",
     "orientation": "portrait",
     "newArchEnabled": true,
     "icon": "./assets/images/logo.png",
@@ -16,7 +16,7 @@
     "ios": {
       "bundleIdentifier": "fr.utc.assos.skiutc",
       "supportsTablet": true,
-      "buildNumber": "1.0.0",
+      "buildNumber": "3.0.0",
       "infoPlist": {
         "NSCameraUsageDescription": "Autoriser Ski'Ut à accéder à la Caméra.",
         "NSPhotoLibraryUsageDescription": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images.",
@@ -24,8 +24,10 @@
         "NSLocationWhenInUseUsageDescription": "Autoriser Ski'Ut à accéder à la localisation lorsque l'application est en cours d'utilisation pour calculer votre vitesse de glisse.",
         "NSLocationAlwaysUsageDescription": "Autoriser Ski'Ut à accéder à votre localisation en arrière-plan pour continuer le suivi de votre vitesse de glisse.",
         "UIBackgroundModes": [
+          "location",
           "location"
-        ]
+        ],
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -41,7 +43,8 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_BACKGROUND_LOCATION",
         "android.permission.FOREGROUND_SERVICE",
-        "android.permission.FOREGROUND_SERVICE_LOCATION"
+        "android.permission.FOREGROUND_SERVICE_LOCATION",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
       "package": "fr.utc.assos.skiutc",
       "googleServicesFile": "./google-services.json",
@@ -56,7 +59,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/logo-monochrome.png",
+          "icon": "./assets/images/logo-notification.png",
           "color": "#79a8ce"
         }
       ],
@@ -71,6 +74,7 @@
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "Autoriser Ski'Ut à accéder à votre localisation pour calculer votre vitesse de glisse.",
+          "isAndroidBackgroundLocationEnabled": true,
           "locationWhenInUsePermission": "Autoriser Ski'Ut à accéder à votre localisation pour calculer votre vitesse de glisse.",
           "locationAlwaysPermission": "Autoriser Ski'Ut à accéder à votre localisation pour calculer votre vitesse de glisse.",
           "locationBackgroundPermission": "Autoriser Ski'Ut à accéder à votre localisation pour calculer votre vitesse de glisse."
@@ -87,7 +91,7 @@
       "**/*"
     ],
     "notification": {
-      "icon": "./assets/images/logo.png",
+      "icon": "./assets/images/logo-notification.png",
       "color": "#79a8ce",
       "iosDisplayInForeground": true
     },

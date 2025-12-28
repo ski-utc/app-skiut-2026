@@ -1,17 +1,12 @@
 import { useState, useCallback, useEffect, memo } from 'react';
-import {
-  Text,
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
-} from 'react-native';
+import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { GanttChart, Bell, RotateCcw } from 'lucide-react-native';
 import {
   NavigationProp,
   useNavigation,
   DrawerActions,
 } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Colors, TextStyles } from '@/constants/GraphSettings';
 import NotificationPopup from '@/app/notificationPopUp';
@@ -77,7 +72,10 @@ const Header = memo(
     }, [updateUnreadNotifications]);
 
     return (
-      <View style={styles.container}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
         <View style={styles.leftContainer}>
           <TouchableOpacity onPress={handleMenuPress} style={styles.menuButton}>
             <GanttChart size={24} color={Colors.primaryBorder} />
@@ -113,7 +111,7 @@ const Header = memo(
           visible={isPopupVisible}
           onClose={handleClosePopup}
         />
-      </View>
+      </SafeAreaView>
     );
   },
 );
@@ -140,7 +138,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingLeft: 20,
     paddingRight: 20,
-    paddingTop: Platform.OS === 'ios' ? 50 : 40,
+    paddingTop: 50,
     width: '100%',
   },
   leftContainer: {

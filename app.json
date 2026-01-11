@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ski'UT",
     "slug": "app-skiut-2026",
-    "version": "3.0.1",
+    "version": "3.0.2",
     "orientation": "portrait",
     "newArchEnabled": true,
     "icon": "./assets/images/logo.png",
@@ -16,7 +16,7 @@
     "ios": {
       "bundleIdentifier": "fr.utc.assos.skiutc",
       "supportsTablet": true,
-      "buildNumber": "3.0.1",
+      "buildNumber": "3.0.2",
       "infoPlist": {
         "NSCameraUsageDescription": "Autoriser Ski'Ut à accéder à la Caméra.",
         "NSPhotoLibraryUsageDescription": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images.",
@@ -45,6 +45,12 @@
         "android.permission.FOREGROUND_SERVICE_LOCATION",
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
+      "blockedPermissions": [
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.READ_EXTERNAL_STORAGE"
+      ],
       "package": "fr.utc.assos.skiutc",
       "googleServicesFile": "./google-services.json",
       "icon": "./assets/images/logo.png"
@@ -65,7 +71,8 @@
       [
         "expo-image-picker",
         {
-          "cameraPermission": "Autoriser Ski'Ut à accéder à la Caméra."
+          "cameraPermission": "Autoriser Ski'Ut à accéder à la Caméra.",
+          "photosPermission": false
         }
       ],
       [

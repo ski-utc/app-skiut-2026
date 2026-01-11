@@ -385,6 +385,13 @@ export default function VitesseDeGlisseScreen() {
   };
 
   const startTracking = async () => {
+    const { status: bgStatus } = await Location.getBackgroundPermissionsAsync();
+
+    if (bgStatus !== 'granted' && !hasAskedBackgroundPermission.current) {
+      setShowLocationDisclosure(true);
+      return;
+    }
+
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
       handleApiErrorToast(
@@ -394,19 +401,21 @@ export default function VitesseDeGlisseScreen() {
       return;
     }
 
-    const { status: bgStatus } = await Location.getBackgroundPermissionsAsync();
-
-    if (bgStatus !== 'granted' && !hasAskedBackgroundPermission.current) {
-      setShowLocationDisclosure(true);
-      return;
-    }
-
     await startLocationUpdates();
   };
 
   const handleDisclosureAccept = async () => {
     setShowLocationDisclosure(false);
     hasAskedBackgroundPermission.current = true;
+
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      handleApiErrorToast(
+        "Permission refusée pour l'accès à la localisation.",
+        setUser,
+      );
+      return;
+    }
 
     const { status: bgStatus } =
       await Location.requestBackgroundPermissionsAsync();
@@ -423,9 +432,18 @@ export default function VitesseDeGlisseScreen() {
     }
   };
 
-  const handleDisclosureDeny = () => {
+  const handleDisclosureDeny = async () => {
     setShowLocationDisclosure(false);
     hasAskedBackgroundPermission.current = true;
+
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      handleApiErrorToast(
+        "Permission refusée pour l'accès à la localisation.",
+        setUser,
+      );
+      return;
+    }
 
     Toast.show({
       type: 'info',

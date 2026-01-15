@@ -22,6 +22,7 @@ import {
   Globe,
   ChevronDown,
   ChevronRight,
+  Search,
 } from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
@@ -48,6 +49,7 @@ type User = {
   name: string;
   roomId: number;
   admin: boolean;
+  asso: boolean;
 };
 
 type Room = {
@@ -68,9 +70,9 @@ type NotificationResponse = {
 export default function CreateNotificationScreen() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [type, setType] = useState<'global' | 'targeted' | 'room_based'>(
-    'global',
-  );
+  const [type, setType] = useState<
+    'global' | 'targeted' | 'room_based' | 'asso' | 'admin'
+  >('global');
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [selectedRooms, setSelectedRooms] = useState<number[]>([]);
   const [sendPush, setSendPush] = useState(true);
@@ -80,9 +82,12 @@ export default function CreateNotificationScreen() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [showUsersPicker, setShowUsersPicker] = useState(false);
   const [showRoomsPicker, setShowRoomsPicker] = useState(false);
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [roomSearchQuery, setRoomSearchQuery] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
+  const [recipientsLoading, setRecipientsLoading] = useState(false);
 
   const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
   const { setUser } = useUser();
@@ -105,6 +110,38 @@ export default function CreateNotificationScreen() {
       setDataLoading(false);
     }
   }, [setUser]);
+
+  const fetchRecipientsForSelection = useCallback(
+    async (
+      newType: 'targeted' | 'room_based',
+      setShowPicker: (show: boolean) => void,
+    ) => {
+      setType(newType);
+      setShowPicker(true);
+
+      if (users.length > 0 && rooms.length > 0) {
+        return;
+      }
+
+      try {
+        setRecipientsLoading(true);
+        const response = await apiGet<RecipientsResponse>(
+          'admin/notifications/recipients',
+        );
+        if (response.success) {
+          setUsers(response.data.users);
+          setRooms(response.data.rooms);
+        } else {
+          handleApiErrorToast(new ApiError(response.message), setUser);
+        }
+      } catch (error: unknown) {
+        handleApiErrorToast(error as AppError, setUser);
+      } finally {
+        setRecipientsLoading(false);
+      }
+    },
+    [setUser, users.length, rooms.length],
+  );
 
   useEffect(() => {
     fetchRecipientsData();
@@ -167,6 +204,22 @@ export default function CreateNotificationScreen() {
     );
   };
 
+  const getFilteredUsers = () => {
+    if (!userSearchQuery.trim()) return users;
+    const query = userSearchQuery.toLowerCase();
+    return users.filter((user) => user.name.toLowerCase().includes(query));
+  };
+
+  const getFilteredRooms = () => {
+    if (!roomSearchQuery.trim()) return rooms;
+    const query = roomSearchQuery.toLowerCase();
+    return rooms.filter(
+      (room) =>
+        room.name.toLowerCase().includes(query) ||
+        room.roomNumber.toString().includes(query),
+    );
+  };
+
   const getRecipientsCount = () => {
     switch (type) {
       case 'global':
@@ -176,6 +229,10 @@ export default function CreateNotificationScreen() {
       case 'room_based':
         return users.filter((user) => selectedRooms.includes(user.roomId))
           .length;
+      case 'asso':
+        return users.filter((user) => user.asso).length;
+      case 'admin':
+        return users.filter((user) => user.admin).length;
       default:
         return 0;
     }
@@ -223,7 +280,7 @@ export default function CreateNotificationScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -275,9 +332,54 @@ export default function CreateNotificationScreen() {
                 <TouchableOpacity
                   style={[
                     styles.typeButton,
+                    type === 'asso' && styles.typeButtonActive,
+                  ]}
+                  onPress={() => setType('asso')}
+                >
+                  <Users
+                    size={20}
+                    color={type === 'asso' ? Colors.white : Colors.primary}
+                  />
+                  <Text
+                    style={[
+                      styles.typeButtonText,
+                      type === 'asso' && styles.typeButtonTextActive,
+                    ]}
+                  >
+                    Asso
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.typeButton,
+                    type === 'admin' && styles.typeButtonActive,
+                  ]}
+                  onPress={() => setType('admin')}
+                >
+                  <Users
+                    size={20}
+                    color={type === 'admin' ? Colors.white : Colors.primary}
+                  />
+                  <Text
+                    style={[
+                      styles.typeButtonText,
+                      type === 'admin' && styles.typeButtonTextActive,
+                    ]}
+                  >
+                    Admin
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.typeButtons}>
+                <TouchableOpacity
+                  style={[
+                    styles.typeButton,
                     type === 'targeted' && styles.typeButtonActive,
                   ]}
-                  onPress={() => setType('targeted')}
+                  onPress={() =>
+                    fetchRecipientsForSelection('targeted', setShowUsersPicker)
+                  }
                 >
                   <Users
                     size={20}
@@ -298,7 +400,12 @@ export default function CreateNotificationScreen() {
                     styles.typeButton,
                     type === 'room_based' && styles.typeButtonActive,
                   ]}
-                  onPress={() => setType('room_based')}
+                  onPress={() =>
+                    fetchRecipientsForSelection(
+                      'room_based',
+                      setShowRoomsPicker,
+                    )
+                  }
                 >
                   <Home
                     size={20}
@@ -325,7 +432,7 @@ export default function CreateNotificationScreen() {
                   onPress={() => setShowUsersPicker(!showUsersPicker)}
                 >
                   <Text style={styles.selectionTitle}>
-                    Utilisateurs ({selectedUsers.length} sélectionnés)
+                    {`Utilisateurs (${selectedUsers.length} sélectionnés)`}
                   </Text>
                   {showUsersPicker ? (
                     <ChevronDown size={20} color={Colors.primary} />
@@ -335,34 +442,64 @@ export default function CreateNotificationScreen() {
                 </TouchableOpacity>
 
                 {showUsersPicker && (
-                  <ScrollView
-                    style={styles.selectionList}
-                    nestedScrollEnabled={true}
-                    maximumZoomScale={1}
-                    showsVerticalScrollIndicator={true}
-                  >
-                    {users.map((user) => (
-                      <TouchableOpacity
-                        key={user.id}
-                        style={styles.selectionItem}
-                        onPress={() => handleUserSelection(user.id)}
-                      >
-                        <Checkbox
-                          value={selectedUsers.includes(user.id)}
-                          onValueChange={() => handleUserSelection(user.id)}
+                  <>
+                    {recipientsLoading ? (
+                      <View style={styles.loadingRecipients}>
+                        <ActivityIndicator
+                          size="small"
                           color={Colors.primary}
                         />
-                        <Text style={styles.selectionItemText}>
-                          {user.name}
+                        <Text style={styles.loadingRecipientsText}>
+                          Chargement...
                         </Text>
-                        {user.admin && (
-                          <View style={styles.adminBadge}>
-                            <Text style={styles.adminBadgeText}>Admin</Text>
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
+                      </View>
+                    ) : (
+                      <>
+                        <View style={styles.searchContainer}>
+                          <Search size={20} color={Colors.muted} />
+                          <TextInput
+                            style={styles.searchInput}
+                            placeholder="Rechercher un utilisateur..."
+                            placeholderTextColor={Colors.muted}
+                            value={userSearchQuery}
+                            onChangeText={setUserSearchQuery}
+                          />
+                        </View>
+                        <ScrollView
+                          style={styles.selectionList}
+                          nestedScrollEnabled={true}
+                          maximumZoomScale={1}
+                          showsVerticalScrollIndicator={true}
+                        >
+                          {getFilteredUsers().map((user) => (
+                            <TouchableOpacity
+                              key={user.id}
+                              style={styles.selectionItem}
+                              onPress={() => handleUserSelection(user.id)}
+                            >
+                              <Checkbox
+                                value={selectedUsers.includes(user.id)}
+                                onValueChange={() =>
+                                  handleUserSelection(user.id)
+                                }
+                                color={Colors.primary}
+                              />
+                              <Text style={styles.selectionItemText}>
+                                {user.name}
+                              </Text>
+                              {user.admin && (
+                                <View style={styles.adminBadge}>
+                                  <Text style={styles.adminBadgeText}>
+                                    Admin
+                                  </Text>
+                                </View>
+                              )}
+                            </TouchableOpacity>
+                          ))}
+                        </ScrollView>
+                      </>
+                    )}
+                  </>
                 )}
               </View>
             )}
@@ -374,7 +511,7 @@ export default function CreateNotificationScreen() {
                   onPress={() => setShowRoomsPicker(!showRoomsPicker)}
                 >
                   <Text style={styles.selectionTitle}>
-                    Chambres ({selectedRooms.length} sélectionnées)
+                    {`Chambres (${selectedRooms.length} sélectionnées)`}
                   </Text>
                   {showRoomsPicker ? (
                     <ChevronDown size={20} color={Colors.primary} />
@@ -384,29 +521,57 @@ export default function CreateNotificationScreen() {
                 </TouchableOpacity>
 
                 {showRoomsPicker && (
-                  <ScrollView
-                    style={styles.selectionList}
-                    nestedScrollEnabled={true}
-                    maximumZoomScale={1}
-                    showsVerticalScrollIndicator={true}
-                  >
-                    {rooms.map((room) => (
-                      <TouchableOpacity
-                        key={room.id}
-                        style={styles.selectionItem}
-                        onPress={() => handleRoomSelection(room.id)}
-                      >
-                        <Checkbox
-                          value={selectedRooms.includes(room.id)}
-                          onValueChange={() => handleRoomSelection(room.id)}
+                  <>
+                    {recipientsLoading ? (
+                      <View style={styles.loadingRecipients}>
+                        <ActivityIndicator
+                          size="small"
                           color={Colors.primary}
                         />
-                        <Text
-                          style={styles.selectionItemText}
-                        >{`${room.roomNumber} - ${room.name}`}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
+                        <Text style={styles.loadingRecipientsText}>
+                          Chargement...
+                        </Text>
+                      </View>
+                    ) : (
+                      <>
+                        <View style={styles.searchContainer}>
+                          <Search size={20} color={Colors.muted} />
+                          <TextInput
+                            style={styles.searchInput}
+                            placeholder="Rechercher une chambre..."
+                            placeholderTextColor={Colors.muted}
+                            value={roomSearchQuery}
+                            onChangeText={setRoomSearchQuery}
+                          />
+                        </View>
+                        <ScrollView
+                          style={styles.selectionList}
+                          nestedScrollEnabled={true}
+                          maximumZoomScale={1}
+                          showsVerticalScrollIndicator={true}
+                        >
+                          {getFilteredRooms().map((room) => (
+                            <TouchableOpacity
+                              key={room.id}
+                              style={styles.selectionItem}
+                              onPress={() => handleRoomSelection(room.id)}
+                            >
+                              <Checkbox
+                                value={selectedRooms.includes(room.id)}
+                                onValueChange={() =>
+                                  handleRoomSelection(room.id)
+                                }
+                                color={Colors.primary}
+                              />
+                              <Text
+                                style={styles.selectionItemText}
+                              >{`${room.roomNumber} - ${room.name}`}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </ScrollView>
+                      </>
+                    )}
+                  </>
                 )}
               </View>
             )}
@@ -582,6 +747,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
+  loadingRecipients: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  loadingRecipientsText: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    marginTop: 8,
+  },
   loadingText: {
     ...TextStyles.body,
     color: Colors.muted,
@@ -602,6 +777,21 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   scrollView: {
+    flex: 1,
+  },
+  searchContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderBottomColor: Colors.lightMuted,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  searchInput: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
     flex: 1,
   },
   sectionTitle: {
@@ -710,9 +900,11 @@ const styles = StyleSheet.create({
   },
   typeButtons: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
+    padding: 4,
   },
   typeSection: {
-    marginBottom: 24,
+    marginBottom: 12,
   },
 });

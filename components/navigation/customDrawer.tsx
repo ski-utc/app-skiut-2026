@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   Image,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -188,8 +189,9 @@ const styles = StyleSheet.create({
   footer: {
     borderTopColor: Colors.lightMuted,
     borderTopWidth: 1,
+    paddingBottom: Platform.OS === 'ios' ? 0 : 10,
     paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingVertical: 10,
   },
   header: {
     backgroundColor: Colors.primary,

@@ -460,10 +460,7 @@ export default function TourneeChambreScreen() {
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      <SafeAreaView
-        style={styles.container}
-        edges={['bottom', 'left', 'right']}
-      >
+      <SafeAreaView style={styles.container} edges={['left', 'right']}>
         <Header refreshFunction={onRefresh} disableRefresh={refreshing} />
         <View style={styles.headerContainer}>
           <BoutonRetour title="Tournée des chambres" />

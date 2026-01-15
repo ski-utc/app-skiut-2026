@@ -103,7 +103,7 @@ export class NotificationService {
    */
   private async getExpoPushToken(): Promise<string | null> {
     try {
-      console.log('🔵 [NotificationService] Getting Expo Push Token...');
+      console.log('[NotificationService] Getting Expo Push Token...');
       const token = await Notifications.getExpoPushTokenAsync({
         projectId:
           Constants.expoConfig?.extra?.eas?.projectId ||
@@ -124,13 +124,12 @@ export class NotificationService {
     }
   }
 
-
   /**
    * Envoie le token au serveur
    */
   private async saveTokenToServer(token: string): Promise<void> {
     try {
-      console.log('🔵 [NotificationService] Saving token to server...', token);
+      console.log('[NotificationService] Saving token to server...', token);
       const deviceType = Platform.OS === 'ios' ? 'ios' : 'android';
       const deviceName =
         `${Device.brand || 'Unknown'} ${Device.modelName || 'Device'}`.trim();

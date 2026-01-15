@@ -9,6 +9,7 @@ import {
   Keyboard,
   Pressable,
   StyleSheet,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { Checkbox } from 'expo-checkbox';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
@@ -96,69 +97,71 @@ export default function AnecdotesForm() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.content}>
-        <Header refreshFunction={null} disableRefresh={true} />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.content}>
+          <Header refreshFunction={null} disableRefresh={true} />
 
-        <View style={styles.headerContainer}>
-          <BoutonRetour title={'Rédiger un potin'} />
-        </View>
-
-        <View style={styles.heroSection}>
-          <View style={styles.heroIcon}>
-            <PenTool size={24} color={Colors.primary} />
-          </View>
-          <Text style={styles.heroTitle}>Partage ton anecdote</Text>
-          <Text style={styles.heroSubtitle}>
-            Raconte-nous ce qui t'a marqué aujourd'hui !
-          </Text>
-        </View>
-
-        <View style={styles.formContainer}>
-          <View style={styles.inputSection}>
-            <Pressable
-              onPress={() => Keyboard.dismiss()}
-              style={styles.textAreaContainer}
-            >
-              <TextInput
-                style={styles.textAreaInput}
-                placeholder="Aujourd'hui..."
-                placeholderTextColor={Colors.muted}
-                multiline
-                numberOfLines={12}
-                onChangeText={setText}
-                value={text}
-                textAlignVertical="top"
-              />
-            </Pressable>
+          <View style={styles.headerContainer}>
+            <BoutonRetour title={'Rédiger un potin'} />
           </View>
 
-          <View style={styles.termsSection}>
-            <View style={styles.termsRow}>
-              <Checkbox
-                style={styles.checkbox}
-                value={isChecked}
-                onValueChange={handleCheckboxPress}
-                color={isChecked ? Colors.primary : undefined}
-              />
-              <View style={styles.termsTextContainer}>
-                <Text style={styles.termsText}>
-                  En postant cette anecdote, je certifie qu'elle respecte les
-                  autres participant.e.s du voyage
-                </Text>
+          <View style={styles.heroSection}>
+            <View style={styles.heroIcon}>
+              <PenTool size={24} color={Colors.primary} />
+            </View>
+            <Text style={styles.heroTitle}>Partage ton anecdote</Text>
+            <Text style={styles.heroSubtitle}>
+              Raconte-nous ce qui t'a marqué aujourd'hui !
+            </Text>
+          </View>
+
+          <View style={styles.formContainer}>
+            <View style={styles.inputSection}>
+              <Pressable
+                onPress={() => Keyboard.dismiss()}
+                style={styles.textAreaContainer}
+              >
+                <TextInput
+                  style={styles.textAreaInput}
+                  placeholder="Aujourd'hui..."
+                  placeholderTextColor={Colors.muted}
+                  multiline
+                  numberOfLines={12}
+                  onChangeText={setText}
+                  value={text}
+                  textAlignVertical="top"
+                />
+              </Pressable>
+            </View>
+
+            <View style={styles.termsSection}>
+              <View style={styles.termsRow}>
+                <Checkbox
+                  style={styles.checkbox}
+                  value={isChecked}
+                  onValueChange={handleCheckboxPress}
+                  color={isChecked ? Colors.primary : undefined}
+                />
+                <View style={styles.termsTextContainer}>
+                  <Text style={styles.termsText}>
+                    En postant cette anecdote, je certifie qu'elle respecte les
+                    autres participant.e.s du voyage
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
-        </View>
 
-        <View style={styles.buttonContainer}>
-          <BoutonActiverLarge
-            title="Poster mon anecdote"
-            IconComponent={Send}
-            disabled={!isChecked || loading || text.trim().length <= 5}
-            onPress={handleSendAnecdote}
-          />
+          <View style={styles.buttonContainer}>
+            <BoutonActiverLarge
+              title="Poster mon anecdote"
+              IconComponent={Send}
+              disabled={!isChecked || loading || text.trim().length <= 5}
+              onPress={handleSendAnecdote}
+            />
+          </View>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }

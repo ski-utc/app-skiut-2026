@@ -1,5 +1,11 @@
 import { useState, useCallback, useEffect, memo } from 'react';
-import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  Text,
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+} from 'react-native';
 import { GanttChart, Bell, RotateCcw } from 'lucide-react-native';
 import {
   NavigationProp,
@@ -72,10 +78,7 @@ const Header = memo(
     }, [updateUnreadNotifications]);
 
     return (
-      <SafeAreaView
-        style={styles.container}
-        edges={['bottom', 'left', 'right']}
-      >
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.leftContainer}>
           <TouchableOpacity onPress={handleMenuPress} style={styles.menuButton}>
             <GanttChart size={24} color={Colors.primaryBorder} />
@@ -135,10 +138,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingBottom: 20,
+    paddingBottom: 10,
     paddingLeft: 20,
     paddingRight: 20,
-    paddingTop: 50,
+    paddingTop: Platform.OS === 'ios' ? 0 : 20,
     width: '100%',
   },
   leftContainer: {

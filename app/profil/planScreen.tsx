@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   View,
   Image,
@@ -10,10 +10,10 @@ import {
   Modal,
   StatusBar,
   Platform,
+  Dimensions,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { ImageViewer } from 'react-native-image-zoom-viewer';
-import * as ScreenOrientation from 'expo-screen-orientation';
+import ImageZoom from 'react-native-image-pan-zoom';
 import {
   Link,
   Download,
@@ -24,7 +24,6 @@ import {
   Navigation,
   X,
   Maximize,
-  RotateCw,
   LucideIcon,
 } from 'lucide-react-native';
 
@@ -44,45 +43,16 @@ type ActionButtonProps = {
 export default function PlanScreen() {
   const [isImageModalVisible, setIsImageModalVisible] = useState(false);
   const [isMapModalVisible, setIsMapModalVisible] = useState(false);
-  const [isLandscape, setIsLandscape] = useState(false);
+
+  const { width, height } = Dimensions.get('window');
 
   const openStreetMapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=1.7233%2C42.5342%2C1.7433%2C42.5542&layer=mapnik&marker=42.5442%2C1.7333&zoom=17`;
 
-  const toggleImageModal = async () => {
-    if (!isImageModalVisible) {
-      setIsImageModalVisible(true);
-    } else {
-      if (isLandscape) {
-        await ScreenOrientation.lockAsync(
-          ScreenOrientation.OrientationLock.PORTRAIT,
-        );
-        setIsLandscape(false);
-      }
-      setIsImageModalVisible(false);
-    }
-  };
-
-  const toggleRotation = async () => {
-    if (!isLandscape) {
-      await ScreenOrientation.lockAsync(
-        ScreenOrientation.OrientationLock.LANDSCAPE,
-      );
-      setIsLandscape(true);
-    } else {
-      await ScreenOrientation.lockAsync(
-        ScreenOrientation.OrientationLock.PORTRAIT,
-      );
-      setIsLandscape(false);
-    }
+  const toggleImageModal = () => {
+    setIsImageModalVisible(!isImageModalVisible);
   };
 
   const toggleMapModal = () => setIsMapModalVisible(!isMapModalVisible);
-
-  useEffect(() => {
-    return () => {
-      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
-    };
-  }, []);
 
   const openLink = async (url: string) => {
     try {
@@ -286,35 +256,32 @@ export default function PlanScreen() {
       >
         <StatusBar hidden />
         <View style={styles.fullScreenContainer}>
-          <View style={styles.fullScreenControls}>
-            <TouchableOpacity
-              style={styles.rotateButton}
-              onPress={toggleRotation}
-              activeOpacity={0.7}
-            >
-              <RotateCw size={24} color={Colors.white} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={toggleImageModal}
-              activeOpacity={0.7}
-            >
-              <X size={24} color={Colors.white} />
-            </TouchableOpacity>
-          </View>
-
-          <ImageViewer
-            imageUrls={[
-              {
-                url: `${config.BASE_URL}/storage/plan-grandvalira.jpg`,
-              },
-            ]}
-            index={0}
-            backgroundColor="transparent"
-            enableSwipeDown={!isLandscape}
-            onSwipeDown={toggleImageModal}
-            renderIndicator={() => <View />}
-          />
+          <TouchableOpacity
+            style={styles.closeButtonAbsolute}
+            onPress={toggleImageModal}
+            activeOpacity={0.7}
+          >
+            <X size={24} color={Colors.white} />
+          </TouchableOpacity>
+          <ImageZoom
+            cropWidth={width}
+            cropHeight={height}
+            imageWidth={height}
+            imageHeight={width}
+            minScale={1}
+            maxScale={3}
+            enableCenterFocus={true}
+          >
+            <Image
+              source={stationPlan}
+              resizeMode="contain"
+              style={{
+                width: height,
+                height: width,
+                transform: [{ rotate: '90deg' }],
+              }}
+            />
+          </ImageZoom>
         </View>
       </Modal>
 
@@ -327,7 +294,7 @@ export default function PlanScreen() {
         <StatusBar hidden />
         <View style={styles.fullScreenContainer}>
           <TouchableOpacity
-            style={styles.closeButton}
+            style={styles.closeButtonAbsolute}
             onPress={toggleMapModal}
             activeOpacity={0.7}
           >
@@ -385,12 +352,15 @@ const styles = StyleSheet.create({
   actionsContainer: {
     gap: 12,
   },
-  closeButton: {
+  closeButtonAbsolute: {
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.6)',
     borderRadius: 22,
     height: 44,
     justifyContent: 'center',
+    position: 'absolute',
+    right: 20,
+    top: 50,
     width: 44,
     zIndex: 1000,
   },
@@ -407,14 +377,7 @@ const styles = StyleSheet.create({
     flex: 1,
     position: 'relative',
   },
-  fullScreenControls: {
-    flexDirection: 'row',
-    gap: 12,
-    position: 'absolute',
-    right: 20,
-    top: 50,
-    zIndex: 1000,
-  },
+
   fullScreenWebView: {
     flex: 1,
     marginTop: 0,
@@ -535,14 +498,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginLeft: 6,
   },
-  rotateButton: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    borderRadius: 22,
-    height: 44,
-    justifyContent: 'center',
-    width: 44,
-  },
+
   sectionCard: {
     backgroundColor: Colors.white,
     borderColor: 'rgba(0,0,0,0.06)',

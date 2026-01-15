@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ski'UT",
     "slug": "app-skiut-2026",
-    "version": "3.0.2",
+    "version": "3.0.3",
     "orientation": "portrait",
     "newArchEnabled": true,
     "icon": "./assets/images/logo.png",
@@ -16,7 +16,7 @@
     "ios": {
       "bundleIdentifier": "fr.utc.assos.skiutc",
       "supportsTablet": true,
-      "buildNumber": "3.0.2",
+      "buildNumber": "3.0.3",
       "infoPlist": {
         "NSCameraUsageDescription": "Autoriser Ski'Ut à accéder à la Caméra.",
         "NSPhotoLibraryUsageDescription": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images.",

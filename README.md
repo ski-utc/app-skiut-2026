@@ -31,7 +31,6 @@ Modifie l'IP dans `constants/api/apiConfig` pour donner celle de ton serveur Lar
 2. Créé un émulateur sur Andoid Studio ([Vidéo](https://youtu.be/JdQlicAP5W4?si=-o1wGceeZI8_Ob8j))
 3. Prie pour qu'il soit détecté par ton terminale
 
-
 ## Quelques explications
 ### Authentification
 ---
@@ -40,7 +39,6 @@ Toute l'application est wrapped dans un UserProvider. Quand le userId est null, 
 Ainsi du PDV du user, il fait le tuto -> va sur la webview de login -> Récupère ses acces et refreshToken stockés en secureStorage -> Le UserContext switch sur la vraie app.
 
 Lorsque le user est déconnecté (il se déconnecte ou son refreshToken est expiré), le userContext rebascule sur le tuto.
-
 
 ### Requêtes au serveur
 ---
@@ -60,3 +58,13 @@ Dans ce user Provider on retrouve
 Le content c'est le contenu "utile" de l'app, mais sa structure est un peu particulière.  En gros c'est un Tab.Navigator (pour naviguer via la TabBar) et chaque Tab.Screen (élément dans la navigation via TabBar) est en réalité lui même un autre navigator mais par empilement de pages cette fois (c'est alors un Stack.Navigator).
 
 Par exemple, lorsque je clique sur anecote dans la tabBar, je suis dans mon Tab.Navigator, sur le Tab.Screen/Stack.Navigator anecdoteNavigator et dans le Stack.Screen anecdoteScreen. Ensuite, lorsque je clique sur "envoyer une notification", ma page sendNotification se stacke sur anecdoteScreen. Une fois ma notification envoyée, la page pop et je retourne sur anecdoteScreen
+
+## Proposition d'amélioration
+J'ai récupéré en ligne un système de cache API que j'ai intégrés aux requêtes API de l'app.
+Ca me semblerait pas déconnant de l'intégrer pour les requetes de planning, weather, defis ...
+Pour l'utiliser, il suffit de modifier les appels API dans les pages comme ça : 
+```ts
+const response = await apiGet("getWeather", true, 5 * 60 * 1000); // Active un cache de 5 minutes
+
+await apiPost("updateProfile", data, false, "getMyProfil"); // Demander d'invalider le cache car une info vient d'être modifié par un POST
+```

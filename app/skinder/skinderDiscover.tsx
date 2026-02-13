@@ -1,570 +1,684 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { StyleSheet, View, Image, Text, ActivityIndicator, Animated, TouchableOpacity } from 'react-native';
-import { PanGestureHandler } from 'react-native-gesture-handler';
-import { Colors, Fonts } from '@/constants/GraphSettings';
-import Header from '../../components/header';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import {
+  StyleSheet,
+  View,
+  Image,
+  Text,
+  ActivityIndicator,
+  Animated,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { Heart, X, User, MessageCircle, Settings } from 'lucide-react-native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import { useUser } from '@/contexts/UserContext';
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Heart, X, HeartCrack } from 'lucide-react-native';
-import { apiPost, apiGet } from '@/constants/api/apiCalls';
+import {
+  apiGet,
+  apiPost,
+  isSuccessResponse,
+  handleApiErrorToast,
+  handleApiErrorScreen,
+  AppError,
+} from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
-import { useNavigation } from '@react-navigation/native';
 
-export default function SkinderDiscover() {
-    const [error, setError] = useState('');
-    const [noPhoto, setNoPhoto] = useState(false);
-    const [tooMuch, setTooMuch] = useState(false);
-    const [profile, setProfile] = useState({ id: null, nom: '', description: '', passions: [] });
-    const [imageProfil, setImageProfil] = useState("https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png");
-    const [disableButton, setDisableButton] = useState(false);
-    const [disableRefresh, setDisableRefresh] = useState(false);
-    const [loading, setLoading] = useState(false);
+import Header from '../../components/header';
 
-    const { setUser } = useUser();
-    const navigation = useNavigation();
+import { SkinderStackParamList } from './skinderNavigator';
 
-    const translateX = useRef(new Animated.Value(0)).current;
-    const translateY = useRef(new Animated.Value(0)).current;
-    const cardOpacity = useRef(new Animated.Value(1)).current;
-    const likeOpacity = useRef(new Animated.Value(0)).current;
-    const dislikeOpacity = useRef(new Animated.Value(0)).current;
-
-    const handleGesture = Animated.event(
-        [{ nativeEvent: { translationX: translateX } }],
-        { useNativeDriver: false }
-    );
-
-    const handleGestureEnd = ({ nativeEvent }) => {
-        translateY.setValue(0);
-
-        if (nativeEvent.translationX > 120) {
-            Animated.timing(likeOpacity, {
-                toValue: 1,
-                duration: 300,
-                useNativeDriver: true,
-            }).start(() => {
-                setTimeout(() => {
-                    Animated.timing(likeOpacity, {
-                        toValue: 0,
-                        duration: 300,
-                        useNativeDriver: true,
-                    }).start();
-                }, 500);
-            });
-
-            handleLike();
-            animateCard(600);
-        } else if (nativeEvent.translationX < -120) {
-            Animated.timing(dislikeOpacity, {
-                toValue: 1,
-                duration: 300,
-                useNativeDriver: true,
-            }).start(() => {
-                setTimeout(() => {
-                    Animated.timing(dislikeOpacity, {
-                        toValue: 0,
-                        duration: 300,
-                        useNativeDriver: true,
-                    }).start();
-                }, 500);
-            });
-
-            animateCard(-600);
-        } else {
-            resetPosition();
-        }
-    };
-
-    const animateCard = (toValue) => {
-        Animated.parallel([
-            Animated.timing(translateX, {
-                toValue,
-                duration: 300,
-                useNativeDriver: false,
-            }),
-            Animated.timing(translateY, {
-                toValue: 20,
-                duration: 300,
-                useNativeDriver: false,
-            }),
-            Animated.timing(cardOpacity, {
-                toValue: 0,
-                duration: 300,
-                useNativeDriver: false,
-            }),
-        ]).start(() => {
-            resetPosition();
-            fetchProfil();
-        });
-    };
-
-    const handleDislikeButton = async () => {
-        Animated.timing(dislikeOpacity, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-        }).start(() => {
-            setTimeout(() => {
-                Animated.timing(dislikeOpacity, {
-                    toValue: 0,
-                    duration: 300,
-                    useNativeDriver: true,
-                }).start();
-            }, 500);
-        });
-    
-        animateCard(-600);
-    };
-
-    const handleLikeButton = async () => {
-        Animated.timing(likeOpacity, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-        }).start(() => {
-            setTimeout(() => {
-                Animated.timing(likeOpacity, {
-                    toValue: 0,
-                    duration: 300,
-                    useNativeDriver: true,
-                }).start();
-            }, 500);
-        });
-    
-        handleLike();
-    };    
-
-    const resetPosition = useCallback(() => {
-        Animated.parallel([
-            Animated.timing(translateX, {
-                toValue: 0,
-                duration: 200,
-                useNativeDriver: false,
-            }),
-            Animated.timing(translateY, {
-                toValue: 0,
-                duration: 200,
-                useNativeDriver: false,
-            }),
-            Animated.timing(cardOpacity, {
-                toValue: 1,
-                duration: 200,
-                useNativeDriver: false,
-            }),
-        ]).start();
-    }, [translateX, translateY, cardOpacity]);
-
-    const fetchProfil = useCallback(async () => {
-        setDisableRefresh(true);
-        setLoading(true);
-
-        try {
-            const response = await apiGet('getProfilSkinder');
-            if (response.success) {
-                setProfile({
-                    id: response.data.id,
-                    nom: response.data.name,
-                    description: response.data.description,
-                    passions: Array.isArray(response.data.passions) ? response.data.passions : JSON.parse(response.data.passions || "[]")
-                });
-                setImageProfil(response.data.image);
-            } else {
-                //setDisableButton(true);
-                if (response.message === "NoPhoto") {
-                    setNoPhoto(true);
-                } else if (response.message === "TooMuch") {
-                    setTooMuch(true);
-                } else {
-                    setError(response.message || "Une erreur est survenue lors de la récupération du profil");
-                }
-            }
-        } catch (error : any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
-            } else {
-                setDisableButton(true);
-                setError(error.message);
-            }
-        } finally {
-            setLoading(false);
-            resetPosition();
-            setTimeout(() => {
-                setDisableRefresh(false); // Re-enable refresh after 5 seconds
-            }, 5000);
-        }
-    }, [setUser, resetPosition]);
-
-
-    const handleLike = async () => {
-        try {
-            const response = await apiPost('likeSkinder', { 'roomLiked': profile.id });
-            if (response.success) {
-                if (response.match) {
-                    navigation.navigate('matchScreen', {
-                        myImage: response.myRoomImage,
-                        roomImage: response.otherRoomImage,
-                        roomNumber: response.otherRoomNumber,
-                        roomResp: response.otherRoomResp
-                    });
-
-                } else {
-                    fetchProfil();
-                }
-            } else {
-                setDisableButton(true);
-                setError(response.message || 'Une erreur est survenue lors de la récupération du like');
-            }
-        } catch (error : any) {
-            if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-                setUser(null);
-            } else {
-                setDisableButton(true);
-                setError(error.message);
-            }
-        }
-    };
-
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('focus', () => {
-            fetchProfil();
-        });
-
-        return unsubscribe;
-    }, [navigation, fetchProfil]);
-
-    if (error !== '') {
-        return <ErrorScreen error={error} />;
-    }
-
-    if (loading) {
-        return (
-            <View
-                style={{
-                    height: '100%',
-                    width: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}
-            >
-                <Header refreshFunction={null} disableRefresh={true} />
-                <View
-                    style={{
-                        width: '100%',
-                        flex: 1,
-                        backgroundColor: Colors.white,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}
-                >
-                    <ActivityIndicator size="large" color={Colors.gray} />
-                </View>
-            </View>
-        );
-    }
-
-    return (
-        <View style={styles.container}>
-            <Header refreshFunction={fetchProfil} disableRefresh={disableRefresh} />
-            <View style={styles.contentContainer}>
-                <View style={styles.header}>
-                    <View style={styles.backButtonContainer}>
-                        <BoutonRetour previousRoute={'profilNavigator'} title={'Skinder'} />
-                    </View>
-                    <View style={styles.buttonsContainer}>
-                        <TouchableOpacity
-                            onPress={() => navigation.navigate('skinderMyMatches')}
-                            style={styles.matchesButton}
-                        >
-                            <Text style={styles.buttonText}>Mes Matches</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={() => navigation.navigate('skinderProfil')}
-                            style={styles.profileButton}
-                        >
-                            <Text style={styles.profileButtonText}>Modifier mon profil</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-                {!noPhoto ? (
-                    !tooMuch ? (
-                        <PanGestureHandler onGestureEvent={handleGesture} onEnded={handleGestureEnd}>
-                            <Animated.View style={[styles.card, {
-                                transform: [
-                                    { translateX },
-                                    { translateY: translateX.interpolate({ inputRange: [-300, -150, 0, 150, 300], outputRange: [20, 5, 0, 5, 20], extrapolate: 'clamp' }) },
-                                    { rotate: translateX.interpolate({ inputRange: [-300, 0, 300], outputRange: ['-10deg', '0deg', '10deg'], extrapolate: 'clamp' }) },
-                                ],
-                                opacity: cardOpacity,
-                                backgroundColor: translateX.interpolate({ inputRange: [-300, 0, 300], outputRange: ['#ffcccc', Colors.white, '#ccffcc'], extrapolate: 'clamp' })
-                            }]}>
-                                <Image
-                                    source={{ uri: imageProfil }}
-                                    style={styles.profileImage}
-                                    resizeMode="cover"
-                                    onError={() => setImageProfil("https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png")}
-                                />
-                                <Text style={styles.profileName}>{profile.nom}</Text>
-                                <View style={styles.descriptionContainer}>
-                                    <Text style={styles.descriptionText}>{profile.description}</Text>
-                                </View>
-                                <Text style={styles.sectionTitle}>Passions</Text>
-                                <View style={styles.passionContainer}>
-                                    {profile.passions.map((passion, index) => (
-                                        <View key={index} style={styles.passionItem}>
-                                            <Text style={styles.passionText}>{passion}</Text>
-                                        </View>
-                                    ))}
-                                </View>
-                            </Animated.View>
-                        </PanGestureHandler>
-                    ) : (
-                        <View style={styles.noMoreProfilesContainer}>
-                            <Text style={styles.noMoreProfilesText}>Vous avez déjà liké tous les profils disponibles</Text>
-                        </View>
-                    )
-                ) : (
-                    <View style={styles.noProfileContainer}>
-                        <Text style={styles.noProfileText}>
-                            Veuillez d'abord choisir une photo de profil en cliquant sur "Modifier mon profil" pour pouvoir utiliser Skinder
-                        </Text>
-                    </View>
-                )}
-            </View>
-
-            {/* Conditionally render the like and dislike buttons based on noPhoto */}
-            {!noPhoto && (
-                <View style={styles.buttonActionsContainer}>
-                    <TouchableOpacity
-                        onPress={handleDislikeButton}
-                        disabled={disableButton}
-                        style={[styles.actionButton, { opacity: disableButton ? 0.4 : 1 }]}
-                    >
-                        <X size={30} color={Colors.orange} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={handleLikeButton }
-                        disabled={disableButton}
-                        style={[styles.actionButton, { backgroundColor: Colors.orange, opacity: disableButton ? 0.4 : 1 }]}
-                    >
-                        <Heart size={30} color={Colors.white} />
-                    </TouchableOpacity>
-                </View>
-            )}
-
-            <Animated.View style={[styles.likeIcon, { opacity: likeOpacity, transform: [{ scale: likeOpacity }] }]}>
-                <Heart size={75} color="red" fill="red" />
-            </Animated.View>
-            <Animated.View style={[styles.dislikeIcon, { opacity: dislikeOpacity, transform: [{ scale: dislikeOpacity }] }]}>
-                <HeartCrack size={75} color="red" />
-            </Animated.View>
-        </View>
-    );
+type Profile = {
+  id: number;
+  name: string;
+  description: string;
+  passions: string[];
+  image: string;
 };
 
+type LikeResponse = {
+  match: boolean;
+  myRoomImage: string;
+  otherRoomImage: string;
+  otherRoomNumber: string;
+  otherRoomResp: string;
+};
+
+export default function SkinderDiscover() {
+  const [error, setError] = useState('');
+  const [noPhoto, setNoPhoto] = useState(false);
+  const [tooMuch, setTooMuch] = useState(false);
+
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [nextProfile, setNextProfile] = useState<Profile | null>(null);
+  const [imageProfil, setImageProfil] = useState(
+    'https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png',
+  );
+
+  const [disableButton, setDisableButton] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const { setUser } = useUser();
+  const navigation = useNavigation<NavigationProp<SkinderStackParamList>>();
+
+  const translateX = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
+  const cardOpacity = useRef(new Animated.Value(1)).current;
+  const likeOpacity = useRef(new Animated.Value(0)).current;
+  const dislikeOpacity = useRef(new Animated.Value(0)).current;
+
+  const activeOpacity = 1;
+  const inactiveOpacity = 0.4;
+
+  const resetPosition = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(translateX, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: false,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: false,
+      }),
+      Animated.timing(cardOpacity, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  }, [translateX, translateY, cardOpacity]);
+
+  const prefetchNextProfile = useCallback(async () => {
+    try {
+      const response = await apiGet<Profile>('skinder/profiles');
+
+      if (response.message === 'NoPhoto' || response.message === 'TooMuch') {
+        setNextProfile(null);
+        return;
+      }
+
+      if (isSuccessResponse(response)) {
+        let parsedPassions: string[] = [];
+        if (typeof response.data.passions === 'string') {
+          try {
+            parsedPassions = JSON.parse(response.data.passions);
+          } catch {
+            parsedPassions = [];
+          }
+        } else if (Array.isArray(response.data.passions)) {
+          parsedPassions = response.data.passions;
+        }
+
+        setNextProfile({
+          id: response.data.id,
+          name: response.data.name,
+          description: response.data.description,
+          passions: parsedPassions,
+          image: response.data.image,
+        });
+      }
+    } catch {
+      setNextProfile(null);
+    }
+  }, []);
+
+  const fetchProfil = useCallback(
+    async (isRefresh = false) => {
+      if (!isRefresh && nextProfile) {
+        setProfile(nextProfile);
+        setImageProfil(nextProfile.image);
+        setNextProfile(null);
+        resetPosition();
+        prefetchNextProfile();
+        return;
+      }
+
+      if (isRefresh) setRefreshing(true);
+      else setLoading(true);
+
+      setNoPhoto(false);
+      setTooMuch(false);
+      setDisableButton(false);
+      setError('');
+
+      try {
+        const response = await apiGet<Profile>('skinder/profiles');
+
+        if (response.message === 'NoPhoto') {
+          setNoPhoto(true);
+          return;
+        } else if (response.message === 'TooMuch') {
+          setTooMuch(true);
+          return;
+        } else if (isSuccessResponse(response)) {
+          let parsedPassions: string[] = [];
+          if (typeof response.data.passions === 'string') {
+            try {
+              parsedPassions = JSON.parse(response.data.passions);
+            } catch {
+              parsedPassions = [];
+            }
+          } else if (Array.isArray(response.data.passions)) {
+            parsedPassions = response.data.passions;
+          }
+
+          setProfile({
+            id: response.data.id,
+            name: response.data.name,
+            description: response.data.description,
+            passions: parsedPassions,
+            image: response.data.image,
+          });
+          setImageProfil(response.data.image);
+          prefetchNextProfile();
+        }
+      } catch (err: unknown) {
+        if (isRefresh) {
+          handleApiErrorToast(err as AppError, setUser);
+        } else {
+          handleApiErrorScreen(err, setUser, setError);
+        }
+        setDisableButton(true);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+        resetPosition();
+      }
+    },
+    [setUser, resetPosition, nextProfile, prefetchNextProfile],
+  );
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchProfil(false);
+    });
+    return unsubscribe;
+  }, [navigation, fetchProfil]);
+
+  const handleLike = async () => {
+    if (!profile) return;
+
+    try {
+      const response = await apiPost<LikeResponse>(
+        `skinder/profiles/${profile.id}/like`,
+        { roomLiked: profile.id },
+      );
+
+      if (isSuccessResponse(response)) {
+        if (response.data.match) {
+          navigation.navigate('matchScreen', {
+            myImage: response.data.myRoomImage,
+            roomImage: response.data.otherRoomImage,
+            roomNumber: response.data.otherRoomNumber,
+            roomResp: response.data.otherRoomResp,
+          });
+        } else {
+          fetchProfil();
+        }
+      } else {
+        setDisableButton(true);
+        setError(response.message || 'Erreur lors du like');
+      }
+    } catch (err: unknown) {
+      setDisableButton(true);
+      handleApiErrorToast(err as AppError, setUser);
+    }
+  };
+
+  const triggerAnimation = (opacityRef: Animated.Value) => {
+    Animated.sequence([
+      Animated.timing(opacityRef, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.delay(200),
+      Animated.timing(opacityRef, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const animateCardOut = (toValue: number) => {
+    Animated.parallel([
+      Animated.timing(translateX, {
+        toValue,
+        duration: 300,
+        useNativeDriver: false,
+      }),
+      Animated.timing(translateY, {
+        toValue: 20,
+        duration: 300,
+        useNativeDriver: false,
+      }),
+      Animated.timing(cardOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: false,
+      }),
+    ]).start(() => {
+      if (toValue < 0) fetchProfil();
+    });
+  };
+
+  const panGesture = Gesture.Pan()
+    .runOnJS(true)
+    .onUpdate((e) => {
+      translateX.setValue(e.translationX);
+    })
+    .onEnd((e) => {
+      const threshold = 120;
+      const { translationX } = e;
+
+      if (translationX > threshold) {
+        triggerAnimation(likeOpacity);
+        handleLike();
+        animateCardOut(600);
+      } else if (translationX < -threshold) {
+        triggerAnimation(dislikeOpacity);
+        animateCardOut(-600);
+      } else {
+        resetPosition();
+      }
+    });
+
+  const handleLikeButton = () => {
+    triggerAnimation(likeOpacity);
+    handleLike();
+    animateCardOut(600);
+  };
+
+  const handleDislikeButton = () => {
+    triggerAnimation(dislikeOpacity);
+    animateCardOut(-600);
+  };
+
+  if (error) {
+    return <ErrorScreen error={error} />;
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Header refreshFunction={undefined} disableRefresh={true} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primaryBorder} />
+          <Text style={styles.loadingText}>Chargement...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Header
+        refreshFunction={() => fetchProfil(true)}
+        disableRefresh={refreshing}
+      />
+
+      <View style={styles.headerContainer}>
+        <BoutonRetour title={'Skinder'} />
+      </View>
+
+      <View style={styles.content}>
+        <View style={styles.navigationHeader}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('skinderMyMatches')}
+            style={styles.navButton}
+          >
+            <MessageCircle size={20} color={Colors.primary} />
+            <Text style={styles.navButtonText}>Mes Matches</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate('skinderProfil')}
+            style={styles.navButton}
+          >
+            <Settings size={20} color={Colors.primary} />
+            <Text style={styles.navButtonText}>Profil</Text>
+          </TouchableOpacity>
+        </View>
+
+        {!noPhoto ? (
+          !tooMuch && profile ? (
+            <View style={styles.cardContainer}>
+              <GestureDetector gesture={panGesture}>
+                <Animated.View
+                  style={[
+                    styles.card,
+                    {
+                      transform: [
+                        { translateX },
+                        {
+                          translateY: translateX.interpolate({
+                            inputRange: [-300, -150, 0, 150, 300],
+                            outputRange: [20, 5, 0, 5, 20],
+                            extrapolate: 'clamp',
+                          }),
+                        },
+                        {
+                          rotate: translateX.interpolate({
+                            inputRange: [-300, 0, 300],
+                            outputRange: ['-10deg', '0deg', '10deg'],
+                            extrapolate: 'clamp',
+                          }),
+                        },
+                      ],
+                      opacity: cardOpacity,
+                    },
+                  ]}
+                >
+                  <View style={styles.imageContainer}>
+                    <Image
+                      source={{ uri: imageProfil }}
+                      style={styles.profileImage}
+                      resizeMode="cover"
+                      onError={() =>
+                        setImageProfil(
+                          'https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png',
+                        )
+                      }
+                    />
+                    <View style={styles.imageOverlay}>
+                      <Text style={styles.profileName}>{profile.name}</Text>
+                    </View>
+                  </View>
+
+                  <ScrollView
+                    style={styles.profileInfo}
+                    showsVerticalScrollIndicator={false}
+                  >
+                    {profile.description && (
+                      <View style={styles.descriptionSection}>
+                        <Text style={styles.sectionTitle}>À propos</Text>
+                        <Text style={styles.descriptionText}>
+                          {profile.description}
+                        </Text>
+                      </View>
+                    )}
+
+                    {profile.passions && profile.passions.length > 0 && (
+                      <View style={styles.passionsSection}>
+                        <Text style={styles.sectionTitle}>Passions</Text>
+                        <View style={styles.passionContainer}>
+                          {profile.passions.map((passion, index) => (
+                            <View key={index} style={styles.passionChip}>
+                              <Text style={styles.passionText}>{passion}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+                  </ScrollView>
+                </Animated.View>
+              </GestureDetector>
+            </View>
+          ) : (
+            <View style={styles.emptyStateContainer}>
+              <User size={64} color={Colors.lightMuted} />
+              <Text style={styles.emptyStateTitle}>Plus de profils !</Text>
+              <Text style={styles.emptyStateText}>
+                Vous avez déjà vu tous les profils disponibles. Revenez plus
+                tard !
+              </Text>
+            </View>
+          )
+        ) : (
+          <View style={styles.emptyStateContainer}>
+            <User size={64} color={Colors.lightMuted} />
+            <Text style={styles.emptyStateTitle}>Photo requise</Text>
+            <Text style={styles.emptyStateText}>
+              Définissez les informations de votre chambre et ajoutez une photo
+              de profil pour commencer à utiliser Skinder
+            </Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('skinderProfil')}
+              style={styles.actionButton}
+            >
+              <Text style={styles.actionButtonText}>Modifier mon profil</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+
+      {!noPhoto && !tooMuch && profile && (
+        <View style={styles.actionButtonsContainer}>
+          <TouchableOpacity
+            onPress={handleDislikeButton}
+            disabled={disableButton}
+            style={[
+              styles.swipeButton,
+              styles.dislikeButton,
+              { opacity: disableButton ? inactiveOpacity : activeOpacity },
+            ]}
+          >
+            <X size={28} color={Colors.white} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleLikeButton}
+            disabled={disableButton}
+            style={[
+              styles.swipeButton,
+              styles.likeButton,
+              { opacity: disableButton ? inactiveOpacity : activeOpacity },
+            ]}
+          >
+            <Heart size={28} color={Colors.white} />
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <Animated.View
+        style={[
+          styles.likeAnimation,
+          { opacity: likeOpacity, transform: [{ scale: likeOpacity }] },
+        ]}
+      >
+        <Heart size={80} color={Colors.primary} fill={Colors.primary} />
+      </Animated.View>
+      <Animated.View
+        style={[
+          styles.dislikeAnimation,
+          { opacity: dislikeOpacity, transform: [{ scale: dislikeOpacity }] },
+        ]}
+      >
+        <X size={80} color={Colors.accent} />
+      </Animated.View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-    container: {
-        height: '100%',
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    contentContainer: {
-        width: '100%',
-        backgroundColor: Colors.white,
-        flex: 1,
-        paddingHorizontal: 20,
-        paddingBottom: 16,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    backButtonContainer: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingTop: 8,
-    },
-    buttonsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 4,
-    },
-    matchesButton: {
-        paddingHorizontal: 10,
-        paddingVertical: 8,
-        backgroundColor: Colors.customGray,
-        borderColor: Colors.gray,
-        borderWidth: 1,
-        borderRadius: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    profileButton: {
-        paddingHorizontal: 10,
-        paddingVertical: 8,
-        backgroundColor: Colors.orange,
-        borderRadius: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    buttonText: {
-        color: Colors.black,
-        fontSize: 14,
-        fontFamily: Fonts.Inter.Basic,
-        fontWeight: '600',
-    },
-    profileButtonText: {
-        color: Colors.white,
-        fontSize: 14,
-        fontFamily: Fonts.Inter.Basic,
-        fontWeight: '600',
-    },
-    card: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        alignSelf: 'center',
-        width: '90%',
-        padding: 10,
-        borderRadius: 15,
-        gap: 10,
-        marginTop: 14,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 5,
-    },
-    profileImage: {
-        width: '100%',
-        aspectRatio: 1,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: Colors.gray,
-    },
-    profileName: {
-        fontSize: 16,
-        fontFamily: Fonts.Inter.Basic,
-        fontWeight: '600',
-        color: Colors.black,
-        alignSelf: 'flex-start',
-    },
-    descriptionContainer: {
-        backgroundColor: '#F8F8F8',
-        borderColor: Colors.gray,
-        borderWidth: 1,
-        borderRadius: 10,
-        padding: 10,
-        width: '100%',
-        justifyContent: 'flex-start',
-        alignContent: 'center',
-    },
-    descriptionText: {
-        fontSize: 14,
-        fontFamily: Fonts.Inter.Basic,
-        fontWeight: '500',
-        color: Colors.black,
-    },
-    sectionTitle: {
-        fontSize: 16,
-        fontFamily: Fonts.Inter.Basic,
-        fontWeight: '600',
-        color: Colors.black,
-        alignSelf: 'flex-start',
-    },
-    passionContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'center',
-        gap: 8,
-    },
-    passionItem: {
-        backgroundColor: Colors.white,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 15,
-        margin: 4,
-        borderColor: Colors.orange,
-        borderWidth: 1,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 2,
-    },
-    passionText: {
-        fontSize: 12,
-        fontFamily: Fonts.Inter.Basic,
-        fontWeight: '500',
-        color: Colors.black,
-    },
-    noMoreProfilesContainer: {
-        width: "100%",
-        flex: 1,
-        backgroundColor: Colors.white,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    noMoreProfilesText: {
-        color: Colors.black,
-        fontSize: 20,
-        fontFamily: Fonts.Inter.Basic,
-        fontWeight: "400",
-        padding: 10,
-        paddingBottom: 32,
-        textAlign: "center",
-    },
-    noProfileContainer: {
-        width: "100%",
-        flex: 1,
-        backgroundColor: Colors.white,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    noProfileText: {
-        color: Colors.gray,
-        fontSize: 16,
-        fontFamily: "Inter",
-        fontWeight: "600",
-        padding: 10,
-        paddingBottom: 32,
-        textAlign: "center",
-    },
-    buttonActionsContainer: {
-        position: 'absolute',
-        bottom: 16,
-        flexDirection: 'row',
-        justifyContent: 'center',
-        gap: 48,
-        width: '100%',
-        alignSelf: 'center',
-    },
-    actionButton: {
-        backgroundColor: Colors.white,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.2,
-        shadowRadius: 10,
-        elevation: 5,
-        height: 60,
-        width: 60,
-        borderRadius: 30,
-    },
-    likeIcon: {
-        position: 'absolute',
-        top: '40%',
-        left: '40%',
-    },
-    dislikeIcon: {
-        position: 'absolute',
-        top: '40%',
-        left: '40%',
-    },
+  actionButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  actionButtonText: {
+    ...TextStyles.button,
+    color: Colors.white,
+    fontWeight: '600',
+  },
+  actionButtonsContainer: {
+    bottom: 40,
+    flexDirection: 'row',
+    gap: 60,
+    justifyContent: 'center',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+  },
+  card: {
+    backgroundColor: Colors.white,
+    borderRadius: 20,
+    elevation: 8,
+    height: '90%',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    width: '95%',
+  },
+  cardContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  descriptionSection: {
+    marginBottom: 20,
+  },
+  descriptionText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    lineHeight: 22,
+  },
+  dislikeAnimation: {
+    left: '42%',
+    position: 'absolute',
+    top: '45%',
+    zIndex: 1000,
+  },
+  dislikeButton: {
+    backgroundColor: Colors.accent,
+  },
+  emptyStateContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+  },
+  emptyStateText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    lineHeight: 22,
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  emptyStateTitle: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 12,
+    marginTop: 24,
+    textAlign: 'center',
+  },
+  headerContainer: {
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  imageContainer: {
+    height: '40%',
+    position: 'relative',
+  },
+  imageOverlay: {
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    bottom: 0,
+    left: 0,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    position: 'absolute',
+    right: 0,
+  },
+  likeAnimation: {
+    left: '42%',
+    position: 'absolute',
+    top: '45%',
+    zIndex: 1000,
+  },
+  likeButton: {
+    backgroundColor: Colors.primary,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  navButton: {
+    alignItems: 'center',
+    paddingHorizontal: 8,
+  },
+  navButtonText: {
+    ...TextStyles.small,
+    color: Colors.primary,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  navigationHeader: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  passionChip: {
+    backgroundColor: Colors.lightMuted,
+    borderColor: Colors.primary,
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  passionContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  passionText: {
+    ...TextStyles.body,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  passionsSection: {
+    marginBottom: 20,
+  },
+  profileImage: {
+    height: '100%',
+    width: '100%',
+  },
+  profileInfo: {
+    flex: 1,
+    padding: 20,
+  },
+  profileName: {
+    ...TextStyles.h3Bold,
+    color: Colors.white,
+  },
+  sectionTitle: {
+    ...TextStyles.bodyBold,
+    color: Colors.primaryBorder,
+    marginBottom: 12,
+  },
+  swipeButton: {
+    alignItems: 'center',
+    borderRadius: 32,
+    elevation: 8,
+    height: 64,
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    width: 64,
+  },
 });

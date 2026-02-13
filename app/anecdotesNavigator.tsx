@@ -1,11 +1,15 @@
-import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+
 import AnecdotesScreen from './anecdotes/anecdotesScreen';
 import AnecdotesForm from './anecdotes/anecdotesForm';
 
 const Stack = createStackNavigator();
 
-// @ts-ignore
+export type AnecdotesStackParamList = {
+  anecdotesScreen: undefined;
+  anecdotesForm: undefined;
+};
+
 export default function AnecdotesNavigator() {
   return (
     <Stack.Navigator>

@@ -1,0 +1,450 @@
+import axios, { AxiosResponse, AxiosRequestConfig, isAxiosError } from 'axios';
+import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
+import { Alert } from 'react-native';
+
+import { User } from '@/contexts/UserContext';
+
+import * as config from './apiConfig';
+
+/**
+ * --- TYPES ---
+ */
+type ApiSuccessResponse<T = unknown> = {
+  success: true;
+  data: T;
+  message?: string;
+  pending?: false;
+};
+
+type ApiErrorResponse = {
+  success: false;
+  pending?: false;
+  message: string;
+  code?: string;
+};
+
+type ApiPendingResponse = {
+  success: false;
+  pending: true;
+  message: string;
+};
+
+export type ApiResponse<T = unknown> =
+  | ApiSuccessResponse<T>
+  | ApiErrorResponse
+  | ApiPendingResponse;
+
+type PendingRequest = {
+  id: string;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  url: string;
+  data: unknown;
+  options: ApiCallOptions;
+  timestamp: number;
+  retries?: number;
+};
+
+export type SyncPendingRequestsResult = {
+  success: number;
+  failed: number;
+  retrying: number;
+  errors: { request?: unknown; error: string }[];
+};
+
+type ApiCallOptions = {
+  multimedia?: boolean;
+  invalidateCache?: string | string[];
+  skipPendingSave?: boolean;
+  timeout?: number;
+};
+
+export class AuthError extends Error {
+  constructor(public code: 'NO_REFRESH_TOKEN' | 'JWT_EXPIRED' | 'JWT_INVALID') {
+    super(code);
+    this.name = 'AuthError';
+  }
+}
+
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public statusCode?: number,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+export type AppError = AuthError | ApiError | Error;
+
+export const isPendingResponse = (
+  res: ApiResponse,
+): res is ApiPendingResponse => res.success === false && res.pending === true;
+export const isSuccessResponse = <T>(
+  res: ApiResponse<T>,
+): res is ApiSuccessResponse<T> => res.success === true;
+export const isAuthError = (err: unknown): err is AuthError =>
+  err instanceof AuthError;
+export const isNetworkError = (error: unknown): boolean => {
+  if (!isAxiosError(error)) return false;
+  return (
+    error.code === 'ECONNABORTED' ||
+    error.code === 'ERR_NETWORK' ||
+    error.message === 'Network Error' ||
+    !error.response
+  );
+};
+
+/**
+ * --- STORAGE HELPERS ---
+ */
+const STORAGE_KEYS = {
+  PENDING: 'pending_requests',
+  OFFLINE_PREFIX: 'offline_cache_',
+};
+
+const savePendingRequest = async (req: PendingRequest) => {
+  try {
+    const current = await getPendingRequests();
+    current.push(req);
+    await AsyncStorage.setItem(STORAGE_KEYS.PENDING, JSON.stringify(current));
+  } catch (e) {
+    console.error('Save pending error', e);
+  }
+};
+
+export const getPendingRequests = async (): Promise<PendingRequest[]> => {
+  try {
+    const str = await AsyncStorage.getItem(STORAGE_KEYS.PENDING);
+    return str ? JSON.parse(str) : [];
+  } catch {
+    return [];
+  }
+};
+
+const removePendingRequest = async (id: string) => {
+  try {
+    const current = await getPendingRequests();
+    const filtered = current.filter((r) => r.id !== id);
+    await AsyncStorage.setItem(STORAGE_KEYS.PENDING, JSON.stringify(filtered));
+  } catch (e) {
+    console.error('Remove pending error', e);
+  }
+};
+
+const updatePendingRequest = async (req: PendingRequest) => {
+  try {
+    const current = await getPendingRequests();
+    const index = current.findIndex((r) => r.id === req.id);
+    if (index !== -1) {
+      current[index] = req;
+      await AsyncStorage.setItem(STORAGE_KEYS.PENDING, JSON.stringify(current));
+    }
+  } catch (e) {
+    console.error('Update pending error', e);
+  }
+};
+
+const saveOfflineCache = async <T>(url: string, data: T) => {
+  try {
+    if (data !== null && data !== undefined) {
+      await AsyncStorage.setItem(
+        `${STORAGE_KEYS.OFFLINE_PREFIX}${url}`,
+        JSON.stringify(data),
+      );
+    }
+  } catch (e) {
+    console.error('Save offline error', e);
+  }
+};
+
+const getOfflineCache = async <T>(url: string): Promise<T | null> => {
+  try {
+    const str = await AsyncStorage.getItem(
+      `${STORAGE_KEYS.OFFLINE_PREFIX}${url}`,
+    );
+    return str ? JSON.parse(str) : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * --- CORE API FUNCTION ---
+ */
+const apiCall = async <T = unknown>(
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+  url: string,
+  data: unknown = null,
+  options: ApiCallOptions = {},
+  bypassLogoutAlert = false,
+): Promise<ApiResponse<T>> => {
+  const { multimedia = false, skipPendingSave = false, timeout } = options;
+
+  try {
+    const accessToken = await SecureStore.getItemAsync('accessToken');
+    const fullUrl = `${config.API_BASE_URL}/${url}`;
+
+    const configAxios: AxiosRequestConfig = {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        ...(multimedia ? { 'Content-Type': 'multipart/form-data' } : {}),
+      },
+      timeout: timeout || (multimedia ? 180000 : 10000),
+    };
+
+    let response: AxiosResponse;
+
+    switch (method) {
+      case 'GET':
+        response = await axios.get(fullUrl, configAxios);
+        break;
+      case 'POST':
+        response = await axios.post(fullUrl, data, configAxios);
+        break;
+      case 'PUT':
+        response = await axios.put(fullUrl, data, configAxios);
+        break;
+      case 'DELETE':
+        response = await axios.delete(fullUrl, configAxios);
+        break;
+      case 'PATCH':
+        response = await axios.patch(fullUrl, data, configAxios);
+        break;
+      default:
+        throw new Error(`Method ${method} not supported`);
+    }
+
+    const responseData = response.data;
+
+    const finalData =
+      responseData && responseData.success !== undefined
+        ? responseData.data
+        : responseData;
+    const successState =
+      responseData && responseData.success !== undefined
+        ? responseData.success
+        : true;
+
+    if (!successState) {
+      throw new ApiError(responseData.message || 'Erreur API', response.status);
+    }
+
+    if (method === 'GET') {
+      await saveOfflineCache(url, finalData);
+    }
+
+    return { success: true, data: finalData, message: responseData.message };
+  } catch (error: unknown) {
+    if (isAxiosError(error) && error.response?.status === 401) {
+      const refreshed = await refreshTokens(bypassLogoutAlert);
+      if (refreshed) {
+        return apiCall<T>(method, url, data, options, bypassLogoutAlert);
+      }
+    }
+
+    if (isNetworkError(error)) {
+      if (method === 'GET') {
+        const offlineData = await getOfflineCache<T>(url);
+        if (offlineData) {
+          // Toast.show({
+          //   type: 'info',
+          //   text1: 'Mode hors ligne',
+          //   text2: 'Données récupérées du cache.',
+          // });
+          return {
+            success: true,
+            data: offlineData,
+            message: 'Mode hors ligne',
+          };
+        }
+      } else {
+        if (!skipPendingSave) {
+          await savePendingRequest({
+            id: Date.now().toString(),
+            method,
+            url,
+            data,
+            options,
+            timestamp: Date.now(),
+            retries: 0,
+          });
+          return {
+            success: false,
+            pending: true,
+            message: 'Pas de connexion. Action sauvegardée pour plus tard.',
+          };
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    let errorMessage = 'Une erreur est survenue';
+    if (isAxiosError(error) && error.response?.data) {
+      const d = error.response.data as any;
+      errorMessage = d.message || d.error || errorMessage;
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
+    throw new ApiError(errorMessage);
+  }
+};
+
+/**
+ * --- HELPERS ---
+ */
+
+const refreshTokens = async (bypassLogoutAlert = false): Promise<boolean> => {
+  const refreshToken = await SecureStore.getItemAsync('refreshToken');
+  if (!refreshToken) throw new AuthError('NO_REFRESH_TOKEN');
+
+  try {
+    const res = await axios.get(`${config.APP_URL}/auth/refresh`, {
+      headers: { Authorization: `Bearer ${refreshToken}` },
+    });
+    await SecureStore.setItemAsync('accessToken', res.data.access_token);
+    return true;
+  } catch {
+    await SecureStore.deleteItemAsync('accessToken');
+    await SecureStore.deleteItemAsync('refreshToken');
+    if (!bypassLogoutAlert)
+      Alert.alert('Déconnexion', 'Vous avez été déconnecté.', [{ text: 'Ok' }]);
+    throw new AuthError('JWT_EXPIRED');
+  }
+};
+
+export const syncPendingRequests =
+  async (): Promise<SyncPendingRequestsResult> => {
+    const pending = await getPendingRequests();
+    if (pending.length === 0)
+      return { success: 0, failed: 0, retrying: 0, errors: [] };
+
+    Toast.show({
+      type: 'info',
+      text1: 'Synchronisation...',
+      text2: `${pending.length} actions en attente.`,
+    });
+
+    let success = 0;
+    let failed = 0;
+    let retrying = 0;
+    const errors: { request?: unknown; error: string }[] = [];
+
+    for (const req of pending) {
+      try {
+        await apiCall(req.method, req.url, req.data, {
+          ...req.options,
+          skipPendingSave: true,
+        });
+
+        await removePendingRequest(req.id);
+        success++;
+
+        if (pending.indexOf(req) < pending.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 800));
+        }
+      } catch (e) {
+        const currentRetries = req.retries || 0;
+
+        if (currentRetries >= 2) {
+          await removePendingRequest(req.id);
+          failed++;
+          errors.push({
+            request: req.data,
+            error: `Max retries reached. Last error: ${e instanceof Error ? e.message : 'Unknown'}`,
+          });
+        } else {
+          req.retries = currentRetries + 1;
+          await updatePendingRequest(req);
+          retrying++;
+        }
+      }
+    }
+
+    if (success > 0 || failed > 0 || retrying > 0) {
+      Toast.show({
+        type: 'success',
+        text1: 'Synchronisation terminée',
+        text2: `${success} succès, ${failed} abandonnées, ${retrying} re-planifiées`,
+      });
+    }
+
+    return { success, failed, retrying, errors };
+  };
+
+export const handleApiErrorToast = (
+  error: unknown,
+  setUser: (u: User | null) => void,
+) => {
+  if (isAuthError(error)) {
+    setUser(null);
+    return;
+  }
+
+  const message =
+    error instanceof ApiError
+      ? error.message
+      : error instanceof Error
+        ? error.message
+        : 'Erreur inconnue';
+
+  Toast.show({
+    type: 'error',
+    text1: 'Erreur',
+    text2: message,
+  });
+};
+
+export const handleApiErrorScreen = (
+  error: unknown,
+  setUser: (user: User | null) => void,
+  setError: (error: string) => void,
+) => {
+  // TODO : relabel to handleApiErrorState
+  if (isAuthError(error)) {
+    setUser(null);
+    return;
+  }
+
+  const message =
+    error instanceof ApiError
+      ? error.message
+      : error instanceof Error
+        ? error.message
+        : 'Erreur inconnue';
+  setError(message);
+};
+
+export const apiGet = <T>(url: string, bypassLogoutAlert = false) =>
+  apiCall<T>('GET', url, null, {}, bypassLogoutAlert);
+export const apiPost = <T>(
+  url: string,
+  data: any,
+  multimedia = false,
+  invalidateCache?: string | string[],
+  bypassLogoutAlert = false,
+) =>
+  apiCall<T>(
+    'POST',
+    url,
+    data,
+    { multimedia, invalidateCache },
+    bypassLogoutAlert,
+  );
+export const apiPut = <T>(
+  url: string,
+  data: any,
+  options?: ApiCallOptions,
+  bypassLogoutAlert = false,
+) => apiCall<T>('PUT', url, data, options, bypassLogoutAlert);
+export const apiDelete = <T>(url: string, bypassLogoutAlert = false) =>
+  apiCall<T>('DELETE', url, null, {}, bypassLogoutAlert);
+export const apiPatch = <T>(
+  url: string,
+  data: any,
+  bypassLogoutAlert = false,
+) => apiCall<T>('PATCH', url, data, {}, bypassLogoutAlert);

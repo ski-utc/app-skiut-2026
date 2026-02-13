@@ -1,63 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
-import { Home, CalendarFold, LandPlot, MessageSquareText } from 'lucide-react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import {
+  Home,
+  CalendarFold,
+  LandPlot,
+  MessageSquareText,
+  Heart,
+} from 'lucide-react-native';
 
-// @ts-ignore
-export default function CustomNavBar({ state, navigation }) {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 
-  useEffect(() => {
-    // Load fonts asynchronously
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-      setFontsLoaded(true);
-    };
-    loadAsyncFonts();
-  }, []);
+type TabItem = {
+  name: string;
+  label: string;
+  Icon: React.ComponentType<{ size: number; color: string }>;
+};
 
-  const activeColor = Colors.orange;
-  const unactiveColor = Colors.gray;
+export default function CustomNavBar({ state, navigation }: BottomTabBarProps) {
+  const activeColor = Colors.primary;
+  const unactiveColor = Colors.muted;
 
-  const tabs = [
+  const tabs: TabItem[] = [
     { name: 'homeNavigator', label: 'Home', Icon: Home },
     { name: 'planningNavigator', label: 'Planning', Icon: CalendarFold },
     { name: 'defisNavigator', label: 'Défi', Icon: LandPlot },
     { name: 'anecdotesNavigator', label: 'Anecdotes', Icon: MessageSquareText },
+    { name: 'skinderNavigator', label: 'Skinder', Icon: Heart },
   ];
 
-  if (!fontsLoaded) {
-    return (
-      <View
-        style={{
-          width: '100%',
-          height: 70,
-          backgroundColor: Colors.white,
-        }}
-      />
-    );
-  }
-
   return (
-    <View
-      style={{
-        width: '100%',
-        backgroundColor: Colors.white,
-      }}
-    >
-      <View
-        style={{
-          paddingVertical: 18,
-          marginHorizontal: 15,
-          backgroundColor: Colors.white,
-          borderTopWidth: 1,
-          borderTopColor: Colors.customWhite,
-          justifyContent: 'flex-start',
-          alignItems: 'center',
-          flexDirection: 'row',
-          gap: 24,
-        }}
-      >
+    <View style={styles.navbarContainer}>
+      <View style={styles.tabsContainer}>
         {tabs.map((tab, index) => {
           const isFocused = state.index === index;
 
@@ -67,7 +40,6 @@ export default function CustomNavBar({ state, navigation }) {
               target: tab.name,
               canPreventDefault: true,
             });
-
             if (!isFocused && !event.defaultPrevented) {
               navigation.navigate(tab.name);
             }
@@ -85,27 +57,17 @@ export default function CustomNavBar({ state, navigation }) {
               key={tab.name}
               onPress={onPress}
               onLongPress={onLongPress}
-              style={{
-                flex: 1,
-                flexDirection: 'column',
-                justifyContent: 'flex-start',
-                alignItems: 'center',
-                gap: 12,
-              }}
+              style={styles.tabButton}
             >
               <tab.Icon
                 size={24}
                 color={isFocused ? activeColor : unactiveColor}
               />
               <Text
-                style={{
-                  color: isFocused ? activeColor : unactiveColor,
-                  fontSize: 14,
-                  fontFamily: Fonts.Inter.Basic,
-                  fontWeight: '500',
-                  textAlign: 'center',
-                  marginBottom: 2, // monte un peu le texte
-                }}
+                style={[
+                  styles.tabText,
+                  { color: isFocused ? activeColor : unactiveColor },
+                ]}
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.8}
@@ -119,3 +81,34 @@ export default function CustomNavBar({ state, navigation }) {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  navbarContainer: {
+    backgroundColor: Colors.white,
+    width: '100%',
+  },
+  tabButton: {
+    alignItems: 'center',
+    flex: 1,
+    flexDirection: 'column',
+    gap: 8,
+    justifyContent: 'flex-start',
+  },
+  tabText: {
+    ...TextStyles.bodyBold,
+    fontSize: 13,
+    marginBottom: 2,
+    textAlign: 'center',
+  },
+  tabsContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderTopColor: Colors.lightMuted,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    gap: 0,
+    justifyContent: 'flex-start',
+    marginHorizontal: 4,
+    paddingVertical: 12,
+  },
+});

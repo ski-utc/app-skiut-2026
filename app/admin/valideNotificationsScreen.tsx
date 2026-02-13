@@ -1,56 +1,88 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator } from 'react-native';
-import { useRoute } from '@react-navigation/native';
-import { Trash, Check } from 'lucide-react-native'; // Import Check icon
-import Header from '../../components/header';
+import { useState, useEffect, useCallback } from 'react';
+import {
+  Text,
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  ScrollView,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  useRoute,
+  NavigationProp,
+  useNavigation,
+} from '@react-navigation/native';
+import { Eye, Bell, Calendar, Users, EyeOff } from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
+
 import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors, loadFonts } from '@/constants/GraphSettings';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import BoutonActiver from '@/components/divers/boutonActiver';
-import { apiPost, apiGet } from '@/constants/api/apiCalls';
+import {
+  ApiError,
+  apiGet,
+  apiPut,
+  handleApiErrorScreen,
+  handleApiErrorToast,
+} from '@/constants/api/apiCalls';
 import ErrorScreen from '@/components/pages/errorPage';
 import { useUser } from '@/contexts/UserContext';
-import { useNavigation } from '@react-navigation/native';
-import Toast from 'react-native-toast-message';
+
+import Header from '../../components/header';
+
+import { AdminStackParamList } from './adminNavigator';
+
+type NotificationDetails = {
+  id: number;
+  title: string;
+  description: string;
+  created_at: string;
+  general: number;
+  display: boolean;
+};
+
+type RouteParams = {
+  id: number;
+};
 
 export default function ValideNotifications() {
   const route = useRoute();
-  const navigation = useNavigation();
-  
-  const { id } = route.params; // Get the notification ID from route params
+  const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
+
+  const { id } = (route.params as RouteParams) || { id: 0 };
   const { setUser } = useUser();
 
-  const [notificationDetails, setNotificationDetails] = useState(null);
+  const [notificationDetails, setNotificationDetails] =
+    useState<NotificationDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Fetch notification details
   const fetchNotificationDetails = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiGet(`getNotificationDetails/${id}`);
+      const response = await apiGet<NotificationDetails>(
+        `admin/notifications/${id}`,
+      );
       if (response.success) {
         setNotificationDetails(response.data);
       } else {
-        setError('Erreur lors de la récupération des détails de la notification');
+        handleApiErrorScreen(new ApiError(response.message), setUser, setError);
       }
-    } catch (error : any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message);
-      }
+    } catch (error: unknown) {
+      handleApiErrorScreen(error, setUser, setError);
     } finally {
       setLoading(false);
     }
   }, [id, setUser]);
 
-  // Handle notification deletion or recovery
-  const handleDelete = async (deleteFlag) => {
+  const handleDelete = async (displayFlag: boolean) => {
     setLoading(true);
     try {
-      const response = await apiPost(`deleteNotification/${id}/${deleteFlag}`);
+      const response = await apiPut(`admin/notifications/${id}/display`, {
+        display_flag: displayFlag,
+      });
       if (response.success) {
-        if (deleteFlag === 1) { // If notification is deleted
+        if (displayFlag === true) {
           Toast.show({
             type: 'success',
             text1: 'Notification désactivée !',
@@ -60,11 +92,18 @@ export default function ValideNotifications() {
         } else {
           Toast.show({
             type: 'success',
-            text1: 'Notification envoyée !',
+            text1: 'Notification réactivée !',
             text2: response.message,
           });
           navigation.goBack();
         }
+      } else if (response.pending) {
+        Toast.show({
+          type: 'info',
+          text1: 'Requête sauvegardée',
+          text2: response.message,
+        });
+        navigation.goBack();
       } else {
         Toast.show({
           type: 'error',
@@ -72,23 +111,14 @@ export default function ValideNotifications() {
           text2: response.message,
         });
       }
-    } catch (error : any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message);
-      }
+    } catch (error: unknown) {
+      handleApiErrorToast(error, setUser);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-
     fetchNotificationDetails();
   }, [fetchNotificationDetails]);
 
@@ -98,140 +128,190 @@ export default function ValideNotifications() {
 
   if (loading) {
     return (
-      <View
-        style={{
-          height: '100%',
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
       >
         <Header refreshFunction={null} disableRefresh={true} />
-        <View
-          style={{
-            width: '100%',
-            flex: 1,
-            backgroundColor: Colors.white,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <ActivityIndicator size="large" color={Colors.gray} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Chargement des détails...</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Header refreshFunction={null} disableRefresh={true} />
-      <View style={styles.content}>
-        <BoutonRetour previousRoute="gestionNotificationsScreen" title={`Gérer notification`} />
-        <Text style={styles.title}>Détail de la notification {id} :</Text>
-        <View style={styles.textBox}>
-          <Text style={styles.text}>Notification : {notificationDetails?.title || 'Pas de description'}</Text>
-          <Text style={styles.text}>
-            Date : {notificationDetails?.created_at ? new Date(notificationDetails.created_at).toLocaleString('fr-FR', {
-              weekday: 'long',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-              second: '2-digit',
-              hour12: false,
-            }) : 'Date non disponible'}
-          </Text>
-          <Text style={styles.text}>S'applique à : {notificationDetails?.general ? 'Tout le monde' : 'Individuel'}</Text>
-        </View>
-        <View style={styles.anecdoteBox}>
-          <Text style={styles.text}>{notificationDetails?.description}</Text>
-        </View>
+      <View style={styles.headerContainer}>
+        <BoutonRetour title={`Gérer notification`} />
       </View>
 
-      <View style={styles.buttonContainer}>
-        <View style={styles.buttonSpacing}>
-          <BoutonActiver
-            title="Désactiver la notification"
-            IconComponent={Trash}
-            disabled={notificationDetails?.delete === 1} // Disable if already deleted
-            onPress={() => handleDelete(1)} // Delete notification
-          />
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* <View style={styles.heroSection}>
+          <View style={styles.heroIcon}>
+            <Bell size={24} color={Colors.primary} />
+          </View>
+          <Text style={styles.heroTitle}>Détail de la notification #{id}</Text>
+          <Text style={styles.heroSubtitle}>
+            Gérez l'état de cette notification
+          </Text>
+        </View> */}
+
+        <View style={styles.infoCard}>
+          <View style={styles.infoRow}>
+            <Bell size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Notification :</Text>
+            <Text style={styles.infoValue}>
+              {notificationDetails?.title || 'Pas de titre'}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Calendar size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Date :</Text>
+            <Text style={styles.infoValue}>
+              {notificationDetails?.created_at
+                ? new Date(notificationDetails.created_at).toLocaleString(
+                    'fr-FR',
+                    {
+                      weekday: 'long',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: false,
+                    },
+                  )
+                : 'Date non disponible'}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Users size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>S'applique à :</Text>
+            <Text style={styles.infoValue}>
+              {notificationDetails?.general ? 'Tout le monde' : 'Individuel'}
+            </Text>
+          </View>
         </View>
-        <BoutonActiver
-          title="Activer la notification"
-          IconComponent={Check}
-          disabled={notificationDetails?.delete === 0} // Disable if not deleted
-          onPress={() => handleDelete(0)} // Recover notification
-        />
+
+        <View style={styles.contentCard}>
+          <Text style={styles.contentTitle}>Contenu de la notification</Text>
+          <Text style={styles.contentText}>
+            {notificationDetails?.description}
+          </Text>
+        </View>
+      </ScrollView>
+
+      <View style={styles.buttonContainer}>
+        {notificationDetails?.display === true ? (
+          <BoutonActiver
+            title="Masque la notification"
+            IconComponent={EyeOff}
+            color={Colors.error}
+            onPress={() => handleDelete(true)}
+          />
+        ) : (
+          <BoutonActiver
+            title="Afficher la notification"
+            IconComponent={Eye}
+            color={Colors.success}
+            onPress={() => handleDelete(false)}
+          />
+        )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  buttonContainer: {
+    bottom: 20,
+    left: 20,
+    position: 'absolute',
+    right: 20,
+  },
   container: {
-    flex: 1,
     backgroundColor: Colors.white,
+    flex: 1,
   },
   content: {
-    width: '100%',
     flex: 1,
+  },
+  contentCard: {
     backgroundColor: Colors.white,
+    borderColor: Colors.primary,
+    borderRadius: 14,
+    borderWidth: 2,
+    elevation: 3,
+    marginBottom: 88,
+    marginHorizontal: 20,
+    minHeight: 150,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+  },
+  contentText: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    lineHeight: 22,
+  },
+  contentTitle: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 12,
+  },
+  headerContainer: {
+    paddingBottom: 8,
     paddingHorizontal: 20,
-    paddingBottom: 16,
   },
-  title: {
-    marginTop: 20,
-    fontSize: 16,
-    color: Colors.black,
-    fontFamily: 'Inter',
-    fontWeight: '600',
-  },
-  textBox: {
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: Colors.gray,
-    borderRadius: 8,
-    padding: 10,
+
+  infoCard: {
     backgroundColor: Colors.white,
-    marginBottom: 20,
-  },
-  anecdoteBox: {
-    padding: 14,
-    minHeight: 200,
-    marginTop: 8,
-    marginBottom: 8,
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
+    borderColor: 'rgba(0,0,0,0.06)',
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#EAEAEA',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-    gap: 8,
-    width: '100%',
+    elevation: 3,
+    marginBottom: 16,
+    marginHorizontal: 20,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
   },
-  text: {
-    fontSize: 14,
-    color: Colors.black,
-    fontFamily: 'Inter',
-    fontWeight: '400',
+  infoLabel: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    fontWeight: '600',
+    marginLeft: 8,
+    marginRight: 8,
+    minWidth: 80,
+  },
+  infoRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 12,
+  },
+  infoValue: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    flex: 1,
     lineHeight: 20,
   },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 20,
-    width: '100%',
-    paddingHorizontal: 20,
-  },
-  buttonSpacing: {
-    marginBottom: 16,
-  },
   loadingContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
+  },
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16,
+    textAlign: 'center',
   },
 });

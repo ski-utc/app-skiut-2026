@@ -1,99 +1,204 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Text, View, StyleSheet, ActivityIndicator } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import { X, Check } from 'lucide-react-native';
-import Header from '../../components/header';
-import BoutonRetour from '@/components/divers/boutonRetour';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
-import BoutonActiver from '@/components/divers/boutonActiver';
-import { apiPost, apiGet } from '@/constants/api/apiCalls'; // Assurez-vous d'importer l'appel API
-import ErrorScreen from '@/components/pages/errorPage';
-import { useUser } from '@/contexts/UserContext';
+import { useState, useEffect, useCallback } from 'react';
+import {
+  Text,
+  View,
+  StyleSheet,
+  ActivityIndicator,
+  ScrollView,
+  Alert,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  useRoute,
+  NavigationProp,
+  useNavigation,
+  RouteProp,
+} from '@react-navigation/native';
+import {
+  X,
+  Check,
+  FileQuestion,
+  User,
+  Heart,
+  AlertTriangle,
+  Trash2,
+} from 'lucide-react-native';
 import Toast from 'react-native-toast-message';
 
-export default function ValideAnecdotes() {
-  const route = useRoute();
-  const { id } = route.params; // Récupération de l'ID de l'anecdote
-  const { setUser } = useUser();
-  const navigation = useNavigation();
+import BoutonRetour from '@/components/divers/boutonRetour';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+import BoutonActiver from '@/components/divers/boutonActiver';
+import {
+  apiGet,
+  apiPut,
+  apiDelete,
+  isSuccessResponse,
+  isPendingResponse,
+  handleApiErrorToast,
+  handleApiErrorScreen,
+  AppError,
+  ApiError,
+} from '@/constants/api/apiCalls';
+import ErrorScreen from '@/components/pages/errorPage';
+import { useUser } from '@/contexts/UserContext';
 
-  const [anecdoteDetails, setAnecdoteDetails] = useState(null);
-  const [nbLikes, setNbLikes] = useState(null);
-  const [nbWarns, setNbWarns] = useState(null);
+import Header from '../../components/header';
+
+import { AdminStackParamList } from './adminNavigator';
+
+type AnecdoteDetails = {
+  id: number;
+  text: string;
+  valid: number;
+  created_at: string;
+  user: {
+    firstName: string;
+    lastName: string;
+    room: string;
+  };
+  nbLikes: number;
+  nbWarns: number;
+};
+
+type RouteParams = RouteProp<AdminStackParamList, 'valideAnecdotesScreen'>;
+
+export default function ValideAnecdotes() {
+  const route = useRoute<RouteParams>();
+  const { id } = route.params || { id: 0 };
+
+  const { setUser } = useUser();
+  const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
+
+  const [anecdoteDetails, setAnecdoteDetails] =
+    useState<AnecdoteDetails | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Fonction pour récupérer les détails de l'anecdote
   const fetchAnecdoteDetails = useCallback(async () => {
+    if (!id) return;
+
     setLoading(true);
+    setError('');
+
     try {
-      const response = await apiGet(`getAnecdoteDetails/${id}`);
-      if (response.success) {
+      const response = await apiGet<AnecdoteDetails>(
+        `admin/anecdotes/${id}`,
+        false,
+      );
+
+      if (isSuccessResponse(response)) {
         setAnecdoteDetails(response.data);
-        setNbLikes(response.nbLikes);
-        setNbWarns(response.nbWarns);
       } else {
-        setError('Erreur lors de la récupération des détails de l\'anecdote');
+        handleApiErrorScreen(new ApiError(response.message), setUser, setError);
       }
-    } catch (error : any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message);
-      }
+    } catch (err: unknown) {
+      handleApiErrorScreen(err, setUser, setError);
     } finally {
       setLoading(false);
     }
   }, [id, setUser]);
 
-  // Fonction pour valider ou invalider l'anecdote
-  const handleValidation = async (isValid) => {
+  const handleValidation = async (isValid: number) => {
     setLoading(true);
     try {
-      const response = await apiPost(`updateAnecdoteStatus/${id}/${isValid}`);
-      if (response.success) {
-        // Update the anecdote status in the state after validation
-        setAnecdoteDetails(prevDetails => ({
-          ...prevDetails,
-          valid: isValid,  // Update valid status directly
-        }));
+      const response = await apiPut(`admin/anecdotes/${id}/status`, {
+        is_valid: isValid,
+      });
 
-        // Show a success message based on the action
+      const handleSuccess = (isPending: boolean) => {
+        setAnecdoteDetails((prev) =>
+          prev ? { ...prev, valid: isValid } : null,
+        );
+
         Toast.show({
-          type: 'success',
-          text1: isValid === 0  ? 'Anecdote désactivée !' : 'Anecdote validée !',
-          text2: response.message,
+          type: isPending ? 'info' : 'success',
+          text1: isPending
+            ? 'Action sauvegardée'
+            : isValid === 0
+              ? 'Désactivée'
+              : 'Validée',
+          text2: isPending ? 'Sera synchronisé plus tard' : response.message,
         });
+
         navigation.goBack();
+      };
+
+      if (isSuccessResponse(response)) {
+        handleSuccess(false);
+      } else if (isPendingResponse(response)) {
+        handleSuccess(true);
       } else {
-        // Show error message
         Toast.show({
           type: 'error',
-          text1: 'Une erreur est survenue...',
+          text1: 'Erreur',
           text2: response.message,
         });
-        setError(response.message || 'Une erreur est survenue lors de la validation de l\'anecdote.');
       }
-    } catch (error : any) {
-      if (error.message === 'NoRefreshTokenError' || error.JWT_ERROR) {
-        setUser(null);
-      } else {
-        setError(error.message);
-      }
+    } catch (err: unknown) {
+      handleApiErrorToast(err as AppError, setUser);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleDelete = async () => {
+    Alert.alert(
+      'Confirmation',
+      'Êtes-vous sûr de vouloir supprimer cette anecdote ?',
+      [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+        },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              const response = await apiDelete(`admin/anecdotes/${id}`);
+
+              if (isSuccessResponse(response)) {
+                Toast.show({
+                  type: 'success',
+                  text1: 'Anecdote supprimée !',
+                  text2: response.message,
+                });
+                navigation.goBack();
+              } else if (isPendingResponse(response)) {
+                Toast.show({
+                  type: 'info',
+                  text1: 'Action sauvegardée',
+                  text2: 'Sera synchronisé plus tard',
+                });
+                navigation.goBack();
+              } else {
+                Toast.show({
+                  type: 'error',
+                  text1: 'Erreur',
+                  text2: response.message,
+                });
+              }
+            } catch (err: unknown) {
+              handleApiErrorToast(err as AppError, setUser);
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+      { cancelable: true },
+    );
+  };
 
   useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-    };
-    loadAsyncFonts();
-
     fetchAnecdoteDetails();
   }, [fetchAnecdoteDetails]);
+
+  if (!id) {
+    return <ErrorScreen error="ID de l'anecdote manquant" />;
+  }
 
   if (error !== '') {
     return <ErrorScreen error={error} />;
@@ -101,159 +206,256 @@ export default function ValideAnecdotes() {
 
   if (loading) {
     return (
-      <View
-        style={{
-          height: '100%',
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
       >
         <Header refreshFunction={null} disableRefresh={true} />
-        <View
-          style={{
-            width: '100%',
-            flex: 1,
-            backgroundColor: Colors.white,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <ActivityIndicator size="large" color={Colors.gray} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Chargement des détails...</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Header refreshFunction={null} disableRefresh={true} />
-      <View style={styles.content}>
-        <BoutonRetour previousRoute="gestionAnecdotesScreen" title={`Gérer l'anecdote ${id}`} />
-        <Text style={styles.title}>Détail de l'anecdote :</Text>
-        <View style={styles.textBox}>
-          <Text style={styles.text}>Status : {anecdoteDetails?.valid ? 'Validée' : 'En attente de validation'}</Text>
-          <Text style={styles.text}>Date : {anecdoteDetails?.created_at ? new Date(anecdoteDetails.created_at).toLocaleString('fr-FR', {
-            weekday: 'long', // Jour de la semaine complet
-            month: 'long', // Mois complet
-            day: 'numeric', // Jour
-            hour: '2-digit', // Heure sur 2 chiffres
-            minute: '2-digit', // Minute sur 2 chiffres
-            second: '2-digit', // Seconde sur 2 chiffres
-            hour12: false, // Utiliser l'heure 24h (optionnel)
-          }) : 'Date non disponible'}
-          </Text>
-          <Text style={styles.text}>Auteur : {anecdoteDetails?.user?.firstName} {anecdoteDetails?.user?.lastName || 'Auteur inconnu'}</Text>
-          <Text style={styles.text}>Nombre de likes : {nbLikes}</Text>
-          <Text style={styles.text}>Nombre de signalements : {nbWarns}</Text>
-        </View>
-        <View style={styles.anecdoteBox}>
-          <Text style={styles.text}>{anecdoteDetails.text}</Text>
-        </View>
+
+      <View style={styles.headerContainer}>
+        <BoutonRetour title={`Gérer l'anecdote ${id}`} />
       </View>
 
-      <View style={styles.buttonContainer}>
-        <View style={styles.buttonSpacing}>
-          <BoutonActiver
-            title="Désactiver l'anecdote"
-            IconComponent={X}
-            disabled={anecdoteDetails.valid === 0}
-            onPress={() => handleValidation(0)} // Appeler la fonction pour invalider
-          />
+      {/* <View style={styles.heroSection}>
+        <View style={styles.heroIcon}>
+          <MessageSquare size={24} color={Colors.primary} />
         </View>
-        <BoutonActiver
-          title="Valider l'anecdote"
-          IconComponent={Check}
-          disabled={anecdoteDetails.valid === 1}
-          onPress={() => handleValidation(1)} // Appeler la fonction pour valider
-        />
+        <Text style={styles.heroTitle}>Détail de l'anecdote #{id}</Text>
+        <Text style={styles.heroSubtitle}>
+          Validez ou modérez cette anecdote
+        </Text>
+      </View> */}
+
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.infoCard}>
+          <View style={styles.infoRow}>
+            <FileQuestion size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Status :</Text>
+            <Text
+              style={[
+                styles.infoValue,
+                anecdoteDetails?.valid
+                  ? styles.validStatus
+                  : styles.pendingStatus,
+              ]}
+            >
+              {anecdoteDetails?.valid ? 'Validée' : 'En attente de validation'}
+            </Text>
+          </View>
+
+          {/* <View style={styles.infoRow}>
+            <Calendar size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Date :</Text>
+            <Text style={styles.infoValue}>
+              {anecdoteDetails?.created_at ? new Date(anecdoteDetails.created_at).toLocaleString('fr-FR', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false,
+              }) : 'N/A'}
+            </Text>
+          </View> */}
+
+          <View style={styles.infoRow}>
+            <User size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Auteur.ice :</Text>
+            <Text style={styles.infoValue}>
+              {anecdoteDetails?.user?.firstName}{' '}
+              {anecdoteDetails?.user?.lastName || 'Anonyme'}
+            </Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Heart size={16} color={Colors.primary} />
+            <Text style={styles.infoLabel}>Likes :</Text>
+            <Text style={styles.infoValue}>{anecdoteDetails?.nbLikes}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <AlertTriangle size={16} color={Colors.error} />
+            <Text style={styles.infoLabel}>Signalements :</Text>
+            <Text
+              style={[
+                styles.infoValue,
+                anecdoteDetails?.nbWarns ? styles.warningText : null,
+              ]}
+            >
+              {anecdoteDetails?.nbWarns}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.contentCard}>
+          <Text style={styles.contentTitle}>Contenu de l'anecdote</Text>
+          <Text style={styles.contentText}>{anecdoteDetails?.text}</Text>
+        </View>
+      </ScrollView>
+
+      <View style={styles.buttonContainer}>
+        {anecdoteDetails?.valid === 1 ? (
+          <View style={styles.buttonRow}>
+            <View style={styles.buttonHalf}>
+              <BoutonActiver
+                title="Désactiver"
+                IconComponent={X}
+                color={Colors.primary}
+                onPress={() => handleValidation(0)}
+              />
+            </View>
+            <View style={styles.buttonHalf}>
+              <BoutonActiver
+                title="Supprimer"
+                IconComponent={Trash2}
+                color={Colors.error}
+                onPress={handleDelete}
+              />
+            </View>
+          </View>
+        ) : (
+          <View style={styles.buttonRow}>
+            <View style={styles.buttonHalf}>
+              <BoutonActiver
+                title="Supprimer"
+                IconComponent={Trash2}
+                color={Colors.error}
+                onPress={handleDelete}
+              />
+            </View>
+            <View style={styles.buttonHalf}>
+              <BoutonActiver
+                title="Valider"
+                IconComponent={Check}
+                color={Colors.success}
+                onPress={() => handleValidation(1)}
+              />
+            </View>
+          </View>
+        )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  buttonContainer: {
+    bottom: 20,
+    left: 20,
+    position: 'absolute',
+    right: 20,
+  },
+  buttonHalf: {
     flex: 1,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  container: {
     backgroundColor: Colors.white,
+    flex: 1,
   },
   content: {
-    width: '100%',
     flex: 1,
-    backgroundColor: Colors.white,
+    paddingBottom: 120,
     paddingHorizontal: 20,
-    paddingBottom: 16,
   },
-  title: {
-    marginTop: 20,
-    fontSize: 16,
-    color: Colors.black,
-    fontFamily: 'Inter',
+  contentCard: {
+    backgroundColor: Colors.white,
+    borderColor: Colors.primary,
+    borderRadius: 14,
+    borderWidth: 2,
+    elevation: 3,
+    marginBottom: 88,
+    minHeight: 150,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+  },
+  contentText: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    lineHeight: 22,
+  },
+  contentTitle: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 12,
+  },
+  headerContainer: {
+    paddingBottom: 8,
+    paddingHorizontal: 20,
+  },
+
+  infoCard: {
+    backgroundColor: Colors.white,
+    borderColor: 'rgba(0,0,0,0.06)',
+    borderRadius: 14,
+    borderWidth: 1,
+    elevation: 3,
+    marginBottom: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+  },
+  infoLabel: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
     fontWeight: '600',
+    marginLeft: 8,
+    marginRight: 8,
+    minWidth: 80,
   },
-  textBox: {
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: Colors.gray,
-    borderRadius: 8,
-    padding: 10,
-    backgroundColor: Colors.white,
-    marginBottom: 20,
-  },
-  anecdoteBox: {
-    padding: 14,
-    minHeight: 200,
-    marginBottom: 8,
-    backgroundColor: '#F8F8F8',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#EAEAEA',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-    gap: 8,
-    color: Colors.black,
-    fontFamily: Fonts.Inter.Basic,
-    fontWeight: 500,
-    fontSize: 14
-  },
-  buttonSpacing: {
-    marginBottom: 16, // Ajout d'un espace entre les boutons
-  },
-  text: {
-    fontSize: 14,
-    color: Colors.black,
-    fontFamily: 'Inter',
-    fontWeight: '400',
-    lineHeight: 20,
-  },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 20, // Adjust the distance from the bottom as needed
-    width: '100%',
-    paddingHorizontal: 20,
-  },
-  button: {
-    backgroundColor: '#E64034',
-    padding: 15,
-    borderRadius: 8,
-    width: '100%',
+  infoRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    justifyContent: 'center',
+    flexWrap: 'wrap',
+    marginBottom: 12,
   },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontFamily: 'Inter',
-    fontWeight: '600',
-    marginRight: 10,
+  infoValue: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    flex: 1,
+    lineHeight: 20,
   },
   loadingContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
+  },
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  pendingStatus: {
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  validStatus: {
+    color: Colors.success,
+    fontWeight: '600',
+  },
+  warningText: {
+    color: Colors.error,
+    fontWeight: '600',
   },
 });

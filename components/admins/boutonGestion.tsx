@@ -1,79 +1,112 @@
 import React from 'react';
-import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
-import { Colors, Fonts } from '@/constants/GraphSettings';
-import { useNavigation } from '@react-navigation/native';
+import {
+  Text,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+  TextStyle,
+} from 'react-native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { ChevronRight } from 'lucide-react-native';
 
-interface BoutonGestionProps {
-    title: string;
-    subtitle: string;
-    subtitleStyle?: object; // Allow custom styles for subtitle
-    nextRoute: string;
-    id: Int16Array;
-    valide:boolean;
-}
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 
-const BoutonGestion: React.FC<BoutonGestionProps> = ({ title, subtitle, subtitleStyle, nextRoute, id, valide }) => {
-    const navigation = useNavigation();
+type AdminStackParamList = {
+  valideDefisScreen: { id: number };
+  valideAnecdotesScreen: { id: number };
+  valideNotificationsScreen: { id: number };
+};
 
-    const handleGestionClick = () => {
-        navigation.navigate(nextRoute, { id });  // Pass only the ID
-    };
+type BoutonGestionProps = {
+  title: string;
+  subtitle: string;
+  subtitleStyle?: TextStyle;
+  nextRoute: keyof AdminStackParamList;
+  id: number;
+  valide: boolean;
+};
 
-    return (
-        <TouchableOpacity onPress={handleGestionClick} style={styles.buttonContainer}>
-            <View style={styles.textContainer}>
-                <View style={styles.textWrapper}>
-                    <Text style={styles.titleText}>{title}</Text>
-                    <Text style={[styles.subtitleText, subtitleStyle]}>{subtitle}</Text>
-                </View>
-            </View>
-            {valide!=null ? <View style={{height:8, width:8, borderRadius:100, backgroundColor: valide? 'green' : 'orange'}}></View> : null}
-            <ChevronRight size={20} color={Colors.black} />
-        </TouchableOpacity>
-    );
+const BoutonGestion: React.FC<BoutonGestionProps> = ({
+  title,
+  subtitle,
+  subtitleStyle,
+  nextRoute,
+  id,
+  valide,
+}) => {
+  const navigation = useNavigation<NavigationProp<AdminStackParamList>>();
+
+  const handleGestionClick = () => {
+    navigation.navigate(nextRoute, { id });
+  };
+
+  return (
+    <TouchableOpacity
+      onPress={handleGestionClick}
+      style={styles.buttonContainer}
+    >
+      <View style={styles.textContainer}>
+        <View style={styles.textWrapper}>
+          <Text style={styles.titleText}>{title}</Text>
+          <Text style={[styles.subtitleText, subtitleStyle]}>{subtitle}</Text>
+        </View>
+      </View>
+      {valide != null ? (
+        <View
+          style={[
+            styles.valideDot,
+            { backgroundColor: valide ? Colors.success : Colors.accent },
+          ]}
+        ></View>
+      ) : null}
+      <ChevronRight size={20} color={'#000000'} />
+    </TouchableOpacity>
+  );
 };
 
 const styles = StyleSheet.create({
-    buttonContainer: {
-        width: "100%",
-        paddingLeft: 20,
-        paddingRight: 20,
-        paddingTop: 14,
-        paddingBottom: 14,
-        borderBottomWidth: 1,
-        borderBottomColor: "#EAEAEA",
-        justifyContent: "space-between",
-        alignItems: "center",
-        flexDirection: "row",
-        backgroundColor: 'white',
-    },
-    textContainer: {
-        justifyContent: "flex-start",
-        alignItems: "center",
-        flexDirection: "row",
-        width: '85%',
-    },
-    textWrapper: {
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        gap: 2,
-    },
-    titleText: {
-        color: "#1E1E1E",
-        fontSize: 16,
-        fontFamily: Fonts.Inter.Basic,
-        fontWeight: "600",
-        wordWrap: 'break-word',
-    },
-    subtitleText: {
-        color: "#737373",
-        fontSize: 14,
-        fontFamily: Fonts.Inter.Basic,
-        fontStyle: "italic",
-        fontWeight: "400",
-        wordWrap: 'break-word',
-    },
+  buttonContainer: {
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderBottomColor: '#EAEAEA',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingBottom: 14,
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop: 14,
+    width: '100%',
+  },
+  subtitleText: {
+    color: '#737373',
+    ...TextStyles.body,
+    flexWrap: 'wrap',
+    fontStyle: 'italic',
+    fontWeight: '400',
+  },
+  textContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    width: '85%',
+  },
+  textWrapper: {
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+    gap: 2,
+  },
+  titleText: {
+    color: '#1E1E1E',
+    ...TextStyles.bodyLarge,
+    flexWrap: 'wrap',
+    fontWeight: '600',
+  },
+  valideDot: {
+    borderRadius: 100,
+    height: 8,
+    width: 8,
+  },
 });
 
 export default BoutonGestion;

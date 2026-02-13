@@ -1,141 +1,220 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Fonts } from '@/constants/GraphSettings';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { PartyPopper, Cookie, Shield, House } from 'lucide-react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+
+import { LoginStackParamList } from '../loginNavigator';
 
 export default function LaunchScreen2() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<LoginStackParamList>>();
 
-  const screenHeight = Dimensions.get("window").height;
-  const imageWidth = 0.4*screenHeight;
+  const panGesture = Gesture.Pan()
+    .activeOffsetX([-10, 10])
+    .runOnJS(true)
+    .onEnd((e) => {
+      if (e.velocityX < -350) {
+        navigation.navigate('launchScreen3');
+      } else if (e.velocityX > 350) {
+        navigation.goBack();
+      }
+    });
 
   return (
-    <View style={styles.container}>
-      {/* Image */}
-      <Image
-        source={require('../../assets/images/OursCabine.png')}
-        style={[styles.image, { width: imageWidth }]}
-      />
-      <View style={styles.innerContainer}>
-        <View style={styles.spacer} />
-        <View style={styles.contentContainer}>
-          <View style={styles.dotsContainer}>
-            <View style={styles.dotInactive} />
-            <View style={styles.dotActive} />
-            <View style={styles.dotInactive} />
+    <GestureDetector gesture={panGesture}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
+        <View style={styles.backgroundDecoration} />
+
+        <View style={styles.illustrationContainer}>
+          <View style={styles.featureCard}>
+            <View style={styles.featureIconContainer}>
+              <Cookie size={32} color={Colors.primary} />
+            </View>
+            <Text style={styles.featureTitle}>Monopr'ut</Text>
+            <Text style={styles.featureDescription}>
+              Limitez le gaspillage, partagez !
+            </Text>
           </View>
-          <Text style={styles.title}>
-            Partage tous tes défis
-          </Text>
+
+          <View style={[styles.featureCard, styles.featureCardSecondary]}>
+            <View style={styles.featureIconContainer}>
+              <House size={32} color={Colors.primary} />
+            </View>
+            <Text style={styles.featureTitle}>Tournée des chambres</Text>
+            <Text style={styles.featureDescription}>
+              On vous tient au courant avant de passer :)
+            </Text>
+          </View>
+
+          <View style={styles.featureCard}>
+            <View style={styles.featureIconContainer}>
+              <Shield size={32} color={Colors.primary} />
+            </View>
+            <Text style={styles.featureTitle}>RGPD</Text>
+            <Text style={styles.featureDescription}>
+              Soyez maître de vos données !
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.contentContainer}>
+          <View style={styles.progressContainer}>
+            <View style={styles.dotsContainer}>
+              <View style={[styles.dot, styles.dotInactive]} />
+              <View style={[styles.dot, styles.dotActive]} />
+              <View style={[styles.dot, styles.dotInactive]} />
+            </View>
+            <Text style={styles.progressText}>2 / 3</Text>
+          </View>
+
+          <View style={styles.titleContainer}>
+            <PartyPopper size={28} color={Colors.primary} />
+            <Text style={styles.title}>
+              Plein de nouvelles fonctionnalités !
+            </Text>
+          </View>
+
           <Text style={styles.description}>
-            Réalise un max de défis avec les membres de ta chambre et partage les avec tous les participants 
+            Découvrez les nouvelles fonctionnalités de l'application de ce
+            semestre : Monopr'ut, la tournée des chambres, l'onglet RGPD, et
+            bien plus encore !
           </Text>
+
           <TouchableOpacity
-            onPress={() => { navigation.navigate("launchScreen3"); }}
-            style={styles.nextButton}
+            onPress={() => navigation.navigate('loginScreen')}
+            style={styles.skipButton}
           >
-            <Text style={styles.nextButtonText}>
-              Suivant
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => { navigation.goBack(); }}
-            style={styles.backButton}
-          >
-            <Text style={styles.backButtonText}>
-              Retour
-            </Text>
+            <Text style={styles.skipButtonText}>Passer l'introduction</Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </View>
+      </SafeAreaView>
+    </GestureDetector>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'white',
-  },
-  image: {
+  backgroundDecoration: {
+    backgroundColor: Colors.primary,
+    borderBottomRightRadius: 80,
     height: '40%',
+    left: 0,
+    opacity: 0.1,
     position: 'absolute',
-    right: 0,
     top: 0,
+    width: '60%',
   },
-  innerContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  spacer: {
-    height: '50%',
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: 24,
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-  },
-  dotsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 20,
-  },
-  dotInactive: {
-    width: 13,
-    height: 13,
-    backgroundColor: 'rgba(230, 64, 52, 0.20)',
-    borderRadius: 61,
-  },
-  dotActive: {
-    width: 37.47,
-    height: 13,
-    backgroundColor: '#E64034',
-    borderRadius: 61,
-  },
-  title: {
-    fontFamily: Fonts.Text.Bold, // was Fonts.Title.Bold
-    fontSize: 32,
-    fontWeight: '500',
-    color: 'black',
-    marginBottom: 16,
+    gap: 24,
+    paddingBottom: 20,
+    paddingHorizontal: 32,
   },
   description: {
-    fontFamily: Fonts.Text.Medium,
-    fontSize: 16,
-    fontWeight: '400',
-    color: '#737373',
+    ...TextStyles.body,
+    color: Colors.muted,
     lineHeight: 24,
-    marginBottom: 40,
+    textAlign: 'left',
   },
-  nextButton: {
-    alignSelf: 'stretch',
-    backgroundColor: '#E64034',
-    paddingVertical: 15,
-    borderRadius: 8,
+  dot: {
+    borderRadius: 4,
+    height: 8,
+  },
+  dotActive: {
+    backgroundColor: Colors.primary,
+    width: 32,
+  },
+  dotInactive: {
+    backgroundColor: Colors.lightMuted,
+    width: 8,
+  },
+  dotsContainer: {
     alignItems: 'center',
-    marginBottom: 16,
+    flexDirection: 'row',
+    gap: 12,
   },
-  nextButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
-  },
-  backButton: {
-    alignSelf: 'stretch',
-    backgroundColor: '#F2F2F2',
-    opacity: 0.6,
-    paddingVertical: 15,
-    borderRadius: 8,
+  featureCard: {
     alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 16,
+    borderWidth: 1,
+    elevation: 4,
+    minWidth: 140,
+    padding: 10,
+    paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
-  backButtonText: {
-    fontSize: 16,
+  featureCardSecondary: {
+    backgroundColor: Colors.lightMuted,
+    transform: [{ scale: 1.1 }],
+  },
+  featureDescription: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  featureIconContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 28,
+    height: 56,
+    justifyContent: 'center',
+    marginBottom: 12,
+    width: 56,
+  },
+  featureTitle: {
+    ...TextStyles.bodyBold,
+    color: Colors.primaryBorder,
+    marginBottom: 6,
+  },
+  illustrationContainer: {
+    alignItems: 'center',
+    flex: 1,
+    gap: 24,
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    paddingTop: 40,
+  },
+  progressContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  progressText: {
+    ...TextStyles.small,
+    color: Colors.primary,
     fontWeight: '600',
-    color: 'black',
+  },
+  skipButton: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  skipButtonText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    fontWeight: '500',
+  },
+  title: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+    flex: 1,
+    marginLeft: 4,
+  },
+  titleContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
   },
 });

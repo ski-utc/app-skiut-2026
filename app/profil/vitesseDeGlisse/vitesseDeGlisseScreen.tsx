@@ -1,256 +1,951 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Alert, TouchableOpacity } from "react-native";
-import Header from "../../../components/header";
-import BoutonRetour from "../../../components/divers/boutonRetour";
-import { Colors } from "@/constants/GraphSettings";
-import { Trophy } from "lucide-react-native";
-import StatWidget from "../../../components/vitesseDeGlisse/statWidget";
-import BoutonNavigation from "@/components/divers/boutonNavigation";
-import * as Location from "expo-location";
-import { apiPost } from "@/constants/api/apiCalls";
-import { useUser } from "@/contexts/UserContext";
+import { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Platform,
+} from 'react-native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import {
+  Trophy,
+  Play,
+  Square,
+  Zap,
+  MapPin,
+  Timer,
+  Gauge,
+  Activity,
+  TrendingUp,
+  LucideProps,
+} from 'lucide-react-native';
+import * as Location from 'expo-location';
+import * as TaskManager from 'expo-task-manager';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 
-export default function VitesseDeGlisseScreen() {
-    const [isTracking, setIsTracking] = useState(false);
-    const [distance, setDistance] = useState(0);
-    const [trackingTimer, setTrackingTimer] = useState(null);
-    const [, setSpeed] = useState(0);
-    const [maxSpeed, setMaxSpeed] = useState(0); // Pour suivre la vitesse maximale atteinte
-    const [prevLocation, setPrevLocation] = useState(null);
-    const [subscription, setSubscription] = useState(null);
+import {
+  apiPost,
+  isSuccessResponse,
+  isPendingResponse,
+  handleApiErrorToast,
+  AppError,
+} from '@/constants/api/apiCalls';
+import { useUser } from '@/contexts/UserContext';
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+import BackgroundLocationDisclosure from '@/components/modals/BackgroundLocationDisclosure';
+import GpsSignalIndicator from '@/components/divers/GpsSignalIndicator';
 
-    const { user } = useUser();
+import BoutonRetour from '../../../components/divers/boutonRetour';
+import Header from '../../../components/header';
 
-    useEffect(() => {
-        return () => {
-            if (subscription) subscription.remove();
-        };
-    }, [subscription]);
+const LOCATION_TASK_NAME = 'background-location-task';
 
-    const startTracking = async () => {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
-            Alert.alert(
-                "Permission refusée",
-                "L'application a besoin de l'accès à votre localisation pour suivre vos mouvements."
+const STORAGE_KEYS = {
+  SESSION_ID: 'tracking_session_id',
+  SESSION_DATA: 'tracking_session_data',
+  IS_TRACKING: 'tracking_is_active',
+};
+
+type VitesseDeGlisseStackParamList = {
+  VitesseDeGlisseMain: undefined;
+  PerformancesScreen: undefined;
+  UserPerformancesScreen: undefined;
+};
+
+type LocationTaskData = {
+  locations: Location.LocationObject[];
+};
+
+type StoredSessionData = {
+  sessionId: string;
+  startTime: number;
+  distance: number;
+  maxSpeed: number;
+  totalSpeed: number;
+  speedReadings: number;
+  validReadings: number;
+  lastLocation: {
+    latitude: number;
+    longitude: number;
+    timestamp: number;
+  } | null;
+};
+
+function getDistanceFromLatLonInMeters(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  const R = 6371e3;
+  const toRad = (val: number) => (val * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+TaskManager.defineTask<LocationTaskData>(
+  LOCATION_TASK_NAME,
+  async ({ data, error }) => {
+    if (error) {
+      console.error('Background location error:', error);
+      return;
+    }
+
+    if (!data?.locations || data.locations.length === 0) return;
+
+    try {
+      const sessionDataStr = await AsyncStorage.getItem(
+        STORAGE_KEYS.SESSION_DATA,
+      );
+      if (!sessionDataStr) return;
+
+      const sessionData: StoredSessionData = JSON.parse(sessionDataStr);
+
+      for (const location of data.locations) {
+        const { coords } = location;
+
+        if (coords.accuracy && coords.accuracy > 30) continue;
+
+        const currentSpeedKmh = Math.max(0, (coords.speed || 0) * 3.6);
+        if (currentSpeedKmh > 150) continue;
+
+        if (sessionData.lastLocation) {
+          const timeDelta =
+            (location.timestamp - sessionData.lastLocation.timestamp) / 1000;
+          const deltaDist = getDistanceFromLatLonInMeters(
+            sessionData.lastLocation.latitude,
+            sessionData.lastLocation.longitude,
+            coords.latitude,
+            coords.longitude,
+          );
+
+          if (deltaDist > 0 && deltaDist < 100 && timeDelta > 0.5) {
+            sessionData.distance += deltaDist;
+            sessionData.maxSpeed = Math.max(
+              sessionData.maxSpeed,
+              currentSpeedKmh,
             );
-            return;
+            sessionData.totalSpeed += currentSpeedKmh;
+            sessionData.speedReadings += 1;
+            sessionData.validReadings += 1;
+          }
         }
 
-        setIsTracking(true);
-        setDistance(0);
-        setSpeed(0);
-        setMaxSpeed(0);
-        setPrevLocation(null);
+        sessionData.lastLocation = {
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          timestamp: location.timestamp,
+        };
+      }
 
-        const locationSubscription = await Location.watchPositionAsync(
-            {
-                accuracy: Location.Accuracy.Highest,
-                timeInterval: 1000,
-                distanceInterval: 1,
-            },
-            (location) => {
-                const { coords } = location;
-                if (prevLocation) {
-                    const deltaDistance = getDistanceFromLatLonInMeters(
-                        prevLocation.latitude,
-                        prevLocation.longitude,
-                        coords.latitude,
-                        coords.longitude
-                    );
+      await AsyncStorage.setItem(
+        STORAGE_KEYS.SESSION_DATA,
+        JSON.stringify(sessionData),
+      );
+    } catch (err) {
+      console.error('Error processing background locations:', err);
+    }
+  },
+);
 
-                    const currentSpeed = coords.speed * 3.6; // Convert speed from m/s to km/h
+export default function VitesseDeGlisseScreen() {
+  const [isTracking, setIsTracking] = useState(false);
+  const [distance, setDistance] = useState(0);
+  const [maxSpeed, setMaxSpeed] = useState(0);
+  const [averageSpeed, setAverageSpeed] = useState(0);
+  const [currentSpeed, setCurrentSpeed] = useState(0);
+  const [trackingTime, setTrackingTime] = useState(0);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [showLocationDisclosure, setShowLocationDisclosure] = useState(false);
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
 
-                    if (deltaDistance <= 100 && currentSpeed <= 150) {
-                        setDistance((prev) => prev + deltaDistance);
-                    }
+  const { user, setUser } = useUser();
+  const navigation =
+    useNavigation<NavigationProp<VitesseDeGlisseStackParamList>>();
 
-                    setSpeed(currentSpeed);
-                    setMaxSpeed((prevMaxSpeed) =>
-                        currentSpeed > prevMaxSpeed ? currentSpeed : prevMaxSpeed
-                    );
-                }
+  const trackingInterval = useRef<NodeJS.Timeout | null>(null);
+  const foregroundSubscription = useRef<Location.LocationSubscription | null>(
+    null,
+  );
+  const hasAskedBackgroundPermission = useRef(false);
 
-                setPrevLocation(coords);
-            }
+  useEffect(() => {
+    return () => {
+      if (foregroundSubscription.current)
+        foregroundSubscription.current.remove();
+      if (trackingInterval.current) clearInterval(trackingInterval.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    const checkExistingSession = async () => {
+      try {
+        const isTrackingStr = await AsyncStorage.getItem(
+          STORAGE_KEYS.IS_TRACKING,
         );
+        if (isTrackingStr === 'true') {
+          const sessionIdStr = await AsyncStorage.getItem(
+            STORAGE_KEYS.SESSION_ID,
+          );
+          const sessionDataStr = await AsyncStorage.getItem(
+            STORAGE_KEYS.SESSION_DATA,
+          );
 
-        setSubscription(locationSubscription);
+          if (sessionIdStr && sessionDataStr) {
+            const sessionData: StoredSessionData = JSON.parse(sessionDataStr);
 
-        // Définir un timer pour arrêter automatiquement l'enregistrement après 2 minutes
-        const timer = setTimeout(() => {
-            stopTracking();
-        }, 2 * 60 * 1000); // 2 minutes en millisecondes
+            setSessionId(sessionIdStr);
+            setIsTracking(true);
+            setDistance(sessionData.distance);
+            setMaxSpeed(sessionData.maxSpeed);
+            setAverageSpeed(
+              sessionData.speedReadings > 0
+                ? sessionData.totalSpeed / sessionData.speedReadings
+                : 0,
+            );
+            setTrackingTime(
+              Math.floor((Date.now() - sessionData.startTime) / 1000),
+            );
 
-        setTrackingTimer(timer);
-    };
-
-    const stopTracking = async () => {
-        setIsTracking(false);
-        if (subscription) {
-            subscription.remove();
-            setSubscription(null);
-        }
-
-        if (trackingTimer) {
-            clearTimeout(trackingTimer);
-            setTrackingTimer(null);
-        }
-
-        try {
-            const response = await apiPost("update-performance", {
-                user_id: user?.id,
-                speed: maxSpeed,
-                distance: distance / 1000,
+            Toast.show({
+              type: 'info',
+              text1: 'Session restaurée',
+              text2: 'Votre tracking était en cours',
             });
-
-            if (response.success) {
-                Toast.show({
-                    type: 'success',
-                    text1: 'Succès',
-                    text2: "Votre performance a été enregistrée !",
-                  });
-            } else {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Erreur',
-                    text2: "Une erreur est survenue lors de l'enregistrement.",
-                  });
-            }
-        } catch (error : any) {
-            const errorMessage = error?.message || "Erreur inconnue";
-            Alert.alert("Erreur", `Impossible d'enregistrer la performance : ${errorMessage}`);
+          }
         }
-
-        setDistance(0);
-        setSpeed(0);
-        setMaxSpeed(0);
-        setPrevLocation(null);
+      } catch (err) {
+        console.error('Error checking existing session:', err);
+      }
     };
 
-    const getDistanceFromLatLonInMeters = (lat1, lon1, lat2, lon2) => {
-        const R = 6371e3;
-        const toRad = (value) => (value * Math.PI) / 180;
-        const dLat = toRad(lat2 - lat1);
-        const dLon = toRad(lon2 - lon1);
-        const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(toRad(lat1)) *
-            Math.cos(toRad(lat2)) *
-            Math.sin(dLon / 2) *
-            Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
+    checkExistingSession();
+  }, []);
+
+  useEffect(() => {
+    if (isTracking) {
+      trackingInterval.current = setInterval(async () => {
+        setTrackingTime((t) => t + 1);
+      }, 1000);
+    } else {
+      if (trackingInterval.current) {
+        clearInterval(trackingInterval.current);
+        trackingInterval.current = null;
+      }
+    }
+    return () => {
+      if (trackingInterval.current) clearInterval(trackingInterval.current);
+    };
+  }, [isTracking]);
+
+  useEffect(() => {
+    if (!isTracking) return;
+
+    const syncInterval = setInterval(async () => {
+      try {
+        const sessionDataStr = await AsyncStorage.getItem(
+          STORAGE_KEYS.SESSION_DATA,
+        );
+        if (!sessionDataStr) return;
+
+        const sessionData: StoredSessionData = JSON.parse(sessionDataStr);
+
+        setDistance(sessionData.distance);
+        setMaxSpeed(sessionData.maxSpeed);
+
+        const avgSpeed =
+          sessionData.speedReadings > 0
+            ? sessionData.totalSpeed / sessionData.speedReadings
+            : 0;
+        setAverageSpeed(avgSpeed);
+
+        const realDuration = Math.floor(
+          (Date.now() - sessionData.startTime) / 1000,
+        );
+        setTrackingTime(realDuration);
+      } catch (err) {
+        console.error('Error syncing session data:', err);
+      }
+    }, 2000);
+
+    return () => clearInterval(syncInterval);
+  }, [isTracking]);
+
+  useEffect(() => {
+    if (!isTracking) return;
+
+    const startForegroundTracking = async () => {
+      try {
+        foregroundSubscription.current = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.Balanced,
+            timeInterval: 1000,
+            distanceInterval: 2,
+          },
+          (location) => {
+            setGpsAccuracy(location.coords.accuracy);
+
+            if (location.coords.accuracy && location.coords.accuracy > 30)
+              return;
+            const speedKmh = Math.max(0, (location.coords.speed || 0) * 3.6);
+            if (speedKmh <= 150) {
+              setCurrentSpeed(speedKmh);
+            }
+          },
+        );
+      } catch (err) {
+        console.warn('Foreground tracking error:', err);
+      }
     };
 
-    return (
-        <View style={styles.container}>
-            <Header refreshFunction={undefined} disableRefresh={undefined} />
-            <View style={styles.innerContainer}>
-                <BoutonRetour previousRoute={"ProfilScreen"} title={"Vitesse de glisse"} />
-                <View style={styles.card}>
-                    {/* Titre en haut */}
-                    <Text style={styles.title}>Enregistre ta perf!</Text>
+    startForegroundTracking();
 
-                    {/* Conteneur pour Vitesse Max */}
-                    <View style={styles.statWidgetContainer}>
-                        <StatWidget
-                            topText="Vitesse max"
-                            bottomText={`${maxSpeed.toFixed(2)} km/h`}
-                        />
-                    </View>
+    return () => {
+      if (foregroundSubscription.current)
+        foregroundSubscription.current.remove();
+    };
+  }, [isTracking]);
 
-                    {/* Conteneur pour Distance */}
-                    <View style={styles.statWidgetContainer}>
-                        <StatWidget
-                            topText="Distance"
-                            bottomText={`${(distance / 1000).toFixed(2)} km`}
-                        />
-                    </View>
+  const startLocationUpdates = async () => {
+    const newSessionId = Date.now().toString();
 
-                    {/* Boutons */}
-                    <View style={styles.buttonsContainer}>
-                        <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={isTracking ? stopTracking : startTracking}
-                        >
-                            <Text style={styles.buttonText}>
-                                {isTracking ? "Arrêter" : "Lancer"}
-                            </Text>
-                        </TouchableOpacity>
-                        <View style={styles.navigationButton}>
-                            <BoutonNavigation
-                                nextRoute={"PerformancesScreen"}
-                                title="Performances"
-                                IconComponent={Trophy}
-                            />
-                        </View>
-                    </View>
-                </View>
-            </View>
-        </View>
+    const initialData: StoredSessionData = {
+      sessionId: newSessionId,
+      startTime: Date.now(),
+      distance: 0,
+      maxSpeed: 0,
+      totalSpeed: 0,
+      speedReadings: 0,
+      validReadings: 0,
+      lastLocation: null,
+    };
+
+    await AsyncStorage.setItem(STORAGE_KEYS.SESSION_ID, newSessionId);
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.SESSION_DATA,
+      JSON.stringify(initialData),
     );
+    await AsyncStorage.setItem(STORAGE_KEYS.IS_TRACKING, 'true');
+
+    setSessionId(newSessionId);
+    setDistance(0);
+    setMaxSpeed(0);
+    setAverageSpeed(0);
+    setCurrentSpeed(0);
+    setTrackingTime(0);
+
+    setIsTracking(true);
+
+    try {
+      const isRegistered =
+        await TaskManager.isTaskRegisteredAsync(LOCATION_TASK_NAME);
+      if (isRegistered) {
+        await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+      }
+
+      if (Platform.OS === 'ios') {
+        await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+          accuracy: Location.Accuracy.BestForNavigation,
+          timeInterval: 2000,
+          distanceInterval: 5,
+          showsBackgroundLocationIndicator: true,
+          pausesUpdatesAutomatically: false,
+          activityType: Location.ActivityType.Fitness,
+        });
+      } else {
+        await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+          accuracy: Location.Accuracy.BestForNavigation,
+          timeInterval: 2000,
+          distanceInterval: 5,
+          foregroundService: {
+            notificationTitle: 'Suivi de glisse en cours',
+            notificationBody: 'Nous enregistrons votre vitesse et distance.',
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Error starting location updates:', error);
+      handleApiErrorToast(
+        'Une erreur est survenue lors du démarrage du GPS.',
+        setUser,
+      );
+      setIsTracking(false);
+      await AsyncStorage.removeItem(STORAGE_KEYS.IS_TRACKING);
+    }
+  };
+
+  const startTracking = async () => {
+    const { status: bgStatus } = await Location.getBackgroundPermissionsAsync();
+
+    if (bgStatus !== 'granted' && !hasAskedBackgroundPermission.current) {
+      setShowLocationDisclosure(true);
+      return;
+    }
+
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      handleApiErrorToast(
+        "Permission refusée pour l'accès à la localisation.",
+        setUser,
+      );
+      return;
+    }
+
+    await startLocationUpdates();
+  };
+
+  const handleDisclosureAccept = async () => {
+    setShowLocationDisclosure(false);
+    hasAskedBackgroundPermission.current = true;
+
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      handleApiErrorToast(
+        "Permission refusée pour l'accès à la localisation.",
+        setUser,
+      );
+      return;
+    }
+
+    const { status: bgStatus } =
+      await Location.requestBackgroundPermissionsAsync();
+
+    if (bgStatus === 'granted') {
+      await startLocationUpdates();
+    } else {
+      Toast.show({
+        type: 'info',
+        text1: 'Mode premier plan',
+        text2: "Le tracking s'arrêtera si vous verrouillez l'écran.",
+      });
+      await startLocationUpdates();
+    }
+  };
+
+  const handleDisclosureDeny = async () => {
+    setShowLocationDisclosure(false);
+    hasAskedBackgroundPermission.current = true;
+
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      handleApiErrorToast(
+        "Permission refusée pour l'accès à la localisation.",
+        setUser,
+      );
+      return;
+    }
+
+    Toast.show({
+      type: 'info',
+      text1: 'Mode premier plan',
+      text2: "Le tracking s'arrêtera si vous verrouillez l'écran.",
+    });
+    startLocationUpdates();
+  };
+
+  const stopTracking = async () => {
+    setIsTracking(false);
+
+    try {
+      const isRegistered =
+        await TaskManager.isTaskRegisteredAsync(LOCATION_TASK_NAME);
+      if (isRegistered) {
+        await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+      }
+    } catch (err) {
+      console.warn('Error stopping location updates:', err);
+    }
+
+    if (foregroundSubscription.current) {
+      foregroundSubscription.current.remove();
+      foregroundSubscription.current = null;
+    }
+    if (trackingInterval.current) {
+      clearInterval(trackingInterval.current);
+      trackingInterval.current = null;
+    }
+
+    let finalDistance = distance;
+    let finalMaxSpeed = maxSpeed;
+    let finalAvgSpeed = averageSpeed;
+    let finalDuration = trackingTime;
+
+    try {
+      const sessionDataStr = await AsyncStorage.getItem(
+        STORAGE_KEYS.SESSION_DATA,
+      );
+      if (sessionDataStr) {
+        const sessionData: StoredSessionData = JSON.parse(sessionDataStr);
+        finalDistance = sessionData.distance;
+        finalMaxSpeed = sessionData.maxSpeed;
+        finalAvgSpeed =
+          sessionData.speedReadings > 0
+            ? sessionData.totalSpeed / sessionData.speedReadings
+            : 0;
+        finalDuration = Math.floor((Date.now() - sessionData.startTime) / 1000);
+      }
+    } catch (err) {
+      console.error('Error reading final session data:', err);
+    }
+
+    await AsyncStorage.removeItem(STORAGE_KEYS.SESSION_ID);
+    await AsyncStorage.removeItem(STORAGE_KEYS.SESSION_DATA);
+    await AsyncStorage.removeItem(STORAGE_KEYS.IS_TRACKING);
+
+    const totalDistanceKm = finalDistance / 1000;
+
+    if (totalDistanceKm > 0.1 && finalDuration > 10) {
+      try {
+        const response = await apiPost('create-performance', {
+          user_id: user?.id,
+          speed: finalMaxSpeed,
+          distance: totalDistanceKm,
+          duration: finalDuration,
+          average_speed: finalAvgSpeed,
+          session_id: sessionId,
+        });
+
+        if (isSuccessResponse(response)) {
+          Toast.show({
+            type: 'success',
+            text1: 'Performance enregistrée !',
+            text2: `${finalMaxSpeed.toFixed(1)} km/h • ${totalDistanceKm.toFixed(2)} km`,
+          });
+        } else if (isPendingResponse(response)) {
+          Toast.show({
+            type: 'info',
+            text1: 'Session sauvegardée (Hors ligne)',
+            text2: 'Synchronisez votre téléphone une fois en ligne !',
+          });
+        } else {
+          Toast.show({
+            type: 'error',
+            text1: 'Erreur',
+            text2: response.message || 'Echec enregistrement',
+          });
+        }
+      } catch (err: unknown) {
+        handleApiErrorToast(err as AppError, setUser);
+      }
+    } else {
+      Toast.show({
+        type: 'info',
+        text1: 'Session ignorée',
+        text2: 'Trop courte (< 100m ou < 10s)',
+      });
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const StatCard = ({
+    icon: IconComponent,
+    title,
+    value,
+    unit,
+    color = Colors.primary,
+    isLive = false,
+    compact = false,
+  }: {
+    icon: React.FC<LucideProps>;
+    title: string;
+    value: string;
+    unit: string;
+    color?: string;
+    isLive?: boolean;
+    compact?: boolean;
+  }) => (
+    <View
+      style={[
+        styles.statCard,
+        isLive && styles.statCardLive,
+        compact && styles.statCardCompact,
+      ]}
+    >
+      <View
+        style={[
+          styles.statIcon,
+          { backgroundColor: color },
+          compact && styles.statIconCompact,
+        ]}
+      >
+        <IconComponent size={compact ? 18 : 24} color={Colors.white} />
+      </View>
+      <View style={styles.statContent}>
+        <Text style={[styles.statTitle, compact && styles.statTitleCompact]}>
+          {title}
+        </Text>
+        <View style={styles.statValueContainer}>
+          <Text
+            style={[
+              styles.statValue,
+              isLive && styles.statValueLive,
+              compact && styles.statValueCompact,
+            ]}
+          >
+            {value}
+          </Text>
+          <Text style={[styles.statUnit, compact && styles.statUnitCompact]}>
+            {unit}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+
+  const ActionButton = ({
+    onPress,
+    title,
+    icon: IconComponent,
+    variant = 'primary',
+    disabled = false,
+  }: {
+    onPress: () => void;
+    title: string;
+    icon: React.FC<LucideProps>;
+    variant?: 'primary' | 'secondary';
+    disabled?: boolean;
+  }) => (
+    <TouchableOpacity
+      style={[
+        styles.actionButton,
+        variant === 'secondary' && styles.actionButtonSecondary,
+        disabled && styles.actionButtonDisabled,
+      ]}
+      onPress={onPress}
+      activeOpacity={0.7}
+      disabled={disabled}
+    >
+      <View
+        style={[
+          styles.actionButtonIcon,
+          variant === 'secondary' && styles.actionButtonIconSecondary,
+        ]}
+      >
+        <IconComponent
+          size={20}
+          color={variant === 'primary' ? Colors.primary : Colors.primaryBorder}
+        />
+      </View>
+      <Text
+        style={[
+          styles.actionButtonText,
+          variant === 'secondary' && styles.actionButtonTextSecondary,
+        ]}
+      >
+        {title}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  return (
+    <View style={styles.container}>
+      <Header refreshFunction={null} disableRefresh={true} />
+      <View style={styles.headerContainer}>
+        <BoutonRetour title={'Vitesse de glisse'} />
+        <GpsSignalIndicator accuracy={gpsAccuracy} />
+      </View>
+
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.heroSection}>
+          <View style={[styles.heroIcon, isTracking && styles.heroIconActive]}>
+            <Zap size={32} color={isTracking ? Colors.white : Colors.primary} />
+          </View>
+          <Text style={styles.heroTitle}>
+            {isTracking ? 'Enregistrement en cours...' : 'Vitesse de glisse'}
+          </Text>
+          {isTracking && (
+            <Text style={styles.heroSubtitle}>
+              Session active • {formatTime(trackingTime)}
+            </Text>
+          )}
+        </View>
+
+        <View style={styles.statsSection}>
+          <StatCard
+            icon={Activity}
+            title="Vitesse actuelle"
+            value={currentSpeed.toFixed(1)}
+            unit="km/h"
+            color={Colors.success}
+            isLive={isTracking}
+          />
+
+          <View style={styles.twoColumnRow}>
+            <View style={styles.halfColumn}>
+              <StatCard
+                icon={Zap}
+                title="Vitesse max"
+                value={maxSpeed.toFixed(1)}
+                unit="km/h"
+                color={Colors.primary}
+                compact={true}
+              />
+            </View>
+            <View style={styles.halfColumn}>
+              <StatCard
+                icon={TrendingUp}
+                title="Vitesse moy"
+                value={averageSpeed.toFixed(1)}
+                unit="km/h"
+                color={Colors.accent}
+                compact={true}
+              />
+            </View>
+          </View>
+
+          <View style={styles.twoColumnRow}>
+            <View style={styles.halfColumn}>
+              <StatCard
+                icon={MapPin}
+                title="Distance"
+                value={(distance / 1000).toFixed(2)}
+                unit="km"
+                color={Colors.primaryBorder}
+                compact={true}
+              />
+            </View>
+            <View style={styles.halfColumn}>
+              <StatCard
+                icon={Timer}
+                title="Durée"
+                value={formatTime(trackingTime)}
+                unit=""
+                color={Colors.muted}
+                compact={true}
+              />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.controlsSection}>
+          <Text style={styles.sectionTitle}>Contrôles</Text>
+
+          <ActionButton
+            title={
+              isTracking
+                ? "Arrêter l'enregistrement"
+                : "Commencer l'enregistrement"
+            }
+            icon={isTracking ? Square : Play}
+            onPress={isTracking ? stopTracking : startTracking}
+            variant="primary"
+          />
+
+          <ActionButton
+            title="Voir le classement"
+            icon={Trophy}
+            onPress={() => navigation.navigate('PerformancesScreen')}
+            variant="secondary"
+            disabled={isTracking}
+          />
+
+          <ActionButton
+            title="Mes enregistrements"
+            icon={Gauge}
+            onPress={() => navigation.navigate('UserPerformancesScreen')}
+            variant="secondary"
+            disabled={isTracking}
+          />
+        </View>
+      </ScrollView>
+      <BackgroundLocationDisclosure
+        visible={showLocationDisclosure}
+        onAccept={handleDisclosureAccept}
+        onDeny={handleDisclosureDeny}
+      />
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        height: "100%",
-        width: "100%",
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    innerContainer: {
-        width: "100%",
-        flex: 1,
-        backgroundColor: Colors.white,
-        paddingHorizontal: 20,
-        paddingBottom: 16,
-    },
-    card: {
-        width: "100%",
-        height: "95%",
-        marginBottom: 16,
-        backgroundColor: Colors.orange,
-        borderRadius: 12,
-        padding: 16,
-    },
-    title: {
-        color: Colors.white,
-        top: 10,
-        fontSize: 24, // Taille du texte
-        fontWeight: "bold", // Texte en gras
-        textAlign: "center", // Centrer horizontalement
-        marginBottom: 20, // Espace sous le titre
-    },
-    statWidgetContainer: {
-        top: 40,
-        marginBottom: 40, // Espacement entre les widgets
-        alignItems: "center", // Centrage horizontal
-    },
-    buttonsContainer: {
-        position: "absolute",
-        bottom: 15,
-        width: "90%",
-        alignSelf: "center",
-    },
-    actionButton: {
-        height: 50,
-        justifyContent: "center",
-        alignItems: "center",
-        borderRadius: 8,
-        marginBottom: 8,
-        backgroundColor: Colors.customWhite,
-    },
-    buttonText: {
-        color: Colors.orange,
-        fontSize: 16,
-        fontWeight: "bold",
-    },
-    navigationButton: {
-        marginBottom: 8,
-        borderWidth: 2,
-        borderColor: Colors.white,
-        borderRadius: 8,
-    },
+  actionButton: {
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    flexDirection: 'row',
+    marginBottom: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  actionButtonDisabled: {
+    opacity: 0.6,
+  },
+  actionButtonIcon: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 20,
+    height: 40,
+    justifyContent: 'center',
+    marginRight: 16,
+    width: 40,
+  },
+  actionButtonIconSecondary: {
+    backgroundColor: Colors.lightMuted,
+  },
+  actionButtonSecondary: {
+    backgroundColor: Colors.white,
+    borderColor: Colors.primaryBorder,
+    borderWidth: 2,
+  },
+  actionButtonText: {
+    ...TextStyles.button,
+    color: Colors.white,
+    flex: 1,
+    fontWeight: '600',
+  },
+  actionButtonTextSecondary: {
+    color: Colors.primaryBorder,
+  },
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  controlsSection: {
+    marginBottom: 24,
+  },
+  halfColumn: {
+    flex: 1,
+    minWidth: 0,
+  },
+  headerContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingBottom: 8,
+    paddingHorizontal: 20,
+    width: '100%',
+  },
+  heroIcon: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 40,
+    height: 80,
+    justifyContent: 'center',
+    marginBottom: 16,
+    width: 80,
+  },
+  heroIconActive: {
+    backgroundColor: Colors.primary,
+  },
+  heroSection: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  heroSubtitle: {
+    ...TextStyles.body,
+    color: Colors.primary,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  heroTitle: {
+    ...TextStyles.h2Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  sectionTitle: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
+    marginBottom: 16,
+  },
+  statCard: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderColor: 'rgba(0,0,0,0.06)',
+    borderRadius: 14,
+    borderWidth: 1,
+    elevation: 3,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    padding: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+  },
+  statCardCompact: {
+    padding: 10,
+  },
+  statCardLive: {
+    borderColor: Colors.success,
+    borderWidth: 2,
+  },
+  statContent: {
+    flex: 1,
+  },
+  statIcon: {
+    alignItems: 'center',
+    borderRadius: 21,
+    flexShrink: 0,
+    height: 42,
+    justifyContent: 'center',
+    marginRight: 12,
+    width: 42,
+  },
+  statIconCompact: {
+    borderRadius: 18,
+    height: 36,
+    marginRight: 8,
+    width: 36,
+  },
+  statTitle: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginBottom: 4,
+  },
+  statTitleCompact: {
+    ...TextStyles.small,
+    marginBottom: 2,
+  },
+  statUnit: {
+    ...TextStyles.body,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  statUnitCompact: {
+    ...TextStyles.small,
+  },
+  statValue: {
+    ...TextStyles.h3Bold,
+    color: Colors.primaryBorder,
+    marginRight: 4,
+  },
+  statValueCompact: {
+    ...TextStyles.bodyBold,
+  },
+  statValueContainer: {
+    alignItems: 'baseline',
+    flexDirection: 'row',
+  },
+  statValueLive: {
+    color: Colors.success,
+  },
+  statsSection: {
+    gap: 8,
+    marginBottom: 16,
+  },
+  twoColumnRow: {
+    flexDirection: 'row',
+    gap: 8,
+    width: '100%',
+  },
 });

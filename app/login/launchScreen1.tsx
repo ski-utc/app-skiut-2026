@@ -1,135 +1,175 @@
-import React, {useState, useEffect} from 'react';
-import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Colors, loadFonts, Fonts } from '@/constants/GraphSettings';
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { Sparkles } from 'lucide-react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+import logoImage from '@/assets/images/logo.png';
+
+import { LoginStackParamList } from '../loginNavigator';
 
 export default function LaunchScreen1() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<LoginStackParamList>>();
 
-  const screenHeight = Dimensions.get("window").height;
-  const imageWidth = 0.4 * screenHeight;
-
-  const [fontsLoaded, setFontsLoaded] = useState(false);
-
-  useEffect(() => {
-    async function load() {
-      await loadFonts();
-      setFontsLoaded(true);
-    }
-    load();
-  }, []);
-
-  if (!fontsLoaded) {
-    return <ActivityIndicator size="large" color={Colors.orange} />;
-  }
+  const panGesture = Gesture.Pan()
+    .activeOffsetX([-10, 10])
+    .runOnJS(true)
+    .onEnd((e) => {
+      if (e.velocityX < -350) {
+        navigation.navigate('launchScreen2');
+      }
+    });
 
   return (
-    <View style={styles.container}>
-      {/* Image */}
-      <Image
-        source={require('../../assets/images/OursCabine.png')}
-        style={[styles.image, { width: imageWidth }]}
-      />
-      <View style={styles.innerContainer}>
-        <View style={styles.spacer} />
-        <View style={styles.contentContainer}>
-          <View style={styles.dotsContainer}>
-            <View style={styles.dotActive} />
-            <View style={styles.dotInactive} />
-            <View style={styles.dotInactive} />
+    <GestureDetector gesture={panGesture}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+      >
+        <View style={styles.backgroundDecoration} />
+
+        <View style={styles.logoContainer}>
+          <View style={styles.logoWrapper}>
+            <Image
+              source={logoImage}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            <View style={styles.logoGlow} />
           </View>
-          <Text style={styles.title}>
-            Bienvenue sur l’application SkiUTC
-          </Text>
-          <Text style={styles.description}>
-            Ton indispensable pour passer une semaine de folie !!
-          </Text>
-          <TouchableOpacity
-            onPress={() => { navigation.navigate("launchScreen2"); }}
-            style={styles.nextButton}
-          >
-            <Text style={styles.nextButtonText}>
-              Suivant
-            </Text>
-          </TouchableOpacity>
-          <View style = {{height: 55}}></View>
         </View>
-      </View>
-    </View>
+
+        <View style={styles.contentContainer}>
+          <View style={styles.progressContainer}>
+            <View style={styles.dotsContainer}>
+              <View style={[styles.dot, styles.dotActive]} />
+              <View style={[styles.dot, styles.dotInactive]} />
+              <View style={[styles.dot, styles.dotInactive]} />
+            </View>
+            <Text style={styles.progressText}>1 / 3</Text>
+          </View>
+
+          <View style={styles.titleContainer}>
+            <Sparkles size={28} color={Colors.primary} />
+            <Text style={styles.title}>Bienvenue sur Ski'UTC</Text>
+          </View>
+
+          <Text style={styles.description}>
+            Découvrez votre compagnon indispensable pour vivre une semaine de
+            ski inoubliable ! Défis, planning, météo et bien plus encore.
+          </Text>
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate('loginScreen')}
+            style={styles.skipButton}
+          >
+            <Text style={styles.skipButtonText}>Passer l'introduction</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </GestureDetector>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'white',
-  },
-  image: {
-    height: '40%',
+  backgroundDecoration: {
+    backgroundColor: Colors.primary,
+    borderBottomLeftRadius: 100,
+    height: '60%',
+    opacity: 0.1,
     position: 'absolute',
     right: 0,
     top: 0,
+    width: '80%',
   },
-  innerContainer: {
-    height: '100%',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  spacer: {
-    height: '50%',
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: 24,
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-  },
-  dotsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 20,
-  },
-  dotActive: {
-    width: 37.47,
-    height: 13,
-    backgroundColor: '#E64034',
-    borderRadius: 61,
-  },
-  dotInactive: {
-    width: 13,
-    height: 13,
-    backgroundColor: 'rgba(230, 64, 52, 0.20)',
-    borderRadius: 61,
-  },
-  title: {
-    fontFamily: Fonts.Text.Bold, // was Fonts.Title.Bold
-    fontSize: 32, 
-    fontWeight: '500',
-    color: 'black',
-    marginBottom: 16,
+    gap: 24,
+    paddingBottom: 20,
+    paddingHorizontal: 32,
   },
   description: {
-    fontFamily: Fonts.Text.Medium,
-    fontSize: 16,
-    fontWeight: '400',
-    color: '#737373',
+    ...TextStyles.body,
+    color: Colors.muted,
     lineHeight: 24,
-    marginBottom: 40,
+    textAlign: 'left',
   },
-  nextButton: {
-    alignSelf: 'stretch',
-    backgroundColor: '#E64034',
-    paddingVertical: 15,
-    borderRadius: 8,
+  dot: {
+    borderRadius: 4,
+    height: 8,
+  },
+  dotActive: {
+    backgroundColor: Colors.primary,
+    width: 32,
+  },
+  dotInactive: {
+    backgroundColor: Colors.lightMuted,
+    width: 8,
+  },
+  dotsContainer: {
     alignItems: 'center',
-    marginBottom: 16,
+    flexDirection: 'row',
+    gap: 12,
   },
-  nextButtonText: {
-    fontSize: 16,
+  logo: {
+    borderRadius: 100,
+    height: 180,
+    width: 180,
+    zIndex: 2,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    paddingTop: 60,
+  },
+  logoGlow: {
+    backgroundColor: Colors.primary,
+    borderRadius: 100,
+    height: 200,
+    opacity: 0.2,
+    position: 'absolute',
+    width: 200,
+    zIndex: 1,
+  },
+  logoWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  progressContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  progressText: {
+    ...TextStyles.small,
+    color: Colors.primary,
     fontWeight: '600',
-    color: 'white',
+  },
+  skipButton: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  skipButtonText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    fontWeight: '500',
+  },
+  title: {
+    ...TextStyles.h1Bold,
+    color: Colors.primaryBorder,
+    flex: 1,
+  },
+  titleContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 8,
   },
 });

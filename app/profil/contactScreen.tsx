@@ -1,109 +1,230 @@
-import {  View, StyleSheet, FlatList, Text, TouchableOpacity } from "react-native";
-import Header from "../../components/header";
-import React from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import * as Linking from 'expo-linking';
-import { Colors } from '@/constants/GraphSettings';
-import BoutonRetour from "../../components/divers/boutonRetour";
-import { Phone } from "lucide-react-native";
+import { Phone } from 'lucide-react-native';
 
-interface ContactInterface{
-    name: string;
-    phone: string;
-}
+import { Colors, TextStyles } from '@/constants/GraphSettings';
+import {
+  apiGet,
+  isSuccessResponse,
+  handleApiErrorScreen,
+} from '@/constants/api/apiCalls';
+import ErrorScreen from '@/components/pages/errorPage';
+import { useUser } from '@/contexts/UserContext';
 
-// structure de données avec les nums  
-const contacts: ContactInterface[] = [
-{ name: "Juliette - Présidente", phone: "07 82 11 19 78" },
-{ name: "Nicolas - Président", phone: "07 89 49 06 99" },
-{ name: "Secours des deux Alpes", phone: "04 76 79 75 01"},
-{ name: "Pompiers", phone: "18"},
-{ name: "Gendarmes", phone: "17"},
-];
+import BoutonRetour from '../../components/divers/boutonRetour';
+import Header from '../../components/header';
+
+type ContactInterface = {
+  name: string;
+  role?: string | null;
+  phoneNumber: string;
+};
 
 export default function Contact() {
-    // Fonction pour appeler un numéro
-    const makeCall = (phoneNumber: string) => {
-        Linking.openURL(`tel:${phoneNumber}`);
-    };
+  const [contacts, setContacts] = useState<ContactInterface[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
 
-    // Rendu d'un contact
-    const renderItem = ({ item }: {item: ContactInterface}) => (
-        <TouchableOpacity style={styles.phoneContainer} onPress={() => makeCall(item.phone)}>
-        <View style={styles.icon}>
-            <Phone size={20} color={Colors.gray}/>
-        </View>        
-        <View style={styles.phoneDetails}>
-            <Text style={styles.phoneName}>{item.name}</Text>
-            <Text style={styles.phoneNumber}>{item.phone}</Text>
+  const { setUser } = useUser();
+
+  const fetchContacts = useCallback(async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await apiGet<ContactInterface[]>('contacts');
+
+      if (isSuccessResponse(response)) {
+        setContacts(response.data || []);
+      }
+    } catch (err: unknown) {
+      handleApiErrorScreen(err, setUser, setError);
+    } finally {
+      setLoading(false);
+    }
+  }, [setUser]);
+
+  useEffect(() => {
+    fetchContacts();
+  }, [fetchContacts]);
+
+  const makeCall = (phoneNumber: string) => {
+    Linking.openURL(`tel:${phoneNumber}`);
+  };
+
+  const renderItem = ({ item }: { item: ContactInterface }) => (
+    <TouchableOpacity
+      style={styles.contactCard}
+      onPress={() => makeCall(item.phoneNumber)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.cardHeader}>
+        <View style={styles.iconContainer}>
+          <Phone size={18} color={Colors.primary} />
         </View>
-        </TouchableOpacity>
-    );
+      </View>
+      <View style={styles.cardContent}>
+        <Text style={styles.contactName} numberOfLines={2}>
+          {item.name}
+        </Text>
+        {item.role && (
+          <Text style={styles.contactRole} numberOfLines={1}>
+            {item.role}
+          </Text>
+        )}
+        <Text style={styles.contactPhone} numberOfLines={1}>
+          {item.phoneNumber}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
 
+  if (error) {
+    return <ErrorScreen error={error} />;
+  }
+
+  if (loading) {
     return (
-        <View style={styles.container}>
-            <Header />
-            <View style={styles.screencontainer}>
-            <View style={{paddingHorizontal: 20}}>
-                <BoutonRetour
-                    previousRoute={"ProfilScreen"}
-                    title={"Contact"}
-                />
-            </View>
-                <FlatList
-                    data={contacts}
-                    keyExtractor={(item, index) => index.toString()}
-                    renderItem={renderItem}
-                    contentContainerStyle={styles.phoneListContainer}
-                />
-            </View>
+      <View style={styles.container}>
+        <Header refreshFunction={undefined} disableRefresh={true} />
+        <View style={styles.loadingContent}>
+          <ActivityIndicator size="large" color={Colors.primaryBorder} />
+          <Text style={styles.loadingText}>Chargement...</Text>
         </View>
+      </View>
     );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Header refreshFunction={fetchContacts} disableRefresh={false} />
+
+      <View style={styles.content}>
+        <BoutonRetour title={'Contact'} />
+        <FlatList
+          data={contacts}
+          keyExtractor={(item, index) => `${item.name}-${index}`}
+          renderItem={renderItem}
+          numColumns={2}
+          columnWrapperStyle={styles.row}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>Aucun contact disponible</Text>
+            </View>
+          }
+        />
+      </View>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        height: '100%',
-        width: '100%',
-        flex: 1,
-        backgroundColor: 'white',
-        paddingBottom: 8,  
-    },
-    screencontainer: {
-        width: '100%',
-        flex: 1,
-        backgroundColor: Colors.white,
-        paddingBottom: 16,
-    },
-    icon: {
-        marginRight: 20, // Espacement entre l'icône et les détails
-        justifyContent: "center",
-        alignItems: "center",
-      },
-    phoneListContainer: {
-        paddingHorizontal: 16,
-    },
-    phoneContainer: {
-        width: "100%",
-        flexDirection: "row",
-        alignItems: "center",
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.customGray, // Couleur grise claire pour la bordure
-    },
-    phoneDetails: {
-        flexDirection: "column",
-        justifyContent: "flex-start",
-        alignItems: "flex-start",
-    },
-    phoneName: {
-        color: Colors.black, // Noir pour le nom
-        fontSize: 16,
-        fontWeight: "600",
-    },
-    phoneNumber: {
-        color: Colors.gray, // Gris pour le numéro
-        fontSize: 14,
-        fontWeight: "400",
-        marginTop: 4,
-    },
+  cardContent: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  cardHeader: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  contactCard: {
+    backgroundColor: Colors.white,
+    borderColor: 'rgba(0,0,0,0.06)',
+    borderRadius: 14,
+    borderWidth: 1,
+    elevation: 3,
+    flex: 1,
+    marginHorizontal: 6,
+    minHeight: 120,
+    paddingHorizontal: 12,
+    paddingVertical: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+  },
+  contactName: {
+    ...TextStyles.body,
+    color: Colors.primaryBorder,
+    fontSize: 14,
+    fontWeight: '600',
+    lineHeight: 18,
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  contactPhone: {
+    ...TextStyles.small,
+    color: Colors.muted,
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  contactRole: {
+    ...TextStyles.small,
+    color: Colors.primary,
+    fontSize: 12,
+    fontWeight: '500',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  container: {
+    backgroundColor: Colors.white,
+    flex: 1,
+  },
+  content: {
+    backgroundColor: Colors.white,
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    paddingTop: 40,
+  },
+  emptyText: {
+    ...TextStyles.bodyLarge,
+    color: Colors.muted,
+    paddingHorizontal: 20,
+    textAlign: 'center',
+  },
+  iconContainer: {
+    alignItems: 'center',
+    backgroundColor: Colors.lightMuted,
+    borderRadius: 18,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
+  },
+  listContainer: {
+    paddingBottom: 20,
+  },
+  loadingContent: {
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    flex: 1,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  loadingText: {
+    ...TextStyles.body,
+    color: Colors.muted,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  row: {
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
 });

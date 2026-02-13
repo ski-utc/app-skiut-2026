@@ -2,88 +2,119 @@
   "expo": {
     "name": "Ski'UT",
     "slug": "app-skiut-2026",
-    "version": "1.0.0",
+    "version": "3.0.3",
     "orientation": "portrait",
     "newArchEnabled": true,
-    "icon": "./assets/images/icone.png",
-    "scheme": "myapp",
+    "icon": "./assets/images/logo.png",
+    "scheme": "skiutc",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/icone.png",
+      "image": "./assets/images/logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#aad1cd"
+      "backgroundColor": "#79a8ce"
     },
     "ios": {
       "bundleIdentifier": "fr.utc.assos.skiutc",
       "supportsTablet": true,
-      "buildNumber": "1.0.0",
+      "buildNumber": "3.0.3",
       "infoPlist": {
         "NSCameraUsageDescription": "Autoriser Ski'Ut à accéder à la Caméra.",
         "NSPhotoLibraryUsageDescription": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Autoriser Ski'Ut à accéder à la localisation pour calculer votre vitesse de glisse.",
-        "NSLocationWhenInUseUsageDescription": "Nous utilisons votre localisation lorsque l'application est en cours d'utilisation pour calculer votre vitesse de glisse."
+        "NSLocationWhenInUseUsageDescription": "Autoriser Ski'Ut à accéder à la localisation lorsque l'application est en cours d'utilisation pour calculer votre vitesse de glisse.",
+        "NSLocationAlwaysUsageDescription": "Autoriser Ski'Ut à accéder à votre localisation en arrière-plan pour continuer le suivi de votre vitesse de glisse.",
+        "UIBackgroundModes": [
+          "location",
+          "location"
+        ],
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo.png",
-        "backgroundColor": "#aad1cd"
+        "backgroundColor": "#FFFFFF"
       },
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.READ_EXTERNAL_STORAGE"
       ],
       "package": "fr.utc.assos.skiutc",
+      "googleServicesFile": "./google-services.json",
       "icon": "./assets/images/logo.png"
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/logo.png"
     },
     "plugins": [
-      "expo-router",
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/icone.png",
-          "color": "#aad1cd"
+          "icon": "./assets/images/logo-notification.png",
+          "color": "#79a8ce"
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Autoriser Ski'Ut à accéder à votre galerie pour sélectionner des images.",
-          "cameraPermission": "Autoriser Ski'Ut à accéder à la Caméra."
+          "cameraPermission": "Autoriser Ski'Ut à accéder à la Caméra.",
+          "photosPermission": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Autoriser Ski'Ut à accéder à votre localisation pour calculer votre vitesse de glisse.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "locationWhenInUsePermission": "Autoriser Ski'Ut à accéder à votre localisation pour calculer votre vitesse de glisse.",
+          "locationAlwaysPermission": "Autoriser Ski'Ut à accéder à votre localisation pour calculer votre vitesse de glisse.",
+          "locationBackgroundPermission": "Autoriser Ski'Ut à accéder à votre localisation pour calculer votre vitesse de glisse."
         }
       ],
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-video",
+      "expo-audio",
+      "expo-asset"
     ],
     "assetBundlePatterns": [
       "**/*"
     ],
-    "experiments": {
-      "typedRoutes": true
-    },
     "notification": {
-      "icon": "./assets/images/icone.png",
-      "color": "#023c69",
+      "icon": "./assets/images/logo-notification.png",
+      "color": "#79a8ce",
       "iosDisplayInForeground": true
     },
     "androidStatusBar": {
-      "barStyle": "dark-content",
-      "backgroundColor": "#aad1cd"
+      "barStyle": "light-content",
+      "backgroundColor": "#ffffff"
     },
     "extra": {
-      "router": {
-        "origin": false
-      },
       "eas": {
         "projectId": "f03f1a56-74c7-4c87-a0b2-60b420f7de94"
       }
     },
-    "owner": "skiutcapp"
+    "owner": "skiutcapp",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f03f1a56-74c7-4c87-a0b2-60b420f7de94"
+    }
   }
 }

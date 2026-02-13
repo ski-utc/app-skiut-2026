@@ -1,129 +1,203 @@
-import React, { useState, useEffect } from 'react';
-import { Text, View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { Colors, Fonts, loadFonts } from '@/constants/GraphSettings';
+import { useState, useCallback, useEffect, memo } from 'react';
+import {
+  Text,
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+} from 'react-native';
 import { GanttChart, Bell, RotateCcw } from 'lucide-react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useNavigation,
+  DrawerActions,
+} from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { Colors, TextStyles } from '@/constants/GraphSettings';
 import NotificationPopup from '@/app/notificationPopUp';
 import { useUser } from '@/contexts/UserContext';
+import { apiGet, isSuccessResponse } from '@/constants/api/apiCalls';
 
-//@ts-ignore
-export default function Header({ refreshFunction, disableRefresh }) {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
-  const [isPopupVisible, setIsPopupVisible] = useState(false);
-  const { user } = useUser();
-  const navigation = useNavigation();
+type HeaderStackParamList = {
+  homeScreen: undefined;
+  planningScreen: undefined;
+  defisScreen: undefined;
+  anecdotesScreen: undefined;
+  profilScreen: undefined;
+};
 
-  useEffect(() => {
-    const loadAsyncFonts = async () => {
-      await loadFonts();
-      setFontsLoaded(true);
-    };
-    loadAsyncFonts();
-  }, []);
+type HeaderProps = {
+  refreshFunction?: (() => void) | null;
+  disableRefresh?: boolean;
+};
 
-  const handleGanttChartPress = () => {
-    navigation.navigate('profilNavigator', {
-      screen: 'ProfilScreen',
-    });
-  };
+type Notification = {
+  read: boolean;
+};
 
-  if (!fontsLoaded) {
-    return null;
-  }
+const Header = memo(
+  ({ refreshFunction, disableRefresh = false }: HeaderProps) => {
+    const [isPopupVisible, setIsPopupVisible] = useState(false);
+    const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
+    const { user } = useUser();
+    const navigation = useNavigation<NavigationProp<HeaderStackParamList>>();
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.leftContainer}>
-        <TouchableOpacity onPress={handleGanttChartPress} style={{flexDirection: 'row', gap:8, justifyContent:'center',alignItems:'center'}}>
-          <GanttChart size={24} color={Colors.black} />
-        <View style={styles.textContainer}>
-          <Text style={styles.nameText} numberOfLines={1}>
-            {user?.name} {user?.lastName}
-          </Text>
-          <Text style={styles.roomText}>
-          {`Chambre ${user?.roomName || 'Non attribuée'}`}
-          </Text>
-        </View>
-        </TouchableOpacity>
-      </View>
-      {refreshFunction === null ? null :
-        <TouchableOpacity 
-          style={{
-            position: 'absolute',
-            top: Platform.OS === 'ios' ? 60 : 20,
-            right: 70,
-            width: 40,
-            height: 40,
-            borderRadius: 8,
-            borderWidth: 1,
-            opacity: disableRefresh ? 0.4 : 1,
-            borderColor: '#EAEAEA',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }} 
-          onPress={refreshFunction} 
-          disabled={disableRefresh}
-        >
-          <RotateCcw size={20} color={Colors.black} />
-        </TouchableOpacity>
+    const activeOpacity = 1;
+    const inactiveOpacity = 0.4;
+
+    const handleMenuPress = useCallback(() => {
+      navigation.dispatch(DrawerActions.openDrawer());
+    }, [navigation]);
+
+    const handleBellPress = useCallback(() => {
+      setIsPopupVisible(true);
+    }, []);
+
+    const handleClosePopup = useCallback(() => {
+      setIsPopupVisible(false);
+      setHasUnreadNotifications(false);
+    }, []);
+
+    const updateUnreadNotifications = useCallback(async () => {
+      try {
+        const response = await apiGet<Notification[]>('notifications');
+        if (isSuccessResponse(response) && response.data) {
+          const hasUnread = response.data.some(
+            (notification) => !notification.read,
+          );
+          setHasUnreadNotifications(hasUnread);
+        }
+      } catch (err) {
+        console.error(err);
       }
-      <TouchableOpacity style={styles.bellButton} onPress={() => setIsPopupVisible(true)}>
-        <Bell size={20} color={Colors.black} />
-      </TouchableOpacity>
-      <NotificationPopup visible={isPopupVisible} onClose={() => setIsPopupVisible(false)} />
-    </View>
-  );
-}
+    }, []);
+
+    useEffect(() => {
+      updateUnreadNotifications();
+    }, [updateUnreadNotifications]);
+
+    return (
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        <View style={styles.leftContainer}>
+          <TouchableOpacity onPress={handleMenuPress} style={styles.menuButton}>
+            <GanttChart size={24} color={Colors.primaryBorder} />
+          </TouchableOpacity>
+          <View style={styles.textContainer}>
+            <Text style={styles.nameText} numberOfLines={1}>
+              {user?.name} {user?.lastName}
+            </Text>
+            <Text style={styles.roomText}>
+              {`Chambre ${user?.roomName || 'Non attribuée'}`}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.rightContainer}>
+          {refreshFunction && (
+            <TouchableOpacity
+              style={[
+                styles.refreshButton,
+                { opacity: disableRefresh ? inactiveOpacity : activeOpacity },
+              ]}
+              onPress={refreshFunction}
+              disabled={disableRefresh}
+            >
+              <RotateCcw size={20} color={Colors.primaryBorder} />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={styles.bellButton} onPress={handleBellPress}>
+            <Bell size={20} color={Colors.primaryBorder} />
+            {hasUnreadNotifications && <View style={styles.notificationDot} />}
+          </TouchableOpacity>
+        </View>
+        <NotificationPopup
+          visible={isPopupVisible}
+          onClose={handleClosePopup}
+        />
+      </SafeAreaView>
+    );
+  },
+);
+
+Header.displayName = 'Header';
+
+export default Header;
 
 const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    backgroundColor: Colors.white,
-    paddingTop: Platform.OS === 'ios' ? 50 : 20,
-    paddingBottom: 20, 
-    paddingLeft: 20,
-    paddingRight: 20,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-  leftContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 13,
-    marginTop: 2,
-  },
-  textContainer: {
-    width: 'auto',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-    gap: 4,
-    marginTop: 0,
-  },
-  nameText: {
-    color: Colors.black,
-    fontSize: 14,
-    fontFamily: Fonts.Inter.Basic,
-    fontWeight: '600',
-  },
-  roomText: {
-    color: '#9D9D9D',
-    fontSize: 12,
-    fontFamily: Fonts.Inter.Basic,
-    fontWeight: '600',
-  },
   bellButton: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 20,
-    right: 20,
-    width: 40,
-    height: 40,
+    alignItems: 'center',
+    borderColor: Colors.muted,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#EAEAEA',
+    height: 40,
     justifyContent: 'center',
+    width: 40,
+  },
+  container: {
     alignItems: 'center',
+    backgroundColor: Colors.white,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingBottom: 10,
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop: Platform.OS === 'ios' ? 0 : 20,
+    width: '100%',
+  },
+  leftContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flex: 1,
+    gap: 13,
+    justifyContent: 'flex-start',
+    marginTop: 2,
+  },
+  menuButton: {
+    alignItems: 'center',
+    borderRadius: 8,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
+  },
+  nameText: {
+    ...TextStyles.bodyBold,
+    color: Colors.primaryBorder,
+  },
+  notificationDot: {
+    backgroundColor: Colors.error,
+    borderColor: Colors.white,
+    borderRadius: 32,
+    borderWidth: 2,
+    height: 14,
+    left: -2,
+    position: 'absolute',
+    top: -2,
+    width: 14,
+  },
+  refreshButton: {
+    alignItems: 'center',
+    borderColor: Colors.muted,
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
+  },
+  rightContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+  },
+  roomText: {
+    ...TextStyles.small,
+    color: Colors.muted,
+  },
+  textContainer: {
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+    gap: 4,
+    justifyContent: 'flex-start',
+    marginTop: 0,
+    width: 'auto',
   },
 });

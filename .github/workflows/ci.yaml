@@ -38,6 +38,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm install --legacy-peer-deps
+      - name: Create google-services.json
+        run: echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > google-services.json
       - run: npx expo-doctor
       - run: CI=1 npx expo prebuild
 
